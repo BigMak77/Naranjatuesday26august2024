@@ -27,9 +27,9 @@ export default function AboutPage() {
     <main className="min-h-screen bg-teal-50 text-teal-900 flex flex-col">
       <LogoHeader />
 
-      {/* Header nav link */}
+      {/* Return Link */}
       <div className="bg-white shadow py-3 px-6 text-sm">
-        <Link href="/" className="text-teal-700 hover:underline">
+        <Link href="/" className="text-teal-700 hover:text-orange-600 hover:underline">
           ← Return to Home
         </Link>
       </div>
@@ -37,13 +37,13 @@ export default function AboutPage() {
       {/* About Section */}
       <section className="bg-teal-800 text-white py-12 px-4 flex-grow">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-4xl font-bold mb-10 text-left">About Us</h1>
+          <h1 className="text-4xl font-bold mb-10 text-left text-orange-300">About Us</h1>
 
           <div className="grid gap-10">
             {teamMembers.map((member, idx) => (
               <div
                 key={idx}
-                className="flex flex-col md:flex-row items-stretch bg-white rounded-lg shadow-lg overflow-hidden text-teal-900"
+                className="flex flex-col md:flex-row bg-white rounded-xl shadow-lg overflow-hidden text-teal-900 transition hover:shadow-xl"
               >
                 <img
                   src={member.image}
@@ -51,7 +51,7 @@ export default function AboutPage() {
                   className="w-full md:w-1/3 h-60 object-cover"
                 />
                 <div className="p-6 md:w-2/3">
-                  <h2 className="text-2xl font-semibold mb-1">{member.name}</h2>
+                  <h2 className="text-2xl font-bold text-orange-600 mb-1">{member.name}</h2>
                   <p className="text-teal-700 font-medium mb-2">{member.role}</p>
                   <p className="text-gray-700 text-sm">{member.description}</p>
                 </div>

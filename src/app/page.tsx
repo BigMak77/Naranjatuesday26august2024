@@ -12,18 +12,21 @@ export default function HomePage() {
 
       {/* Hero Section */}
       <section className="relative text-white py-20 px-6">
-        <div className="absolute inset-0">
+        {/* Background Image + Overlay */}
+        <div className="absolute inset-0 z-0">
           <Image
             src="/background1.jpg"
             alt="Hero background"
             fill
-            className="object-cover z-0"
+            className="object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-white opacity-80 z-10" />
+          <div className="absolute inset-0 bg-white opacity-80" />
         </div>
 
-        <div className="relative z-20 max-w-6xl mx-auto grid md:grid-cols-2 gap-10 items-center">
+
+        {/* Hero Content */}
+        <div className="relative z-20 max-w-6xl mx-auto grid md:grid-cols-1 gap-10 items-center">
           <div>
             <h1 className="text-5xl font-bold mb-4 text-orange-600">
               Welcome to NARANJA
@@ -31,12 +34,14 @@ export default function HomePage() {
             <p className="text-lg mb-6 text-teal-900">
               Training & compliance for food manufacturing — beautifully simple and audit-ready.
             </p>
-            {/* Removed: Link to /contact-us in hero */}
           </div>
         </div>
       </section>
 
-      {/* Features */}
+      {/* Dark Teal Divider Section */}
+      <section className="bg-teal-900 h-2 w-full" />
+
+      {/* Features Section */}
       <section className="py-16 px-6 bg-teal-50">
         <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-8 text-center">
           {[

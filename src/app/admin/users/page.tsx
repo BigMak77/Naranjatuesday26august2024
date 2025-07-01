@@ -12,8 +12,8 @@ interface User {
   last_name: string
   email: string
   status: string
-  departments: { name: string } | null
-  roles: { title: string } | null
+  department: { id: string; name: string } | null
+  role: { id: string; title: string } | null
 }
 
 export default function AdminUserListPage() {
@@ -28,20 +28,29 @@ export default function AdminUserListPage() {
     const fetchUsers = async () => {
       const { data, error } = await supabase
         .from('users')
-        .select(`id, first_name, last_name, email, status, departments(name), roles(title)`)
+        .select(`
+          id,
+          first_name,
+          last_name,
+          email,
+          status,
+          department:departments(id, name),
+          role:roles(id, title)
+        `)
 
       if (error) {
+        console.error('Error fetching users:', error)
         setError('Could not load users')
-        console.error('Fetch error:', error)
       } else {
         setUsers(
           (data as any[]).map((u) => ({
             ...u,
-            departments: Array.isArray(u.departments) ? u.departments[0] || null : u.departments,
-            roles: Array.isArray(u.roles) ? u.roles[0] || null : u.roles,
+            department: Array.isArray(u.department) ? u.department[0] || null : u.department,
+            role: Array.isArray(u.role) ? u.role[0] || null : u.role,
           }))
         )
       }
+
       setLoading(false)
     }
 
@@ -57,19 +66,21 @@ export default function AdminUserListPage() {
 
     if (!error) {
       setUsers((prev) =>
-        prev.map((u) => (u.id === user.id ? { ...u, status: newStatus } : u))
+        prev.map((u) =>
+          u.id === user.id ? { ...u, status: newStatus } : u
+        )
       )
     } else {
-      alert('Failed to update status.')
+      alert('Failed to update user status.')
     }
   }
 
-  const departments = [...new Set(users.map((u) => u.departments?.name).filter(Boolean))]
+  const departments = [...new Set(users.map((u) => u.department?.name).filter(Boolean))]
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch = [user.first_name, user.last_name, user.email]
       .some((field) => field?.toLowerCase().includes(search.toLowerCase()))
-    const matchesDept = filterDept ? user.departments?.name === filterDept : true
+    const matchesDept = filterDept ? user.department?.name === filterDept : true
     const matchesStatus = filterStatus ? user.status === filterStatus : true
     return matchesSearch && matchesDept && matchesStatus
   })
@@ -134,8 +145,8 @@ export default function AdminUserListPage() {
                 <tr key={user.id} className="text-teal-900 hover:bg-orange-100">
                   <td className="p-3 border-b">{user.first_name} {user.last_name}</td>
                   <td className="p-3 border-b">{user.email}</td>
-                  <td className="p-3 border-b">{user.departments?.name || '—'}</td>
-                  <td className="p-3 border-b">{user.roles?.title || '—'}</td>
+                  <td className="p-3 border-b">{user.department?.name || '—'}</td>
+                  <td className="p-3 border-b">{user.role?.title || '—'}</td>
                   <td className="p-3 border-b capitalize text-teal-800">{user.status}</td>
                   <td className="p-3 border-b space-x-2">
                     <Link href={`/admin/users/${user.id}/edit`} className="text-green-600 hover:underline">Edit</Link>

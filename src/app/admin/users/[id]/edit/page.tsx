@@ -1,9 +1,10 @@
-'use client'
+"use client"
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import LogoHeader from '@/components/LogoHeader'
+import BehaviourSelector from '@/components/BehaviourSelector'
 
 interface Department {
   id: string
@@ -24,6 +25,7 @@ export default function EditUserPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [success, setSuccess] = useState(false)
 
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
@@ -31,6 +33,7 @@ export default function EditUserPage() {
   const [departmentId, setDepartmentId] = useState('')
   const [roleId, setRoleId] = useState('')
   const [nationality, setNationality] = useState('')
+  const [selectedBehaviours, setSelectedBehaviours] = useState<string[]>([])
 
   const [departments, setDepartments] = useState<Department[]>([])
   const [filteredRoles, setFilteredRoles] = useState<Role[]>([])
@@ -69,9 +72,19 @@ export default function EditUserPage() {
       setDepartmentId(data.department_id || '')
       setRoleId(data.role_id || '')
       setNationality(data.nationality || '')
-      setLoading(false)
 
       if (data.department_id) fetchRoles(data.department_id)
+
+      const { data: behaviourLinks } = await supabase
+        .from('user_behaviours')
+        .select('behaviour_id')
+        .eq('user_id', id)
+
+      if (behaviourLinks) {
+        setSelectedBehaviours(behaviourLinks.map((b) => b.behaviour_id))
+      }
+
+      setLoading(false)
     }
 
     fetchUser()
@@ -102,13 +115,26 @@ export default function EditUserPage() {
       })
       .eq('id', id)
 
-    setSubmitting(false)
-
     if (error) {
       setError('Failed to update user.')
-    } else {
-      router.push('/admin/users')
+      setSubmitting(false)
+      return
     }
+
+    await supabase.from('user_behaviours').delete().eq('user_id', id)
+
+    const newBehaviourLinks = selectedBehaviours.map((b) => ({
+      user_id: id,
+      behaviour_id: b,
+    }))
+
+    if (newBehaviourLinks.length > 0) {
+      await supabase.from('user_behaviours').insert(newBehaviourLinks)
+    }
+
+    setSubmitting(false)
+    setSuccess(true)
+    setTimeout(() => router.push('/admin/users'), 1200)
   }
 
   const handleDepartmentChange = (value: string) => {
@@ -126,6 +152,11 @@ export default function EditUserPage() {
 
       <div className="p-6 max-w-xl mx-auto mt-4">
         <h1 className="text-2xl font-bold mb-4 text-orange-600">✏️ Edit User</h1>
+
+        {success && (
+          <p className="text-green-600 font-medium">✅ User updated successfully!</p>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="text"
@@ -185,13 +216,27 @@ export default function EditUserPage() {
             onChange={(e) => setNationality(e.target.value)}
           />
 
-          <button
-            type="submit"
-            className="bg-teal-700 text-white font-medium py-2 px-4 rounded hover:bg-teal-800"
-            disabled={submitting}
-          >
-            {submitting ? 'Saving...' : 'Save Changes'}
-          </button>
+          <div>
+            <label className="block text-sm font-medium mb-1">Key Behaviours (max 5)</label>
+            <BehaviourSelector selected={selectedBehaviours} onChange={setSelectedBehaviours} max={5} />
+          </div>
+
+          <div className="flex items-center space-x-4">
+            <button
+              type="submit"
+              className="bg-teal-700 text-white font-medium py-2 px-4 rounded hover:bg-teal-800"
+              disabled={submitting}
+            >
+              {submitting ? 'Saving...' : 'Save Changes'}
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push('/admin/users')}
+              className="text-gray-600 underline"
+            >
+              Cancel
+            </button>
+          </div>
         </form>
       </div>
     </>

@@ -26,18 +26,20 @@ export default function LogoHeader() {
   }, [])
 
   return (
-    <header className="bg-gradient-to-r from-teal-50 to-teal-900 shadow-md">
-      <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-3">
+    <header className="bg-gradient-to-r from-teal-50 to-teal-900 shadow-sm border-b-4 border-orange-500">
+      <div className="max-w-7xl mx-auto flex items-center justify-between px-4">
         {/* Logo */}
-        <Link href="/" className="flex items-center space-x-3">
-          <Image
-            src="/logo1.png"
-            alt="Naranja logo"
-            width={180}
-            height={60}
-            className="object-contain"
-          />
-        </Link>
+        <Link href="/" className="flex items-center">
+  <div className="mr-2 w-[160px] h-[200px] relative">
+    <Image
+      src="/logo1.png"
+      alt="Naranja logo"
+      fill
+      className="object-contain"
+      priority
+    />
+  </div>
+</Link>
 
         {/* Auth Button */}
         {isLoggedIn && (

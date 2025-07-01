@@ -19,46 +19,35 @@ interface Role {
   department_id: string
 }
 
-interface User {
-  id: string
-  first_name: string
-  last_name: string
-  role_id: string | null
-  department_id: string | null
-}
+const ROOT_DEPT_ID = '00000000-0000-0000-0000-000000000000'
 
 type RolesByDept = Record<string, Role[]>
 type ExpandedMap = Record<string, boolean>
-
-const ROOT_DEPT_ID = '00000000-0000-0000-0000-000000000000'
 
 export default function OrgChartPage() {
   const [departments, setDepartments] = useState<Department[]>([])
   const [rolesByDept, setRolesByDept] = useState<RolesByDept>({})
   const [expanded, setExpanded] = useState<ExpandedMap>({})
-  const [users, setUsers] = useState<User[]>([])
 
   useEffect(() => {
+    const fetchData = async () => {
+      const [{ data: deptData }, { data: roleData }] = await Promise.all([
+        supabase.from('departments').select('id, name, parent_id'),
+        supabase.from('roles').select('id, title, department_id')
+      ])
+
+      if (deptData) setDepartments(deptData)
+
+      const grouped: RolesByDept = {}
+      for (const role of roleData || []) {
+        if (!grouped[role.department_id]) grouped[role.department_id] = []
+        grouped[role.department_id].push(role)
+      }
+      setRolesByDept(grouped)
+    }
+
     fetchData()
   }, [])
-
-  const fetchData = async () => {
-    const [{ data: deptData }, { data: roleData }, { data: userData }] = await Promise.all([
-      supabase.from('departments').select('id, name, parent_id'),
-      supabase.from('roles').select('id, title, department_id'),
-      supabase.from('users').select('id, first_name, last_name, role_id, department_id'),
-    ])
-
-    if (deptData) setDepartments(deptData)
-    if (userData) setUsers(userData)
-
-    const grouped: RolesByDept = {}
-    for (const role of roleData || []) {
-      if (!grouped[role.department_id]) grouped[role.department_id] = []
-      grouped[role.department_id].push(role)
-    }
-    setRolesByDept(grouped)
-  }
 
   const toggleExpand = (deptId: string) => {
     setExpanded(prev => ({ ...prev, [deptId]: !prev[deptId] }))
@@ -151,7 +140,7 @@ export default function OrgChartPage() {
         <div className="max-w-4xl mx-auto">
           <h1 className="text-4xl font-bold mb-10 text-center text-teal-900">🏢 Organisation Chart</h1>
 
-          <div className="flex justify-center gap-4 mb-8">
+          <div className="flex justify-center gap-4 mb-8 flex-wrap">
             <Link
               href="/admin/departments/add"
               className="bg-orange-600 text-white px-6 py-2 rounded-full shadow hover:bg-orange-700 transition flex items-center"
@@ -163,12 +152,6 @@ export default function OrgChartPage() {
               className="bg-teal-600 text-white px-6 py-2 rounded-full shadow hover:bg-teal-700 transition flex items-center"
             >
               <Plus className="w-4 h-4 mr-2" /> Add Role
-            </Link>
-            <Link
-              href="/admin/departments/manage"
-              className="bg-gray-700 text-white px-6 py-2 rounded-full shadow hover:bg-gray-800 transition flex items-center"
-            >
-              🛠 Manage Departments
             </Link>
           </div>
 
