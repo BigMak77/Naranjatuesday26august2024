@@ -3,12 +3,18 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
-import LogoHeader from '@/components/LogoHeader'
-import Footer from '@/components/Footer'
+import BehaviourIcon from '@/components/BehaviourIcon'
+import type { ReactElement } from 'react'
 
-interface Item {
+interface Module {
+  id: string
+  name: string
+}
+
+interface Document {
   id: string
   title: string
+  document_type: string
 }
 
 interface Behaviour {
@@ -17,243 +23,185 @@ interface Behaviour {
   icon: string
 }
 
-export default function EditRoleProfilePage() {
-  const router = useRouter()
+export default function EditRoleProfilePage(): ReactElement {
   const { id } = useParams()
-  const profileId = Array.isArray(id) ? id[0] : id
-
-  const [title, setTitle] = useState('')
-  const [modules, setModules] = useState<Item[]>([])
-  const [documents, setDocuments] = useState<Item[]>([])
-  const [behaviours, setBehaviours] = useState<Behaviour[]>([])
-
-  const [selectedModules, setSelectedModules] = useState<string[]>([])
-  const [selectedPolicies, setSelectedPolicies] = useState<string[]>([])
-  const [selectedWIs, setSelectedWIs] = useState<string[]>([])
-  const [selectedSSOWs, setSelectedSSOWs] = useState<string[]>([])
-  const [selectedBehaviours, setSelectedBehaviours] = useState<string[]>([])
-
-  const [search, setSearch] = useState({
-    modules: '',
-    policies: '',
-    wis: '',
-    ssows: '',
-    behaviours: '',
-  })
-
-  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
+  const [allModules, setAllModules] = useState<Module[]>([])
+  const [selectedModuleIds, setSelectedModuleIds] = useState<string[]>([])
+  const [allDocuments, setAllDocuments] = useState<Document[]>([])
+  const [selectedDocumentIds, setSelectedDocumentIds] = useState<string[]>([])
+  const [allBehaviours, setAllBehaviours] = useState<Behaviour[]>([])
+  const [selectedBehaviourIds, setSelectedBehaviourIds] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const fetchAll = async () => {
-      const [
-        { data: profile },
-        { data: allModules },
-        { data: allDocs },
-        { data: allBehaviours },
-        { data: modLinks },
-        { data: docLinks },
-        { data: behaviourLinks }
-      ] = await Promise.all([
-        supabase.from('role_profiles').select('id, name').eq('id', profileId).single(),
+    const fetchData = async () => {
+      const [{ data: profile }, { data: modules }, { data: documents }, { data: behaviours }] = await Promise.all([
+        supabase
+          .from('role_profiles')
+          .select(`
+            id,
+            name,
+            description,
+            role_profile_modules ( module_id ),
+            role_profile_documents ( document_id ),
+            role_profile_behaviours ( behaviour_id )
+          `)
+          .eq('id', id)
+          .single(),
         supabase.from('modules').select('id, name'),
         supabase.from('documents').select('id, title, document_type'),
-        supabase.from('behaviours').select('id, name, icon'),
-        supabase.from('role_profile_modules').select('module_id').eq('role_profile_id', profileId),
-        supabase.from('role_profile_documents').select('document_id, documents(document_type)').eq('role_profile_id', profileId),
-        supabase.from('role_profile_behaviours').select('behaviour_id').eq('role_profile_id', profileId),
+        supabase.from('behaviours').select('id, name, icon')
       ])
 
-      if (!profile) return setError('Profile not found')
-
-      setTitle(profile.name || '')
-      setModules(allModules || [])
-      setDocuments(allDocs || [])
-      setBehaviours(allBehaviours || [])
-
-      setSelectedModules(modLinks?.map(m => m.module_id) || [])
-      setSelectedBehaviours(behaviourLinks?.map(b => b.behaviour_id) || [])
-
-      setSelectedPolicies(
-        docLinks?.filter(d => d.documents?.document_type === 'policy').map(d => d.document_id) || []
-      )
-      setSelectedWIs(
-        docLinks?.filter(d => d.documents?.document_type === 'work_instruction').map(d => d.document_id) || []
-      )
-      setSelectedSSOWs(
-        docLinks?.filter(d => d.documents?.document_type === 'ssow').map(d => d.document_id) || []
-      )
-
+      if (profile) {
+        setName(profile.name)
+        setDescription(profile.description || '')
+        setSelectedModuleIds(profile.role_profile_modules?.map((rm: any) => rm.module_id) || [])
+        setSelectedDocumentIds(profile.role_profile_documents?.map((rd: any) => rd.document_id) || [])
+        setSelectedBehaviourIds(profile.role_profile_behaviours?.map((rb: any) => rb.behaviour_id) || [])
+      }
+      setAllModules(modules || [])
+      setAllDocuments(documents || [])
+      setAllBehaviours(behaviours || [])
       setLoading(false)
     }
 
-    if (profileId) fetchAll()
-  }, [profileId])
+    if (id) fetchData()
+  }, [id])
 
-  const handleSave = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError(null)
 
-    const { error: updateError } = await supabase
-      .from('role_profiles')
-      .update({ name: title })
-      .eq('id', profileId)
+    await supabase.from('role_profiles').update({ name, description }).eq('id', id)
 
-    if (updateError) {
-      setError('Failed to update profile name')
-      return
-    }
-
-    const removeAndInsert = async (table: string, idField: string, values: string[]) => {
-      await supabase.from(table).delete().eq('role_profile_id', profileId)
-      if (values.length > 0) {
-        const inserts = values.map(id => ({ role_profile_id: profileId, [idField]: id }))
-        await supabase.from(table).insert(inserts)
-      }
-    }
-
-    await Promise.all([
-      removeAndInsert('role_profile_modules', 'module_id', selectedModules),
-      removeAndInsert('role_profile_documents', 'document_id', [
-        ...selectedPolicies,
-        ...selectedWIs,
-        ...selectedSSOWs,
-      ]),
-      removeAndInsert('role_profile_behaviours', 'behaviour_id', selectedBehaviours),
-    ])
-
-    router.push('/admin/role-profiles')
-  }
-
-  const CheckboxGroup = ({
-    label,
-    items,
-    selected,
-    setSelected,
-    searchKey,
-  }: {
-    label: string
-    items: Item[]
-    selected: string[]
-    setSelected: (val: string[]) => void
-    searchKey: keyof typeof search
-  }) => {
-    const filtered = items.filter((i) =>
-      i.title.toLowerCase().includes(search[searchKey].toLowerCase())
+    await supabase.from('role_profile_modules').delete().eq('role_profile_id', id)
+    await Promise.all(
+      selectedModuleIds.map((module_id) =>
+        supabase.from('role_profile_modules').insert({ role_profile_id: id, module_id })
+      )
     )
 
-    return (
-      <div className="bg-white border border-teal-200 rounded-lg p-4">
-        <h3
-          onClick={() =>
-            setSearch((prev) => ({ ...prev, [searchKey]: prev[searchKey] ? '' : '' }))
-          }
-          className="text-lg font-semibold text-teal-800 mb-2 cursor-pointer"
-        >
-          ➕ {label}
-        </h3>
-        <input
-          type="text"
-          placeholder={`Search ${label.toLowerCase()}`}
-          value={search[searchKey]}
-          onChange={(e) =>
-            setSearch((prev) => ({ ...prev, [searchKey]: e.target.value }))
-          }
-          className="w-full border border-teal-300 p-2 rounded-md mb-3 text-sm"
-        />
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {filtered.map((item) => (
-            <label key={item.id} className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={selected.includes(item.id)}
-                onChange={() =>
-                  setSelected(
-                    selected.includes(item.id)
-                      ? selected.filter((id) => id !== item.id)
-                      : [...selected, item.id]
-                  )
-                }
-              />
-              <span>{item.title}</span>
-            </label>
-          ))}
-        </div>
-      </div>
+    await supabase.from('role_profile_documents').delete().eq('role_profile_id', id)
+    await Promise.all(
+      selectedDocumentIds.map((document_id) =>
+        supabase.from('role_profile_documents').insert({ role_profile_id: id, document_id })
+      )
     )
+
+    await supabase.from('role_profile_behaviours').delete().eq('role_profile_id', id)
+    await Promise.all(
+      selectedBehaviourIds.map((behaviour_id) =>
+        supabase.from('role_profile_behaviours').insert({ role_profile_id: id, behaviour_id })
+      )
+    )
+
+    router.push(`/admin/role-profiles/${id}`)
   }
 
-  const filteredDocs = (type: string) =>
-    documents.filter((d) => d.document_type === type)
+  const toggleSelected = (id: string, selectedIds: string[], setSelected: (ids: string[]) => void) => {
+    if (selectedIds.includes(id)) {
+      setSelected(selectedIds.filter((i) => i !== id))
+    } else {
+      setSelected([...selectedIds, id])
+    }
+  }
 
   if (loading) return <p className="p-6">Loading...</p>
-  if (error) return <p className="p-6 text-red-600">{error}</p>
+
+  const groupedDocuments = allDocuments.reduce<Record<string, Document[]>>((acc, doc) => {
+    if (!acc[doc.document_type]) acc[doc.document_type] = []
+    acc[doc.document_type].push(doc)
+    return acc
+  }, {})
 
   return (
-    <>
-      <LogoHeader />
-      <main className="min-h-screen bg-teal-50 text-teal-900 px-6 py-10">
-        <div className="max-w-4xl mx-auto bg-white border border-teal-300 p-8 rounded-xl shadow">
-          <h1 className="text-3xl font-bold text-orange-600 mb-6">✏️ Edit Role Profile</h1>
+    <main className="min-h-screen bg-white text-teal-900 flex flex-col">
+      <div className="max-w-5xl mx-auto py-10 px-6 flex-grow">
+        <h1 className="text-2xl font-bold text-orange-600 mb-6">✏️ Edit Role Profile</h1>
 
-          <form onSubmit={handleSave} className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium mb-1">Profile Name</label>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-                className="w-full border border-teal-300 p-3 rounded-md bg-white text-teal-900"
-              />
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <div>
+            <label className="block font-medium mb-1">Name</label>
+            <input
+              className="w-full border border-teal-300 rounded p-2"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block font-medium mb-1">Description</label>
+            <textarea
+              className="w-full border border-teal-300 rounded p-2"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <h2 className="font-semibold text-orange-600 mb-2">📦 Modules</h2>
+            <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto border border-teal-300 rounded p-3 bg-teal-50">
+              {allModules.map((mod) => (
+                <label key={mod.id} className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={selectedModuleIds.includes(mod.id)}
+                    onChange={() => toggleSelected(mod.id, selectedModuleIds, setSelectedModuleIds)}
+                  />
+                  {mod.name}
+                </label>
+              ))}
             </div>
+          </div>
 
-            <CheckboxGroup
-              label="Modules"
-              items={modules}
-              selected={selectedModules}
-              setSelected={setSelectedModules}
-              searchKey="modules"
-            />
-            <CheckboxGroup
-              label="Policies"
-              items={filteredDocs('policy')}
-              selected={selectedPolicies}
-              setSelected={setSelectedPolicies}
-              searchKey="policies"
-            />
-            <CheckboxGroup
-              label="Work Instructions"
-              items={filteredDocs('work_instruction')}
-              selected={selectedWIs}
-              setSelected={setSelectedWIs}
-              searchKey="wis"
-            />
-            <CheckboxGroup
-              label="Safe Systems of Work"
-              items={filteredDocs('ssow')}
-              selected={selectedSSOWs}
-              setSelected={setSelectedSSOWs}
-              searchKey="ssows"
-            />
-            <CheckboxGroup
-              label="Behaviours"
-              items={behaviours.map(({ id, name }) => ({ id, title: name }))}
-              selected={selectedBehaviours}
-              setSelected={setSelectedBehaviours}
-              searchKey="behaviours"
-            />
+          <div>
+            <h2 className="font-semibold text-orange-600 mb-2">📚 Documents</h2>
+            {Object.entries(groupedDocuments).map(([type, docs]) => (
+              <div key={type} className="mb-4">
+                <h3 className="text-teal-700 font-medium mb-1">{type.replace('_', ' ').toUpperCase()}</h3>
+                <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto border border-teal-300 rounded p-3 bg-teal-50">
+                  {docs.map((doc) => (
+                    <label key={doc.id} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={selectedDocumentIds.includes(doc.id)}
+                        onChange={() => toggleSelected(doc.id, selectedDocumentIds, setSelectedDocumentIds)}
+                      />
+                      {doc.title}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
 
-            <button
-              type="submit"
-              className="bg-teal-700 text-white font-semibold py-3 px-6 rounded-md hover:bg-teal-800 transition"
-            >
-              Save Changes
-            </button>
-          </form>
-        </div>
-      </main>
-      <Footer />
-    </>
+          <div>
+            <h2 className="font-semibold text-orange-600 mb-2">🎯 Behaviours</h2>
+            <div className="flex flex-wrap gap-3 max-h-60 overflow-y-auto border border-teal-300 rounded p-3 bg-teal-50">
+              {allBehaviours.map((b) => (
+                <BehaviourIcon
+                  key={b.id}
+                  behaviour={b}
+                  selected={selectedBehaviourIds.includes(b.id)}
+                  onClick={() => toggleSelected(b.id, selectedBehaviourIds, setSelectedBehaviourIds)}
+                  className="cursor-pointer"
+                />
+              ))}
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            className="bg-teal-700 text-white px-4 py-2 rounded hover:bg-teal-800"
+          >
+            Save Changes
+          </button>
+        </form>
+      </div>
+    </main>
   )
 }

@@ -2,10 +2,11 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { supabase } from '../../lib/supabaseClient'
+import { supabase } from '../lib/supabaseClient'
 import { useRouter } from 'next/navigation'
 
-interface DashboardHeaderProps {
+// ✅ Export the props interface so it can be used elsewhere
+export interface DashboardHeaderProps {
   showBackButton?: boolean
   backHref?: string
 }

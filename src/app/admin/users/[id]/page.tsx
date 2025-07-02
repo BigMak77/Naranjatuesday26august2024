@@ -18,6 +18,11 @@ interface Role {
   department_id: string
 }
 
+interface RoleProfile {
+  id: string
+  name: string
+}
+
 export default function EditUserPage() {
   const router = useRouter()
   const rawId = useParams().id
@@ -35,16 +40,25 @@ export default function EditUserPage() {
   const [roleId, setRoleId] = useState('')
   const [nationality, setNationality] = useState('')
   const [selectedBehaviours, setSelectedBehaviours] = useState<string[]>([])
+  const [roleProfileId, setRoleProfileId] = useState<string>('')
 
   const [departments, setDepartments] = useState<Department[]>([])
   const [filteredRoles, setFilteredRoles] = useState<Role[]>([])
+  const [roleProfiles, setRoleProfiles] = useState<RoleProfile[]>([])
 
   useEffect(() => {
     const fetchDepartments = async () => {
       const { data } = await supabase.from('departments').select('id, name')
       if (data) setDepartments(data)
     }
+
+    const fetchRoleProfiles = async () => {
+      const { data } = await supabase.from('role_profiles').select('id, name')
+      if (data) setRoleProfiles(data)
+    }
+
     fetchDepartments()
+    fetchRoleProfiles()
   }, [])
 
   useEffect(() => {
@@ -57,7 +71,7 @@ export default function EditUserPage() {
 
       const { data, error } = await supabase
         .from('users')
-        .select('first_name, last_name, email, department_id, role_id, nationality')
+        .select('first_name, last_name, email, department_id, role_id, nationality, role_profile_id')
         .eq('id', id)
         .single()
 
@@ -73,6 +87,7 @@ export default function EditUserPage() {
       setDepartmentId(data.department_id || '')
       setRoleId(data.role_id || '')
       setNationality(data.nationality || '')
+      setRoleProfileId(data.role_profile_id || '')
 
       if (data.department_id) fetchRoles(data.department_id)
 
@@ -113,6 +128,7 @@ export default function EditUserPage() {
         department_id: departmentId || null,
         role_id: roleId || null,
         nationality,
+        role_profile_id: roleProfileId || null,
       })
       .eq('id', id)
 
@@ -200,6 +216,20 @@ export default function EditUserPage() {
                 <option value="">Select Role</option>
                 {filteredRoles.map((role) => (
                   <option key={role.id} value={role.id}>{role.title}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Role Profile</label>
+              <select
+                value={roleProfileId}
+                onChange={(e) => setRoleProfileId(e.target.value)}
+                className="w-full border border-teal-300 p-3 rounded-md bg-white text-teal-900"
+              >
+                <option value="">— None —</option>
+                {roleProfiles.map((rp) => (
+                  <option key={rp.id} value={rp.id}>{rp.name}</option>
                 ))}
               </select>
             </div>

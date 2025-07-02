@@ -1,98 +1,173 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import LogoHeader from '@/components/LogoHeader'
-import Footer from '@/components/Footer'
 import Head from 'next/head'
+import { supabase } from '@/lib/supabaseClient'
+
+interface ComplianceSummary {
+  user_id: string
+  user_name: string
+  department: string
+  total_items: number
+  completed_items: number
+  overdue: number
+  due_soon: number
+}
+
+interface DashboardLink {
+  href: string
+  label: string
+  className?: string
+}
+
+interface DashboardCard {
+  title: string
+  bg?: string
+  note?: string
+  links: DashboardLink[]
+}
 
 export default function DashboardPage() {
+  const [complianceData, setComplianceData] = useState<ComplianceSummary[]>([])
+  const [avgCompliance, setAvgCompliance] = useState<number | null>(null)
+  const [lowComplianceCount, setLowComplianceCount] = useState<number>(0)
+
+  useEffect(() => {
+    const fetchCompliance = async () => {
+      const { data, error } = await supabase.from('user_compliance_dashboard').select('*')
+      if (error) {
+        console.error('Failed to fetch compliance summary:', error)
+        return
+      }
+
+      setComplianceData(data)
+
+      let totalUsers = 0
+      let totalPercent = 0
+      let lowCount = 0
+
+      data.forEach((row) => {
+        if (row.total_items > 0) {
+          const percent = (row.completed_items / row.total_items) * 100
+          totalPercent += percent
+          totalUsers += 1
+          if (percent < 70) lowCount += 1
+        }
+      })
+
+      setAvgCompliance(totalUsers > 0 ? Number((totalPercent / totalUsers).toFixed(1)) : null)
+      setLowComplianceCount(lowCount)
+    }
+
+    fetchCompliance()
+  }, [])
+
+  const cards: DashboardCard[] = [
+    {
+      title: '👥 People Management',
+      links: [
+        { href: '/admin/users', label: '🧑‍💼 View & Manage Users' },
+        { href: '/admin/users/add', label: '➕ Add New User' },
+      ],
+    },
+    {
+      title: '📦 Module Management',
+      links: [
+        { href: '/admin/modules', label: '📂 View All Modules' },
+        { href: '/admin/modules/add', label: '➕ Add New Module' },
+        { href: '/admin/modules/assign', label: '📌 Assign Modules to Roles' },
+      ],
+    },
+    {
+      title: '📈 Training Progress',
+      links: [
+        { href: '/admin/compliance', label: '📊 View Compliance Dashboard' },
+        { href: '/admin/incomplete', label: '🚨 View Incomplete Training', className: 'text-red-700 font-semibold' },
+      ],
+      note: 'Track completions, overdue training, and untrained users.',
+    },
+    {
+      title: '📁 Document Management',
+      links: [
+        { href: '/admin/documents', label: '📄 View All Documents' },
+        { href: '/admin/documents/add', label: '➕ Add New Document' },
+        { href: '/admin/documents/versions', label: '🕓 View Document Versions' },
+      ],
+    },
+    {
+      title: '🏢 Organisation Structure',
+      links: [
+        { href: '/admin/org-chart', label: '🧭 View Org Chart' },
+        { href: '/admin/roles/add', label: '➕ Add New Role' },
+      ],
+    },
+    {
+      title: '🧩 Role Profile Builder',
+      bg: 'bg-orange-600',
+      links: [
+        { href: '/admin/role-profiles', label: '📋 View All Role Profiles' },
+        { href: '/admin/role-profiles/add', label: '➕ Create New Role Profile' },
+        { href: '/admin/role-profiles/manage', label: '🛠 Manage Role-to-Training Assignments' },
+      ],
+    },
+  ]
+
   return (
     <>
       <Head>
         <title>Admin Dashboard | Naranja</title>
       </Head>
 
-      <LogoHeader />
+      <section className="py-12 px-6 max-w-6xl mx-auto w-full">
+        <h1 className="text-4xl font-bold text-center mb-10 text-white">📊 Admin Dashboard</h1>
 
-      <main className="min-h-screen bg-teal-50 text-teal-900 pb-20">
-        <section className="py-12 px-6 max-w-5xl mx-auto">
-          <h1 className="text-4xl font-bold text-center mb-12 text-teal-900">📊 Admin Dashboard</h1>
-
-          <div className="grid gap-10">
-
-            {/* 👥 People Management */}
-            <section className="bg-white rounded-xl shadow border border-teal-200">
-              <header className="bg-teal-600 text-white font-semibold px-6 py-4 rounded-t-xl">
-                👥 People Management
-              </header>
-              <nav className="p-5 space-y-2">
-                <Link href="/admin/users" className="block hover:underline text-teal-800">🧑‍💼 View & Manage Users</Link>
-                <Link href="/admin/users/add" className="block hover:underline text-teal-800">➕ Add New User</Link>
-              </nav>
-            </section>
-
-            {/* 📦 Module Management */}
-            <section className="bg-white rounded-xl shadow border border-teal-200">
-              <header className="bg-teal-600 text-white font-semibold px-6 py-4 rounded-t-xl">
-                📦 Module Management
-              </header>
-              <nav className="p-5 space-y-2">
-                <Link href="/admin/modules" className="block hover:underline text-teal-800">📂 View All Modules</Link>
-                <Link href="/admin/modules/add" className="block hover:underline text-teal-800">➕ Add New Module</Link>
-                <Link href="/admin/modules/assign" className="block hover:underline text-teal-800">📌 Assign Modules to Roles</Link>
-              </nav>
-            </section>
-
-            {/* 📈 Training Progress */}
-            <section className="bg-white rounded-xl shadow border border-teal-200">
-              <header className="bg-teal-600 text-white font-semibold px-6 py-4 rounded-t-xl">
-                📈 Training Progress
-              </header>
-              <nav className="p-5">
-                <Link href="/admin/progress" className="block hover:underline text-teal-800">📊 View Completion Dashboard</Link>
-              </nav>
-            </section>
-
-            {/* 📁 Document Management */}
-            <section className="bg-white rounded-xl shadow border border-teal-200">
-              <header className="bg-teal-600 text-white font-semibold px-6 py-4 rounded-t-xl">
-                📁 Document Management
-              </header>
-              <nav className="p-5 space-y-2">
-                <Link href="/admin/documents" className="block hover:underline text-teal-800">📄 View All Documents</Link>
-                <Link href="/admin/documents/add" className="block hover:underline text-teal-800">➕ Add New Document</Link>
-                <Link href="/admin/documents/versions" className="block hover:underline text-teal-800">🕓 View Document Versions</Link>
-              </nav>
-            </section>
-
-            {/* 🏢 Organisation Structure */}
-            <section className="bg-white rounded-xl shadow border border-teal-200">
-              <header className="bg-teal-600 text-white font-semibold px-6 py-4 rounded-t-xl">
-                🏢 Organisation Structure
-              </header>
-              <nav className="p-5 space-y-2">
-                <Link href="/admin/org-chart" className="block hover:underline text-teal-800">🧭 View Org Chart</Link>
-                <Link href="/admin/roles/add" className="block hover:underline text-teal-800">➕ Add New Role</Link>
-              </nav>
-            </section>
-
-            {/* 🧩 Role Profile Builder */}
-            <section className="bg-white rounded-xl shadow border border-teal-200">
-              <header className="bg-orange-600 text-white font-semibold px-6 py-4 rounded-t-xl">
-                🧩 Role Profile Builder
-              </header>
-              <nav className="p-5 space-y-2">
-                <Link href="/admin/role-profiles" className="block hover:underline text-teal-800">📋 View All Role Profiles</Link>
-                <Link href="/admin/role-profiles/add" className="block hover:underline text-teal-800">➕ Create New Role Profile</Link>
-                <Link href="/admin/role-profiles/manage" className="block hover:underline text-teal-800">🛠 Manage Role-to-Training Assignments</Link>
-              </nav>
-            </section>
-
+        {/* Compliance Overview Bar */}
+        <div className="compliance-overview rounded-xl p-5 mb-12 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow bg-orange-100 border border-orange-300 text-orange-800">
+          <div>
+            <p className="text-lg font-semibold">Compliance Overview</p>
+            <p className="text-sm">Live summary of completion status across all users</p>
           </div>
-        </section>
-      </main>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:gap-6">
+            <p>
+              ✅ <strong>Avg Compliance:</strong>{' '}
+              {avgCompliance !== null ? `${avgCompliance}%` : 'Loading...'}
+            </p>
+            <p>
+              ⚠️ <strong>Users &lt; 70%:</strong> {lowComplianceCount}
+            </p>
+            <Link href="/admin/compliance" className="btn btn-primary mt-2 sm:mt-0">
+              View Full Dashboard →
+            </Link>
+          </div>
+        </div>
 
-      <Footer />
+        {/* Dashboard Cards */}
+        <div className="grid md:grid-cols-2 gap-8">
+          {cards.map((card, idx) => (
+            <section
+              key={idx}
+              className={`card ${card.bg ?? 'bg-teal-600'}`}
+            >
+              <header className="card-header">{card.title}</header>
+              <nav className="p-5 space-y-2">
+                {card.links.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`block hover:underline ${link.className ?? ''}`}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+                {card.note && (
+                  <p className="text-sm text-gray-600 mt-1">{card.note}</p>
+                )}
+              </nav>
+            </section>
+          ))}
+        </div>
+      </section>
     </>
   )
 }

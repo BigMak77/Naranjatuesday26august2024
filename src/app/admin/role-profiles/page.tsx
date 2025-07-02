@@ -35,6 +35,22 @@ export default function RoleProfilesPage() {
     fetchProfiles()
   }, [])
 
+  const handleDelete = async (id: string) => {
+    const confirm = window.confirm('Are you sure you want to delete this role profile? This cannot be undone.')
+    if (!confirm) return
+
+    const { error } = await supabase
+      .from('role_profiles')
+      .delete()
+      .eq('id', id)
+
+    if (error) {
+      alert('Failed to delete role profile.')
+    } else {
+      setProfiles(prev => prev.filter(profile => profile.id !== id))
+    }
+  }
+
   return (
     <main className="min-h-screen bg-teal-50 text-teal-900">
       <LogoHeader />
@@ -63,9 +79,15 @@ export default function RoleProfilesPage() {
                     <h2 className="text-lg font-semibold text-teal-900">{profile.name}</h2>
                     <p className="text-sm text-gray-600">{profile.description || 'No description provided'}</p>
                   </div>
-                  <div className="flex gap-4">
+                  <div className="flex gap-4 items-center">
                     <Link href={`/admin/role-profiles/${profile.id}`} className="text-blue-600 hover:underline">View</Link>
                     <Link href={`/admin/role-profiles/${profile.id}/edit`} className="text-green-600 hover:underline">Edit</Link>
+                    <button
+                      onClick={() => handleDelete(profile.id)}
+                      className="text-red-600 hover:underline"
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
               </li>

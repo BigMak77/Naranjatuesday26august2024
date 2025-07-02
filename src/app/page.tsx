@@ -1,11 +1,27 @@
-'use client'
-
 import Link from 'next/link'
 import Image from 'next/image'
 import Footer from '@/components/Footer'
 import LogoHeader from '@/components/LogoHeader'
 
 export default function HomePage() {
+  const features = [
+    {
+      title: '📋 SOPs & Policies',
+      text: 'Create, assign, and manage essential operational documents for every role.',
+      href: '/instructional-media',
+    },
+    {
+      title: '📋 SmartDoc',
+      text: 'SmartDoc is your central hub for controlled documents — upload, version, and assign SOPs, policies, and procedures directly to the training modules they support.',
+      href: '/policies-and-procedures',
+    },
+    {
+      title: '⚠️ Risk Assessments',
+      text: 'Assign, track and complete risk documents to ensure safety and compliance.',
+      href: '/managing-risks',
+    },
+  ]
+
   return (
     <main className="min-h-screen flex flex-col bg-white text-teal-900">
       <LogoHeader />
@@ -24,7 +40,6 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-white opacity-80" />
         </div>
 
-
         {/* Hero Content */}
         <div className="relative z-20 max-w-6xl mx-auto grid md:grid-cols-1 gap-10 items-center">
           <div>
@@ -38,29 +53,13 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Dark Teal Divider Section */}
+      {/* Divider */}
       <section className="bg-teal-900 h-2 w-full" />
 
       {/* Features Section */}
       <section className="py-16 px-6 bg-teal-50">
         <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-8 text-center">
-          {[
-            {
-              title: '📋 SOPs & Policies',
-              text: 'Create, assign, and manage essential operational documents for every role.',
-              href: '/instructional-media',
-            },
-            {
-              title: '📋 SmartDoc',
-              text: 'SmartDoc is your central hub for controlled documents — upload, version, and assign SOPs, policies, and procedures directly to the training modules they support.',
-              href: '/policies-and-procedures',
-            },
-            {
-              title: '⚠️ Risk Assessments',
-              text: 'Assign, track and complete risk documents to ensure safety and compliance.',
-              href: '/managing-risks',
-            },
-          ].map(({ title, text, href }) => (
+          {features.map(({ title, text, href }) => (
             <div
               key={title}
               className="bg-white p-6 rounded-xl shadow border border-teal-200 flex flex-col justify-between"
@@ -83,7 +82,9 @@ export default function HomePage() {
       {/* Call to Action */}
       <section className="py-20 px-6 bg-white text-center">
         <div className="max-w-2xl mx-auto">
-          <h2 className="text-3xl font-bold mb-4 text-teal-900">Ready to transform your compliance process?</h2>
+          <h2 className="text-3xl font-bold mb-4 text-teal-900">
+            Ready to transform your compliance process?
+          </h2>
           <p className="text-lg mb-6">
             Bring your team together with clear, role-specific training that actually gets used.
           </p>

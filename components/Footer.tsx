@@ -5,7 +5,7 @@ import { FaLinkedin, FaTwitter, FaEnvelope } from 'react-icons/fa'
 
 export default function Footer() {
   return (
-    <footer className="bg-teal-800 text-white py-8 px-4 mt-12">
+    <footer className="bg-teal-800 text-white py-8 px-4">
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
         {/* Left: Text Links */}
         <div className="text-sm space-x-6 text-center md:text-left">

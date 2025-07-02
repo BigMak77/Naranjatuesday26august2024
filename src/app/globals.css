@@ -5,13 +5,6 @@
   --foreground: #171717;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -22,5 +15,117 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Geist', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+code,
+pre {
+  font-family: 'Geist Mono', monospace;
+}
+
+/* ===============================
+   Global Table Styling
+   =============================== */
+.table-default {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem; /* text-sm */
+  color: #0f3d3e; /* dark teal for text */
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0; /* light gray border */
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.table-default thead {
+  background-color: #0f766e; /* teal-700 */
+  color: white;
+  text-align: left;
+}
+
+.table-default th,
+.table-default td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.table-default tbody tr:hover {
+  background-color: #fef3c7; /* light orange hover */
+}
+
+.table-default th:first-child,
+.table-default td:first-child {
+  padding-left: 1.25rem;
+}
+
+.table-default th:last-child,
+.table-default td:last-child {
+  padding-right: 1.25rem;
+}
+
+
+/* ===============================
+   Form Inputs and Selects
+   =============================== */
+
+input[type="text"],
+input[type="search"],s
+input[type="date"],
+input[type="number"],
+select,
+textarea {
+  @apply text-sm text-teal-900 border border-gray-300 rounded px-3 py-2 bg-white;
+  transition: border-color 0.2s ease;
+  outline-offset: 2px;
+}
+
+input[type="text"]:focus,
+input[type="search"]:focus,
+input[type="date"]:focus,
+input[type="number"]:focus,
+select:focus,
+textarea:focus {
+  @apply border-teal-600 ring-1 ring-teal-600;
+}
+
+/* ===============================
+   Buttons
+   =============================== */
+
+button,
+input[type="submit"],
+input[type="button"] {
+  @apply bg-teal-600 text-white text-sm font-semibold px-4 py-2 rounded shadow cursor-pointer transition 
+         hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* ===============================
+   Search Inputs (special styling)
+   =============================== */
+
+input[type="search"] {
+  @apply w-full max-w-xs;
+}
+
+/* ===============================
+   Optional: Add consistent spacing around form controls
+   =============================== */
+
+.form-control {
+  @apply mb-4;
+}
+
+.card {
+  @apply bg-white rounded-xl shadow border border-teal-200;
+}
+
+.card-header {
+  @apply bg-teal-600 text-white font-semibold px-6 py-4 rounded-t-xl;
+}
+
+/* Optional: card notes */
+.card-note {
+  @apply text-sm text-gray-600 mt-1;
 }

@@ -62,7 +62,6 @@ const iconMap: Record<string, React.ReactElement> = {
   FiTag: <FiTag />,
   FiClipboard: <FiClipboard />,
   FiTruck: <FiTruck />,
-
   GiBroom: <GiBroom />,
   GiGearHammer: <GiGearHammer />,
   GiKnifeFork: <GiKnifeFork />,
@@ -84,9 +83,10 @@ interface BehaviourIconProps {
   behaviour: Behaviour
   selected?: boolean
   onClick?: (id: string) => void
+  className?: string  // <-- optional className added
 }
 
-export default function BehaviourIcon({ behaviour, selected, onClick }: BehaviourIconProps) {
+export default function BehaviourIcon({ behaviour, selected, onClick, className = '' }: BehaviourIconProps) {
   const colorClass = selected ? 'text-orange-600' : 'text-teal-700'
 
   return (
@@ -95,7 +95,7 @@ export default function BehaviourIcon({ behaviour, selected, onClick }: Behaviou
         <Tooltip.Trigger asChild>
           <span
             onClick={() => onClick && onClick(behaviour.id)}
-            className={`cursor-pointer p-2 rounded-md text-3xl ${colorClass} hover:text-orange-600 hover:bg-orange-100 transition`}
+            className={`cursor-pointer text-2xl ${colorClass} hover:text-orange-600 transition ${className}`}
             aria-label={behaviour.name}
           >
             {iconMap[behaviour.icon] || <FiStar />}

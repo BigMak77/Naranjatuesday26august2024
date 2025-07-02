@@ -1,11 +1,8 @@
-// File: src/app/admin/modules/[id]/edit/page.tsx
 'use client'
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
-import LogoHeader from '@/components/LogoHeader'
-import Footer from '@/components/Footer'
 
 interface Role {
   id: string
@@ -25,11 +22,9 @@ export default function EditModulePage() {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [groupId, setGroupId] = useState('')
-
   const [roles, setRoles] = useState<Role[]>([])
   const [groups, setGroups] = useState<ModuleGroup[]>([])
   const [selectedRoles, setSelectedRoles] = useState<string[]>([])
-
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -78,6 +73,7 @@ export default function EditModulePage() {
     e.preventDefault()
     setSaving(true)
     setError(null)
+    setSuccess(false)
 
     const { error: updateError } = await supabase
       .from('modules')
@@ -112,8 +108,7 @@ export default function EditModulePage() {
 
   return (
     <main className="min-h-screen flex flex-col bg-white text-teal-900">
-      <LogoHeader />
-      <div className="max-w-2xl mx-auto p-6 w-full">
+      <section className="max-w-2xl mx-auto p-6 w-full">
         <div className="bg-white rounded-xl shadow border border-teal-200 p-6">
           <button
             type="button"
@@ -126,7 +121,6 @@ export default function EditModulePage() {
           <h1 className="text-3xl font-bold mb-6 text-teal-800">✏️ Edit Training Module</h1>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Module Group */}
             <div>
               <label className="block font-semibold mb-1">
                 Module Group <span className="text-red-500">*</span>
@@ -135,11 +129,13 @@ export default function EditModulePage() {
                 value={groupId}
                 onChange={(e) => setGroupId(e.target.value)}
                 required
-                className="w-full border border-teal-300 p-2 rounded"
+                className="w-full border border-teal-300 rounded px-3 py-2 text-teal-900 bg-white"
               >
                 <option value="">Select a group</option>
                 {groups.map((g) => (
-                  <option key={g.id} value={g.id}>{g.name}</option>
+                  <option key={g.id} value={g.id}>
+                    {g.name}
+                  </option>
                 ))}
               </select>
               {groups.length === 0 && (
@@ -147,56 +143,59 @@ export default function EditModulePage() {
               )}
             </div>
 
-            {/* Name */}
             <div>
-              <label className="block font-semibold mb-1">Module Name <span className="text-red-500">*</span></label>
+              <label className="block font-semibold mb-1">
+                Module Name <span className="text-red-500">*</span>
+              </label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="w-full border border-teal-300 p-2 rounded"
+                className="w-full border border-teal-300 rounded px-3 py-2 text-teal-900 bg-white"
               />
             </div>
 
-            {/* Description */}
             <div>
-              <label className="block font-semibold mb-1">Description <span className="text-red-500">*</span></label>
+              <label className="block font-semibold mb-1">
+                Description <span className="text-red-500">*</span>
+              </label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 required
-                className="w-full border border-teal-300 p-2 rounded"
+                className="w-full border border-teal-300 rounded px-3 py-2 text-teal-900 bg-white"
               />
             </div>
 
-            {/* Role Assignment */}
             <div>
               <label className="block font-semibold mb-2">Assign to Roles</label>
               {roles.length === 0 ? (
                 <p className="text-sm text-red-500">⚠️ No roles available to assign.</p>
               ) : (
-                <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto border p-3 rounded bg-teal-50">
+                <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto border border-teal-300 p-3 rounded bg-teal-50">
                   {roles.map((r) => (
-                    <label key={r.id} className="flex items-center text-sm text-teal-800">
+                    <label key={r.id} className="flex items-center text-sm text-teal-800 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={selectedRoles.includes(r.id)}
                         onChange={() => handleRoleToggle(r.id)}
                         className="mr-2"
                       />
-                      {r.title} <span className="text-gray-500 ml-1 text-xs">({r.department_id})</span>
+                      {r.title}{' '}
+                      <span className="text-gray-500 ml-1 text-xs">({r.department_id})</span>
                     </label>
                   ))}
                 </div>
               )}
             </div>
 
-            {/* Submit */}
             <button
               type="submit"
               disabled={saving}
-              className={`w-full text-white font-semibold py-2 rounded ${saving ? 'bg-teal-400' : 'bg-teal-700 hover:bg-teal-800'}`}
+              className={`w-full text-white font-semibold py-2 rounded transition ${
+                saving ? 'bg-teal-400 cursor-not-allowed' : 'bg-teal-700 hover:bg-teal-800'
+              }`}
             >
               {saving ? 'Saving...' : 'Update Module'}
             </button>
@@ -205,8 +204,7 @@ export default function EditModulePage() {
             {error && <p className="text-red-600">❌ {error}</p>}
           </form>
         </div>
-      </div>
-      <Footer />
+      </section>
     </main>
   )
 }

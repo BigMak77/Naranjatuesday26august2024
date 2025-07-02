@@ -1,9 +1,8 @@
-"use client"
+'use client'
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
-import LogoHeader from '@/components/LogoHeader'
 import BehaviourSelector from '@/components/BehaviourSelector'
 
 interface Department {
@@ -37,6 +36,10 @@ export default function EditUserPage() {
 
   const [departments, setDepartments] = useState<Department[]>([])
   const [filteredRoles, setFilteredRoles] = useState<Role[]>([])
+
+  // Pagination state for roles dropdown
+  const [rolesPage, setRolesPage] = useState(1)
+  const rolesPerPage = 10
 
   useEffect(() => {
     const fetchDepartments = async () => {
@@ -95,8 +98,10 @@ export default function EditUserPage() {
       .from('roles')
       .select('id, title, department_id')
       .eq('department_id', deptId)
+      .order('title')
 
     if (!error && data) setFilteredRoles(data)
+    setRolesPage(1) // reset page on new roles load
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -143,18 +148,24 @@ export default function EditUserPage() {
     if (value) fetchRoles(value)
   }
 
+  // Pagination logic for roles dropdown
+  const startIdx = (rolesPage - 1) * rolesPerPage
+  const endIdx = startIdx + rolesPerPage
+  const pagedRoles = filteredRoles.slice(startIdx, endIdx)
+  const totalPages = Math.ceil(filteredRoles.length / rolesPerPage)
+
   if (loading) return <p className="p-6">Loading user data...</p>
   if (error) return <p className="p-6 text-red-600">{error}</p>
 
   return (
     <>
-      <LogoHeader />
+    
 
-      <div className="p-6 max-w-xl mx-auto mt-4">
+      <div className="p-6 max-w-xl mx-auto mt-4 flex-grow">
         <h1 className="text-2xl font-bold mb-4 text-orange-600">✏️ Edit User</h1>
 
         {success && (
-          <p className="text-green-600 font-medium">✅ User updated successfully!</p>
+          <p className="text-green-600 font-medium mb-4">✅ User updated successfully!</p>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -169,7 +180,7 @@ export default function EditUserPage() {
           <input
             type="text"
             placeholder="Last Name"
-            className="w-full border p-2 rounded"
+            className="w-full text-teal-900 border p-2 rounded"
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
             required
@@ -177,14 +188,14 @@ export default function EditUserPage() {
           <input
             type="email"
             placeholder="Email"
-            className="w-full border p-2 rounded"
+            className="w-full bg-white text-teal-900 border p-2 rounded"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
 
           <select
-            className="w-full border p-2 rounded"
+            className="w-full bg-white text-teal-900 border p-2 rounded"
             value={departmentId}
             onChange={(e) => handleDepartmentChange(e.target.value)}
             required
@@ -195,18 +206,44 @@ export default function EditUserPage() {
             ))}
           </select>
 
-          <select
-            className="w-full border p-2 rounded"
-            value={roleId}
-            onChange={(e) => setRoleId(e.target.value)}
-            required
-          >
-            <option value="">Select Role</option>
-            {filteredRoles.length === 0 && <option disabled>No roles available</option>}
-            {filteredRoles.map((role) => (
-              <option key={role.id} value={role.id}>{role.title}</option>
-            ))}
-          </select>
+          <div>
+            <label className="block mb-1 bg-white font-semibold text-teal-900">Select Role</label>
+            <select
+              className="w-full bg-white text-teal-900 border p-2 rounded"
+              value={roleId}
+              onChange={(e) => setRoleId(e.target.value)}
+              required
+            >
+              <option value="">Select Role</option>
+              {pagedRoles.length === 0 && <option disabled>No roles available</option>}
+              {pagedRoles.map((role) => (
+                <option key={role.id} value={role.id}>{role.title}</option>
+              ))}
+            </select>
+
+            {/* Pagination Controls for Roles */}
+            {totalPages > 1 && (
+              <div className="mt-2 flex justify-center space-x-2 text-sm text-teal-700">
+                <button
+                  type="button"
+                  onClick={() => setRolesPage((p) => Math.max(p - 1, 1))}
+                  disabled={rolesPage === 1}
+                  className="px-3 py-1 border rounded bg-white disabled:opacity-50"
+                >
+                  ← Prev
+                </button>
+                <span className="px-2 py-1 border rounded bg-teal-100">{rolesPage}</span>
+                <button
+                  type="button"
+                  onClick={() => setRolesPage((p) => Math.min(p + 1, totalPages))}
+                  disabled={rolesPage === totalPages}
+                  className="px-3 py-1 border rounded disabled:opacity-50"
+                >
+                  Next →
+                </button>
+              </div>
+            )}
+          </div>
 
           <input
             type="text"

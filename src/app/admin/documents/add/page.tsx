@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import { v4 as uuidv4 } from 'uuid'
-import LogoHeader from '@/components/LogoHeader'
 import Footer from '@/components/Footer'
 
 type DocumentType = 'policy' | 'work_instruction' | 'safe_system'
@@ -24,7 +23,7 @@ export default function AddDocumentPage() {
     setError('')
     setSuccess(false)
 
-    if (!title || !file) {
+    if (!title.trim() || !file) {
       setError('Title and file are required.')
       return
     }
@@ -46,11 +45,12 @@ export default function AddDocumentPage() {
       return
     }
 
-    const fileUrl = `https://${process.env.NEXT_PUBLIC_SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/public/documents/${fileName}`
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const fileUrl = `${supabaseUrl}/storage/v1/object/public/documents/${fileName}`
 
     const { error: insertError } = await supabase.from('documents').insert([
       {
-        title,
+        title: title.trim(),
         document_type: documentType,
         version,
         file_url: fileUrl,
@@ -71,8 +71,6 @@ export default function AddDocumentPage() {
 
   return (
     <main className="min-h-screen flex flex-col bg-white text-teal-900">
-      <LogoHeader />
-
       <section className="max-w-2xl mx-auto p-6 flex-1">
         <h1 className="text-2xl font-bold mb-6 text-teal-800">➕ Add New Document</h1>
 
@@ -109,7 +107,7 @@ export default function AddDocumentPage() {
             <input
               type="number"
               value={version}
-              onChange={(e) => setVersion(Number(e.target.value))}
+              onChange={(e) => setVersion(Math.max(1, Number(e.target.value)))}
               min={1}
               className="w-full border border-gray-300 px-3 py-2 rounded bg-white"
             />

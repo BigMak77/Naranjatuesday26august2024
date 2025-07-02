@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
-import LogoHeader from '@/components/LogoHeader'
-import Footer from '@/components/Footer'
 
 interface Module {
   id: string
@@ -45,15 +43,15 @@ export default function AssignModuleRolesPage() {
         .from('module_roles')
         .select('role_id')
         .eq('module_id', selectedModuleId)
-      if (data) setAssignedRoles(data.map(d => d.role_id))
+      if (data) setAssignedRoles(data.map((d) => d.role_id))
     }
     fetchAssignedRoles()
   }, [selectedModuleId])
 
   const toggleRole = (roleId: string) => {
-    setAssignedRoles(prev =>
+    setAssignedRoles((prev) =>
       prev.includes(roleId)
-        ? prev.filter(id => id !== roleId)
+        ? prev.filter((id) => id !== roleId)
         : [...prev, roleId]
     )
   }
@@ -77,7 +75,7 @@ export default function AssignModuleRolesPage() {
 
     const { error: insError } = await supabase
       .from('module_roles')
-      .insert(assignedRoles.map(roleId => ({ module_id: selectedModuleId, role_id: roleId })))
+      .insert(assignedRoles.map((roleId) => ({ module_id: selectedModuleId, role_id: roleId })))
 
     if (insError) {
       setError('Failed to assign roles.')
@@ -89,9 +87,7 @@ export default function AssignModuleRolesPage() {
 
   return (
     <main className="min-h-screen flex flex-col bg-white text-teal-900">
-      <LogoHeader />
-
-      <div className="p-6 max-w-3xl mx-auto w-full mt-6">
+      <section className="max-w-3xl mx-auto w-full p-6 mt-6">
         <div className="bg-white rounded-xl shadow border border-teal-200 p-6">
           <h1 className="text-3xl font-bold text-teal-800 mb-6">📌 Assign Roles to Module</h1>
 
@@ -100,12 +96,12 @@ export default function AssignModuleRolesPage() {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label className="block font-semibold mb-1">Select Module</label>
+                <label className="block font-semibold mb-1 text-gray-700">Select Module</label>
                 <select
                   value={selectedModuleId}
                   onChange={(e) => setSelectedModuleId(e.target.value)}
                   required
-                  className="w-full border border-teal-300 p-2 rounded"
+                  className="w-full border border-teal-300 rounded px-3 py-2 text-teal-900 bg-white"
                 >
                   <option value="">-- Choose Module --</option>
                   {modules.map((mod) => (
@@ -116,10 +112,10 @@ export default function AssignModuleRolesPage() {
 
               {selectedModuleId && (
                 <div>
-                  <label className="block font-semibold mb-2">Assign Roles</label>
-                  <div className="grid grid-cols-2 gap-2 border p-3 rounded bg-teal-50 max-h-60 overflow-y-auto">
+                  <label className="block font-semibold mb-2 text-gray-700">Assign Roles</label>
+                  <div className="grid grid-cols-2 gap-2 border border-teal-300 p-3 rounded bg-teal-50 max-h-60 overflow-y-auto">
                     {roles.map((role) => (
-                      <label key={role.id} className="flex items-center text-sm text-teal-800">
+                      <label key={role.id} className="flex items-center text-sm text-teal-800 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={assignedRoles.includes(role.id)}
@@ -139,7 +135,7 @@ export default function AssignModuleRolesPage() {
               <button
                 type="submit"
                 disabled={saving || !selectedModuleId}
-                className={`w-full text-white font-semibold py-2 rounded ${
+                className={`w-full text-white font-semibold py-2 rounded transition ${
                   saving ? 'bg-teal-400 cursor-not-allowed' : 'bg-teal-700 hover:bg-teal-800'
                 }`}
               >
@@ -148,9 +144,7 @@ export default function AssignModuleRolesPage() {
             </form>
           )}
         </div>
-      </div>
-
-      <Footer />
+      </section>
     </main>
   )
 }

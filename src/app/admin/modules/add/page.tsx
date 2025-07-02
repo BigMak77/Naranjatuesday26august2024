@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
-import LogoHeader from '@/components/LogoHeader'
-import Footer from '@/components/Footer'
 import { useRouter } from 'next/navigation'
 
 interface ModuleGroup {
@@ -38,15 +36,15 @@ export default function AddModulePage() {
     setError(null)
     setLoading(true)
 
-    if (!name || !description || !groupId) {
+    if (!name.trim() || !description.trim() || !groupId) {
       setError('All fields are required.')
       setLoading(false)
       return
     }
 
     const { error: insertError } = await supabase.from('modules').insert({
-      name,
-      description,
+      name: name.trim(),
+      description: description.trim(),
       version: 1,
       group_id: groupId,
     })
@@ -55,52 +53,51 @@ export default function AddModulePage() {
       setError(`Failed to add module: ${insertError.message}`)
       setLoading(false)
     } else {
-      router.push('/admin/modules') // redirect to module list
+      router.push('/admin/modules')
     }
   }
 
   return (
     <main className="min-h-screen flex flex-col bg-white text-teal-900">
-      <LogoHeader />
-
-      <div className="p-6 max-w-3xl mx-auto w-full mt-6">
+      <section className="max-w-3xl mx-auto w-full p-6 mt-6">
         <div className="bg-white rounded-xl shadow border border-teal-200 p-6">
           <h1 className="text-3xl font-bold text-teal-800 mb-6">➕ Add Training Module</h1>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block font-semibold mb-1">Module Group</label>
+              <label className="block font-semibold mb-1 text-gray-700">Module Group</label>
               <select
                 value={groupId}
                 onChange={(e) => setGroupId(e.target.value)}
                 required
-                className="w-full border border-teal-300 p-2 rounded"
+                className="w-full border border-teal-300 rounded px-3 py-2 text-teal-900 bg-white"
               >
                 <option value="">Select a group</option>
-                {groups.map(group => (
+                {groups.map((group) => (
                   <option key={group.id} value={group.id}>{group.name}</option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="block font-semibold mb-1">Module Name</label>
+              <label className="block font-semibold mb-1 text-gray-700">Module Name</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="w-full border border-teal-300 p-2 rounded"
+                className="w-full border border-teal-300 rounded px-3 py-2 text-teal-900 bg-white"
               />
             </div>
 
             <div>
-              <label className="block font-semibold mb-1">Description</label>
+              <label className="block font-semibold mb-1 text-gray-700">Description</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 required
-                className="w-full border border-teal-300 p-2 rounded"
+                className="w-full border border-teal-300 rounded px-3 py-2 text-teal-900 bg-white"
+                rows={5}
               />
             </div>
 
@@ -109,7 +106,7 @@ export default function AddModulePage() {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full text-white font-semibold py-2 rounded ${
+              className={`w-full text-white font-semibold py-2 rounded transition ${
                 loading ? 'bg-teal-400 cursor-not-allowed' : 'bg-teal-700 hover:bg-teal-800'
               }`}
             >
@@ -117,9 +114,7 @@ export default function AddModulePage() {
             </button>
           </form>
         </div>
-      </div>
-
-      <Footer />
+      </section>
     </main>
   )
 }

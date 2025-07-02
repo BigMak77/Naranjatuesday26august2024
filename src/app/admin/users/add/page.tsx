@@ -121,6 +121,17 @@ export default function AddUserPage() {
       }
     }
 
+    // 🧠 Generate expected completions based on role profile
+    const { error: completionError } = await supabase.rpc('generate_expected_completions', {
+      user_id: insertedUser.id,
+      role_id: roleId
+    })
+
+    if (completionError) {
+      console.error('Expected completions generation failed:', completionError.message)
+      // Not fatal — user is still created
+    }
+
     setSuccess(true)
     setTimeout(() => {
       setSubmitting(false)

@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { useRouter } from 'next/navigation'
-import LogoHeader from '@/components/LogoHeader'
 import Footer from '@/components/Footer'
 
 interface Module {
@@ -27,6 +26,7 @@ export default function AddRoleProfilePage() {
   const router = useRouter()
 
   const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
   const [modules, setModules] = useState<Module[]>([])
   const [documents, setDocuments] = useState<Document[]>([])
   const [behaviours, setBehaviours] = useState<Behaviour[]>([])
@@ -87,7 +87,7 @@ export default function AddRoleProfilePage() {
 
     const { data: profile, error: profileError } = await supabase
       .from('role_profiles')
-      .insert({ name })
+      .insert({ name, description })
       .select()
       .single()
 
@@ -182,7 +182,6 @@ export default function AddRoleProfilePage() {
 
   return (
     <>
-      <LogoHeader />
       <main className="min-h-screen bg-teal-50 text-teal-900 px-6 py-12">
         <div className="max-w-4xl mx-auto bg-white border border-teal-200 shadow-md rounded-xl p-8">
           <h1 className="text-3xl font-bold text-orange-600 mb-6">📋 Create Role Profile</h1>
@@ -200,6 +199,16 @@ export default function AddRoleProfilePage() {
                   onChange={e => setName(e.target.value)}
                   required
                   className="w-full border border-teal-300 p-3 rounded-md bg-white text-teal-900"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Profile Description</label>
+                <textarea
+                  value={description}
+                  onChange={e => setDescription(e.target.value)}
+                  className="w-full border border-teal-300 p-3 rounded-md bg-white text-teal-900"
+                  placeholder="Optional description of this role profile"
                 />
               </div>
 

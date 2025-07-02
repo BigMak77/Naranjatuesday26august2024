@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import Link from 'next/link'
-import LogoHeader from '@/components/LogoHeader'
 import Footer from '@/components/Footer'
 
 interface DocumentVersion {
@@ -27,8 +26,6 @@ export default function DocumentVersionsPage() {
         .select('*, document:documents(title)')
         .order('created_at', { ascending: false })
 
-      console.log('Fetched versions:', data)
-
       if (error) {
         console.error('Error fetching document versions:', error)
         setLoading(false)
@@ -49,8 +46,6 @@ export default function DocumentVersionsPage() {
 
   return (
     <main className="min-h-screen bg-white text-teal-900 flex flex-col">
-      <LogoHeader />
-
       <section className="max-w-6xl mx-auto p-6 flex-1">
         <h1 className="text-3xl font-bold mb-6 text-teal-800">📚 Document Version History</h1>
 

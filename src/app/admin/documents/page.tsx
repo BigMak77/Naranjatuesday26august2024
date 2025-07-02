@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import Link from 'next/link'
-import LogoHeader from '@/components/LogoHeader'
 import Footer from '@/components/Footer'
 import { FileText, ClipboardList, ShieldCheck } from 'lucide-react'
 
@@ -60,8 +59,6 @@ export default function DocumentsPage() {
 
   return (
     <main className="min-h-screen flex flex-col bg-teal-50 text-teal-900">
-      <LogoHeader />
-
       <section className="max-w-6xl mx-auto p-6 flex-1">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">📁 All Documents</h1>
