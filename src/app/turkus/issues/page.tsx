@@ -1,0 +1,87 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabase-client'
+import HeroHeader from '@/components/HeroHeader'
+import NeonTable from '@/components/NeonTable'
+
+type Issue = {
+  id: string
+  title: string
+  priority: string
+  status: string
+  created_at: string
+  departments?: {
+    name: string
+  }
+}
+
+export default function IssuesListPage() {
+  const [issues, setIssues] = useState<Issue[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchIssues = async () => {
+      const { data, error } = await supabase
+        .from('issues')
+        .select('id, title, priority, status, created_at, department_id, departments (id, name)')
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        console.error('Error fetching issues:', error)
+      } else {
+        setIssues((data || []).map((issue) => {
+          let departmentObj: { name: string } | undefined = undefined;
+          if (Array.isArray(issue.departments) && issue.departments.length > 0) {
+            departmentObj = { name: String(issue.departments[0]?.name ?? '—') };
+          } else if (issue.departments && typeof issue.departments === 'object' && 'name' in issue.departments) {
+            departmentObj = { name: String((issue.departments as { name?: unknown }).name ?? '—') };
+          } else {
+            departmentObj = { name: '—' };
+          }
+          return {
+            ...issue,
+            departments: departmentObj
+          };
+        }))
+      }
+
+      setLoading(false)
+    }
+
+    fetchIssues()
+  }, [])
+
+  return (
+    <>
+      <HeroHeader
+        title="Turkus Issues"
+        subtitle="View, assign, and manage issues for your organization."
+      />
+      <div className="centered-content">
+        <div className="max-w-6xl w-full px-8 mt-10">
+          {loading ? (
+            <p className="neon-success">Loading issues...</p>
+          ) : (
+            <NeonTable
+              columns={[
+                { header: 'Title', accessor: 'title' },
+                { header: 'Priority', accessor: 'priority' },
+                { header: 'Status', accessor: 'status' },
+                { header: 'Created', accessor: 'created_at' },
+                { header: 'Department', accessor: 'department' },
+              ]}
+              data={issues.map(issue => ({
+                title: issue.title,
+                priority: issue.priority,
+                status: issue.status,
+                created_at: issue.created_at ? new Date(issue.created_at).toLocaleDateString('en-GB') : '—',
+                department: issue.departments?.name || '—',
+              }))}
+            />
+          )}
+        </div>
+      </div>
+    </>
+  )
+}

@@ -1,9 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabaseClient'
+import { supabase } from '@/lib/supabase-client'
 import Footer from '@/components/Footer'
 import DepartmentTree from '@/components/DepartmentTree'
+import HeroHeader from '@/components/HeroHeader'
 
 interface Department {
   id: string
@@ -54,71 +55,74 @@ export default function ManageDepartmentsPage() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col bg-white text-teal-900">
-      <section className="py-16 px-6 bg-teal-50 flex-grow">
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-4xl font-bold mb-10 text-center text-teal-900">🛠 Manage Departments</h1>
+    <>
+      <HeroHeader title="Manage Departments" subtitle="View, edit, and organize your departments and roles." />
+      <main className="min-h-screen flex flex-col bg-white text-teal-900">
+        <section className="py-16 px-6 bg-teal-50 flex-grow">
+          <div className="max-w-6xl mx-auto">
+            <h1 className="text-4xl font-bold mb-10 text-center text-teal-900">Manage Departments</h1>
 
-          {loading ? (
-            <div className="text-center text-gray-600">Loading departments...</div>
-          ) : (
-            <>
-              <div className="overflow-x-auto mb-12">
-                <table className="min-w-full bg-white border rounded shadow">
-                  <thead className="bg-teal-100 text-left">
-                    <tr>
-                      <th className="px-4 py-2">Department</th>
-                      <th className="px-4 py-2">Parent Department</th>
-                      <th className="px-4 py-2">Associated Roles</th>
-                      <th className="px-4 py-2">Change Parent</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {departments.map((dept) => (
-                      <tr key={dept.id} className="border-t">
-                        <td className="px-4 py-2 font-medium">{dept.name}</td>
-                        <td className="px-4 py-2">
-                          {departments.find(d => d.id === dept.parent_id)?.name || '—'}
-                        </td>
-                        <td className="px-4 py-2 text-sm">
-                          {getRolesForDept(dept.id).map(role => role.title).join(', ') || '—'}
-                        </td>
-                        <td className="px-4 py-2">
-                          <select
-                            value={dept.parent_id || ''}
-                            onChange={(e) => updateParent(dept.id, e.target.value)}
-                            className="border px-2 py-1 rounded text-sm"
-                            disabled={updatingId === dept.id}
-                          >
-                            <option value="">— No Parent —</option>
-                            {departments
-                              .filter(d => d.id !== dept.id)
-                              .map((d) => (
-                                <option key={d.id} value={d.id}>
-                                  {d.name}
-                                </option>
-                              ))}
-                          </select>
-                          {updatingId === dept.id && (
-                            <p className="text-xs text-teal-700 mt-1">Updating...</p>
-                          )}
-                        </td>
+            {loading ? (
+              <div className="text-center text-gray-600">Loading departments...</div>
+            ) : (
+              <>
+                <div className="overflow-x-auto mb-12">
+                  <table className="min-w-full bg-white border rounded shadow">
+                    <thead className="bg-teal-100 text-left">
+                      <tr>
+                        <th className="px-4 py-2">Department</th>
+                        <th className="px-4 py-2">Parent Department</th>
+                        <th className="px-4 py-2">Associated Roles</th>
+                        <th className="px-4 py-2">Change Parent</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {departments.map((dept) => (
+                        <tr key={dept.id} className="border-t">
+                          <td className="px-4 py-2 font-medium">{dept.name}</td>
+                          <td className="px-4 py-2">
+                            {departments.find(d => d.id === dept.parent_id)?.name || '—'}
+                          </td>
+                          <td className="px-4 py-2 text-sm">
+                            {getRolesForDept(dept.id).map(role => role.title).join(', ') || '—'}
+                          </td>
+                          <td className="px-4 py-2">
+                            <select
+                              value={dept.parent_id || ''}
+                              onChange={(e) => updateParent(dept.id, e.target.value)}
+                              className="border px-2 py-1 rounded text-sm"
+                              disabled={updatingId === dept.id}
+                            >
+                              <option value="">— No Parent —</option>
+                              {departments
+                                .filter(d => d.id !== dept.id)
+                                .map((d) => (
+                                  <option key={d.id} value={d.id}>
+                                    {d.name}
+                                  </option>
+                                ))}
+                            </select>
+                            {updatingId === dept.id && (
+                              <p className="text-xs text-teal-700 mt-1">Updating...</p>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
 
-              <h2 className="text-2xl font-bold mb-4">📂 Department Hierarchy</h2>
-              <div className="bg-white p-4 rounded shadow border">
-                <DepartmentTree departments={departments} roles={roles} />
-              </div>
-            </>
-          )}
-        </div>
-      </section>
+                <h2 className="text-2xl font-bold mb-4">📂 Department Hierarchy</h2>
+                <div className="bg-white p-4 rounded shadow border">
+                  <DepartmentTree departments={departments} roles={roles} />
+                </div>
+              </>
+            )}
+          </div>
+        </section>
 
-      <Footer />
-    </main>
+        <Footer />
+      </main>
+    </>
   )
 }

@@ -1,243 +1,146 @@
+// admin/compliance/page.tsx
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabaseClient'
+import { supabase } from '@/lib/supabase-client'
+import NeonTable from '@/components/NeonTable'
+import NeonForm from '@/components/NeonForm'
+import NeonPanel from '@/components/NeonPanel'
 
-interface Completion {
-  id: string
-  completed_at: string
-  module: { name: string } | null
-  user: {
+interface Assignment {
+  auth_id: string
+  name: string
+  type: 'module' | 'document' | 'behaviour'
+  completed_at?: string
+  user?: {
     first_name: string
     last_name: string
-    department: { name: string } | null
-    role: { title: string } | null
-  } | null
+    department?: { name: string }
+    role?: { title: string }
+  }
 }
 
 export default function CompliancePage() {
-  const [completions, setCompletions] = useState<Completion[]>([])
+  const [assignments, setAssignments] = useState<Assignment[]>([])
   const [departments, setDepartments] = useState<string[]>([])
   const [roles, setRoles] = useState<string[]>([])
   const [modules, setModules] = useState<string[]>([])
+  const [search, setSearch] = useState('')
 
   const [selectedDept, setSelectedDept] = useState('All')
   const [selectedRole, setSelectedRole] = useState('All')
   const [selectedModule, setSelectedModule] = useState('All')
-  const [startDate, setStartDate] = useState('')
-  const [endDate, setEndDate] = useState('')
-
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  const [pageSize, setPageSize] = useState(25)
-  const [currentPage, setCurrentPage] = useState(1)
 
   useEffect(() => {
-    const fetchCompletions = async () => {
-      const { data, error } = await supabase
-        .from('module_completions')
-        .select(`
-          id,
-          completed_at,
-          modules ( name ),
-          users (
-            first_name,
-            last_name,
-            department:departments ( name ),
-            role:roles ( title )
-          )
-        `)
-        .order('completed_at', { ascending: false })
+    const fetchData = async () => {
+      const [assignmentsRaw, completionsRaw, usersRaw] = await Promise.all([
+        supabase.from('user_training_assignments').select('*'),
+        supabase.from('module_completions').select('auth_id, module_id, completed_at'),
+        supabase.from('users').select('auth_id, first_name, last_name, department:departments(name), role:roles(title)')
+      ])
 
-      if (error) {
-        console.error(error)
-        setError('Failed to load completions.')
-        setLoading(false)
-        return
-      }
+      const moduleMap: Record<string, string> = {}
+      const { data: modulesList } = await supabase.from('modules').select('id, name')
+      modulesList?.forEach(m => { moduleMap[m.id] = m.name })
 
-      const normalized = (data || []).map((item: any) => ({
-        id: item.id,
-        completed_at: item.completed_at,
-        module: item.modules || null,
-        user: item.users
-          ? {
-              first_name: item.users.first_name,
-              last_name: item.users.last_name,
-              department: item.users.department || null,
-              role: item.users.role || null,
-            }
-          : null,
-      }))
+      const userMap = Object.fromEntries((usersRaw.data || []).map(u => [u.auth_id, u]))
+      const completionMap = Object.fromEntries((completionsRaw.data || []).map(c => [`${c.auth_id}_${c.module_id}`, c.completed_at]))
 
-      setCompletions(normalized)
-      setDepartments([...new Set(normalized.map(c => c.user?.department?.name).filter(Boolean))])
-      setRoles([...new Set(normalized.map(c => c.user?.role?.title).filter(Boolean))])
-      setModules([...new Set(normalized.map(c => c.module?.name).filter(Boolean))])
-      setLoading(false)
+      const result: Assignment[] = (assignmentsRaw.data || [])
+        .filter(a => a.type === 'module')
+        .map(a => {
+          const completed_at = completionMap[`${a.auth_id}_${a.module_id}`]
+          return {
+            auth_id: a.auth_id,
+            name: moduleMap[a.module_id] || 'Unknown Module',
+            type: 'module',
+            completed_at,
+            user: userMap[a.auth_id] || undefined
+          }
+        })
+
+      setAssignments(result)
+      setDepartments([...new Set(result.map(r => r.user?.department?.name).filter((x): x is string => !!x))])
+      setRoles([...new Set(result.map(r => r.user?.role?.title).filter((x): x is string => !!x))])
+      setModules([...new Set(result.map(r => r.name).filter((x): x is string => !!x))])
     }
-
-    fetchCompletions()
+    fetchData()
   }, [])
 
-  const getFiltered = () => {
-    return completions
-      .filter(c => selectedDept === 'All' || c.user?.department?.name === selectedDept)
-      .filter(c => selectedRole === 'All' || c.user?.role?.title === selectedRole)
-      .filter(c => selectedModule === 'All' || c.module?.name === selectedModule)
-      .filter(c => !startDate || new Date(c.completed_at) >= new Date(startDate))
-      .filter(c => !endDate || new Date(c.completed_at) <= new Date(endDate))
-  }
+  const filtered = assignments
+    .filter(a => selectedDept === 'All' || a.user?.department?.name === selectedDept)
+    .filter(a => selectedRole === 'All' || a.user?.role?.title === selectedRole)
+    .filter(a => selectedModule === 'All' || a.name === selectedModule)
+    .filter(a => {
+      const name = `${a.user?.first_name ?? ''} ${a.user?.last_name ?? ''}`.toLowerCase()
+      return name.includes(search.toLowerCase())
+    })
 
-  const filtered = getFiltered()
-  const totalPages = pageSize === 0 ? 1 : Math.ceil(filtered.length / pageSize)
-  const displayed = pageSize === 0 ? filtered : filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
-
-  const exportCSV = () => {
-    const rows = [
-      ['User', 'Department', 'Role', 'Module', 'Completed At'],
-      ...filtered.map(c => [
-        `${c.user?.first_name ?? ''} ${c.user?.last_name ?? ''}`,
-        c.user?.department?.name ?? '',
-        c.user?.role?.title ?? '',
-        c.module?.name ?? '',
-        new Date(c.completed_at).toLocaleDateString(),
-      ])
-    ]
-    const csvContent = 'data:text/csv;charset=utf-8,' + rows.map(r => r.join(',')).join('\n')
-    const encodedUri = encodeURI(csvContent)
-    const link = document.createElement('a')
-    link.setAttribute('href', encodedUri)
-    link.setAttribute('download', 'compliance_data.csv')
-    document.body.appendChild(link)
-    link.click()
-  }
+  const completionRate = assignments.length > 0
+    ? Math.round((assignments.filter(a => !!a.completed_at).length / assignments.length) * 100)
+    : 0
 
   return (
     <>
-      <h1 className="text-3xl font-bold text-orange-600 mb-6">📋 Compliance Dashboard</h1>
+      <NeonPanel>
+        <h1 className="neon-form-title">📋 Compliance Dashboard</h1>
+        <p>Completion Rate: <strong>{completionRate}%</strong></p>
 
-      {/* Filters */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-        {[{ label: 'Department', value: selectedDept, setter: setSelectedDept, options: departments },
-          { label: 'Role', value: selectedRole, setter: setSelectedRole, options: roles },
-          { label: 'Module', value: selectedModule, setter: setSelectedModule, options: modules }
-        ].map(({ label, value, setter, options }) => (
-          <div key={label}>
-            <label className="block mb-1 text-sm font-medium text-teal-900">{label}</label>
-            <select
-              value={value}
-              onChange={(e) => setter(e.target.value)}
-              className="border border-gray-300 rounded px-3 py-2 w-full text-teal-900"
-            >
-              <option value="All">All</option>
-              {options.map((opt) => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
+        <NeonForm title="Compliance Filters" onSubmit={e => e.preventDefault()} submitLabel={undefined}>
+          <div className="neon-form-actions" style={{flexWrap: 'wrap'}}>
+            <div>
+              <label>Department</label>
+              <select value={selectedDept} onChange={e => setSelectedDept(e.target.value)} className="neon-input">
+                <option value="All">All</option>
+                {departments.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </div>
+            <div>
+              <label>Role</label>
+              <select value={selectedRole} onChange={e => setSelectedRole(e.target.value)} className="neon-input">
+                <option value="All">All</option>
+                {roles.map(r => <option key={r} value={r}>{r}</option>)}
+              </select>
+            </div>
+            <div>
+              <label>Module</label>
+              <select value={selectedModule} onChange={e => setSelectedModule(e.target.value)} className="neon-input">
+                <option value="All">All</option>
+                {modules.map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+            </div>
+            <div>
+              <label>Search User</label>
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Enter name..."
+                className="neon-input"
+              />
+            </div>
           </div>
-        ))}
-        <div>
-          <label className="block mb-1 text-sm font-medium text-teal-900">Start Date</label>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="border border-gray-300 rounded px-3 py-2 w-full text-teal-900"
-          />
-        </div>
-        <div>
-          <label className="block mb-1 text-sm font-medium text-teal-900">End Date</label>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="border border-gray-300 rounded px-3 py-2 w-full text-teal-900"
-          />
-        </div>
-      </div>
+        </NeonForm>
 
-      {/* Export + Page Size */}
-      <div className="flex justify-between items-center mb-4">
-        <button
-          onClick={exportCSV}
-          className="bg-orange-600 text-white px-4 py-2 rounded shadow hover:bg-orange-700 transition"
-        >
-          ⬇️ Export CSV
-        </button>
-        <div className="flex items-center gap-2 text-sm text-teal-900">
-          <label>Show</label>
-          <select
-            value={pageSize}
-            onChange={(e) => {
-              setPageSize(Number(e.target.value))
-              setCurrentPage(1)
-            }}
-            className="border border-gray-300 rounded px-2 py-1 text-teal-900"
-          >
-            {[25, 50, 100, 0].map(n => (
-              <option key={n} value={n}>{n === 0 ? 'All' : n}</option>
-            ))}
-          </select>
-          <label>entries</label>
-        </div>
-      </div>
-
-      {/* Table */}
-      {loading ? (
-        <p>Loading...</p>
-      ) : error ? (
-        <p className="text-red-600">{error}</p>
-      ) : displayed.length === 0 ? (
-        <p className="text-gray-600">No completions found.</p>
-      ) : (
-        <div className="overflow-x-auto shadow rounded-lg">
-          <table className="table-default">
-            <thead>
-              <tr>
-                <th>User</th>
-                <th>Department</th>
-                <th>Role</th>
-                <th>Module</th>
-                <th>Completed At</th>
-              </tr>
-            </thead>
-            <tbody>
-              {displayed.map((comp) => (
-                <tr key={comp.id}>
-                  <td>{comp.user?.first_name} {comp.user?.last_name}</td>
-                  <td>{comp.user?.department?.name ?? 'N/A'}</td>
-                  <td>{comp.user?.role?.title ?? 'N/A'}</td>
-                  <td>{comp.module?.name ?? 'Unknown'}</td>
-                  <td>{new Date(comp.completed_at).toLocaleDateString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Pagination */}
-      {pageSize !== 0 && totalPages > 1 && (
-        <div className="flex justify-center items-center gap-4 mt-6 text-sm text-teal-900">
-          <button
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
-            className="px-3 py-1 bg-teal-700 text-white rounded disabled:opacity-50"
-          >
-            ← Prev
-          </button>
-          <span>Page {currentPage} of {totalPages}</span>
-          <button
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
-            className="px-3 py-1 bg-teal-700 text-white rounded disabled:opacity-50"
-          >
-            Next →
-          </button>
-        </div>
-      )}
+        <NeonTable
+          columns={[
+            { header: 'User', accessor: 'user' },
+            { header: 'Department', accessor: 'department' },
+            { header: 'Role', accessor: 'role' },
+            { header: 'Module', accessor: 'module' },
+            { header: 'Status', accessor: 'status' },
+          ]}
+          data={filtered.map(a => ({
+            user: `${a.user?.first_name ?? ''} ${a.user?.last_name ?? ''}`,
+            department: a.user?.department?.name || '—',
+            role: a.user?.role?.title || '—',
+            module: a.name,
+            status: a.completed_at
+              ? `✅ ${new Date(a.completed_at).toLocaleDateString()}`
+              : '⏳ Incomplete',
+          }))}
+        />
+      </NeonPanel>
     </>
   )
 }

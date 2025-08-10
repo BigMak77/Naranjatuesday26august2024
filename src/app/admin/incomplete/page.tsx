@@ -1,10 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabaseClient'
+import { supabase } from '@/lib/supabase-client'
+import HeroHeader from '@/components/HeroHeader'
+import NeonTable from '@/components/NeonTable'
+import { FiSearch, FiUsers, FiLayers, FiBookOpen } from 'react-icons/fi'
 
 interface IncompleteRecord {
-  user_id: string
+  auth_id: string
   first_name: string
   last_name: string
   department: string
@@ -33,7 +36,7 @@ export default function IncompleteTrainingPage() {
       }
 
       const results = (data || []).map((item: any): IncompleteRecord => ({
-        user_id: item.user_id,
+        auth_id: item.auth_id,
         first_name: item.first_name,
         last_name: item.last_name,
         department: item.department,
@@ -90,85 +93,82 @@ export default function IncompleteTrainingPage() {
     setFiltered(filteredList)
   }, [search, selectedDept, selectedRole, selectedModule, data, allRoles])
 
+  const filteredData = filtered.map(rec => ({
+    user: `${rec.first_name} ${rec.last_name}`,
+    department: rec.department,
+    role: rec.role,
+    module: rec.module
+  }))
+
   return (
-    <main className="min-h-screen flex flex-col bg-white text-teal-900">
-      <div className="p-6 max-w-6xl mx-auto flex-grow">
-        <h1 className="text-3xl font-bold text-orange-600 mb-6">📋 Incomplete Training</h1>
-
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-          <input
-            type="search"
-            placeholder="Search users..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="border border-teal-300 rounded px-3 py-2 col-span-1 md:col-span-2 text-teal-900"
-          />
-
-          <select
-            value={selectedDept}
-            onChange={(e) => setSelectedDept(e.target.value)}
-            className="border border-teal-300 rounded px-3 py-2 text-teal-900"
-          >
-            <option value="All">All Departments</option>
-            {departments.map((d) => (
-              <option key={d} value={d}>{d}</option>
-            ))}
-          </select>
-
-          <select
-            value={selectedRole}
-            onChange={(e) => setSelectedRole(e.target.value)}
-            className="border border-teal-300 rounded px-3 py-2 text-teal-900"
-          >
-            <option value="All">All Roles</option>
-            {roles.map((r) => (
-              <option key={r} value={r}>{r}</option>
-            ))}
-          </select>
-
-          <select
-            value={selectedModule}
-            onChange={(e) => setSelectedModule(e.target.value)}
-            className="border border-teal-300 rounded px-3 py-2 text-teal-900"
-          >
-            <option value="All">All Modules</option>
-            {modules.map((m) => (
-              <option key={m} value={m}>{m}</option>
-            ))}
-          </select>
+    <>
+      <HeroHeader title="Incomplete Training" subtitle="View users with incomplete training modules." />
+      <main className="min-h-screen flex flex-col bg-[#013b3b] text-[#40E0D0]">
+        <div className="p-6 max-w-6xl mx-auto flex-grow">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6 items-center">
+            <div className="flex items-center col-span-1 md:col-span-2">
+              <FiSearch className="text-[#40E0D0] text-lg mr-2" />
+              <input
+                type="search"
+                placeholder="Search users..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="border border-[#40E0D0] bg-transparent rounded px-3 py-2 w-full text-[#40E0D0] placeholder:text-[#40E0D0]/60 focus:ring-2 focus:ring-[#40E0D0]"
+              />
+            </div>
+            <div className="flex items-center">
+              <FiUsers className="text-[#40E0D0] text-lg mr-2" />
+              <select
+                value={selectedDept}
+                onChange={(e) => setSelectedDept(e.target.value)}
+                className="border border-[#40E0D0] bg-transparent rounded px-3 py-2 w-full text-[#40E0D0] focus:ring-2 focus:ring-[#40E0D0]"
+              >
+                <option value="All">All Departments</option>
+                {departments.map((d) => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center">
+              <FiLayers className="text-[#40E0D0] text-lg mr-2" />
+              <select
+                value={selectedRole}
+                onChange={(e) => setSelectedRole(e.target.value)}
+                className="border border-[#40E0D0] bg-transparent rounded px-3 py-2 w-full text-[#40E0D0] focus:ring-2 focus:ring-[#40E0D0]"
+              >
+                <option value="All">All Roles</option>
+                {roles.map((r) => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center">
+              <FiBookOpen className="text-[#40E0D0] text-lg mr-2" />
+              <select
+                value={selectedModule}
+                onChange={(e) => setSelectedModule(e.target.value)}
+                className="border border-[#40E0D0] bg-transparent rounded px-3 py-2 w-full text-[#40E0D0] focus:ring-2 focus:ring-[#40E0D0]"
+              >
+                <option value="All">All Modules</option>
+                {modules.map((m) => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="w-full">
+            <NeonTable
+              columns={[
+                { header: 'User', accessor: 'user' },
+                { header: 'Department', accessor: 'department' },
+                { header: 'Role', accessor: 'role' },
+                { header: 'Module', accessor: 'module' }
+              ]}
+              data={filteredData}
+            />
+          </div>
         </div>
-
-        <div className="overflow-x-auto bg-white shadow rounded-lg min-h-[400px]">
-          <table className="min-w-full table-default text-sm">
-            <thead>
-              <tr>
-                <th>User</th>
-                <th>Department</th>
-                <th>Role</th>
-                <th>Module</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.length > 0 ? (
-                filtered.map((rec) => (
-                  <tr key={`${rec.user_id}-${rec.module}`} className="hover:bg-orange-100">
-                    <td className="p-3 border-b">{rec.first_name} {rec.last_name}</td>
-                    <td className="p-3 border-b">{rec.department}</td>
-                    <td className="p-3 border-b">{rec.role}</td>
-                    <td className="p-3 border-b">{rec.module}</td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td className="p-3 border-b text-gray-500 text-center" colSpan={4}>
-                    No incomplete training found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </main>
+      </main>
+    </>
   )
 }

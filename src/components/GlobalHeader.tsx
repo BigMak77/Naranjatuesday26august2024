@@ -1,0 +1,39 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { useUser } from "@/lib/useUser";
+import UserProfileCard from "@/components/user/UserProfileCard";
+
+export default function GlobalHeader() {
+  const { user, loading } = useUser();
+
+  return (
+    <div className="global-logo-header" style={{ display: 'flex', alignItems: 'center', width: '100%', height: '80px', minHeight: '80px', maxHeight: '80px', boxSizing: 'border-box' }}>
+      <Image
+        src="/logo1.png"
+        alt="Naranja logo"
+        width={300}
+        height={240}
+        className="global-logo-img"
+        style={{ width: '300px', height: '240px', objectFit: 'contain' }}
+        priority
+      />
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginLeft: '2rem', height: '80px' }}>
+        <UserProfileCard authId={user?.auth_id || "demo"} />
+        {/* Always render login button in-line if not logged in */}
+        {!loading && !user && (
+          <Link
+            href="/login"
+            className="login-btn-orange"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', whiteSpace: 'nowrap', height: '40px' }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            Log In
+          </Link>
+        )}
+        {/* Add more header buttons/links here if needed, all will be in-line */}
+      </div>
+    </div>
+  );
+}

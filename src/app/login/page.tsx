@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabaseClient'
+import { supabase } from '@/lib/supabase-client'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
-import LogoHeader from '@/components/LogoHeader'
+import Link from 'next/link'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -27,9 +27,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-gray-50">
-      <LogoHeader />
-
+    <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-[#011f24] text-[#40E0D0]">
       {/* 🔲 Animated Background Image */}
       <motion.div
         initial={{ scale: 1 }}
@@ -44,38 +42,48 @@ export default function LoginPage() {
           className="object-cover brightness-25"
           priority
         />
-        <div className="absolute inset-0 bg-white opacity-30" />
+        {/* Remove white overlay for neon look */}
       </motion.div>
 
-      {/* 🔳 Animated Login Form */}
+      {/* 🔙 Back to Home */}
+      <div className="relative z-10 w-full max-w-md px-4 -mt-10 mb-4 self-start">
+        <Link
+          href="/"
+          className="text-sm text-[#40E0D0] hover:text-orange-300 font-medium transition"
+        >
+          ← Back to Home
+        </Link>
+      </div>
+
+      {/* 🔳 Login Form */}
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
-        className="relative z-10 max-w-md w-full bg-white bg-opacity-90 shadow-xl rounded-2xl p-8 border border-teal-100 backdrop-blur"
+        className="relative z-10 max-w-md w-full bg-[#011f24] bg-opacity-95 shadow-xl rounded-2xl p-8 border border-[#40E0D0] backdrop-blur"
       >
-        <h1 className="text-3xl font-bold text-teal-800 mb-6 text-center">NARANJA Login</h1>
+        <h1 className="text-3xl font-bold text-[#40E0D0] mb-6 text-center">NARANJA Login</h1>
 
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="block text-sm font-medium text-[#40E0D0] mb-1">Email</label>
             <input
               type="email"
               required
               placeholder="you@example.com"
-              className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full border border-[#40E0D0] bg-transparent text-[#40E0D0] p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#40E0D0] placeholder:text-[#40E0D0]/60"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <label className="block text-sm font-medium text-[#40E0D0] mb-1">Password</label>
             <input
               type="password"
               required
               placeholder="********"
-              className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full border border-[#40E0D0] bg-transparent text-[#40E0D0] p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#40E0D0] placeholder:text-[#40E0D0]/60"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
@@ -83,12 +91,12 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className="w-full bg-teal-600 text-white font-semibold py-3 rounded-lg hover:bg-teal-700 transition"
+            className="w-full bg-[#40E0D0] text-[#011f24] font-semibold py-3 rounded-lg hover:bg-orange-400 transition shadow-glow"
           >
             Log In
           </button>
 
-          {error && <p className="text-red-500 text-sm mt-2 text-center">{error}</p>}
+          {error && <p className="text-orange-400 text-sm mt-2 text-center">{error}</p>}
         </form>
       </motion.div>
     </div>

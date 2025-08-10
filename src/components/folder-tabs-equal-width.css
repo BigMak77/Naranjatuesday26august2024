@@ -1,0 +1,25 @@
+.folder-tabs {
+  display: flex;
+  width: 100%;
+  border-bottom: 2px solid #40E0D0;
+}
+.folder-tab {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #40E0D0;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 0;
+}
+.folder-tab.active {
+  border-bottom: 2px solid #FFA500;
+  background: #012626;
+  color: #40E0D0;
+}

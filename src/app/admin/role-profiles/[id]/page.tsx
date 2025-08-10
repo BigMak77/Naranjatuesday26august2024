@@ -2,139 +2,138 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { supabase } from '@/lib/supabaseClient'
-import BehaviourIcon from '@/components/BehaviourIcon'
-import { FiFileText, FiTool, FiAlertTriangle } from 'react-icons/fi'
-import type { ReactElement } from 'react'
+import { supabase } from '@/lib/supabase-client'
+import HeroHeader from '@/components/HeroHeader'
+import * as FiIcons from 'react-icons/fi'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@radix-ui/react-tooltip'
 
-interface Module {
-  id: string
-  name: string
-}
-
-interface Document {
-  id: string
-  title: string
-  document_type: string
-}
-
-interface Behaviour {
-  id: string
-  name: string
-  icon: string
-}
-
-export default function RoleProfileDetailPage(): ReactElement {
+export default function RoleProfileDetailPage() {
   const { id } = useParams()
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
-  const [modules, setModules] = useState<Module[]>([])
-  const [documents, setDocuments] = useState<Document[]>([])
-  const [behaviours, setBehaviours] = useState<Behaviour[]>([])
-  const [loading, setLoading] = useState(true)
+  const [profile, setProfile] = useState<any>(null)
+  const [modules, setModules] = useState<any[]>([])
+  const [documents, setDocuments] = useState<any[]>([])
+  const [behaviours, setBehaviours] = useState<any[]>([])
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      const { data, error } = await supabase
+    const fetchAll = async () => {
+      const { data: profileData } = await supabase
         .from('role_profiles')
-        .select(`
-          id,
-          name,
-          description,
-          role_profile_modules ( modules ( id, name ) ),
-          role_profile_documents ( documents ( id, title, document_type ) ),
-          role_profile_behaviours ( behaviours ( id, name, icon ) )
-        `)
+        .select()
         .eq('id', id)
         .single()
+      setProfile(profileData)
 
-      if (data) {
-        setName(data.name)
-        setDescription(data.description || '')
-        setModules((data.role_profile_modules || []).map((rm: any) => rm.modules).filter(Boolean))
-        setDocuments((data.role_profile_documents || []).map((rd: any) => rd.documents).filter(Boolean))
-        setBehaviours((data.role_profile_behaviours || []).map((rb: any) => rb.behaviours).filter(Boolean))
-      }
-      setLoading(false)
+      const { data: modData } = await supabase
+        .from('role_profile_modules')
+        .select('module_id, modules(name)')
+        .eq('role_profile_id', id)
+
+      const { data: docData } = await supabase
+        .from('role_profile_documents')
+        .select('document_id, documents(title, document_type)') // ✅ FIXED HERE
+        .eq('role_profile_id', id)
+
+      const { data: behData } = await supabase
+        .from('role_profile_behaviours')
+        .select('behaviour_id, behaviours(name, description, icon)')
+        .eq('role_profile_id', id)
+
+      setModules(modData || [])
+      setDocuments(docData || [])
+      setBehaviours(behData || [])
     }
 
-    if (id) fetchProfile()
+    fetchAll()
   }, [id])
 
-  if (loading) return <p className="p-6">Loading profile...</p>
-
-  const groupedDocuments = documents.reduce<Record<string, Document[]>>((acc, doc) => {
-    if (!acc[doc.document_type]) acc[doc.document_type] = []
-    acc[doc.document_type].push(doc)
+  const groupedDocs = documents.reduce((acc, d) => {
+    const type = d.documents?.document_type || 'other'
+    acc[type] = acc[type] || []
+    acc[type].push(d.documents?.title || '[Untitled]') // ✅ FIXED HERE
     return acc
-  }, {})
-
-  const documentIcons: Record<string, ReactElement> = {
-    policy: <FiFileText className="inline-block text-lg text-teal-700 mr-1" />,
-    work_instruction: <FiTool className="inline-block text-lg text-teal-700 mr-1" />,
-    ssow: <FiAlertTriangle className="inline-block text-lg text-teal-700 mr-1" />
-  }
+  }, {} as Record<string, string[]>)
 
   return (
-    <main className="min-h-screen bg-white text-teal-900">
-      <div className="max-w-7xl mx-auto py-10 px-6">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-orange-600 mb-2">{name}</h1>
-          <p className="text-gray-700 text-sm">{description || 'No description provided.'}</p>
-        </div>
+    <div className="role-profile-page px-6 py-10 max-w-5xl mx-auto">
+      <HeroHeader
+        title={profile?.name || 'Loading Role Profile...'}
+        subtitle={profile?.description || ''}
+      />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <section>
-            <h2 className="text-xl font-bold text-orange-600 mb-2">📦 Modules</h2>
-            {modules.length === 0 ? (
-              <p className="text-sm text-gray-500">No modules assigned</p>
-            ) : (
-              <ul className="list-disc list-inside space-y-1">
-                {modules.map((mod) => (
-                  <li key={mod.id}>{mod.name}</li>
-                ))}
-              </ul>
-            )}
-          </section>
-
-          <section>
-            <h2 className="text-xl font-bold text-orange-600 mb-2">📚 Documents</h2>
-            {Object.entries(groupedDocuments).length === 0 ? (
-              <p className="text-sm text-gray-500">No documents assigned</p>
-            ) : (
-              <div className="space-y-4">
-                {Object.entries(groupedDocuments).map(([type, docs]) => (
-                  <div key={type}>
-                    <h3 className="font-semibold text-teal-700 mb-1 flex items-center gap-1">
-                      {documentIcons[type]} {type.replace('_', ' ').toUpperCase()}
-                    </h3>
-                    <ul className="list-disc list-inside ml-2">
-                      {docs.map((doc) => (
-                        <li key={doc.id}>{doc.title}</li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-
-          <section>
-            <h2 className="text-xl font-bold text-orange-600 mb-2">🎯 Behaviours</h2>
-            {behaviours.length === 0 ? (
-              <p className="text-sm text-gray-500">No behaviours assigned</p>
-            ) : (
-              <ul className="flex flex-wrap gap-3">
-                {behaviours.map((b) => (
-                  <li key={b.id}>
-                    <BehaviourIcon behaviour={b} />
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        </div>
+      {/* Modules Section */}
+      <div className="section mt-10">
+        <h2 className="text-neon text-xl font-semibold mb-3">Modules</h2>
+        {modules.length === 0 ? (
+          <p className="text-muted">No modules assigned.</p>
+        ) : (
+          <ul className="list-disc pl-6 text-white space-y-1 text-sm">
+            {modules.map((m) => (
+              <li key={m.module_id}>{m.modules?.name}</li>
+            ))}
+          </ul>
+        )}
       </div>
-    </main>
+
+      {/* Documents Section */}
+      <div className="section mt-10">
+        <h2 className="text-neon text-xl font-semibold mb-3">Documents</h2>
+        {Object.entries(groupedDocs).length === 0 ? (
+          <p className="text-muted">No documents assigned.</p>
+        ) : (
+          Object.entries(groupedDocs).map(([type, titles]) => (
+            <div key={type} className="mb-4">
+              <p className="text-orange-400 font-semibold capitalize mb-1">
+                {type.replace(/_/g, ' ')}
+              </p>
+              <ul className="list-disc pl-6 text-white space-y-1 text-sm">
+                {(titles as string[]).map((t, i) => (
+                  <li key={i}>{t}</li>
+                ))}
+              </ul>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Behaviours Section */}
+      <div className="section mt-10">
+        <h2 className="text-neon text-xl font-semibold mb-3">Behaviours</h2>
+        {behaviours.length === 0 ? (
+          <p className="text-muted">No behaviours assigned.</p>
+        ) : (
+          <TooltipProvider>
+            <div className="flex flex-wrap gap-4 mt-2">
+              {behaviours.map((b) => {
+                const Icon =
+                  FiIcons[b.behaviours?.icon as keyof typeof FiIcons] || FiIcons.FiHelpCircle
+
+                return (
+                  <Tooltip key={b.behaviour_id}>
+                    <TooltipTrigger asChild>
+                      <div
+                        className="btn-neon btn-small px-3 py-2 text-center rounded cursor-pointer"
+                        title={b.behaviours?.name}
+                      >
+                        <Icon className="text-2xl" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="neon-tooltip text-sm">
+                        {b.behaviours?.description || 'No description'}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                )
+              })}
+            </div>
+          </TooltipProvider>
+        )}
+      </div>
+    </div>
   )
 }

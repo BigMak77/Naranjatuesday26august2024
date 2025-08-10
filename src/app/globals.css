@@ -1,131 +1,284 @@
-@import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* =========================================
+   0) Font faces (load FIRST)
+   ========================================= */
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/Geist.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/Geist-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* =========================================
+   1) Theme variables
+   ========================================= */
+:root{
+  --neon:#40E0D0;
+  --neon-2:#2edbd0;
+  --bg:#013b3b;
+  --panel:#012b2f;
+  --field:#012b2b;
+  --text:#ffffff;
+  --ink:#011f24;
+  --accent:#ffa500;
+  --muted:#014d4d;
+  --danger:#ea1c1c;
+  --border:var(--neon);
+
+  --radius:12px; --r-sm:6px; --r-md:8px;
+
+  --space-1:.5rem; --space-2:.75rem; --space-3:1rem; --space-4:1.5rem;
+
+  --shadow-neon:0 0 16px 0 var(--neon), 0 0 2px 0 var(--neon-2);
+  --shadow-neon-soft:0 0 8px var(--neon);
+  --focus-ring:0 0 0 2px var(--neon);
+}
+:root.flat{ --shadow-neon:none; --shadow-neon-soft:none; --border:transparent; }
+
+/* =========================================
+   2) Base & layout
+   ========================================= */
+html,body{
+  font-family:'Geist',system-ui,sans-serif;
+  font-size:16px; line-height:1.5; color:var(--text);
+  background:var(--bg); color-scheme:dark;
+  -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+  margin:0; width:100%; max-width:100%; overflow-x:hidden;
+  box-sizing:border-box;
+}
+*,*::before,*::after{ box-sizing:border-box; }
+input,select,textarea,button,label,option{ font-family:inherit; }
+
+.page{
+  min-height:100dvh;
+  display:grid;
+  grid-template-rows:auto 1fr auto; /* header | main | footer */
+}
+
+/* =========================================
+   3) Hero header (no margins applied globally)
+   ========================================= */
+.hero-header-neon{
+  inline-size:100%;
+  padding-block:1rem;
+  background:linear-gradient(90deg,#013b3b 0%,#011f24 50%,#014f4f 100%);
+  border-block-end:3px solid var(--accent);
+  color:var(--neon);
+  margin:0;
+}
+.hero-header-neon h1{
+  font-size:2rem; font-weight:800; color:var(--accent);
+  text-align:center; margin:0;
+}
+.hero-header-neon p{
+  font-size:1.125rem; color:var(--neon);
+  text-align:center; margin:0;
+}
+
+/* =========================================
+   4) Main area (ONLY place where page spacing lives)
+   - Add class "after-hero" to <main> below the hero
+   - All vertical rhythm is applied here, not globally
+   ========================================= */
+.after-hero{
+  display:grid; place-items:stretch; /* keeps content centered via inner wrapper */
+  padding-inline:2vw;
+}
+
+/* Central column wrapper */
+.after-hero .page-content{
+  width:min(100%, 1200px);
+  margin-inline:auto;
+  display:block;
+}
+
+/* Vertical rhythm ONLY under the hero */
+.after-hero .page-content > * + *{
+  margin-top:1.25rem; /* adjust global spacing below hero */
+}
+
+/* Optional: center a single block fullscreen (landing/hero sections) */
+.neon-center-content{
+  min-height:calc(100dvh - 80px); /* if you have a fixed 80px logo header elsewhere */
+  display:flex; align-items:center; justify-content:center;
+}
+
+/* =========================================
+   5) Footer
+   ========================================= */
+.global-footer{
+  inline-size:100%;
+  background:linear-gradient(90deg,#014f4f 0%,#03807c 100%);
+  color:var(--text);
+  border-top:3px solid var(--accent);
+  display:grid; place-items:center;
+  padding-block:2rem 1.5rem;
+  position:relative; z-index:50; margin:0;
+}
+.global-footer .inner{
+  width:100%; max-width:1300px; display:grid; gap:1.5rem; margin-inline:auto;
+}
+@media (min-width:1300px){
+  .global-footer .inner{
+    grid-auto-flow:column; justify-content:space-between; align-items:center; gap:3.5rem;
   }
 }
+.global-footer a{ color:var(--neon); text-decoration:none; transition:color .18s, text-shadow .18s, transform .12s, filter .18s; }
+.global-footer a:hover{ color:var(--accent); text-shadow:0 0 8px var(--accent); transform:translateY(-1px); }
+.global-footer svg{ color:#fff; transition:color .18s, filter .18s, transform .12s; filter:drop-shadow(0 0 2px #fff); }
+.global-footer a:hover svg{ color:var(--neon); filter:drop-shadow(0 0 4px var(--neon)); transform:scale(1.12); }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: 'Geist', system-ui, sans-serif;
-  font-size: 16px;
-  line-height: 1.5;
+/* =========================================
+   6) Components (no external margins; let main control spacing)
+   ========================================= */
+
+/* Forms */
+form,.neon-form{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow-neon);
+  padding:calc(var(--space-4) + .5rem);
+  margin:0 !important; /* <— critical */
+}
+.neon-form-title{ font-size:1.5rem; font-weight:700; color:var(--neon); text-align:left; }
+.neon-form-actions{ display:flex; gap:1rem; justify-content:flex-end; }
+
+/* Inputs */
+input[type="text"],input[type="search"],input[type="date"],input[type="number"],select,textarea{
+  width:100%; background:var(--field); color:var(--text);
+  border:1px solid var(--border); border-radius:var(--r-sm);
+  padding:var(--space-2) var(--space-3);
+  transition:border-color .2s, box-shadow .2s, background-color .2s;
+}
+input[type="search"],.neon-input-search{ width:100%; max-width:400px; min-width:180px; display:block; margin-inline:auto; }
+label{ display:block; font-weight:600; color:var(--neon); margin-block-end:.5rem; }
+:where(input,select,textarea):focus-visible{ outline:none; border-color:var(--neon); box-shadow:var(--focus-ring); }
+
+select,.geist-select{
+  -webkit-appearance:none; appearance:none; padding-right:2.25rem;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2340E0D0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat:no-repeat; background-position:right .6rem center; background-size:1rem;
+}
+.geist-select option,.geist-select optgroup{ font-family:inherit; }
+.neon-input{ width:100%; background:var(--field); color:var(--text); border:1.5px solid var(--neon); border-radius:var(--r-sm); padding:var(--space-2) var(--space-3); font-size:1rem; transition:border-color .2s, box-shadow .2s, background-color .2s; }
+.neon-input:focus-visible{ outline:none; border-color:var(--accent); box-shadow:0 0 0 2px var(--accent); }
+.neon-error{ color:#ff4d4f; font-weight:600; letter-spacing:.01em; }
+.neon-success{ color:#2fffd2; font-weight:600; letter-spacing:.01em; }
+.neon-search-bar-wrapper{ width:100%; max-width:1300px; margin-inline:auto; padding-inline:2vw; margin-block:0 1.5rem; }
+
+/* Buttons */
+.neon-btn,button.neon-btn{
+  --btn-bg:linear-gradient(90deg,var(--neon) 0%,var(--neon-2) 100%);
+  --btn-fg:var(--ink);
+  display:inline-flex; align-items:center; justify-content:center; gap:.5rem;
+  background:var(--btn-bg); color:var(--btn-fg); font-weight:700;
+  border:none; border-radius:var(--r-md); padding:.75rem 1.5rem;
+  box-shadow:var(--shadow-neon-soft);
+  transition:background .2s,color .2s, box-shadow .2s, transform .06s;
+  cursor:pointer;
+}
+.neon-btn:hover{ background:linear-gradient(90deg,var(--neon-2) 0%,var(--neon) 100%); color:#fff; box-shadow:0 4px 16px 0 var(--neon); }
+.neon-btn:active{ transform:translateY(1px); }
+
+.neon-btn[data-variant="danger"],.neon-btn-delete{ background:var(--danger); color:#fff; }
+.neon-btn[data-variant="secondary"],.neon-btn-back{ background:#475569; color:#fff; }
+.neon-btn-archive,.neon-btn-submit,.neon-btn-save,.neon-btn-next{ background:var(--neon); color:#012b2b; }
+
+.neon-btn-square{
+  inline-size:30px; block-size:30px; display:inline-grid; place-items:center;
+  border-radius:var(--r-md); border:none; cursor:pointer;
+  transition:background .2s, box-shadow .2s, transform .06s, filter .18s;
+  box-shadow:var(--shadow-neon-soft); margin:0;
+}
+.neon-btn-square svg{ inline-size:20px; block-size:20px; color:#fff; }
+.neon-btn-square:hover{ filter:brightness(1.06); transform:translateY(-1px); }
+.neon-btn-square:active{ transform:translateY(1px); }
+
+.neon-btn-add{ background-color:#0f766e; }
+.neon-btn-view{ background-color:#2563eb; }
+.neon-btn-delete{ background-color:#ea1c1c; }
+.neon-btn-next{ background-color:var(--neon); }
+.neon-btn-back{ background-color:#475569; }
+.neon-btn-archive{ background-color:var(--neon); }
+.neon-btn-submit{ background-color:var(--neon); }
+.neon-btn-edit{ background-color:#1b640e; }
+.neon-btn-download{ background-color:#0284c7; }
+.neon-btn-upload{ background-color:#16a34a; }
+.neon-btn-search{ background-color:#f59e0b; }
+.neon-btn-refresh{ background-color:#14b8a6; }
+.neon-btn-save{ background-color:#39ff14; color:#012b2b; }
+
+.login-btn-orange{
+  background:linear-gradient(90deg,#ffa500 0%,#ffb84d 100%);
+  color:#2d2d2d !important; font-weight:700; border:none; border-radius:var(--r-md);
+  padding:.65rem 1.4rem; box-shadow:0 2px 12px 0 #ffa50099;
+  transition:background .18s,color .18s, box-shadow .18s, transform .08s;
+  font-size:1.08rem; margin-left:auto;
+}
+.login-btn-orange:hover{
+  background:linear-gradient(90deg,#ffb84d 0%,#ffa500 100%);
+  color:#fff !important; box-shadow:0 4px 18px 0 #ffa500cc; transform:translateY(-1px) scale(1.04);
 }
 
-code,
-pre {
-  font-family: 'Geist Mono', monospace;
+/* Tables */
+.table-default,.neon-table{
+  width:100%; border-collapse:collapse; font-size:1rem; color:var(--text);
+  background:var(--field); border:1px solid var(--border);
+  border-radius:var(--radius); overflow:clip; box-shadow:var(--shadow-neon-soft);
+  margin:0 !important; /* <— critical */
 }
-
-/* ===============================
-   Global Table Styling
-   =============================== */
-.table-default {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.875rem; /* text-sm */
-  color: #0f3d3e; /* dark teal for text */
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0; /* light gray border */
-  border-radius: 0.5rem;
-  overflow: hidden;
+.table-default thead,.neon-table thead{ background:var(--neon); color:var(--ink); text-align:left; }
+.table-default th,.table-default td,.neon-table th,.neon-table td{
+  padding:.75rem 1rem; border-bottom:1px solid var(--border);
 }
+.table-default tbody tr:hover,.neon-table tbody tr:hover{ background:var(--muted); }
+.table-default th:first-child,.table-default td:first-child,
+.neon-table th:first-child,.neon-table td:first-child{ padding-left:1.25rem; }
+.table-default th:last-child,.table-default td:last-child,
+.neon-table th:last-child,.neon-table td:last-child{ padding-right:1.25rem; }
 
-.table-default thead {
-  background-color: #0f766e; /* teal-700 */
-  color: white;
-  text-align: left;
+/* Cards (light option) */
+.card{
+  background:#fff; color:#000; border:1px solid #5eead4; border-radius:12px;
+  box-shadow:0 1px 3px rgba(16,185,129,.1), 0 1px 2px rgba(16,185,129,.06);
+  margin:0 !important; /* <— critical */
 }
+.card-header{ background:#14b8a6; color:#fff; font-weight:600; padding:1rem 1.5rem; border-top-left-radius:12px; border-top-right-radius:12px; }
+.card-note{ font-size:.875rem; color:#4b5563; margin-top:.25rem; margin:0; }
 
-.table-default th,
-.table-default td {
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid #e2e8f0;
+/* Feature cards */
+.neon-feature-card{
+  background:var(--panel); border:1px solid var(--border); border-radius:16px;
+  box-shadow:var(--shadow-neon); padding:1.5rem; transition:box-shadow .18s, transform .12s;
+  display:flex; flex-direction:column; gap:.75rem; margin:0 !important; /* <— critical */
 }
+.neon-feature-card:hover{ box-shadow:0 0 24px var(--neon); transform:translateY(-2px); }
+.neon-feature-card-header{ display:flex; align-items:center; gap:.75rem; margin-bottom:.5rem; }
+.neon-feature-card-title{ font-size:1.25rem; font-weight:700; color:var(--neon); }
+.neon-feature-card-text{ font-size:1rem; color:var(--text); margin:0; }
 
-.table-default tbody tr:hover {
-  background-color: #fef3c7; /* light orange hover */
-}
+/* Misc UI bits (no outer margins) */
+.user-profile-card{ display:flex; align-items:center; gap:1.25rem; padding:.75rem 2vw; background:none; color:var(--text); width:100%; box-sizing:border-box; margin:0 !important; }
+.folder-container{ background:#111; border-radius:10px; padding:0; color:var(--neon); box-shadow:0 0 10px #0ff4; max-width:1300px; width:100%; margin:0 auto; box-sizing:border-box; }
+.folder-tabs{ display:flex; gap:10px; margin:0; border-bottom:2px solid #0ff5; justify-content:center; padding-inline:2vw; }
+.folder-tab{ padding:10px 16px; cursor:pointer; background:#222; border-top-left-radius:8px; border-top-right-radius:8px; transition:all .3s ease; color:var(--neon); box-shadow:0 0 4px #0ff5; }
+.folder-tab:hover{ background:#0ff1; }
+.folder-tab.active{ background:#0ff2; color:#fff; box-shadow:0 0 8px #0ff; }
+.folder-content{ padding-top:0; text-align:center; }
+.folder-file-box{ background:#1a1a1a; border:1px solid #0ff3; border-radius:8px; padding:12px; margin:0; box-shadow:0 0 6px #0ff2; }
+.file-meta{ font-size:.85rem; color:#aaa; }
 
-.table-default th:first-child,
-.table-default td:first-child {
-  padding-left: 1.25rem;
-}
+/* Optional utilities */
+.center-block{ margin-inline:auto; }
+.shadow-glow{ box-shadow:var(--shadow-neon-soft); }
+.no-shadow-glow{ box-shadow:none !important; }
 
-.table-default th:last-child,
-.table-default td:last-child {
-  padding-right: 1.25rem;
-}
-
-
-/* ===============================
-   Form Inputs and Selects
-   =============================== */
-
-input[type="text"],
-input[type="search"],s
-input[type="date"],
-input[type="number"],
-select,
-textarea {
-  @apply text-sm text-teal-900 border border-gray-300 rounded px-3 py-2 bg-white;
-  transition: border-color 0.2s ease;
-  outline-offset: 2px;
-}
-
-input[type="text"]:focus,
-input[type="search"]:focus,
-input[type="date"]:focus,
-input[type="number"]:focus,
-select:focus,
-textarea:focus {
-  @apply border-teal-600 ring-1 ring-teal-600;
-}
-
-/* ===============================
-   Buttons
-   =============================== */
-
-button,
-input[type="submit"],
-input[type="button"] {
-  @apply bg-teal-600 text-white text-sm font-semibold px-4 py-2 rounded shadow cursor-pointer transition 
-         hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed;
-}
-
-/* ===============================
-   Search Inputs (special styling)
-   =============================== */
-
-input[type="search"] {
-  @apply w-full max-w-xs;
-}
-
-/* ===============================
-   Optional: Add consistent spacing around form controls
-   =============================== */
-
-.form-control {
-  @apply mb-4;
-}
-
-.card {
-  @apply bg-white rounded-xl shadow border border-teal-200;
-}
-
-.card-header {
-  @apply bg-teal-600 text-white font-semibold px-6 py-4 rounded-t-xl;
-}
-
-/* Optional: card notes */
-.card-note {
-  @apply text-sm text-gray-600 mt-1;
-}
+@media (prefers-reduced-motion:reduce){ *{ animation:none !important; transition:none !important; } }

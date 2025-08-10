@@ -1,173 +1,213 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
-import Head from 'next/head'
-import { supabase } from '@/lib/supabaseClient'
+import { supabase } from '@/lib/supabase-client'
+import {
+  FiUsers,
+  FiFolder,
+  FiPlusCircle,
+  FiGrid,
+  FiClipboard,
+  FiPieChart,
+  FiAlertTriangle,
+  FiFileText,
+  FiBookOpen,
+  FiShield,
+  FiActivity,
+  FiSettings,
+  FiHome,
+  FiCheckCircle,
+  FiBarChart2,
+  FiDatabase
+} from 'react-icons/fi'
+import NeonFeatureCard from '@/components/NeonFeatureCard'
+import LogoHeader from '@/components/HeroHeader'
 
-interface ComplianceSummary {
-  user_id: string
-  user_name: string
-  department: string
-  total_items: number
-  completed_items: number
-  overdue: number
-  due_soon: number
-}
 
 interface DashboardLink {
   href: string
-  label: string
+  label: React.ReactNode
   className?: string
 }
 
 interface DashboardCard {
-  title: string
-  bg?: string
-  note?: string
+  title: React.ReactNode // <-- FIXED: allow JSX
   links: DashboardLink[]
 }
 
 export default function DashboardPage() {
-  const [complianceData, setComplianceData] = useState<ComplianceSummary[]>([])
+  // Removed unused complianceData state
   const [avgCompliance, setAvgCompliance] = useState<number | null>(null)
   const [lowComplianceCount, setLowComplianceCount] = useState<number>(0)
 
   useEffect(() => {
     const fetchCompliance = async () => {
       const { data, error } = await supabase.from('user_compliance_dashboard').select('*')
-      if (error) {
-        console.error('Failed to fetch compliance summary:', error)
-        return
-      }
+      if (error) return
+      // Removed setComplianceData as complianceData is unused
 
-      setComplianceData(data)
-
-      let totalUsers = 0
-      let totalPercent = 0
-      let lowCount = 0
-
-      data.forEach((row) => {
+      let total = 0, percent = 0, low = 0
+      data?.forEach(row => {
         if (row.total_items > 0) {
-          const percent = (row.completed_items / row.total_items) * 100
-          totalPercent += percent
-          totalUsers += 1
-          if (percent < 70) lowCount += 1
+          const p = (row.completed_items / row.total_items) * 100
+          percent += p
+          total++
+          if (p < 70) low++
         }
       })
-
-      setAvgCompliance(totalUsers > 0 ? Number((totalPercent / totalUsers).toFixed(1)) : null)
-      setLowComplianceCount(lowCount)
+      setAvgCompliance(total ? Number((percent / total).toFixed(1)) : null)
+      setLowComplianceCount(low)
     }
-
     fetchCompliance()
   }, [])
 
+  const iconSize = 16
+
+  // Dashboard cards config
   const cards: DashboardCard[] = [
     {
-      title: '👥 People Management',
+      title: <><FiUsers size={20} /> People Management</>,
       links: [
-        { href: '/admin/users', label: '🧑‍💼 View & Manage Users' },
-        { href: '/admin/users/add', label: '➕ Add New User' },
+        { href: '/hr/people', label: <><FiUsers size={iconSize} /> View & Manage Users</> },
       ],
     },
     {
-      title: '📦 Module Management',
+      title: <><FiFolder size={20} /> Module Management</>,
       links: [
-        { href: '/admin/modules', label: '📂 View All Modules' },
-        { href: '/admin/modules/add', label: '➕ Add New Module' },
-        { href: '/admin/modules/assign', label: '📌 Assign Modules to Roles' },
+        { href: '/admin/modules', label: <><FiFolder size={iconSize} /> View Modules</> },
+        { href: '/admin/modules/add', label: <><FiPlusCircle size={iconSize} /> Add Module</> },
+        { href: '/admin/modules/assign', label: <><FiGrid size={iconSize} /> Assign to Roles</> },
       ],
     },
     {
-      title: '📈 Training Progress',
+      title: <><FiPieChart size={20} /> Training Progress</>,
       links: [
-        { href: '/admin/compliance', label: '📊 View Compliance Dashboard' },
-        { href: '/admin/incomplete', label: '🚨 View Incomplete Training', className: 'text-red-700 font-semibold' },
-      ],
-      note: 'Track completions, overdue training, and untrained users.',
-    },
-    {
-      title: '📁 Document Management',
-      links: [
-        { href: '/admin/documents', label: '📄 View All Documents' },
-        { href: '/admin/documents/add', label: '➕ Add New Document' },
-        { href: '/admin/documents/versions', label: '🕓 View Document Versions' },
+        { href: '/admin/compliance', label: <><FiPieChart size={iconSize} /> Compliance Dashboard</> },
+        {
+          href: '/admin/incomplete',
+          label: <><FiAlertTriangle size={iconSize} /> Incomplete Training</>,
+        },
       ],
     },
     {
-      title: '🏢 Organisation Structure',
+      title: <><FiFileText size={20} /> Document Management</>,
       links: [
-        { href: '/admin/org-chart', label: '🧭 View Org Chart' },
-        { href: '/admin/roles/add', label: '➕ Add New Role' },
+        { href: '/admin/documents', label: <><FiFileText size={iconSize} /> View Documents</> },
+        { href: '/admin/documents/add', label: <><FiPlusCircle size={iconSize} /> Add Document</> },
+        { href: '/admin/documents/versions', label: <><FiClipboard size={iconSize} /> View Versions</> },
       ],
     },
     {
-      title: '🧩 Role Profile Builder',
-      bg: 'bg-orange-600',
+      title: <><FiGrid size={20} /> Organisation Structure</>,
       links: [
-        { href: '/admin/role-profiles', label: '📋 View All Role Profiles' },
-        { href: '/admin/role-profiles/add', label: '➕ Create New Role Profile' },
-        { href: '/admin/role-profiles/manage', label: '🛠 Manage Role-to-Training Assignments' },
+        { href: '/admin/org-chart', label: <><FiGrid size={iconSize} /> Org Chart</> },
+        { href: '/admin/roles/add', label: <><FiPlusCircle size={iconSize} /> Add Role</> },
+      ],
+    },
+    {
+      title: <><FiBookOpen size={20} /> Role Profile Builder</>,
+      links: [
+        { href: '/admin/role-profiles', label: <><FiBookOpen size={iconSize} /> View Profiles</> },
+        { href: '/admin/role-profiles/add', label: <><FiPlusCircle size={iconSize} /> Create Profile</> },
+        { href: '/admin/role-profiles/manage', label: <><FiSettings size={iconSize} /> Manage Assignments</> },
+      ],
+    },
+    {
+      title: <><FiShield size={20} /> Health & Safety</>,
+      links: [
+        { href: '/turkus/health-safety', label: <><FiShield size={iconSize} /> H&S Home</> },
+        { href: '/turkus/health-safety/policies', label: <><FiFileText size={iconSize} /> Policies</> },
+        { href: '/turkus/health-safety/assessments', label: <><FiActivity size={iconSize} /> Risk Assessments</> },
+        { href: '/turkus/health-safety/incidents', label: <><FiAlertTriangle size={iconSize} /> Incidents</> },
+        { href: '/turkus/health-safety/resources', label: <><FiBookOpen size={iconSize} /> Resources</> },
+      ],
+    },
+    {
+      title: <><FiHome size={20} /> Turkus</>,
+      links: [
+        { href: '/turkus', label: <><FiHome size={iconSize} /> Turkus Home</> },
+        { href: '/turkus/tasks/dashboard', label: <><FiBarChart2 size={iconSize} /> Dashboard</> },
+        { href: '/turkus/tasks', label: <><FiGrid size={iconSize} /> Tasks</> },
+        { href: '/turkus/reports', label: <><FiPieChart size={iconSize} /> Reports</> },
+        { href: '/turkus/assignments', label: <><FiSettings size={iconSize} /> Assignments</> },
+        { href: '/turkus/taskmanager', label: <><FiClipboard size={iconSize} /> Task Manager</> },
+        { href: '/turkus/audit', label: <><FiDatabase size={iconSize} /> Audit</> },
+        { href: '/turkus/documents', label: <><FiFileText size={iconSize} /> Document Manager</> },
+        { href: '/turkus/issues', label: <><FiAlertTriangle size={iconSize} /> Issues</> },
       ],
     },
   ]
 
   return (
     <>
-      <Head>
-        <title>Admin Dashboard | Naranja</title>
-      </Head>
-
-      <section className="py-12 px-6 max-w-6xl mx-auto w-full">
-        <h1 className="text-4xl font-bold text-center mb-10 text-white">📊 Admin Dashboard</h1>
-
-        {/* Compliance Overview Bar */}
-        <div className="compliance-overview rounded-xl p-5 mb-12 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow bg-orange-100 border border-orange-300 text-orange-800">
-          <div>
-            <p className="text-lg font-semibold">Compliance Overview</p>
-            <p className="text-sm">Live summary of completion status across all users</p>
+      <LogoHeader title="Admin Dashboard" subtitle="Naranja Admin Portal" />
+      <main className="dashboard-panel">
+        <section className="dashboard-overview">
+          <div className="overview-info">
+            <p className="overview-title">
+              <FiPieChart size={iconSize} /> Compliance Overview
+            </p>
+            <p className="overview-desc">Live summary of completion status</p>
           </div>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:gap-6">
-            <p>
-              ✅ <strong>Avg Compliance:</strong>{' '}
-              {avgCompliance !== null ? `${avgCompliance}%` : 'Loading...'}
+          <div className="overview-stats">
+            <p className="overview-stat">
+              <FiCheckCircle size={iconSize} /> <strong>Avg Compliance:</strong> {avgCompliance ?? 'Loading...'}%
             </p>
-            <p>
-              ⚠️ <strong>Users &lt; 70%:</strong> {lowComplianceCount}
+            <p className="overview-stat">
+              <FiAlertTriangle size={iconSize} className="icon-warning" /> <strong>Users &lt; 70%:</strong> {lowComplianceCount}
             </p>
-            <Link href="/admin/compliance" className="btn btn-primary mt-2 sm:mt-0">
-              View Full Dashboard →
+            <Link
+              href="/admin/compliance"
+              className="dashboard-btn"
+            >
+              <FiPieChart size={iconSize} /> View Full →
             </Link>
           </div>
-        </div>
+        </section>
 
-        {/* Dashboard Cards */}
-        <div className="grid md:grid-cols-2 gap-8">
-          {cards.map((card, idx) => (
-            <section
-              key={idx}
-              className={`card ${card.bg ?? 'bg-teal-600'}`}
-            >
-              <header className="card-header">{card.title}</header>
-              <nav className="p-5 space-y-2">
-                {card.links.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={`block hover:underline ${link.className ?? ''}`}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-                {card.note && (
-                  <p className="text-sm text-gray-600 mt-1">{card.note}</p>
-                )}
-              </nav>
-            </section>
-          ))}
-        </div>
-      </section>
+        <section className="dashboard-grid">
+          {cards.map((card, idx) => {
+            let icon = <FiActivity />
+            let title = 'Feature'
+            if (React.isValidElement(card.title)) {
+              const element = card.title as React.ReactElement<{ children?: React.ReactNode }>
+              const children = element.props?.children
+              if (Array.isArray(children)) {
+                icon = children[0] || <FiActivity />
+                title = typeof children[1] === 'string' ? children[1] : 'Feature'
+              } else {
+                title = typeof children === 'string' ? children : 'Feature'
+              }
+            } else if (typeof card.title === 'string') {
+              title = card.title
+            }
+            const firstLabel = typeof card.links[0]?.label === 'string' ? card.links[0].label : ''
+            return (
+              <div key={idx} className="dashboard-card">
+                <NeonFeatureCard
+                  icon={icon}
+                  title={title}
+                  text={firstLabel}
+                  href={card.links[0]?.href || '#'}
+                >
+                  <div className="dashboard-links">
+                    {card.links.map((link, i) => (
+                      <Link
+                        key={i}
+                        href={link.href}
+                        className="dashboard-link"
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </div>
+                </NeonFeatureCard>
+              </div>
+            )
+          })}
+        </section>
+      </main>
     </>
   )
 }

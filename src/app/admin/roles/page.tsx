@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabaseClient'
+import { supabase } from '@/lib/supabase-client'
 import Link from 'next/link'
-import LogoHeader from '@/components/LogoHeader'
+import HeroHeader from '@/components/HeroHeader'
 
 interface User {
   id: number
@@ -11,7 +11,7 @@ interface User {
   last_name: string
   email: string
   department: string
-  job_level: string
+  access_level: string
   role_title: string
   status: string
 }
@@ -69,7 +69,7 @@ export default function AdminUserListPage() {
 
   return (
     <>
-      <LogoHeader />
+      <HeroHeader title="Roles & Users" subtitle="View and manage users, roles, and access levels." />
 
       <div className="p-6 max-w-7xl mx-auto mt-4">
         <h1 className="text-3xl font-bold text-orange-600 mb-6">👥 Manage Users</h1>
@@ -77,17 +77,19 @@ export default function AdminUserListPage() {
         {/* Filters */}
         <div className="bg-teal-900 p-4 rounded-xl shadow border border-teal-300 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-            <input
-              type="text"
-              placeholder="Search by name or email"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="border bg-white text-teal-900 border-teal-900 p-2 rounded w-full sm:w-64"
-            />
+            <div className="neon-search-bar-wrapper" style={{flex: 1, minWidth: 220}}>
+              <input
+                type="search"
+                placeholder="Search by name or email"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="neon-input neon-input-search"
+              />
+            </div>
             <select
               value={filterDept}
               onChange={(e) => setFilterDept(e.target.value)}
-              className="border bg-white text-teal-900 border-teal-900 p-2 rounded"
+              className="neon-input w-auto"
             >
               <option value="">All Departments</option>
               {departments.map((d) => (
@@ -97,7 +99,7 @@ export default function AdminUserListPage() {
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="border bg-white text-teal-900 border-teal-900 p-2 rounded"
+              className="neon-input w-auto"
             >
               <option value="">All Statuses</option>
               <option value="active">Active</option>
@@ -126,7 +128,7 @@ export default function AdminUserListPage() {
                   <td className="p-3 border-b">{user.first_name} {user.last_name}</td>
                   <td className="p-3 border-b">{user.email}</td>
                   <td className="p-3 border-b">{user.department}</td>
-                  <td className="p-3 border-b">{user.job_level}</td>
+                  <td className="p-3 border-b">{user.access_level}</td>
                   <td className="p-3 border-b">{user.role_title}</td>
                   <td className="p-3 border-b capitalize text-teal-800">{user.status}</td>
                   <td className="p-3 border-b space-x-2">

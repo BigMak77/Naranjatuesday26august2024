@@ -1,0 +1,22 @@
+
+[functions.auto-scheduler]
+enabled = true
+verify_jwt = true
+import_map = "./functions/auto-scheduler/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/auto-scheduler/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/auto-scheduler/*.html" ]
+
+[functions.sync-ssow]
+enabled = true
+verify_jwt = true
+import_map = "./functions/sync-ssow/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/sync-ssow/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/sync-ssow/*.html" ]

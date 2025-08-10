@@ -2,66 +2,62 @@
 
 import React from 'react'
 import Link from 'next/link'
-import LogoHeader from '@/components/LogoHeader'
-import Footer from '@/components/Footer'
-
-const teamMembers = [
-  {
-    name: 'Andy',
-    role: 'Co-Founder & Content Creator',
-    description:
-      'Andy has over 25 years of experience in learning and development within food safety and compliance, working with global manufacturers to build robust training systems.',
-    image: '/andyorange.jpg',
-  },
-  {
-    name: 'Roksana',
-    role: 'Co-Founder & Delivery Expert',
-    description:
-      'Roksana specialises in the delivery of our products in an operational environment.',
-    image: '/roxyorange.jpg',
-  },
-]
+import NeonFeatureCard from '@/components/NeonFeatureCard'
 
 export default function AboutPage() {
   return (
-    <main className="min-h-screen bg-teal-50 text-teal-900 flex flex-col">
-      <LogoHeader />
+    <div className="min-h-screen flex flex-col bg-[#011f24] text-[#40E0D0]">
+      {/* About Content */}
+      <main className="flex-1 flex items-center justify-center px-6 py-16 bg-[#011f24]">
+        <div className="w-full max-w-2xl">
+          {/* Back to Home Link */}
+          <div className="mb-4">
+            <Link
+              href="/"
+              className="text-sm text-[#40E0D0] hover:text-orange-400 font-medium transition underline"
+            >
+              ← Back to Home
+            </Link>
+          </div>
 
-      {/* Return Link */}
-      <div className="bg-white shadow py-3 px-6 text-sm">
-        <Link href="/" className="text-teal-700 hover:text-orange-600 hover:underline">
-          ← Return to Home
-        </Link>
-      </div>
+          {/* Content Card */}
+          <div className="space-y-8">
+            <NeonFeatureCard
+              icon={<span className="text-orange-400 text-3xl">🍊</span>}
+              title="Our Mission"
+              text="We are dedicated to making training and compliance for food manufacturing beautifully simple and audit-ready. Our platform empowers teams to learn, grow, and stay compliant with ease."
+              href="#mission"
+              bgColor="#013b3b"
+              borderColor="#40E0D0"
+              textColor="#b2f1ec"
+              linkColor="#40E0D0"
+              glowColor="#40E0D0"
+            />
 
-      {/* About Section */}
-      <section className="bg-teal-800 text-white py-12 px-4 flex-grow">
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-4xl font-bold mb-10 text-left text-orange-300">About Us</h1>
+            <NeonFeatureCard
+              icon={<span className="text-orange-400 text-3xl">👥</span>}
+              title="Our Team"
+              text={"Andy — Co-Founder & Content Creator\nPaul — Co-Founder & Delivery Expert"}
+              href="#team"
+              bgColor="#013b3b"
+              borderColor="#40E0D0"
+              textColor="#b2f1ec"
+              linkColor="#40E0D0"
+              glowColor="#40E0D0"
+            />
+          </div>
 
-          <div className="grid gap-10">
-            {teamMembers.map((member, idx) => (
-              <div
-                key={idx}
-                className="flex flex-col md:flex-row bg-white rounded-xl shadow-lg overflow-hidden text-teal-900 transition hover:shadow-xl"
-              >
-                <img
-                  src={member.image}
-                  alt={member.name}
-                  className="w-full md:w-1/3 h-60 object-cover"
-                />
-                <div className="p-6 md:w-2/3">
-                  <h2 className="text-2xl font-bold text-orange-600 mb-1">{member.name}</h2>
-                  <p className="text-teal-700 font-medium mb-2">{member.role}</p>
-                  <p className="text-gray-700 text-sm">{member.description}</p>
-                </div>
-              </div>
-            ))}
+          <div className="mt-6">
+            <p className="text-md text-[#40E0D0]">
+              Want to know more?{' '}
+              <Link href="/contact-us" className="text-orange-400 underline hover:text-[#40E0D0]">
+                Get in touch
+              </Link>{' '}
+              with us!
+            </p>
           </div>
         </div>
-      </section>
-
-      <Footer />
-    </main>
+      </main>
+    </div>
   )
 }
