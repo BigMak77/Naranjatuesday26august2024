@@ -80,43 +80,43 @@ export default function AssignAuditTab() {
   }
 
   return (
-    <div className="max-w-3xl w-full mx-auto mt-8">
+    <div className="assign-audit-tab-container">
       <NeonForm title="Assign Audit" onSubmit={handleAssign} submitLabel={assignLoading ? 'Assigning...' : 'Assign Audit'}>
-        <div className="mb-8" />
-        <select value={templateId} onChange={e => setTemplateId(e.target.value)} className="w-full border border-[#40E0D0] px-3 py-2 rounded bg-[#011f24] text-[#b2f1ec] shadow-glow" required>
+        <div className="assign-audit-tab-spacer" />
+        <select value={templateId} onChange={e => setTemplateId(e.target.value)} className="assign-audit-tab-input" required>
           <option value="">Select Audit Template</option>
           {templates.map((tpl: AuditTemplate) => (
             <option key={tpl.id} value={tpl.id}>{tpl.title}</option>
           ))}
         </select>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <select value={userId} onChange={e => { setUserId(e.target.value); setDepartmentId(''); }} className="w-full border border-[#40E0D0] px-3 py-2 rounded bg-[#011f24] text-[#b2f1ec] shadow-glow">
+        <div className="assign-audit-tab-row">
+          <select value={userId} onChange={e => { setUserId(e.target.value); setDepartmentId(''); }} className="assign-audit-tab-input">
             <option value="">Assign to User</option>
             {users.map((u: User) => (
               <option key={u.id} value={u.id}>{u.email}</option>
             ))}
           </select>
-          <select value={departmentId} onChange={e => { setDepartmentId(e.target.value); setUserId(''); }} className="w-full border border-[#40E0D0] px-3 py-2 rounded bg-[#011f24] text-[#b2f1ec] shadow-glow">
+          <select value={departmentId} onChange={e => { setDepartmentId(e.target.value); setUserId(''); }} className="assign-audit-tab-input">
             <option value="">Assign to Department</option>
             {departments.map((d: Department) => (
               <option key={d.id} value={d.id}>{d.name}</option>
             ))}
           </select>
         </div>
-        <input type="date" value={scheduledFor} onChange={e => setScheduledFor(e.target.value)} className="w-full border border-[#40E0D0] px-3 py-2 rounded bg-[#011f24] text-[#b2f1ec] shadow-glow" />
-        <select value={standardId} onChange={e => setStandardId(e.target.value)} className="w-full border border-[#40E0D0] px-3 py-2 rounded bg-[#011f24] text-[#b2f1ec] shadow-glow">
+        <input type="date" value={scheduledFor} onChange={e => setScheduledFor(e.target.value)} className="assign-audit-tab-input" />
+        <select value={standardId} onChange={e => setStandardId(e.target.value)} className="assign-audit-tab-input">
           <option value="">Link to Standard (optional)</option>
           {standards.map((std: Standard) => (
             <option key={std.id} value={std.id}>{std.name}</option>
           ))}
         </select>
-        <select value={sectionId} onChange={e => setSectionId(e.target.value)} className="w-full border border-[#40E0D0] px-3 py-2 rounded bg-[#011f24] text-[#b2f1ec] shadow-glow">
+        <select value={sectionId} onChange={e => setSectionId(e.target.value)} className="assign-audit-tab-input">
           <option value="">Link to Standard Section (optional)</option>
           {standardSections.map((sec: StandardSection) => (
             <option key={sec.id} value={sec.id}>{sec.title}</option>
           ))}
         </select>
-        <textarea value={notes} onChange={e => setNotes(e.target.value)} className="w-full border border-[#40E0D0] px-3 py-2 rounded bg-[#011f24] text-[#b2f1ec] shadow-glow" placeholder="Notes (optional)" rows={3} />
+        <textarea value={notes} onChange={e => setNotes(e.target.value)} className="assign-audit-tab-input" placeholder="Notes (optional)" rows={3} />
       </NeonForm>
     </div>
   )

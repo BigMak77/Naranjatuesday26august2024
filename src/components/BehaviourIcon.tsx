@@ -87,7 +87,7 @@ interface BehaviourIconProps {
 }
 
 export default function BehaviourIcon({ behaviour, selected, onClick, className = '' }: BehaviourIconProps) {
-  const colorClass = selected ? 'text-orange-600' : 'text-teal-700'
+  const colorClass = selected ? 'behaviour-icon-selected' : 'behaviour-icon-default'
 
   return (
     <Tooltip.Provider delayDuration={200}>
@@ -95,8 +95,9 @@ export default function BehaviourIcon({ behaviour, selected, onClick, className 
         <Tooltip.Trigger asChild>
           <span
             onClick={() => onClick && onClick(behaviour.id)}
-            className={`cursor-pointer text-2xl ${colorClass} hover:text-orange-600 transition ${className}`}
+            className={`behaviour-icon ${colorClass} ${className}`}
             aria-label={behaviour.name}
+            role="img"
           >
             {iconMap[behaviour.icon] || <FiStar />}
           </span>
@@ -104,10 +105,10 @@ export default function BehaviourIcon({ behaviour, selected, onClick, className 
         <Tooltip.Content
           side="top"
           align="center"
-          className="rounded bg-orange-600 px-3 py-1 text-white text-sm select-none z-50"
+          className="behaviour-icon-tooltip"
         >
           {behaviour.name}
-          <Tooltip.Arrow className="fill-teal-900" />
+          <Tooltip.Arrow className="behaviour-icon-tooltip-arrow" />
         </Tooltip.Content>
       </Tooltip.Root>
     </Tooltip.Provider>

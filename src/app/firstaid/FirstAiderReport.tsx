@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase-client'
-import HeroHeader from '@/components/HeroHeader'
 import { FiHeart } from 'react-icons/fi'
 
 export default function FirstAiderReport() {
@@ -38,17 +37,12 @@ export default function FirstAiderReport() {
   }
 
   return (
-    <main className="min-h-screen bg-[#011f24] text-white">
-      <HeroHeader
-        title="Recognised First Aiders"
-        titleIcon={<FiHeart />}
-        subtitle="View and print a list of recognised first aiders by department."
-      />
-      <div className="max-w-2xl mx-auto py-10">
-        <div className="mb-6 flex flex-col sm:flex-row gap-4 items-center justify-between">
-          <label className="font-semibold text-[#40E0D0]">Department:
+    <main className="first-aider-report-bg">
+      <div className="first-aider-report-container">
+        <div className="first-aider-report-toolbar">
+          <label className="first-aider-report-label">Department:
             <select
-              className="ml-2 p-2 rounded bg-[#011f24] border border-[#40E0D0] text-white"
+              className="first-aider-report-select"
               value={selectedDept}
               onChange={e => setSelectedDept(e.target.value)}
             >
@@ -60,29 +54,29 @@ export default function FirstAiderReport() {
           </label>
           <button
             onClick={handlePrint}
-            className="px-4 py-2 rounded bg-[#40E0D0] text-black font-bold hover:bg-orange-400 transition print:hidden"
+            className="first-aider-report-print-btn"
           >
             Print / Save as PDF
           </button>
         </div>
-        <div className="bg-[#0c1f24] p-6 rounded-xl shadow border border-[#40E0D0]">
+        <div className="first-aider-report-table-wrapper">
           {loading ? (
-            <p className="text-[#40E0D0]">Loading...</p>
+            <p className="first-aider-report-loading">Loading...</p>
           ) : filtered.length === 0 ? (
-            <p className="text-[#40E0D0]">No first aiders found for this department.</p>
+            <p className="first-aider-report-empty">No first aiders found for this department.</p>
           ) : (
-            <table className="min-w-full text-sm">
-              <thead className="text-[#40E0D0] border-b border-[#40E0D0]">
+            <table className="first-aider-report-table">
+              <thead className="first-aider-report-table-head">
                 <tr>
-                  <th className="text-left px-4 py-2">Name</th>
-                  <th className="text-left px-4 py-2">Department</th>
+                  <th className="first-aider-report-th">Name</th>
+                  <th className="first-aider-report-th">Department</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map(fa => (
-                  <tr key={fa.id} className="border-b border-[#024747]">
-                    <td className="px-4 py-2">{fa.first_name} {fa.last_name}</td>
-                    <td className="px-4 py-2">{fa.department?.name || '—'}</td>
+                  <tr key={fa.id} className="first-aider-report-tr">
+                    <td className="first-aider-report-td">{fa.first_name} {fa.last_name}</td>
+                    <td className="first-aider-report-td">{fa.department?.name || '—'}</td>
                   </tr>
                 ))}
               </tbody>

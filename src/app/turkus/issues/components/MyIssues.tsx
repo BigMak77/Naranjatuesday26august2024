@@ -61,13 +61,13 @@ export default function MyIssues() {
       ) : (
         <ul>
           {issues.map((issue) => (
-            <li key={issue.id} className="border p-3 rounded bg-white flex justify-between items-center">
+            <li key={issue.id} className="my-issues-list-item">
               <div>
-                <div className="font-semibold">{issue.title}</div>
-                <div className="text-sm text-gray-600">Priority: {issue.priority} · Status: {issue.status} · {new Date(issue.created_at).toLocaleDateString()} · Department: {issue.department?.name || 'N/A'}</div>
+                <div className="my-issues-title">{issue.title}</div>
+                <div className="my-issues-meta">Priority: {issue.priority} · Status: {issue.status} · {new Date(issue.created_at).toLocaleDateString()} · Department: {issue.department?.name || 'N/A'}</div>
               </div>
               <button
-                className="bg-teal-600 text-white px-4 py-2 rounded"
+                className="my-issues-view-btn"
                 onClick={() => window.location.href = `/turkus/issues/${issue.id}`}
               >
                 View Issue

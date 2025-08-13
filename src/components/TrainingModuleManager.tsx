@@ -79,7 +79,7 @@ export default function TrainingModuleManager() {
   )
 
   return (
-    <div className="w-full max-w-[1600px] mx-auto px-8 md:px-12 lg:px-16">
+    <div className="training-module-manager-container">
       <FolderTabs
         tabs={tabList}
         activeTab={activeTab}
@@ -89,24 +89,21 @@ export default function TrainingModuleManager() {
           setLoading(false)
         }}
       />
-
-      <div className="mb-6" />
-
+      <div className="training-module-manager-tab-spacer" />
       {activeTab === 'add' && (
-        <div className="tab-content">
+        <div className="training-module-manager-tab-content">
           <AddModuleTab onSuccess={() => setActiveTab('view')} />
         </div>
       )}
-
       {activeTab === 'view' && (
-        <div className="tab-content">
-          <div className="mb-4 flex items-center gap-4">
+        <div className="training-module-manager-tab-content">
+          <div className="training-module-manager-search-row">
             <input
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search modules..."
-              className="search-input"
+              className="training-module-manager-search-input"
             />
           </div>
           <NeonTable
@@ -121,9 +118,9 @@ export default function TrainingModuleManager() {
               ...m,
               status: m.is_archived ? 'Archived' : 'Active',
               actions: (
-                <div className="flex gap-2 justify-center items-center">
+                <div className="training-module-manager-actions-row">
                   <button
-                    className="btn-edit"
+                    className="training-module-manager-btn-edit"
                     data-tooltip="Edit"
                     type="button"
                     onClick={() => window.location.href = `/admin/modules/edit/${m.id}`}
@@ -137,25 +134,22 @@ export default function TrainingModuleManager() {
           {selectedModule && <ViewModuleTab module={selectedModule} />}
         </div>
       )}
-
       {activeTab === 'assign' && (
-        <div className="tab-content">
+        <div className="training-module-manager-tab-content">
           <AssignModuleTab />
         </div>
       )}
-
       {activeTab === 'archive' && (
-        <div className="tab-content">
-          <div className="mb-4 flex items-center gap-4">
+        <div className="training-module-manager-tab-content">
+          <div className="training-module-manager-search-row">
             <input
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search modules to archive..."
-              className="search-input"
+              className="training-module-manager-search-input"
             />
           </div>
-
           <NeonTable
             columns={[
               { header: 'Name', accessor: 'name' },
@@ -166,9 +160,9 @@ export default function TrainingModuleManager() {
             data={modules.filter(m => !m.is_archived).map((m) => ({
               ...m,
               archive: (
-                <div className="flex justify-center items-center">
+                <div className="training-module-manager-actions-row">
                   <button
-                    className="btn-archive"
+                    className="training-module-manager-btn-archive"
                     data-tooltip="Archive"
                     onClick={() => setSelectedModule(m)}
                     type="button"
@@ -179,17 +173,16 @@ export default function TrainingModuleManager() {
               ),
             }))}
           />
-
           {selectedModule && (
-            <div className="mt-8 text-center archive-confirm-box">
-              <h2 className="text-lg font-bold mb-4 text-orange-400">Archive Module</h2>
-              <p className="mb-6 text-gray-200">
+            <div className="training-module-manager-archive-confirm">
+              <h2 className="training-module-manager-archive-title">Archive Module</h2>
+              <p className="training-module-manager-archive-desc">
                 Are you sure you want to archive{' '}
-                <span className="font-bold text-orange-300">{selectedModule.name}</span>? This action cannot be undone.
+                <span className="training-module-manager-archive-module-name">{selectedModule.name}</span>? This action cannot be undone.
               </p>
-              <div className="flex justify-center gap-4">
+              <div className="training-module-manager-archive-actions">
                 <button
-                  className="btn-archive"
+                  className="training-module-manager-btn-archive"
                   onClick={async () => {
                     setArchiveLoading(true)
                     await supabase
@@ -204,10 +197,10 @@ export default function TrainingModuleManager() {
                   }}
                   disabled={archiveLoading}
                 >
-                  {archiveLoading ? 'Archiving...' : <><FiArchive className="inline mr-1" /> Archive</>}
+                  {archiveLoading ? 'Archiving...' : <><FiArchive className="training-module-manager-btn-archive-icon" /> Archive</>}
                 </button>
                 <button
-                  className="btn-cancel"
+                  className="training-module-manager-btn-cancel"
                   onClick={() => setSelectedModule(null)}
                   disabled={archiveLoading}
                 >

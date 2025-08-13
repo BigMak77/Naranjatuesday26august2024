@@ -8,7 +8,18 @@ import NeonTable from '@/components/NeonTable'
 
 export default function RecurringTaskList() {
   const { user } = useUser()
-  const [recurring, setRecurring] = useState<any[]>([])
+  type RecurringTask = {
+    id: number
+    frequency: string
+    interval_count: number
+    next_due_at: string | null
+    turkus_tasks: {
+      id: number
+      title: string
+    } | null
+  }
+
+  const [recurring, setRecurring] = useState<RecurringTask[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -46,7 +57,14 @@ export default function RecurringTaskList() {
         setError('Failed to load recurring tasks.')
         console.error(recurringError)
       } else {
-        setRecurring(data || [])
+        setRecurring(
+          (data || []).map((item: any) => ({
+            ...item,
+            turkus_tasks: Array.isArray(item.turkus_tasks)
+              ? item.turkus_tasks[0] || null
+              : item.turkus_tasks ?? null,
+          }))
+        )
       }
 
       setLoading(false)
@@ -56,17 +74,17 @@ export default function RecurringTaskList() {
   }, [user])
 
   return (
-    <div className="bg-white p-4 rounded shadow">
-      <h2 className="text-xl font-bold text-teal-800 mb-4 flex items-center gap-2">
+    <div>
+      <h2 className="neon-section-title">
         <FiRepeat /> Recurring Tasks
       </h2>
 
       {loading ? (
-        <p>Loading...</p>
+        <p className="neon-loading">Loading...</p>
       ) : error ? (
-        <p className="text-red-600">{error}</p>
+        <p className="neon-error">{error}</p>
       ) : recurring.length === 0 ? (
-        <p className="text-gray-600">No recurring tasks found.</p>
+        <p className="neon-muted">No recurring tasks found.</p>
       ) : (
         <NeonTable
           columns={[

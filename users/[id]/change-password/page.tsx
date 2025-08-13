@@ -58,31 +58,35 @@ export default function ChangePasswordPage() {
     setSubmitting(false)
   }
 
-  if (loading) return <p className="p-6">Loading...</p>
-  if (error) return <p className="p-6 text-red-600">{error}</p>
+  if (loading) return <p className="change-password-loading-msg">Loading...</p>
+  if (error) return <p className="change-password-error-msg">{error}</p>
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-6 bg-white">
-      <form onSubmit={handleSubmit} className="bg-teal-50 border border-teal-200 rounded-lg p-8 shadow max-w-md w-full">
-        <h1 className="text-xl font-bold mb-4 text-teal-900">🔒 Change Password</h1>
+    <main className="change-password-main">
+      <form onSubmit={handleSubmit} className="change-password-form">
+        <h1 className="change-password-title">
+          <span className="change-password-title-icon" aria-label="Change Password" role="img">🔒</span> Change Password
+        </h1>
 
         {success && (
-          <p className="mb-4 text-green-700 font-medium">✅ Password updated successfully!</p>
+          <p className="change-password-success-msg" aria-live="polite">
+            <span className="change-password-success-icon" aria-label="Success" role="img">✅</span> Password updated successfully!
+          </p>
         )}
 
-        <label className="block mb-2 text-sm font-medium">New Password</label>
+        <label className="change-password-label">New Password</label>
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full border p-3 rounded mb-4"
+          className="change-password-input"
           required
         />
 
         <button
           type="submit"
           disabled={submitting}
-          className="bg-teal-700 hover:bg-teal-800 text-white px-4 py-2 rounded w-full"
+          className="change-password-submit-btn"
         >
           {submitting ? 'Updating...' : 'Update Password'}
         </button>

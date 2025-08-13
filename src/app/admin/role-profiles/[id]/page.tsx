@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase-client'
-import HeroHeader from '@/components/HeroHeader'
 import * as FiIcons from 'react-icons/fi'
 import {
   Tooltip,
@@ -12,12 +11,40 @@ import {
   TooltipTrigger,
 } from '@radix-ui/react-tooltip'
 
+type RoleProfile = {
+  id: string
+  name: string
+  description?: string
+  // Add other fields as needed
+}
+
 export default function RoleProfileDetailPage() {
   const { id } = useParams()
-  const [profile, setProfile] = useState<any>(null)
-  const [modules, setModules] = useState<any[]>([])
-  const [documents, setDocuments] = useState<any[]>([])
-  const [behaviours, setBehaviours] = useState<any[]>([])
+  const [profile, setProfile] = useState<RoleProfile | null>(null)
+  type ModuleItem = {
+    module_id: string
+    modules?: {
+      name?: string
+    }
+  }
+  const [modules, setModules] = useState<ModuleItem[]>([])
+  type DocumentItem = {
+    document_id: string
+    documents?: {
+      title?: string
+      document_type?: string
+    }
+  }
+  const [documents, setDocuments] = useState<DocumentItem[]>([])
+  type BehaviourItem = {
+    behaviour_id: string
+    behaviours?: {
+      name?: string
+      description?: string
+      icon?: string
+    }
+  }
+  const [behaviours, setBehaviours] = useState<BehaviourItem[]>([])
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -43,9 +70,18 @@ export default function RoleProfileDetailPage() {
         .select('behaviour_id, behaviours(name, description, icon)')
         .eq('role_profile_id', id)
 
-      setModules(modData || [])
-      setDocuments(docData || [])
-      setBehaviours(behData || [])
+      setModules(Array.isArray(modData) ? modData.map(m => ({
+        module_id: m.module_id,
+        modules: Array.isArray(m.modules) ? m.modules[0] : m.modules
+      })) : [])
+      setDocuments(Array.isArray(docData) ? docData.map(d => ({
+        document_id: d.document_id,
+        documents: Array.isArray(d.documents) ? d.documents[0] : d.documents
+      })) : [])
+      setBehaviours(Array.isArray(behData) ? behData.map(b => ({
+        behaviour_id: b.behaviour_id,
+        behaviours: Array.isArray(b.behaviours) ? b.behaviours[0] : b.behaviours
+      })) : [])
     }
 
     fetchAll()
@@ -59,80 +95,87 @@ export default function RoleProfileDetailPage() {
   }, {} as Record<string, string[]>)
 
   return (
-    <div className="role-profile-page px-6 py-10 max-w-5xl mx-auto">
-      <HeroHeader
-        title={profile?.name || 'Loading Role Profile...'}
-        subtitle={profile?.description || ''}
-      />
+    <div className="after-hero">
+      <div className="page-content">
+        <main className="page-main">
+          <h1 className="page-title">
+            {profile?.name || 'Loading Role Profile...'}
+          </h1>
+          <p className="info-message">
+            {profile?.description || ''}
+          </p>
 
-      {/* Modules Section */}
-      <div className="section mt-10">
-        <h2 className="text-neon text-xl font-semibold mb-3">Modules</h2>
-        {modules.length === 0 ? (
-          <p className="text-muted">No modules assigned.</p>
-        ) : (
-          <ul className="list-disc pl-6 text-white space-y-1 text-sm">
-            {modules.map((m) => (
-              <li key={m.module_id}>{m.modules?.name}</li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      {/* Documents Section */}
-      <div className="section mt-10">
-        <h2 className="text-neon text-xl font-semibold mb-3">Documents</h2>
-        {Object.entries(groupedDocs).length === 0 ? (
-          <p className="text-muted">No documents assigned.</p>
-        ) : (
-          Object.entries(groupedDocs).map(([type, titles]) => (
-            <div key={type} className="mb-4">
-              <p className="text-orange-400 font-semibold capitalize mb-1">
-                {type.replace(/_/g, ' ')}
-              </p>
-              <ul className="list-disc pl-6 text-white space-y-1 text-sm">
-                {(titles as string[]).map((t, i) => (
-                  <li key={i}>{t}</li>
+          {/* Modules Section */}
+          <section className="neon-panel mt-4">
+            <h2 className="neon-form-title">Modules</h2>
+            {modules.length === 0 ? (
+              <p className="info-message">No modules assigned.</p>
+            ) : (
+              <ul className="task-list">
+                {modules.map((m) => (
+                  <li key={m.module_id} className="task-list-item">{m.modules?.name}</li>
                 ))}
               </ul>
-            </div>
-          ))
-        )}
-      </div>
+            )}
+          </section>
 
-      {/* Behaviours Section */}
-      <div className="section mt-10">
-        <h2 className="text-neon text-xl font-semibold mb-3">Behaviours</h2>
-        {behaviours.length === 0 ? (
-          <p className="text-muted">No behaviours assigned.</p>
-        ) : (
-          <TooltipProvider>
-            <div className="flex flex-wrap gap-4 mt-2">
-              {behaviours.map((b) => {
-                const Icon =
-                  FiIcons[b.behaviours?.icon as keyof typeof FiIcons] || FiIcons.FiHelpCircle
+          {/* Documents Section */}
+          <section className="neon-panel mt-4">
+            <h2 className="neon-form-title">Documents</h2>
+            {Object.entries(groupedDocs).length === 0 ? (
+              <p className="info-message">No documents assigned.</p>
+            ) : (
+              Object.entries(groupedDocs).map(([type, titles]) => (
+                <div key={type} className="mb-4">
+                  <p className="neon-form-title" style={{fontSize: '1.1rem', color: 'var(--accent)'}}>
+                    {type.replace(/_/g, ' ')}
+                  </p>
+                  <ul className="task-list">
+                    {(titles as string[]).map((t, i) => (
+                      <li key={i} className="task-list-item">{t}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))
+            )}
+          </section>
 
-                return (
-                  <Tooltip key={b.behaviour_id}>
-                    <TooltipTrigger asChild>
-                      <div
-                        className="btn-neon btn-small px-3 py-2 text-center rounded cursor-pointer"
-                        title={b.behaviours?.name}
-                      >
-                        <Icon className="text-2xl" />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="neon-tooltip text-sm">
-                        {b.behaviours?.description || 'No description'}
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                )
-              })}
-            </div>
-          </TooltipProvider>
-        )}
+          {/* Behaviours Section */}
+          <section className="neon-panel mt-4">
+            <h2 className="neon-form-title">Behaviours</h2>
+            {behaviours.length === 0 ? (
+              <p className="info-message">No behaviours assigned.</p>
+            ) : (
+              <TooltipProvider>
+                <div className="neon-panel-actions" style={{flexWrap: 'wrap', gap: '1rem', marginTop: '1rem'}}>
+                  {behaviours.map((b) => {
+                    const Icon =
+                      FiIcons[b.behaviours?.icon as keyof typeof FiIcons] || FiIcons.FiHelpCircle
+
+                    return (
+                      <Tooltip key={b.behaviour_id}>
+                        <TooltipTrigger asChild>
+                          <div
+                            className="neon-btn neon-btn-secondary"
+                            title={b.behaviours?.name}
+                            style={{padding: '0.5rem 1rem', minWidth: 'unset'}}
+                          >
+                            <Icon style={{fontSize: '1.5rem'}} />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="neon-tooltip info-message" style={{margin: 0}}>
+                            {b.behaviours?.description || 'No description'}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )
+                  })}
+                </div>
+              </TooltipProvider>
+            )}
+          </section>
+        </main>
       </div>
     </div>
   )

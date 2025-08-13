@@ -1,9 +1,7 @@
 "use client"
 
-import HeroHeader from '@/components/HeroHeader'
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase-client'
-import { FiHeart } from 'react-icons/fi'
 
 export default function FirstAidPage() {
   const [form, setForm] = useState({
@@ -45,70 +43,65 @@ export default function FirstAidPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#011f24] text-white">
-      <HeroHeader
-        title="First Aid Record"
-        titleIcon={<FiHeart />}
-        subtitle="Record first aid treatment administered on site."
-      />
-      <div className="max-w-xl mx-auto">
-        <form onSubmit={handleSubmit} className="bg-[#0c1f24] p-8 rounded-xl shadow border border-[#40E0D0] space-y-6">
+    <main className="first-aid-main">
+      <div className="first-aid-container">
+        <form onSubmit={handleSubmit} className="first-aid-form">
           <div>
-            <label className="block mb-1 font-semibold text-[#40E0D0]">Patient Name</label>
+            <label className="first-aid-label">Patient Name</label>
             <input
               name="patient"
               value={form.patient}
               onChange={handleChange}
-              className="w-full p-2 rounded bg-[#011f24] border border-[#40E0D0] text-white"
+              className="first-aid-input"
               required
             />
           </div>
           <div>
-            <label className="block mb-1 font-semibold text-[#40E0D0]">Date</label>
+            <label className="first-aid-label">Date</label>
             <input
               name="date"
               type="date"
               value={form.date}
               onChange={handleChange}
-              className="w-full p-2 rounded bg-[#011f24] border border-[#40E0D0] text-white"
+              className="first-aid-input"
               required
             />
           </div>
           <div>
-            <label className="block mb-1 font-semibold text-[#40E0D0]">Treatment Given</label>
+            <label className="first-aid-label">Treatment Given</label>
             <input
               name="treatment"
               value={form.treatment}
               onChange={handleChange}
-              className="w-full p-2 rounded bg-[#011f24] border border-[#40E0D0] text-white"
+              className="first-aid-input"
               required
             />
           </div>
           <div>
-            <label className="block mb-1 font-semibold text-[#40E0D0]">Administered By</label>
+            <label className="first-aid-label">Administered By</label>
             <input
               name="administeredBy"
               value={form.administeredBy}
               onChange={handleChange}
-              className="w-full p-2 rounded bg-[#011f24] border border-[#40E0D0] text-white"
+              className="first-aid-input"
               required
             />
           </div>
           <div>
-            <label className="block mb-1 font-semibold text-[#40E0D0]">Notes (optional)</label>
+            <label className="first-aid-label">Notes (optional)</label>
             <textarea
               name="notes"
               value={form.notes}
               onChange={handleChange}
-              className="w-full p-2 rounded bg-[#011f24] border border-[#40E0D0] text-white"
+              className="first-aid-input"
               rows={3}
             />
           </div>
-          {error && <p className="text-orange-400 font-semibold">{error}</p>}
-          {success && <p className="text-[#2ecc71] font-semibold">Treatment recorded successfully!</p>}
+          {error && <p className="first-aid-error-msg">{error}</p>}
+          {success && <p className="first-aid-success-msg">Treatment recorded successfully!</p>}
           <button
             type="submit"
-            className="w-full py-2 rounded bg-[#40E0D0] text-black font-bold text-lg hover:bg-orange-400 transition"
+            className="first-aid-submit-btn"
             disabled={submitting}
           >
             {submitting ? 'Recording...' : 'Record Treatment'}

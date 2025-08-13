@@ -96,26 +96,26 @@ export default function CreateAuditTab() {
 
   return (
     <NeonForm title="Create Audit Template" onSubmit={handleSubmit} submitLabel={loading ? 'Saving...' : 'Create Template'}>
-      <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Title" className="w-full border border-[#40E0D0] px-3 py-2 rounded bg-[#011f24] text-[#b2f1ec] shadow-glow" required />
-      <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Description" className="w-full border border-[#40E0D0] px-3 py-2 rounded bg-[#011f24] text-[#b2f1ec] shadow-glow" rows={2} />
-      <select value={frequency} onChange={e => setFrequency(e.target.value)} className="w-full border border-[#40E0D0] px-3 py-2 rounded bg-[#011f24] text-[#b2f1ec] shadow-glow" required>
+      <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Title" className="create-audit-tab-input" required />
+      <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Description" className="create-audit-tab-input" rows={2} />
+      <select value={frequency} onChange={e => setFrequency(e.target.value)} className="create-audit-tab-input" required>
         <option value="">Select Frequency</option>
         {['Monthly', 'Quarterly', 'Yearly'].map(f => (
           <option key={f} value={f}>{f}</option>
         ))}
       </select>
-      <input value={version} onChange={e => setVersion(e.target.value)} placeholder="Version" className="w-full border border-[#40E0D0] px-3 py-2 rounded bg-[#011f24] text-[#b2f1ec] shadow-glow" />
-      <select value={sectionId} onChange={e => setSectionId(e.target.value)} className="w-full border border-[#40E0D0] px-3 py-2 rounded bg-[#011f24] text-[#b2f1ec] shadow-glow">
+      <input value={version} onChange={e => setVersion(e.target.value)} placeholder="Version" className="create-audit-tab-input" />
+      <select value={sectionId} onChange={e => setSectionId(e.target.value)} className="create-audit-tab-input">
         <option value="">Link to Standard Section (optional)</option>
         {sections.map((s: any) => (
           <option key={s.id} value={s.id}>{s.title}</option>
         ))}
       </select>
       <div>
-        <label className="block text-sm font-medium text-[#b2f1ec] mb-1">Link Questions</label>
-        <div className="max-h-40 overflow-y-auto border border-[#40E0D0] rounded px-3 py-2 bg-[#011f24] space-y-1">
+        <label className="create-audit-tab-label">Link Questions</label>
+        <div className="create-audit-tab-question-list">
           {availableQuestions.map((q: any) => (
-            <label key={q.id} className="block text-sm text-[#b2f1ec]">
+            <label key={q.id} className="create-audit-tab-question-label">
               <input
                 type="checkbox"
                 value={q.id}
@@ -126,7 +126,7 @@ export default function CreateAuditTab() {
                     prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
                   )
                 }}
-                className="mr-2 accent-[#40E0D0]"
+                className="create-audit-tab-checkbox"
               />
               {q.question_text}
             </label>

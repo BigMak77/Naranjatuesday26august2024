@@ -78,79 +78,73 @@ export default function CompliancePage() {
     : 0
 
   return (
-    <main className="min-h-screen bg-[#011f24] text-white">
-      <div className="max-w-6xl mx-auto py-10 px-4">
-
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-2">
-          <FiBarChart2 className="text-[#40E0D0] text-2xl drop-shadow-[0_0_6px_#40E0D0]" />
-          <h1 className="text-3xl font-bold text-white">Compliance Dashboard</h1>
+    <main className="after-hero">
+      <div className="page-content">
+        <div className="compliance-header">
+          <FiBarChart2 className="compliance-header-icon" />
+          <h1 className="compliance-title">Compliance Dashboard</h1>
         </div>
-        <p className="text-[#40E0D0] mb-6 text-sm drop-shadow-[0_0_3px_#40E0D0]">
+        <p className="compliance-completion-rate">
           Completion Rate: <strong>{completionRate}%</strong>
         </p>
-
-        {/* Filters */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-[#0c1f24] p-6 rounded-xl shadow border border-[#40E0D0] mb-6">
+        <div className="compliance-filters">
           <div>
-            <label className="text-sm font-semibold block mb-1">Department</label>
-            <select value={selectedDept} onChange={e => setSelectedDept(e.target.value)} className="w-full bg-[#011f24] text-white border border-[#40E0D0] rounded p-2">
+            <label className="compliance-filter-label">Department</label>
+            <select value={selectedDept} onChange={e => setSelectedDept(e.target.value)} className="compliance-filter-input">
               <option value="All">All</option>
               {departments.map(d => <option key={d} value={d}>{d}</option>)}
             </select>
           </div>
           <div>
-            <label className="text-sm font-semibold block mb-1">Role</label>
-            <select value={selectedRole} onChange={e => setSelectedRole(e.target.value)} className="w-full bg-[#011f24] text-white border border-[#40E0D0] rounded p-2">
+            <label className="compliance-filter-label">Role</label>
+            <select value={selectedRole} onChange={e => setSelectedRole(e.target.value)} className="compliance-filter-input">
               <option value="All">All</option>
               {roles.map(r => <option key={r} value={r}>{r}</option>)}
             </select>
           </div>
           <div>
-            <label className="text-sm font-semibold block mb-1">Module</label>
-            <select value={selectedModule} onChange={e => setSelectedModule(e.target.value)} className="w-full bg-[#011f24] text-white border border-[#40E0D0] rounded p-2">
+            <label className="compliance-filter-label">Module</label>
+            <select value={selectedModule} onChange={e => setSelectedModule(e.target.value)} className="compliance-filter-input">
               <option value="All">All</option>
               {modules.map(m => <option key={m} value={m}>{m}</option>)}
             </select>
           </div>
           <div>
-            <label className="text-sm font-semibold block mb-1">Search User</label>
+            <label className="compliance-filter-label">Search User</label>
             <input
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Enter name..."
-              className="w-full bg-[#011f24] text-white border border-[#40E0D0] rounded p-2"
+              className="compliance-filter-input"
             />
           </div>
         </div>
-
-        {/* Data Table */}
-        <div className="bg-[#0c1f24] p-6 rounded-xl shadow border border-[#40E0D0]">
-          <table className="min-w-full text-sm">
-            <thead className="text-[#40E0D0] border-b border-[#40E0D0]">
+        <div className="compliance-table-wrapper">
+          <table className="compliance-table">
+            <thead className="compliance-table-head">
               <tr>
-                <th className="text-left px-4 py-2">User</th>
-                <th className="text-left px-4 py-2">Department</th>
-                <th className="text-left px-4 py-2">Role</th>
-                <th className="text-left px-4 py-2">Module</th>
-                <th className="text-left px-4 py-2">Status</th>
+                <th className="compliance-table-th">User</th>
+                <th className="compliance-table-th">Department</th>
+                <th className="compliance-table-th">Role</th>
+                <th className="compliance-table-th">Module</th>
+                <th className="compliance-table-th">Status</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((a, i) => (
-                <tr key={i} className="border-b border-[#024747] hover:bg-[#013c3c] transition">
-                  <td className="px-4 py-2">{a.user?.first_name} {a.user?.last_name}</td>
-                  <td className="px-4 py-2">{a.user?.department?.name || '—'}</td>
-                  <td className="px-4 py-2">{a.user?.role?.title || '—'}</td>
-                  <td className="px-4 py-2">{a.name}</td>
-                  <td className="px-4 py-2">
+                <tr key={i} className="compliance-table-row">
+                  <td className="compliance-table-td">{a.user?.first_name} {a.user?.last_name}</td>
+                  <td className="compliance-table-td">{a.user?.department?.name || '—'}</td>
+                  <td className="compliance-table-td">{a.user?.role?.title || '—'}</td>
+                  <td className="compliance-table-td">{a.name}</td>
+                  <td className="compliance-table-td">
                     {a.completed_at ? (
-                      <span className="text-[#2ecc71] drop-shadow-[0_0_2px_#2ecc71] font-semibold">
+                      <span className="compliance-status-complete">
                         {new Date(a.completed_at).toLocaleDateString()}
                       </span>
                     ) : (
-                      <span className="text-[#e74c3c] drop-shadow-[0_0_2px_#e74c3c] font-semibold">
+                      <span className="compliance-status-incomplete">
                         Incomplete
                       </span>
                     )}
@@ -160,7 +154,6 @@ export default function CompliancePage() {
             </tbody>
           </table>
         </div>
-
       </div>
     </main>
   )

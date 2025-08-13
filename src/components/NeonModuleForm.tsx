@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import NeonForm from './NeonForm';
 
@@ -17,68 +18,65 @@ interface NeonModuleFormProps {
   title: string;
   fields: NeonModuleFormField[];
   onSubmit: (e: React.FormEvent) => void;
-  saving?: boolean;
   error?: string | null;
   success?: boolean;
   children?: React.ReactNode;
 }
 
-export default function NeonModuleForm({ title, fields, onSubmit, saving, error, success, children }: NeonModuleFormProps) {
+export default function NeonModuleForm({ title, fields, onSubmit, error, success, children }: NeonModuleFormProps) {
   return (
     <NeonForm title={title} onSubmit={onSubmit}>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-        {fields.map(field => (
-          <div key={field.key} className="flex flex-col">
-            <label className="block font-medium mb-1">{field.label}</label>
+      {fields.map(field => (
+        <div key={field.key} className="flex flex-col">
+          <label className="block font-medium mb-1">{field.label}</label>
 
-            {field.type === 'text' && (
-              <input
-                type="text"
-                value={field.value}
-                onChange={e => field.onChange(e.target.value)}
-                className="neon-input"
-                required={field.required}
-                placeholder={field.placeholder}
-              />
-            )}
+          {field.type === 'text' && (
+            <input
+              type="text"
+              value={field.value}
+              onChange={e => field.onChange(e.target.value)}
+              className="neon-input"
+              required={field.required}
+              placeholder={field.placeholder}
+            />
+          )}
 
-            {field.type === 'number' && (
-              <input
-                type="number"
-                value={field.value}
-                onChange={e => field.onChange(Number(e.target.value))}
-                className="neon-input"
-                required={field.required}
-                placeholder={field.placeholder}
-              />
-            )}
+          {field.type === 'number' && (
+            <input
+              type="number"
+              value={field.value}
+              onChange={e => field.onChange(Number(e.target.value))}
+              className="neon-input"
+              required={field.required}
+              placeholder={field.placeholder}
+            />
+          )}
 
-            {field.type === 'textarea' && (
-              <textarea
-                value={field.value}
-                onChange={e => field.onChange(e.target.value)}
-                className="neon-input"
-                required={field.required}
-                placeholder={field.placeholder}
-                rows={field.rows || 3}
-              />
-            )}
+          {field.type === 'textarea' && (
+            <textarea
+              value={field.value}
+              onChange={e => field.onChange(e.target.value)}
+              className="neon-input"
+              required={field.required}
+              placeholder={field.placeholder}
+              rows={field.rows || 3}
+            />
+          )}
 
-            {field.type === 'select' && field.options && (
-              <select
-                value={field.value}
-                onChange={e => field.onChange(e.target.value)}
-                className="neon-input"
-                required={field.required}
-              >
-                {field.options.map(opt => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
-              </select>
-            )}
-          </div>
-        ))}
-      </div>
+          {field.type === 'select' && field.options && (
+            <select
+              value={field.value}
+              onChange={e => field.onChange(e.target.value)}
+              className="neon-input"
+              required={field.required}
+            >
+              {field.options.map(opt => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+          )}
+        </div>
+      ))}
 
       {children && <div className="mt-6">{children}</div>}
 

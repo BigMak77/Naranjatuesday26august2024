@@ -25,17 +25,17 @@ export default function SubmissionsTab() {
   }, [])
 
   return (
-    <NeonPanel bgColor="#012f34" glowColor="#40E0D0" className="space-y-4">
-      <h3 className="text-xl font-semibold text-[#40E0D0] drop-shadow-glow">Audit Submissions</h3>
+    <NeonPanel bgColor="#012f34" glowColor="#40E0D0" className="submissions-tab-panel">
+      <h3 className="submissions-tab-title">Audit Submissions</h3>
       {loading ? (
-        <p className="text-[#b2f1ec]">Loading...</p>
+        <p className="submissions-tab-loading-msg">Loading...</p>
       ) : submissions.length === 0 ? (
-        <p className="text-[#b2f1ec]">No submissions yet.</p>
+        <p className="submissions-tab-empty-msg">No submissions yet.</p>
       ) : (
-        <ul className="space-y-3">
+        <ul className="submissions-tab-list">
           {submissions.map((s: any) => (
-            <li key={s.id} className="border border-[#40E0D0] rounded-xl p-4 shadow-glow bg-[#011f24]">
-              <div className="text-sm text-[#b2f1ec] space-y-1">
+            <li key={s.id} className="submissions-tab-list-item">
+              <div className="submissions-tab-list-item-content">
                 <p><strong>Submission ID:</strong> {s.id}</p>
                 <p><strong>Template ID:</strong> {s.template_id}</p>
                 <p><strong>User ID:</strong> {s.auth_id}</p>

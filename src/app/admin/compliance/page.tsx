@@ -83,7 +83,7 @@ export default function CompliancePage() {
   return (
     <>
       <NeonPanel>
-        <h1 className="neon-form-title">📋 Compliance Dashboard</h1>
+        <h1 className="neon-form-title">Compliance Dashboard</h1>
         <p>Completion Rate: <strong>{completionRate}%</strong></p>
 
         <NeonForm title="Compliance Filters" onSubmit={e => e.preventDefault()} submitLabel={undefined}>
@@ -136,8 +136,8 @@ export default function CompliancePage() {
             role: a.user?.role?.title || '—',
             module: a.name,
             status: a.completed_at
-              ? `✅ ${new Date(a.completed_at).toLocaleDateString()}`
-              : '⏳ Incomplete',
+              ? new Date(a.completed_at).toLocaleDateString()
+              : 'Incomplete',
           }))}
         />
       </NeonPanel>

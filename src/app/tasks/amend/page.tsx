@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase-client'
 import { useRouter } from 'next/navigation'
 import TaskItem from '@/components/TaskItem'
+import '@/styles/task-list.css'
 
 type Task = {
   id: string
@@ -46,22 +47,22 @@ export default function AmendTaskPage() {
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto flex-grow">
-      <h1 className="text-2xl font-bold text-orange-600 mb-6">Amend Tasks</h1>
+    <main className="page-main">
+      <h1 className="page-title">Amend Tasks</h1>
 
       {loading ? (
-        <p>Loading tasks...</p>
+        <p className="info-message">Loading tasks...</p>
       ) : error ? (
-        <p className="text-red-600">{error}</p>
+        <p className="error-message">{error}</p>
       ) : tasks.length === 0 ? (
-        <p className="text-gray-600">No tasks available.</p>
+        <p className="info-message">No tasks available.</p>
       ) : (
-        <ul className="space-y-3">
+        <ul className="task-list">
           {tasks.map((task) => (
             <TaskItem key={task.id} task={task} onEdit={handleEditClick} />
           ))}
         </ul>
       )}
-    </div>
+    </main>
   )
 }

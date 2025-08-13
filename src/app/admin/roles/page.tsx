@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase-client'
 import Link from 'next/link'
-import HeroHeader from '@/components/HeroHeader'
 
 interface User {
   id: number
@@ -69,14 +68,12 @@ export default function AdminUserListPage() {
 
   return (
     <>
-      <HeroHeader title="Roles & Users" subtitle="View and manage users, roles, and access levels." />
-
-      <div className="p-6 max-w-7xl mx-auto mt-4">
-        <h1 className="text-3xl font-bold text-orange-600 mb-6">👥 Manage Users</h1>
+      <div className="admin-users-page-wrapper">
+        <h1 className="admin-users-title">👥 Manage Users</h1>
 
         {/* Filters */}
-        <div className="bg-teal-900 p-4 rounded-xl shadow border border-teal-300 mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+        <div className="admin-users-filters">
+          <div className="admin-users-filters-row">
             <div className="neon-search-bar-wrapper" style={{flex: 1, minWidth: 220}}>
               <input
                 type="search"
@@ -109,36 +106,34 @@ export default function AdminUserListPage() {
         </div>
 
         {/* User Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-center border bg-white rounded-xl shadow">
-            <thead className="bg-teal-900 text-white font-semibold">
+        <div className="admin-users-table-wrapper">
+          <table className="admin-users-table">
+            <thead className="admin-users-table-head">
               <tr>
-                <th className="p-3 border-b">Name</th>
-                <th className="p-3 border-b">Email</th>
-                <th className="p-3 border-b">Department</th>
-                <th className="p-3 border-b">Job Level</th>
-                <th className="p-3 border-b">Role</th>
-                <th className="p-3 border-b">Status</th>
-                <th className="p-3 border-b">Actions</th>
+                <th className="admin-users-th">Name</th>
+                <th className="admin-users-th">Email</th>
+                <th className="admin-users-th">Department</th>
+                <th className="admin-users-th">Job Level</th>
+                <th className="admin-users-th">Role</th>
+                <th className="admin-users-th">Status</th>
+                <th className="admin-users-th">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredUsers.map((user) => (
-                <tr key={user.id} className="text-teal-900 hover:bg-orange-300">
-                  <td className="p-3 border-b">{user.first_name} {user.last_name}</td>
-                  <td className="p-3 border-b">{user.email}</td>
-                  <td className="p-3 border-b">{user.department}</td>
-                  <td className="p-3 border-b">{user.access_level}</td>
-                  <td className="p-3 border-b">{user.role_title}</td>
-                  <td className="p-3 border-b capitalize text-teal-800">{user.status}</td>
-                  <td className="p-3 border-b space-x-2">
-                    <Link href={`/admin/users/${user.id}`} className="text-blue-600 hover:underline">View</Link>
-                    <Link href={`/admin/users/${user.id}/edit`} className="text-green-600 hover:underline">Edit</Link>
+                <tr key={user.id} className="admin-users-tr">
+                  <td className="admin-users-td">{user.first_name} {user.last_name}</td>
+                  <td className="admin-users-td">{user.email}</td>
+                  <td className="admin-users-td">{user.department}</td>
+                  <td className="admin-users-td">{user.access_level}</td>
+                  <td className="admin-users-td">{user.role_title}</td>
+                  <td className="admin-users-td admin-users-status">{user.status}</td>
+                  <td className="admin-users-td admin-users-actions">
+                    <Link href={`/admin/users/${user.id}`} className="admin-users-action-link admin-users-action-view">View</Link>
+                    <Link href={`/admin/users/${user.id}/edit`} className="admin-users-action-link admin-users-action-edit">Edit</Link>
                     <button
                       onClick={() => toggleStatus(user)}
-                      className={`text-sm font-medium ${
-                        user.status === 'active' ? 'text-red-600' : 'text-green-600'
-                      } hover:underline`}
+                      className={`admin-users-action-btn ${user.status === 'active' ? 'admin-users-action-suspend' : 'admin-users-action-reactivate'}`}
                     >
                       {user.status === 'active' ? 'Suspend' : 'Reactivate'}
                     </button>

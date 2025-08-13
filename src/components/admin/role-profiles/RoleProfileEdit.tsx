@@ -141,7 +141,7 @@ export default function RoleProfileEdit({
   return (
     <>
       <HeroHeader title="Edit Role Profile" subtitle={`Step ${step + 1} of 5`} />
-      <div className="max-w-4xl mx-auto px-4 pt-6">
+      <div className="role-profile-edit-content">
         {step === 0 && (
           <>
             {editNameDesc === null ? (

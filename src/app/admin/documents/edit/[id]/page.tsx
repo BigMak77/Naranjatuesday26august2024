@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase-client'
-import HeroHeader from '@/components/HeroHeader'
 import NeonForm from '@/components/NeonForm'
 import { useUser } from '@/lib/useUser'
 
@@ -16,7 +15,7 @@ export default function EditDocumentPage() {
   const { user } = useUser();
 
   const [loading, setLoading] = useState(true)
-  const [document, setDocument] = useState<any>(null)
+  const [document, setDocument] = useState<unknown>(null)
   const [title, setTitle] = useState('')
   const [referenceCode, setReferenceCode] = useState('')
   const [documentType, setDocumentType] = useState('')
@@ -101,7 +100,7 @@ export default function EditDocumentPage() {
   const confirmVersionChange = async () => {
     if (!pendingEditData) return;
     let fileUrl = pendingEditData.file_url;
-    let newVersion = pendingVersion;
+    const newVersion = pendingVersion;
     // Handle file upload if needed
     if (file) {
       if (!user?.auth_id) {
@@ -163,40 +162,39 @@ export default function EditDocumentPage() {
 
   return (
     <>
-      <HeroHeader title="Edit Document" subtitle="Edit document details and upload a new file if needed." />
       {/* Version Confirmation Modal */}
       {showVersionModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-          <div className="bg-gray-900 border-2 border-blue-400 rounded-lg shadow-lg p-6 w-full max-w-md">
-            <h2 className="text-lg font-bold text-blue-300 mb-2">Confirm Version Change</h2>
-            <p className="text-white mb-2">You are about to update this document to version <span className="font-bold text-blue-400">{pendingVersion}</span>. Continue?</p>
-            {versionErrorMsg && <p className="text-red-400 text-sm mb-2">{versionErrorMsg}</p>}
-            <div className="flex justify-end gap-2 mt-2">
+        <div className="modal-version-overlay">
+          <div className="modal-version-container">
+            <h2 className="modal-version-title">Confirm Version Change</h2>
+            <p className="modal-version-message">You are about to update this document to version <span className="modal-version-number">{pendingVersion}</span>. Continue?</p>
+            {versionErrorMsg && <p className="modal-version-error">{versionErrorMsg}</p>}
+            <div className="modal-version-actions">
               <button
-                className="px-4 py-2 rounded bg-gray-700 text-white hover:bg-gray-600"
+                className="modal-version-cancel"
                 onClick={() => { setShowVersionModal(false); setPendingVersion(null); setPendingEditData(null); }}
               >Cancel</button>
               <button
-                className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 font-bold"
+                className="modal-version-confirm"
                 onClick={confirmVersionChange}
               >Confirm</button>
             </div>
           </div>
         </div>
       )}
-      <main className="min-h-screen text-teal-900 flex flex-col">
+      <main className="edit-document-main">
         <NeonForm title="Edit Document" onSubmit={handleEditSubmit}>
           <div>
-            <label className="block text-sm font-medium text-white">Title *</label>
-            <input type="text" className="border rounded px-3 py-2 w-full" value={title} onChange={(e) => setTitle(e.target.value)} required />
+            <label className="edit-document-label">Title *</label>
+            <input type="text" className="edit-document-input" value={title} onChange={(e) => setTitle(e.target.value)} required />
           </div>
           <div>
-            <label className="block text-sm font-medium text-white">Reference Code</label>
-            <input type="text" className="border rounded px-3 py-2 w-full" value={referenceCode} onChange={(e) => setReferenceCode(e.target.value)} />
+            <label className="edit-document-label">Reference Code</label>
+            <input type="text" className="edit-document-input" value={referenceCode} onChange={(e) => setReferenceCode(e.target.value)} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-white">Document Type *</label>
-            <select className="border rounded px-3 py-2 w-full" value={documentType} onChange={(e) => setDocumentType(e.target.value)} required>
+            <label className="edit-document-label">Document Type *</label>
+            <select className="edit-document-input" value={documentType} onChange={(e) => setDocumentType(e.target.value)} required>
               <option value="">Select type</option>
               <option value="policy">Policy</option>
               <option value="ssow">Safe System of Work (SSOW)</option>
@@ -204,20 +202,20 @@ export default function EditDocumentPage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-white">Version Number</label>
-            <input type="number" className="border rounded px-3 py-2 w-full" value={document?.current_version ?? ''} readOnly />
+            <label className="edit-document-label">Version Number</label>
+            <input type="number" className="edit-document-input" value={document?.current_version ?? ''} readOnly />
           </div>
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-white">Standard *</label>
-              <select className="border rounded px-3 py-2 w-full" value={standardId} onChange={(e) => { setStandardId(e.target.value); setSectionId('') }} required>
+          <div className="edit-document-row">
+            <div className="edit-document-col">
+              <label className="edit-document-label">Standard *</label>
+              <select className="edit-document-input" value={standardId} onChange={(e) => { setStandardId(e.target.value); setSectionId('') }} required>
                 <option value="">Select standard</option>
                 {standards.map((std) => (<option key={std.id} value={std.id}>{std.name}</option>))}
               </select>
             </div>
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-white">Section</label>
-              <select className="border rounded px-3 py-2 w-full" value={sectionId} onChange={(e) => setSectionId(e.target.value)} disabled={!standardId}>
+            <div className="edit-document-col">
+              <label className="edit-document-label">Section</label>
+              <select className="edit-document-input" value={sectionId} onChange={(e) => setSectionId(e.target.value)} disabled={!standardId}>
                 <option value="">Select section</option>
                 {sections.filter((s) => s.standard_id === standardId).map((s) => (
                   <option key={s.id} value={s.id}>{s.code} – {s.title}</option>
@@ -226,13 +224,13 @@ export default function EditDocumentPage() {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-white">Upload New File (optional)</label>
-            <input type="file" accept=".pdf" className="border rounded px-3 py-2 w-full" onChange={(e) => setFile(e.target.files?.[0] || null)} />
+            <label className="edit-document-label">Upload New File (optional)</label>
+            <input type="file" accept=".pdf" className="edit-document-input" onChange={(e) => setFile(e.target.files?.[0] || null)} />
           </div>
           {file && (
             <div>
-              <label className="block text-sm font-medium text-white">Version Notes</label>
-              <textarea className="border rounded px-3 py-2 w-full" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
+              <label className="edit-document-label">Version Notes</label>
+              <textarea className="edit-document-input" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
             </div>
           )}
         </NeonForm>

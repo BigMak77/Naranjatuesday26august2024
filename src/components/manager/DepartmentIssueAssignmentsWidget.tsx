@@ -53,21 +53,7 @@ export default function DepartmentIssueAssignmentsWidget() {
     return () => clearInterval(interval)
   }, [user])
 
-  const handleAssignUser = async (issueId: string, userId: string) => {
-    const { error } = await supabase
-      .from('issues')
-      .update({ assigned_to: userId, assigned_at: new Date().toISOString() })
-      .eq('id', issueId)
-
-    if (error) alert('Failed to assign user.')
-    else {
-      setAssignments((prev) =>
-        prev.map((i) =>
-          i.id === issueId ? { ...i, assigned_to: userId, assigned_at: new Date().toISOString() } : i
-        )
-      )
-    }
-  }
+  // Removed unused handleAssignUser function
 
   if (!user) return null
 

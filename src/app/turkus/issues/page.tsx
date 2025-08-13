@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase-client'
-import HeroHeader from '@/components/HeroHeader'
 import NeonTable from '@/components/NeonTable'
 
 type Issue = {
@@ -54,10 +53,6 @@ export default function IssuesListPage() {
 
   return (
     <>
-      <HeroHeader
-        title="Turkus Issues"
-        subtitle="View, assign, and manage issues for your organization."
-      />
       <div className="centered-content">
         <div className="max-w-6xl w-full px-8 mt-10">
           {loading ? (

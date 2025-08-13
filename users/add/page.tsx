@@ -98,7 +98,7 @@ export default function AddUserPage() {
         <button
           onClick={handleSave}
           disabled={loading}
-          className="bg-teal-700 text-white px-6 py-2 rounded hover:bg-teal-800"
+          className="add-user-submit-btn"
         >
           {loading ? 'Saving...' : 'Add User'}
         </button>

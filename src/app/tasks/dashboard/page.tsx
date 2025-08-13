@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase-client'
 import { FiClock, FiCheckCircle, FiAlertTriangle, FiCalendar } from 'react-icons/fi'
+import NeonPanel from '@/components/NeonPanel'
+import NeonFeatureCard from '@/components/NeonFeatureCard'
 
 interface TaskAssignment {
   id: number
@@ -102,108 +104,101 @@ const TaskDashboard = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6 min-h-screen bg-slate-900 text-white">
+    <div className="task-dashboard-wrapper">
       {loading ? (
-        <div className="text-center text-slate-400">Loading tasks...</div>
+        <NeonPanel>
+          <div className="task-dashboard-loading-msg">Loading tasks...</div>
+        </NeonPanel>
       ) : (
         <>
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <SummaryCard
-              icon={<FiCalendar />}
-              title="Due Today"
-              value={todayTasks.length}
-            />
-            <SummaryCard
-              icon={<FiCheckCircle />}
-              title="Completed Today"
-              value={completedTasks.length}
-            />
-            <SummaryCard
-              icon={<FiClock />}
-              title="Late Completions"
-              value={lateTasks.length}
-            />
-            <SummaryCard
-              icon={<FiAlertTriangle />}
-              title="Overdue"
-              value={overdueTasks.length}
-            />
-          </div>
+          {/* Summary Feature Cards */}
+          <NeonPanel>
+            <div className="neon-feature-card-list">
+              <NeonFeatureCard
+                icon={<FiCalendar aria-label="Due Today" />}
+                title="Due Today"
+                text={todayTasks.length.toString()}
+                href={''}
+              />
+              <NeonFeatureCard
+                icon={<FiCheckCircle aria-label="Completed Today" />}
+                title="Completed Today"
+                text={completedTasks.length.toString()}
+                href={''}
+              />
+              <NeonFeatureCard
+                icon={<FiClock aria-label="Late Completions" />}
+                title="Late Completions"
+                text={lateTasks.length.toString()}
+                href={''}
+              />
+              <NeonFeatureCard
+                icon={<FiAlertTriangle aria-label="Overdue" />}
+                title="Overdue"
+                text={overdueTasks.length.toString()}
+                href={''}
+              />
+            </div>
+          </NeonPanel>
 
-          <Section title="🕒 Completed Late">
-            {lateTasks.length === 0 ? (
-              <p className="text-slate-400">No late completions.</p>
-            ) : (
-              <ul className="list-disc pl-6 space-y-1">
-                {lateTasks.map((t) => (
-                  <li
-                    key={t.id}
-                    className="hover:bg-slate-800/50 px-2 py-1 rounded transition"
-                  >
-                    <strong className="text-teal-300">{t.task?.title}</strong> – Due:{' '}
-                    {formatDateTime(t.due_date)}, Completed:{' '}
-                    {t.completed_at ? formatDateTime(t.completed_at) : ''}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Section>
+          <NeonPanel>
+            <Section title={<><FiClock className="task-dashboard-section-icon" aria-label="Completed Late" /> Completed Late</>}>
+              {lateTasks.length === 0 ? (
+                <p className="task-dashboard-empty-msg">No late completions.</p>
+              ) : (
+                <ul className="task-dashboard-list">
+                  {lateTasks.map((t) => (
+                    <li
+                      key={t.id}
+                      className="task-dashboard-list-item"
+                    >
+                      <strong className="task-dashboard-task-title">{t.task?.title}</strong> – Due:{' '}
+                      {formatDateTime(t.due_date)}{t.completed_at ? `, Completed: ${formatDateTime(t.completed_at)}` : ''}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Section>
+          </NeonPanel>
 
-          <Section title="Overdue Tasks">
-            {overdueTasks.length === 0 ? (
-              <p className="text-slate-400">No overdue tasks.</p>
-            ) : (
-              <ul className="list-disc pl-6 space-y-1">
-                {overdueTasks.map((t) => (
-                  <li
-                    key={t.id}
-                    className="hover:bg-slate-800/50 px-2 py-1 rounded transition"
-                  >
-                    <strong className="text-teal-300">{t.task?.title}</strong> – Due:{' '}
-                    {formatDateTime(t.due_date)}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Section>
+          <NeonPanel>
+            <Section title="Overdue Tasks">
+              {overdueTasks.length === 0 ? (
+                <p className="task-dashboard-empty-msg">No overdue tasks.</p>
+              ) : (
+                <ul className="task-dashboard-list">
+                  {overdueTasks.map((t) => (
+                    <li
+                      key={t.id}
+                      className="task-dashboard-list-item"
+                    >
+                      <strong className="task-dashboard-task-title">{t.task?.title}</strong> – Due:{' '}
+                      {formatDateTime(t.due_date)}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Section>
+          </NeonPanel>
         </>
       )}
     </div>
   )
 }
 
-const SummaryCard = ({
-  icon,
-  title,
-  value,
-}: {
-  icon: React.ReactNode
-  title: string
-  value: number
-}) => (
-  <div className="flex items-center gap-4 p-5 rounded-lg shadow-md bg-slate-800 border border-teal-500 hover:shadow-teal-500/30 transition">
-    <div className="text-3xl text-teal-300">{icon}</div>
-    <div>
-      <p className="text-sm font-medium text-slate-300">{title}</p>
-      <p className="text-2xl font-bold text-white">{value}</p>
-    </div>
-  </div>
-)
-
 const Section = ({
   title,
   children,
 }: {
-  title: string
+  title: React.ReactNode
   children: React.ReactNode
 }) => (
-  <div className="mb-8">
-    <h2 className="text-xl font-semibold text-teal-300 mb-3 border-b border-teal-700 pb-1">
+  <section className="task-dashboard-section">
+    <h2 className="task-dashboard-section-title">
       {title}
     </h2>
     {children}
-  </div>
+  </section>
 )
 
 export default TaskDashboard

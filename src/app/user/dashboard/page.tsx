@@ -17,20 +17,18 @@ export default function UserDashboardPage() {
     getUser()
   }, [])
 
-  if (loading) return <div className="p-8 text-center">Loading...</div>
-  if (!authId) return <div className="p-8 text-center text-red-600">You must be logged in to view your training dashboard.</div>
+  if (loading) return <div className="neon-loading">Loading...</div>
+  if (!authId) return <div className="error-message">You must be logged in to view your training dashboard.</div>
 
   return (
-    <main className="min-h-screen bg-[#012f34] text-[#b2f1ec] px-0 py-0">
-      <div className="pt-1 pb-2">
-        {/* <UserProfileCard authId={authId} /> */}
+    <div className="after-hero">
+      <div className="page-content">
+        <main className="page-main">
+          {/* <UserProfileCard authId={authId} /> */}
+          <UserTrainingDashboard authId={authId} />
+          <UserTrainingRequest userId={authId} />
+        </main>
       </div>
-      <div className="pt-2 pb-2">
-        <UserTrainingDashboard authId={authId} />
-      </div>
-      <div className="pt-2 pb-8">
-        <UserTrainingRequest userId={authId} />
-      </div>
-    </main>
+    </div>
   )
 }

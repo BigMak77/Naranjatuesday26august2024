@@ -14,7 +14,7 @@ module.exports = {
         card: '#1a1a1a',
         neon: '#2fffd2',
         text: '#d1d5db',
-        muted: '#4b5563',
+        muted: '#ffffff',
         accent: '#0f766e',
         danger: '#ef4444',
       },

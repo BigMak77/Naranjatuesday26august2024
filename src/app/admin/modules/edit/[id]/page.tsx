@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase-client'
 import NeonModuleForm, { NeonModuleFormField } from '@/components/NeonModuleForm'
-import HeroHeader from '@/components/HeroHeader'
 
 export default function EditModulePage() {
   const router = useRouter()
@@ -11,9 +10,7 @@ export default function EditModulePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
-  const [saving, setSaving] = useState(false)
   const [showVersionModal, setShowVersionModal] = useState(false)
-  const [pendingSubmitEvent, setPendingSubmitEvent] = useState<React.FormEvent | null>(null)
 
   // Form state
   const [name, setName] = useState('')
@@ -25,7 +22,6 @@ export default function EditModulePage() {
   const [deliveryFormat, setDeliveryFormat] = useState('')
   const [targetAudience, setTargetAudience] = useState('')
   const [prerequisites, setPrerequisites] = useState<string[]>([])
-  const [prereqInput, setPrereqInput] = useState('')
   const [thumbnailUrl, setThumbnailUrl] = useState('')
 
   useEffect(() => {
@@ -53,13 +49,11 @@ export default function EditModulePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setPendingSubmitEvent(e)
     setShowVersionModal(true)
   }
 
   const handleVersionConfirm = async (isNewVersion: boolean) => {
     setShowVersionModal(false)
-    setSaving(true)
     setError(null)
     let newVersion = version
     if (isNewVersion) {
@@ -79,7 +73,6 @@ export default function EditModulePage() {
       thumbnail_url: thumbnailUrl,
       updated_at: new Date().toISOString(),
     }).eq('id', id)
-    setSaving(false)
     if (error) {
       setError('Failed to update module')
     } else {
@@ -160,25 +153,23 @@ export default function EditModulePage() {
 
   return (
     <>
-      <HeroHeader title="Edit Training Module" subtitle="Update module details and content." />
       <div className="mt-8">
         <NeonModuleForm
           title="Edit Module"
           fields={fields}
           onSubmit={handleSubmit}
-          saving={saving}
           error={error}
           success={success}
         />
       </div>
       {showVersionModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-          <div className="bg-gray-900 neon-border rounded-lg p-6 w-full max-w-md text-center">
-            <h2 className="text-lg font-bold mb-4 text-neon">Is this a new version of the module?</h2>
-            <p className="mb-6 text-gray-200">If yes, the version number will be incremented automatically.</p>
-            <div className="flex justify-center gap-4">
-              <button className="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700" onClick={() => handleVersionConfirm(true)}>Yes, new version</button>
-              <button className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800" onClick={() => handleVersionConfirm(false)}>No, keep version</button>
+        <div className="module-version-modal-overlay">
+          <div className="module-version-modal">
+            <h2 className="module-version-modal-title">Is this a new version of the module?</h2>
+            <p className="module-version-modal-desc">If yes, the version number will be incremented automatically.</p>
+            <div className="module-version-modal-actions">
+              <button className="module-version-confirm-btn-yes" onClick={() => handleVersionConfirm(true)}>Yes, new version</button>
+              <button className="module-version-confirm-btn-no" onClick={() => handleVersionConfirm(false)}>No, keep version</button>
             </div>
           </div>
         </div>

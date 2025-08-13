@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase-client'
 import { useRouter } from 'next/navigation'
 import Footer from '@/components/Footer'
-import HeroHeader from '@/components/HeroHeader'
 
 interface Department {
   id: string
@@ -61,27 +60,24 @@ export default function AddDepartmentPage() {
 
   return (
     <>
-      <HeroHeader title="Add Department" subtitle="Create a new department and assign a parent if needed." />
-      <main className="min-h-screen flex flex-col bg-white text-teal-900">
-        <div className="flex-grow px-6 py-12 max-w-xl mx-auto w-full">
-          <h1 className="text-3xl font-bold mb-6 text-teal-800">Add Department</h1>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
+      <main className="after-hero">
+        <div className="page-content">
+          <h1 className="add-department-title">Add Department</h1>
+          <form onSubmit={handleSubmit} className="add-department-form">
             <input
               type="text"
               placeholder="Department Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full border p-2 rounded shadow"
+              className="add-department-input"
             />
-
             <div>
-              <label className="block mb-1 text-sm text-gray-700">
+              <label className="add-department-label">
                 Parent Department (optional)
               </label>
               <select
-                className="w-full border p-2 rounded shadow bg-white"
+                className="add-department-select"
                 value={selectedParent || ''}
                 onChange={(e) => setSelectedParent(e.target.value || null)}
               >
@@ -97,13 +93,11 @@ export default function AddDepartmentPage() {
                 )}
               </select>
             </div>
-
-            {error && <p className="text-red-600 text-sm">{error}</p>}
-
+            {error && <p className="add-department-error">{error}</p>}
             <button
               type="submit"
               disabled={submitting}
-              className="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700 transition disabled:opacity-50"
+              className="add-department-submit-btn"
             >
               {submitting ? 'Saving...' : 'Save Department'}
             </button>

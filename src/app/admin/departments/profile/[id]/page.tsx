@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase-client'
 import { toast } from 'react-hot-toast'
-import HeroHeader from '@/components/HeroHeader'
 
 export default function DepartmentProfilePage() {
   const { id } = useParams()
@@ -100,74 +99,77 @@ export default function DepartmentProfilePage() {
 
   return (
     <>
-      <HeroHeader title={departmentName || "Department Profile"} subtitle="Manage modules and documents for this department." />
-      <div className="neon-panel department-profile-panel">
-        <h1 className="neon-form-title mb-4">
-          Department Profile: {departmentName}
-        </h1>
+      <div className="after-hero">
+        <div className="page-content">
+          <div className="neon-panel department-profile-panel">
+            <h1 className="neon-form-title mb-4">
+              Department Profile: {departmentName}
+            </h1>
 
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
-          <>
-            {/* MODULES */}
-            <div className="mb-6">
-              <h2 className="neon-form-section-title mb-2">Modules</h2>
-              <ul className="department-profile-list">
-                {modules.map((mod) => (
-                  <li key={mod.id}>
-                    <label className="department-profile-checkbox-label">
-                      <input
-                        type="checkbox"
-                        checked={selectedModuleIds.includes(mod.id)}
-                        onChange={() => handleModuleToggle(mod.id)}
-                      />
-                      {mod.title}
-                    </label>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {loading ? (
+              <p>Loading...</p>
+            ) : (
+              <>
+                {/* MODULES */}
+                <div className="mb-6">
+                  <h2 className="neon-form-section-title mb-2">Modules</h2>
+                  <ul className="department-profile-list">
+                    {modules.map((mod) => (
+                      <li key={mod.id}>
+                        <label className="department-profile-checkbox-label">
+                          <input
+                            type="checkbox"
+                            checked={selectedModuleIds.includes(mod.id)}
+                            onChange={() => handleModuleToggle(mod.id)}
+                          />
+                          {mod.title}
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
 
-            {/* DOCUMENTS */}
-            <div className="mb-6">
-              <h2 className="neon-form-section-title mb-2">Documents</h2>
-              <select
-                value={docTypeFilter}
-                onChange={(e) => setDocTypeFilter(e.target.value)}
-                className="department-profile-select"
-              >
-                {documentTypes.map((type) => (
-                  <option key={type} value={type}>
-                    {type === 'All' ? 'All Types' : type}
-                  </option>
-                ))}
-              </select>
-              <ul className="department-profile-list">
-                {filteredDocuments.map((doc) => (
-                  <li key={doc.id}>
-                    <label className="department-profile-checkbox-label">
-                      <input
-                        type="checkbox"
-                        checked={selectedDocumentIds.includes(doc.id)}
-                        onChange={() => handleDocumentToggle(doc.id)}
-                      />
-                      {doc.title} <span className="department-profile-doc-type">({doc.document_type})</span>
-                    </label>
-                  </li>
-                ))}
-              </ul>
-            </div>
+                {/* DOCUMENTS */}
+                <div className="mb-6">
+                  <h2 className="neon-form-section-title mb-2">Documents</h2>
+                  <select
+                    value={docTypeFilter}
+                    onChange={(e) => setDocTypeFilter(e.target.value)}
+                    className="department-profile-select"
+                  >
+                    {documentTypes.map((type) => (
+                      <option key={type} value={type}>
+                        {type === 'All' ? 'All Types' : type}
+                      </option>
+                    ))}
+                  </select>
+                  <ul className="department-profile-list">
+                    {filteredDocuments.map((doc) => (
+                      <li key={doc.id}>
+                        <label className="department-profile-checkbox-label">
+                          <input
+                            type="checkbox"
+                            checked={selectedDocumentIds.includes(doc.id)}
+                            onChange={() => handleDocumentToggle(doc.id)}
+                          />
+                          {doc.title} <span className="department-profile-doc-type">({doc.document_type})</span>
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
 
-            <button
-              onClick={handleSave}
-              className="bg-teal-600 text-white px-5 py-2 rounded hover:bg-teal-700"
-              disabled={loading}
-            >
-              Save Changes
-            </button>
-          </>
-        )}
+                <button
+                  onClick={handleSave}
+                  className="department-profile-save-btn"
+                  disabled={loading}
+                >
+                  Save Changes
+                </button>
+              </>
+            )}
+          </div>
+        </div>
       </div>
     </>
   )

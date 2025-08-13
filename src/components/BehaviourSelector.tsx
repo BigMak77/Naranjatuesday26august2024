@@ -44,17 +44,15 @@ export default function BehaviourSelector({ selected, onChange, max = 5 }: Behav
   }
 
   return (
-    <div className="space-y-2">
-      <p className="text-sm text-gray-600">Select up to {max} behaviours</p>
-      <div className="flex flex-wrap gap-4">
+    <div className="behaviour-selector">
+      <p className="behaviour-selector-instructions">Select up to {max} behaviours</p>
+      <div className="behaviour-selector-list">
         {behaviours.map((b) => (
           <div
             key={b.id}
             role="button"
             onClick={() => toggle(b.id)}
-            className={`border rounded p-2 hover:shadow transition cursor-pointer ${
-              selected.includes(b.id) ? 'border-teal-600' : 'border-gray-300'
-            }`}
+            className={`behaviour-selector-item ${selected.includes(b.id) ? 'behaviour-selector-item-selected' : 'behaviour-selector-item-default'}`}
           >
             <BehaviourIcon behaviour={b} selected={selected.includes(b.id)} onClick={toggle} />
           </div>

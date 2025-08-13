@@ -5,11 +5,22 @@ import { supabase } from '@/lib/supabase-client';
 import { useUser } from '@/context/UserContext'; // Adjust this to your actual context
 import { FiUserPlus } from 'react-icons/fi';
 import NeonForm from '@/components/NeonForm';
+import NeonIconButton from '@/components/ui/NeonIconButton';
 
 export default function TaskAssignmentWidget() {
   const { user, loading: userLoading } = useUser();
-  const [tasks, setTasks] = useState<any[]>([]);
-  const [users, setUsers] = useState<any[]>([]);
+  type Task = {
+    id: string;
+    title: string;
+    department_id: string;
+  };
+  const [tasks, setTasks] = useState<Task[]>([]);
+  type User = {
+    auth_id: string;
+    first_name: string;
+    last_name: string;
+  };
+  const [users, setUsers] = useState<User[]>([]);
   const [selectedTask, setSelectedTask] = useState('');
   const [selectedUser, setSelectedUser] = useState('');
   const [dueDate, setDueDate] = useState('');
@@ -67,11 +78,11 @@ export default function TaskAssignmentWidget() {
   if (userLoading) return <p className="neon-info">Loading user...</p>;
 
   return (
-    <div className="neon-panel neon-task-assign mb-8">
-      <h2 className="neon-section-title mb-4 flex items-center gap-2">
+    <div>
+      <h2 className="neon-section-title">
         <FiUserPlus /> Assign Task
       </h2>
-      <NeonForm title="Assign Task" submitLabel={loading ? 'Assigning...' : 'Assign Task'} onSubmit={handleAssign}>
+      <NeonForm title="Assign Task" onSubmit={handleAssign}>
         <select
           value={selectedTask}
           onChange={(e) => setSelectedTask(e.target.value)}
@@ -102,8 +113,17 @@ export default function TaskAssignmentWidget() {
           onChange={(e) => setDueDate(e.target.value)}
           className="neon-input"
         />
-        {error && <p className="neon-error mt-2">{error}</p>}
-        {success && <p className="neon-success mt-2">Task assigned successfully!</p>}
+        <div className="neon-panel-actions">
+          <NeonIconButton
+            type="submit"
+            variant="add"
+            icon={<FiUserPlus />}
+            title={loading ? 'Assigning...' : 'Assign Task'}
+            disabled={loading}
+          />
+        </div>
+        {error && <p className="neon-error">{error}</p>}
+        {success && <p className="neon-success">Task assigned successfully!</p>}
       </NeonForm>
     </div>
   );

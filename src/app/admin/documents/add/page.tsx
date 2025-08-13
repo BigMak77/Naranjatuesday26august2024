@@ -173,150 +173,152 @@ export default function AddDocumentPage() {
   };
 
   return (
-    <>
-      <main className="min-h-screen text-teal-900 flex flex-col">
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '2.5rem', marginLeft: '2.5rem', marginRight: '2.5rem' }}>
-          <span className="text-lg font-semibold text-white" style={{ marginRight: '2rem' }}>Title: {title || '—'}</span>
-          <span className="text-lg font-semibold text-white">Ref Code: {referenceCode || '—'}</span>
-        </div>
-        <div style={{ marginBottom: '2.5rem' }} />
-        {!showModuleAttach ? (
-          <NeonForm title="Add New Document" onSubmit={handleSubmit}>
-            {/* Title */}
-            <div>
-              <label className="block text-sm font-medium text-white">Title *</label>
-              <input type="text" className="border rounded px-3 py-2 w-full" value={title} onChange={(e) => setTitle(e.target.value)} required />
-            </div>
-            {/* Reference Code */}
-            <div>
-              <label className="block text-sm font-medium text-white">Reference Code</label>
-              <input type="text" className="border rounded px-3 py-2 w-full" value={referenceCode} onChange={(e) => setReferenceCode(e.target.value)} />
-            </div>
-            {/* Document Type */}
-            <div>
-              <label className="block text-sm font-medium text-white">Document Type *</label>
-              <select value={documentType} onChange={(e) => setDocumentType(e.target.value)} className="border rounded px-3 py-2 w-full" required>
-                <option value="">Select document type</option>
-                <option value="policy">Policy</option>
-                <option value="ssow">Safe System of Work (SSOW)</option>
-                <option value="work_instruction">Work Instruction</option>
-              </select>
-            </div>
-            {/* Standard and Section (inline) */}
-            <div className="flex gap-4">
-              {/* Standard */}
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-white">Standard *</label>
-                <select value={standardId} onChange={(e) => { setStandardId(e.target.value); setSectionId('') }} className="border rounded px-3 py-2 w-full" required>
-                  <option value="">Select standard</option>
-                  {standards.map((s) => (<option key={s.id} value={s.id}>{s.name}</option>))}
+    <div className="after-hero">
+      <div className="page-content">
+        <main className="add-document-main">
+          <div className="add-document-header">
+            <span className="add-document-title">Title: {title || '—'}</span>
+            <span className="add-document-ref">Ref Code: {referenceCode || '—'}</span>
+          </div>
+          <div className="add-document-header-spacer" />
+          {!showModuleAttach ? (
+            <NeonForm title="Add New Document" onSubmit={handleSubmit}>
+              {/* Title */}
+              <div>
+                <label className="add-document-label">Title *</label>
+                <input type="text" className="add-document-input" value={title} onChange={(e) => setTitle(e.target.value)} required />
+              </div>
+              {/* Reference Code */}
+              <div>
+                <label className="add-document-label">Reference Code</label>
+                <input type="text" className="add-document-input" value={referenceCode} onChange={(e) => setReferenceCode(e.target.value)} />
+              </div>
+              {/* Document Type */}
+              <div>
+                <label className="add-document-label">Document Type *</label>
+                <select value={documentType} onChange={(e) => setDocumentType(e.target.value)} className="add-document-input" required>
+                  <option value="">Select document type</option>
+                  <option value="policy">Policy</option>
+                  <option value="ssow">Safe System of Work (SSOW)</option>
+                  <option value="work_instruction">Work Instruction</option>
                 </select>
               </div>
-              {/* Section (inline with Standard) */}
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-white">Section</label>
-                <select value={sectionId} onChange={(e) => setSectionId(e.target.value)} className="border rounded px-3 py-2 w-full" disabled={!standardId}>
-                  <option value="">Select section</option>
-                  {sections.map((sec) => (
-                    <option key={sec.id} value={sec.id}>{sec.code} – {sec.title}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            {/* File Upload */}
-            <div>
-              <label className="block text-sm font-medium text-white">Upload File (PDF) *</label>
-              <input type="file" accept=".pdf" className="border rounded px-3 py-2 w-full" onChange={handleFileChange} required />
-            </div>
-            {/* Version Notes */}
-            <div>
-              <label className="block text-sm font-medium text-white">Version Notes</label>
-              <textarea className="border rounded px-3 py-2 w-full" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
-            </div>
-          </NeonForm>
-        ) : (
-          <div style={{ marginLeft: '2.5rem', marginRight: '2.5rem' }}>
-            <h2 className="text-xl font-bold text-white mb-4">Would you like to attach this document to a training module?</h2>
-            <div className="flex gap-4 mb-6">
-              <button
-                className="bg-teal-600 text-white px-4 py-2 rounded font-semibold shadow hover:bg-teal-700 transition"
-                onClick={() => {
-                  setShowModuleAttach(false)
-                  setShowModuleSelector(false)
-                }}
-              >
-                No, finish
-              </button>
-              <button
-                className="bg-orange-600 text-white px-4 py-2 rounded font-semibold shadow hover:bg-orange-700 transition"
-                onClick={() => setShowModuleSelector(true)}
-              >
-                Yes, attach
-              </button>
-            </div>
-            {showModuleSelector && (
-              !addingNewModule ? (
-                <div>
-                  <label className="block text-sm font-medium text-white mb-2">Select Existing Module</label>
-                  <select
-                    className="border rounded px-3 py-2 w-full mb-4"
-                    value={selectedModuleId}
-                    onChange={e => setSelectedModuleId(e.target.value)}
-                  >
-                    <option value="">Choose a module...</option>
-                    {modulesList.map(m => (
-                      <option key={m.id} value={m.id}>{m.name}</option>
+              {/* Standard and Section (inline) */}
+              <div className="add-document-standards-row">
+                {/* Standard */}
+                <div className="add-document-standards-col">
+                  <label className="add-document-label">Standard *</label>
+                  <select value={standardId} onChange={(e) => { setStandardId(e.target.value); setSectionId('') }} className="add-document-input" required>
+                    <option value="">Select standard</option>
+                    {standards.map((s) => (<option key={s.id} value={s.id}>{s.name}</option>))}
+                  </select>
+                </div>
+                {/* Section (inline with Standard) */}
+                <div className="add-document-standards-col">
+                  <label className="add-document-label">Section</label>
+                  <select value={sectionId} onChange={(e) => setSectionId(e.target.value)} className="add-document-input" disabled={!standardId}>
+                    <option value="">Select section</option>
+                    {sections.map((sec) => (
+                      <option key={sec.id} value={sec.id}>{sec.code} – {sec.title}</option>
                     ))}
                   </select>
-                  <button
-                    className="bg-blue-600 text-white px-4 py-2 rounded font-semibold shadow hover:bg-blue-700 transition"
-                    onClick={() => setAddingNewModule(true)}
-                  >
-                    Add New Module
-                  </button>
-                  <button
-                    className="bg-teal-600 text-white px-4 py-2 rounded font-semibold shadow hover:bg-teal-700 transition ml-4"
-                    onClick={async () => {
-                      if (!selectedModuleId) return alert('Select a module first.')
-                      if (!createdDocId) return alert('Document not found.')
-                      // Link document to module
-                      await supabase.from('module_documents').insert({ module_id: selectedModuleId, document_id: createdDocId })
-                      router.push('/admin/documents')
-                    }}
-                  >
-                    Attach to Selected Module
-                  </button>
                 </div>
-              ) : (
-                <div>
-                  <label className="block text-sm font-medium text-white mb-2">New Module Name</label>
-                  <input
-                    type="text"
-                    className="border rounded px-3 py-2 w-full mb-4"
-                    value={newModuleName}
-                    onChange={e => setNewModuleName(e.target.value)}
-                  />
-                  <button
-                    className="bg-orange-600 text-white px-4 py-2 rounded font-semibold shadow hover:bg-orange-700 transition"
-                    onClick={async () => {
-                      if (!newModuleName.trim()) return alert('Enter a module name.')
-                      if (!createdDocId) return alert('Document not found.')
-                      // Create new module and link
-                      const { data: module, error } = await supabase.from('modules').insert({ name: newModuleName }).select().single()
-                      if (error || !module) return alert('Failed to create module.')
-                      await supabase.from('module_documents').insert({ module_id: module.id, document_id: createdDocId })
-                      router.push('/admin/documents')
-                    }}
-                  >
-                    Create & Attach
-                  </button>
-                </div>
-              )
-            )}
-          </div>
-        )}
-        <div style={{ marginTop: '2.5rem' }} />
-      </main>
-    </>
+              </div>
+              {/* File Upload */}
+              <div>
+                <label className="add-document-label">Upload File (PDF) *</label>
+                <input type="file" accept=".pdf" className="add-document-input" onChange={handleFileChange} required />
+              </div>
+              {/* Version Notes */}
+              <div>
+                <label className="add-document-label">Version Notes</label>
+                <textarea className="add-document-input" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
+              </div>
+            </NeonForm>
+          ) : (
+            <div className="add-document-module-attach">
+              <h2 className="add-document-module-title">Would you like to attach this document to a training module?</h2>
+              <div className="add-document-module-btn-row">
+                <button
+                  className="add-document-module-btn add-document-module-btn-no"
+                  onClick={() => {
+                    setShowModuleAttach(false)
+                    setShowModuleSelector(false)
+                  }}
+                >
+                  No, finish
+                </button>
+                <button
+                  className="add-document-module-btn add-document-module-btn-yes"
+                  onClick={() => setShowModuleSelector(true)}
+                >
+                  Yes, attach
+                </button>
+              </div>
+              {showModuleSelector && (
+                !addingNewModule ? (
+                  <div>
+                    <label className="add-document-label add-document-module-label">Select Existing Module</label>
+                    <select
+                      className="add-document-input add-document-module-select"
+                      value={selectedModuleId}
+                      onChange={e => setSelectedModuleId(e.target.value)}
+                    >
+                      <option value="">Choose a module...</option>
+                      {modulesList.map(m => (
+                        <option key={m.id} value={m.id}>{m.name}</option>
+                      ))}
+                    </select>
+                    <button
+                      className="add-document-module-btn add-document-module-btn-add"
+                      onClick={() => setAddingNewModule(true)}
+                    >
+                      Add New Module
+                    </button>
+                    <button
+                      className="add-document-module-btn add-document-module-btn-attach"
+                      onClick={async () => {
+                        if (!selectedModuleId) return alert('Select a module first.')
+                        if (!createdDocId) return alert('Document not found.')
+                        // Link document to module
+                        await supabase.from('module_documents').insert({ module_id: selectedModuleId, document_id: createdDocId })
+                        router.push('/admin/documents')
+                      }}
+                    >
+                      Attach to Selected Module
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="add-document-label add-document-module-label">New Module Name</label>
+                    <input
+                      type="text"
+                      className="add-document-input add-document-module-input"
+                      value={newModuleName}
+                      onChange={e => setNewModuleName(e.target.value)}
+                    />
+                    <button
+                      className="add-document-module-btn add-document-module-btn-create"
+                      onClick={async () => {
+                        if (!newModuleName.trim()) return alert('Enter a module name.')
+                        if (!createdDocId) return alert('Document not found.')
+                        // Create new module and link
+                        const { data: module, error } = await supabase.from('modules').insert({ name: newModuleName }).select().single()
+                        if (error || !module) return alert('Failed to create module.')
+                        await supabase.from('module_documents').insert({ module_id: module.id, document_id: createdDocId })
+                        router.push('/admin/documents')
+                      }}
+                    >
+                      Create & Attach
+                    </button>
+                  </div>
+                )
+              )}
+            </div>
+          )}
+          <div className="add-document-footer-spacer" />
+        </main>
+      </div>
+    </div>
   )
 }

@@ -1,11 +1,10 @@
 "use client"
 
-import HeroHeader from '@/components/HeroHeader'
-import NeonForm from '@/components/NeonForm'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase-client'
 import { useRouter } from 'next/navigation'
 import { FiAlertCircle } from 'react-icons/fi'
+import NeonForm from '@/components/NeonForm'
 
 export default function RaiseIssuePage() {
   const [title, setTitle] = useState('')
@@ -68,60 +67,52 @@ export default function RaiseIssuePage() {
   }
 
   return (
-    <>
-      <HeroHeader
-        title="Raise a New Issue"
-        subtitle="Report a new issue for your department."
+    <NeonForm title="New Issue" onSubmit={handleSubmit}>
+      <input
+        className="neon-input"
+        placeholder="Issue Title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        required
       />
-      <NeonForm title="New Issue" onSubmit={handleSubmit}>
-        <div className="neon-form-fields-centered">
-          <input
-            className="neon-input"
-            placeholder="Issue Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-          />
-          <textarea
-            className="neon-input"
-            placeholder="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows={3}
-            required
-          />
-          <select
-            className="neon-input"
-            value={priority}
-            onChange={(e) => setPriority(e.target.value)}
-          >
-            <option value="Low">Low</option>
-            <option value="Medium">Medium</option>
-            <option value="High">High</option>
-          </select>
-          <select
-            className="neon-input"
-            value={departmentId}
-            onChange={(e) => setDepartmentId(e.target.value)}
-            required
-          >
-            <option value="">Select Department</option>
-            {departments.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name}
-              </option>
-            ))}
-          </select>
-          {error && (
-            <p className="neon-error flex items-center gap-2 mt-2">
-              <FiAlertCircle /> {error}
-            </p>
-          )}
-          <button type="submit" className="neon-btn mt-4" disabled={loading}>
-            {loading ? 'Submitting...' : 'Submit Issue'}
-          </button>
-        </div>
-      </NeonForm>
-    </>
+      <textarea
+        className="neon-input"
+        placeholder="Description"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        rows={3}
+        required
+      />
+      <select
+        className="neon-input"
+        value={priority}
+        onChange={(e) => setPriority(e.target.value)}
+      >
+        <option value="Low">Low</option>
+        <option value="Medium">Medium</option>
+        <option value="High">High</option>
+      </select>
+      <select
+        className="neon-input"
+        value={departmentId}
+        onChange={(e) => setDepartmentId(e.target.value)}
+        required
+      >
+        <option value="">Select Department</option>
+        {departments.map((d) => (
+          <option key={d.id} value={d.id}>
+            {d.name}
+          </option>
+        ))}
+      </select>
+      {error && (
+        <p className="neon-error flex items-center gap-2 mt-2">
+          <FiAlertCircle /> {error}
+        </p>
+      )}
+      <button type="submit" className="neon-btn mt-4" disabled={loading}>
+        {loading ? 'Submitting...' : 'Submit Issue'}
+      </button>
+    </NeonForm>
   )
 }

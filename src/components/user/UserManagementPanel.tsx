@@ -5,7 +5,7 @@ import BehaviourSelector from '@/components/BehaviourSelector'
 import { useRouter } from 'next/navigation'
 import NeonTable from '@/components/NeonTable'
 import NeonIconButton from '@/components/ui/NeonIconButton'
-import { FiSave, FiEdit } from 'react-icons/fi'
+import { FiSave, FiEdit, FiUserPlus, FiDownload, FiUpload } from 'react-icons/fi'
 
 interface User {
   id: string
@@ -28,11 +28,7 @@ export default function UserManagementPanel() {
   const [saving, setSaving] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [filterDept, setFilterDept] = useState('')
-  const [filterRole, setFilterRole] = useState('')
-  const [search, setSearch] = useState('')
-  const [activeTab, setActiveTab] = useState<'list' | 'add'>('list')
-  const sortDir: 'asc' | 'desc' = 'asc'
+  // Removed unused filterDept, setFilterDept, filterRole, setFilterRole, search, setSearch state
   const router = useRouter()
 
   useEffect(() => {
@@ -95,100 +91,125 @@ export default function UserManagementPanel() {
     }, 1000)
   }
 
-  const filteredUsers = users.filter(user => {
-    const matchesDept = filterDept ? user.department_id === filterDept : true
-    const matchesRole = filterRole ? user.role_id === filterRole : true
-    const matchesSearch =
-      search.trim() === '' ||
-      (user.first_name?.toLowerCase().includes(search.toLowerCase()) ||
-        user.last_name?.toLowerCase().includes(search.toLowerCase()))
-    return matchesDept && matchesRole && matchesSearch
-  })
+  // CSV Export handler
+  const handleExportUsers = () => {
+    if (!users.length) return;
+    const csvRows = users.map(u => ({
+      id: u.id,
+      email: u.email,
+      first_name: u.first_name || '',
+      last_name: u.last_name || '',
+      department_id: u.department_id || '',
+      role_id: u.role_id || '',
+      access_level: u.access_level || '',
+      phone: u.phone || ''
+    }));
+    const csv = [
+      'id,email,first_name,last_name,department_id,role_id,access_level,phone',
+      ...csvRows.map(row => Object.values(row).map(val => `"${String(val).replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'users.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
-  const sortedUsers = [...filteredUsers].sort((a, b) => {
-    let valA = (a as User)['first_name'] || ''
-    let valB = (b as User)['first_name'] || ''
-    if (typeof valA === 'string') valA = valA.toLowerCase()
-    if (typeof valB === 'string') valB = valB.toLowerCase()
-    if (valA < valB) return sortDir === 'asc' ? -1 : 1
-    if (valA > valB) return sortDir === 'asc' ? 1 : -1
-    return 0
-  })
+  // CSV Upload handler
+  const handleImportUsers = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const text = event.target?.result as string;
+      const lines = text.split(/\r?\n/).filter(Boolean);
+      if (lines.length < 2) return;
+      const headers = lines[0].split(',');
+      const usersToImport = lines.slice(1).map(line => {
+        const values = line.split(',');
+        const obj: Record<string, string> = {};
+        headers.forEach((h, i) => { obj[h.trim()] = (values[i] || '').replace(/^"|"$/g, '').replace(/""/g, '"'); });
+        return obj;
+      });
+      // Upsert users (you may want to adjust this logic for your schema)
+      await supabase.from('users').upsert(usersToImport, { onConflict: 'id' });
+      // Refresh users
+      const { data: u } = await supabase.from('users').select('id, email, first_name, last_name, department_id, role_id, access_level, phone');
+      setUsers(u || []);
+    };
+    reader.readAsText(file);
+  };
+
   // Removed unused handleSort function to fix compile error
 
-  if (loading) return <p className="p-6">Loading users...</p>
+  if (loading) return <p className="neon-loading">Loading users...</p>
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <h1 className="neon-form-title mb-6">User Management</h1>
-      <div className="neon-tab-bar mb-8 flex gap-4">
-        <button
-          className={`neon-tab-btn${activeTab === 'list' ? ' active' : ''}`}
-          onClick={() => setActiveTab('list')}
-        >
-          All Users
-        </button>
-        <button
-          className={`neon-tab-btn${activeTab === 'add' ? ' active' : ''}`}
-          onClick={() => router.push('/admin/users/add')}
-        >
-          Add User
-        </button>
+    <div>
+      {/* 2rem space above the toolbar */}
+      <div style={{ height: '2rem' }} />
+      {/* Toolbar above table */}
+      <div className="neon-table-toolbar">
+        <NeonIconButton
+          icon={<FiUserPlus />}
+          title="Add User"
+          variant="add"
+          onClick={() => router.push('/hr/people/add')}
+        />
+        <NeonIconButton
+          icon={<FiDownload />}
+          title="Download Users CSV"
+          variant="download"
+          onClick={handleExportUsers}
+        />
+        <label style={{ display: 'inline-block' }}>
+          <NeonIconButton
+            icon={<FiUpload />}
+            title="Upload Users CSV"
+            variant="upload"
+            as="button"
+            onClick={() => {}}
+          />
+          <input
+            type="file"
+            accept=".csv"
+            style={{ display: 'none' }}
+            onChange={handleImportUsers}
+          />
+        </label>
       </div>
-
-      {activeTab === 'list' && (
-        <>
-          <div className="flex flex-wrap gap-4 mb-6 items-end">
-            <select value={filterDept} onChange={e => { setFilterDept(e.target.value); setFilterRole('') }} className="neon-input w-auto">
-              <option value="">All Departments</option>
-              {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-            </select>
-            <select value={filterRole} onChange={e => setFilterRole(e.target.value)} className="neon-input w-auto">
-              <option value="">All Roles</option>
-              {roles.filter(r => !filterDept || r.department_id === filterDept).map(r => (
-                <option key={r.id} value={r.id}>{r.title}</option>
-              ))}
-            </select>
-            <div className="neon-search-bar-wrapper" style={{flex: 1, minWidth: 220}}>
-              <input
-                type="search"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Search by name..."
-                className="neon-input neon-input-search"
-              />
-            </div>
-          </div>
-
-          <div className="overflow-x-auto rounded shadow-glow bg-panel">
-            <NeonTable
-              columns={[
-                { header: 'First', accessor: 'first_name' },
-                { header: 'Last', accessor: 'last_name' },
-                { header: 'Department', accessor: 'department' },
-                { header: 'Role', accessor: 'role' },
-                { header: 'Email', accessor: 'email' },
-                { header: 'Actions', accessor: 'actions' },
-              ]}
-              data={sortedUsers.map((user) => ({
-                first_name: user.first_name,
-                last_name: user.last_name,
-                department: user.department_id ? departments.find(d => d.id === user.department_id)?.name || '—' : '—',
-                role: user.role_id ? roles.find(r => r.id === user.role_id)?.title || '—' : '—',
-                email: user.email,
-                actions: (
-                  <NeonIconButton
-                    icon={<FiEdit />}
-                    title="Edit User"
-                    variant="edit"
-                    onClick={() => router.push(`/admin/users/${user.id}/edit`)}
-                  />
-                ),
-              }))}
-            />
-          </div>
-        </>
-      )}
+      <div>
+        <NeonTable
+          columns={[
+            { header: 'First', accessor: 'first_name' },
+            { header: 'Last', accessor: 'last_name' },
+            { header: 'Department', accessor: 'department' },
+            { header: 'Role', accessor: 'role' },
+            { header: 'Email', accessor: 'email' },
+            { header: 'Actions', accessor: 'actions' },
+          ]}
+          data={users
+            .map((user) => ({
+              first_name: user.first_name,
+              last_name: user.last_name,
+              department: user.department_id ? departments.find(d => d.id === user.department_id)?.name || '—' : '—',
+              role: user.role_id ? roles.find(r => r.id === user.role_id)?.title || '—' : '—',
+              email: user.email,
+              actions: (
+                <NeonIconButton
+                  icon={<FiEdit />}
+                  title="Edit User"
+                  variant="edit"
+                  onClick={() => router.push(`/hr/people/${user.id}/edit`)}
+                />
+              ),
+            }))}
+        />
+      </div>
 
       <Dialog open={dialogOpen} onOpenChange={(open) => open ? setDialogOpen(true) : handleCloseDialog()}>
         <DialogContent className="max-w-4xl">

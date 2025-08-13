@@ -98,9 +98,14 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
         }
 
         setAssignments(finalAssignments)
-      } catch (err: any) {
-        console.error(err)
-        setError(err.message || 'Something went wrong.')
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          console.error(err)
+          setError(err.message || 'Something went wrong.')
+        } else {
+          console.error(err)
+          setError('Something went wrong.')
+        }
       } finally {
         setLoading(false)
       }
@@ -323,38 +328,38 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
 
       {/* Certificate Modal */}
       {showCert && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded shadow-lg relative">
-            <NeonIconButton variant="delete" icon={<FiX />} title="Close" onClick={() => setShowCert(null)} className="absolute top-2 right-2" />
+        <div className="user-training-modal-overlay">
+          <div className="user-training-modal user-training-modal-certificate">
+            <NeonIconButton variant="delete" icon={<FiX />} title="Close" onClick={() => setShowCert(null)} className="user-training-modal-close-btn" />
             <CertificateTemplate
               userName={showCert.name}
               trainingName={showCert.training}
               completionDate={showCert.date}
             />
-            <NeonIconButton variant="download" icon={<FiDownload />} title="Print / Save as PDF" onClick={() => window.print()} className="mt-4" />
+            <NeonIconButton variant="download" icon={<FiDownload />} title="Print / Save as PDF" onClick={() => window.print()} className="user-training-modal-print-btn" />
           </div>
         </div>
       )}
 
       {/* Module/document modal (simple placeholder) */}
       {viewingModule && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded shadow-lg relative max-w-xl w-full">
-            <NeonIconButton variant="delete" icon={<FiX />} title="Close" onClick={() => { setViewingModule(null); setModuleContent(null); }} className="absolute top-2 right-2" />
-            <h2 className="neon-form-title mb-4">Module: {viewingModule.name}</h2>
-            <div className="prose max-w-none">{moduleContent || 'Loading...'}</div>
+        <div className="user-training-modal-overlay">
+          <div className="user-training-modal user-training-modal-module">
+            <NeonIconButton variant="delete" icon={<FiX />} title="Close" onClick={() => { setViewingModule(null); setModuleContent(null); }} className="user-training-modal-close-btn" />
+            <h2 className="user-training-modal-title">Module: {viewingModule.name}</h2>
+            <div className="user-training-modal-content">{moduleContent || 'Loading...'}</div>
           </div>
         </div>
       )}
       {viewingDocument && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded shadow-lg relative max-w-xl w-full">
-            <NeonIconButton variant="delete" icon={<FiX />} title="Close" onClick={() => { setViewingDocument(null); setDocumentContent(null); }} className="absolute top-2 right-2" />
-            <h2 className="neon-form-title mb-4">Document: {viewingDocument.name}</h2>
+        <div className="user-training-modal-overlay">
+          <div className="user-training-modal user-training-modal-document">
+            <NeonIconButton variant="delete" icon={<FiX />} title="Close" onClick={() => { setViewingDocument(null); setDocumentContent(null); }} className="user-training-modal-close-btn" />
+            <h2 className="user-training-modal-title">Document: {viewingDocument.name}</h2>
             {documentContent ? (
-              <a href={documentContent} rel="noopener noreferrer" className="neon-btn neon-btn-view">Open Document</a>
+              <a href={documentContent} rel="noopener noreferrer" className="user-training-modal-link">Open Document</a>
             ) : (
-              <div className="prose max-w-none">No file available.</div>
+              <div className="user-training-modal-content">No file available.</div>
             )}
           </div>
         </div>

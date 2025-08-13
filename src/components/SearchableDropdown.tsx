@@ -46,7 +46,7 @@ export default function SearchableDropdown({
   const selectedLabel = options.find((opt) => opt.value === selected)?.label
 
   return (
-    <div ref={containerRef} className="relative w-full">
+    <div ref={containerRef} className="searchable-dropdown-container">
       <input
         type="text"
         value={query}
@@ -56,10 +56,10 @@ export default function SearchableDropdown({
         }}
         onFocus={() => setIsOpen(true)}
         placeholder={placeholder}
-        className="w-full border border-teal-300 rounded px-3 py-2 bg-white text-teal-900"
+        className="searchable-dropdown-input"
       />
       {isOpen && (
-        <ul className="absolute z-10 mt-1 w-full bg-white border border-teal-200 rounded shadow max-h-60 overflow-auto">
+        <ul className="searchable-dropdown-list">
           {filteredOptions.length > 0 ? (
             filteredOptions.map((opt) => (
               <li
@@ -69,13 +69,13 @@ export default function SearchableDropdown({
                   setIsOpen(false)
                   onSelect(opt.value)
                 }}
-                className="px-3 py-2 cursor-pointer hover:bg-teal-100 text-teal-900"
+                className="searchable-dropdown-list-item"
               >
                 {opt.label}
               </li>
             ))
           ) : (
-            <li className="px-3 py-2 text-sm text-gray-400">No matches</li>
+            <li className="searchable-dropdown-list-empty">No matches</li>
           )}
         </ul>
       )}

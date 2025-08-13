@@ -18,26 +18,24 @@ export default function NeonForm({
   onCancel
 }: NeonFormProps) {
   return (
-    <div className="neon-form">
+    <form className="neon-form" onSubmit={onSubmit}>
       <h2 className="neon-form-title">{title}</h2>
-      <form onSubmit={onSubmit}>
-        {children}
-        <div className="neon-form-actions">
-          <button
-            type="button"
-            className="neon-btn"
-            onClick={onCancel ? onCancel : () => window.history.back()}
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="neon-btn"
-          >
-            {submitLabel}
-          </button>
-        </div>
-      </form>
-    </div>
+      {children}
+      <div className="neon-form-actions">
+        <button
+          type="button"
+          className="neon-btn"
+          onClick={onCancel ? onCancel : () => window.history.back()}
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          className="neon-btn"
+        >
+          {submitLabel}
+        </button>
+      </div>
+    </form>
   )
 }

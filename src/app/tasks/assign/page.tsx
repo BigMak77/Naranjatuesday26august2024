@@ -113,90 +113,86 @@ export default function AssignTask() {
   }
 
   return (
-    <div className="max-w-lg mx-auto p-6">
-      <h1 className="text-2xl font-bold text-orange-600 mb-6">📌 Assign Task</h1>
-
-      <form onSubmit={handleAssign} className="space-y-4">
-        <select
-          value={selectedTask}
-          onChange={(e) => setSelectedTask(e.target.value)}
-          className="w-full border px-3 py-2 rounded text-teal-900 bg-white"
-          required
-        >
-          <option value="">Select Task</option>
-          {tasks.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.title}
-            </option>
-          ))}
-        </select>
-
-        <select
-          value={selectedUser}
-          onChange={(e) => setSelectedUser(e.target.value)}
-          className="w-full border px-3 py-2 rounded text-teal-900 bg-white"
-          required
-        >
-          <option value="">Select User</option>
-          {users.map((u) => (
-            <option key={u.auth_id} value={u.auth_id}>
-              {u.first_name} {u.last_name}
-            </option>
-          ))}
-        </select>
-
-        <input
-          type="date"
-          value={dueDate}
-          onChange={(e) => setDueDate(e.target.value)}
-          className="w-full border px-3 py-2 rounded text-teal-900"
-          required
-        />
-
-        <label className="flex items-center gap-2 mt-2">
+    <div className="after-hero">
+      <div className="page-content">
+        <h1 className="assign-task-title">Assign Task</h1>
+        <form onSubmit={handleAssign} className="assign-task-form">
+          <select
+            value={selectedTask}
+            onChange={(e) => setSelectedTask(e.target.value)}
+            className="assign-task-input"
+            required
+          >
+            <option value="">Select Task</option>
+            {tasks.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.title}
+              </option>
+            ))}
+          </select>
+          <select
+            value={selectedUser}
+            onChange={(e) => setSelectedUser(e.target.value)}
+            className="assign-task-input"
+            required
+          >
+            <option value="">Select User</option>
+            {users.map((u) => (
+              <option key={u.auth_id} value={u.auth_id}>
+                {u.first_name} {u.last_name}
+              </option>
+            ))}
+          </select>
           <input
-            type="checkbox"
-            checked={recurrence}
-            onChange={(e) => setRecurrence(e.target.checked)}
+            type="date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            className="assign-task-input"
+            required
           />
-          <span className="text-teal-900 font-medium">Set Recurrence</span>
-        </label>
-
-        {recurrence && (
-          <div className="pl-4 space-y-2">
-            <div>
-              <label className="text-sm text-teal-700 font-medium">Repeat Every</label>
-              <input
-                type="number"
-                min={1}
-                value={intervalCount}
-                onChange={(e) => setIntervalCount(Number(e.target.value))}
-                className="w-full border px-3 py-2 rounded"
-              />
+          <label className="assign-task-recurrence-label">
+            <input
+              type="checkbox"
+              checked={recurrence}
+              onChange={(e) => setRecurrence(e.target.checked)}
+            />
+            <span className="assign-task-recurrence-text">Set Recurrence</span>
+          </label>
+          {recurrence && (
+            <div className="assign-task-recurrence-fields">
+              <div>
+                <label className="assign-task-recurrence-label">Repeat Every</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={intervalCount}
+                  onChange={(e) => setIntervalCount(Number(e.target.value))}
+                  className="assign-task-input"
+                />
+              </div>
+              <div>
+                <label className="assign-task-recurrence-label">Interval</label>
+                <select
+                  value={interval}
+                  onChange={(e) => setInterval(e.target.value)}
+                  className="assign-task-input"
+                >
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="monthly">Monthly</option>
+                </select>
+              </div>
             </div>
-            <div>
-              <label className="text-sm text-teal-700 font-medium">Interval</label>
-              <select
-                value={interval}
-                onChange={(e) => setInterval(e.target.value)}
-                className="w-full border px-3 py-2 rounded"
-              >
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
-              </select>
-            </div>
-          </div>
-        )}
-
-        <button
-          type="submit"
-          className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded font-medium w-full"
-          disabled={loading}
-        >
-          {loading ? 'Assigning...' : 'Assign Task'}
-        </button>
-      </form>
+          )}
+          <button
+            type="submit"
+            className="assign-task-submit-btn"
+            disabled={loading}
+          >
+            {loading ? 'Assigning...' : 'Assign Task'}
+          </button>
+        </form>
+      </div>
     </div>
   )
 }

@@ -7,7 +7,7 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Neon Form Section (fixed height) */}
-      <div className="flex items-center justify-center py-16">
+      <div className="flex items-center justify-center py-16 flex-1">
         <NeonForm
           title="Send us a message"
           submitLabel="Send Message"
@@ -16,35 +16,37 @@ export default function ContactPage() {
             // handle form submit here
           }}
         >
-          <div>
-            <label className="block text-sm mb-1 text-[#b2f1ec]">Name</label>
-            <input
-              id="name"
-              name="name"
-              type="text"
-              className="w-full bg-[#013b3b] border border-[#40E0D0] text-white px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-[#40E0D0]"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm mb-1 text-[#b2f1ec]">Email</label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              className="w-full bg-[#013b3b] border border-[#40E0D0] text-white px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-[#40E0D0]"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm mb-1 text-[#b2f1ec]">Message</label>
-            <textarea
-              id="message"
-              name="message"
-              rows={5}
-              className="w-full bg-[#013b3b] border border-[#40E0D0] text-white px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-[#40E0D0]"
-              required
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+            <div>
+              <label className="block text-sm mb-1">Name</label>
+              <input
+                id="name"
+                name="name"
+                type="text"
+                className="w-full"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm mb-1">Email</label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                className="w-full"
+                required
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm mb-1">Message</label>
+              <textarea
+                id="message"
+                name="message"
+                rows={5}
+                className="w-full"
+                required
+              />
+            </div>
           </div>
         </NeonForm>
       </div>

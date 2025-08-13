@@ -1,5 +1,4 @@
 "use client";
-import HeroHeader from '@/components/HeroHeader';
 import NeonFeatureCard from '@/components/NeonFeatureCard';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -31,10 +30,6 @@ export default function IssueDetailsPage() {
 
   return (
     <>
-      <HeroHeader
-        title={issue.title}
-        subtitle={issue.description}
-      />
       <div className="neon-panel">
         <NeonFeatureCard
           icon={<FiAlertCircle />}

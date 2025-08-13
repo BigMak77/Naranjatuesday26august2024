@@ -1,4 +1,3 @@
-import HeroHeader from '@/components/HeroHeader';
 import NeonFeatureCard from '@/components/NeonFeatureCard';
 import { FiBarChart2, FiGrid, FiPieChart, FiSettings, FiClipboard, FiFileText, FiAlertTriangle } from 'react-icons/fi';
 
@@ -64,10 +63,6 @@ export default function TurkusHomePage() {
   ];
   return (
     <>
-      <HeroHeader
-        title="Welcome to Turkus"
-        subtitle="Turkus is your central hub for managing tasks, audits, documents, and issues. Use the navigation on the left to access dashboards, manage assignments, create and track audits, and handle all compliance documentation and reporting for your organization."
-      />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-8 mt-10">
         {cards.map((card, idx) => (
           <NeonFeatureCard

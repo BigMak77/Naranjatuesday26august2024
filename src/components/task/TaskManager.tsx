@@ -46,26 +46,16 @@ const widgetSections = [
 export default function TaskManager() {
   return (
     <UserProvider>
-      <main className="neon-main">
-        <div className="neon-container space-y-10">
-          {widgetSections.map(({ title, icon, Component }, idx) => (
-            <section
-              key={idx}
-              className="neon-panel"
-            >
-              <div className="neon-flex items-center gap-4 mb-4">
-                <div className="neon-icon-bg text-2xl">
-                  {icon}
-                </div>
-                <h2 className="neon-section-title">
-                  {title}
-                </h2>
-              </div>
-              <Component />
-            </section>
-          ))}
-        </div>
-      </main>
+      <div>
+        {widgetSections.map(({ title, icon, Component }, idx) => (
+          <section key={idx}>
+            <div className="neon-section-title">
+              {icon} {title}
+            </div>
+            <Component />
+          </section>
+        ))}
+      </div>
     </UserProvider>
   )
 }

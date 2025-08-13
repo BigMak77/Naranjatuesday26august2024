@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase-client'
+import NeonIconButton from '@/components/ui/NeonIconButton'
 
 const frequencyOptions = ['Daily', 'Weekly', 'Monthly', 'Quarterly', 'Yearly']
 
@@ -75,65 +76,61 @@ export default function EditTaskPage() {
     }
   }
 
-  if (loading) return <p className="p-6">Loading task data...</p>
-  if (error) return <p className="p-6 text-red-600">{error}</p>
+  if (loading) return <p className="neon-loading">Loading task data...</p>
+  if (error) return <p className="neon-error">{error}</p>
 
   return (
-    <div className="p-6 max-w-2xl mx-auto flex-grow">
-      <h1 className="text-2xl font-bold text-orange-600 mb-6">Edit Task</h1>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="text"
-          placeholder="Task Title"
-          className="w-full border p-2 rounded text-teal-900"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
+    <form onSubmit={handleSubmit}>
+      <h1 className="neon-section-title">Edit Task</h1>
+      <input
+        type="text"
+        placeholder="Task Title"
+        className="neon-input"
+        value={title}
+        onChange={e => setTitle(e.target.value)}
+        required
+      />
+      <input
+        type="text"
+        placeholder="Area"
+        className="neon-input"
+        value={area}
+        onChange={e => setArea(e.target.value)}
+        required
+      />
+      <select
+        value={frequency}
+        onChange={e => setFrequency(e.target.value)}
+        className="neon-input"
+        required
+      >
+        <option value="">Select Frequency</option>
+        {frequencyOptions.map(opt => (
+          <option key={opt} value={opt}>{opt}</option>
+        ))}
+      </select>
+      <textarea
+        placeholder="Instructions"
+        className="neon-input"
+        value={instructions}
+        onChange={e => setInstructions(e.target.value)}
+      />
+      <div className="neon-panel-actions">
+        <NeonIconButton
+          type="submit"
+          variant="save"
+          icon={<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>}
+          title={submitting ? 'Saving...' : 'Save Changes'}
+          disabled={submitting}
         />
-        <input
-          type="text"
-          placeholder="Area"
-          className="w-full border p-2 rounded text-teal-900"
-          value={area}
-          onChange={(e) => setArea(e.target.value)}
-          required
+        <NeonIconButton
+          type="button"
+          variant="cancel"
+          icon={<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>}
+          title="Cancel"
+          onClick={() => router.push('/turkus/tasks/amend')}
         />
-        <select
-          value={frequency}
-          onChange={(e) => setFrequency(e.target.value)}
-          className="w-full border p-2 rounded text-teal-900"
-          required
-        >
-          <option value="">Select Frequency</option>
-          {frequencyOptions.map((opt) => (
-            <option key={opt} value={opt}>{opt}</option>
-          ))}
-        </select>
-        <textarea
-          placeholder="Instructions"
-          className="w-full border p-2 rounded text-teal-900 min-h-[120px]"
-          value={instructions}
-          onChange={(e) => setInstructions(e.target.value)}
-        />
-
-        <div className="flex space-x-4">
-          <button
-            type="submit"
-            className="bg-teal-700 hover:bg-teal-800 text-white px-4 py-2 rounded font-medium"
-            disabled={submitting}
-          >
-            {submitting ? 'Saving...' : 'Save Changes'}
-          </button>
-          <button
-            type="button"
-            onClick={() => router.push('/turkus/tasks/amend')}
-            className="text-gray-600 underline"
-          >
-            Cancel
-          </button>
-        </div>
-      </form>
-    </div>
+      </div>
+    </form>
   )
 }

@@ -48,21 +48,21 @@ export default function AuditManager() {
         title="Audit Template Manager"
         subtitle="Create, assign, and manage audit templates for your organization."
       />
-      <div className="centered-content">
-        <div className="w-full max-w-[1600px] mx-auto px-8 md:px-12 lg:px-16">
+      <div className="audit-manager-content">
+        <div className="audit-manager-inner">
           <FolderTabs
             tabs={[
-              { key: 'create', label: 'Create New Audit', icon: <FiPlus className="inline text-lg align-middle" /> },
-              { key: 'view', label: 'View Audits', icon: <FiClipboard className="inline text-lg align-middle" /> },
-              { key: 'assign', label: 'Assign Audit', icon: <FiSend className="inline text-lg align-middle" /> },
-              { key: 'submissions', label: 'Submissions', icon: <FiFileText className="inline text-lg align-middle" /> },
-              { key: 'questions', label: 'Edit Questions', icon: <FiHelpCircle className="inline text-lg align-middle" /> },
-              { key: 'assigned', label: 'Assigned To', icon: <FiClipboard className="inline text-lg align-middle" /> },
+              { key: 'create', label: 'Create New Audit', icon: <FiPlus className="folder-tab-icon" /> },
+              { key: 'view', label: 'View Audits', icon: <FiClipboard className="folder-tab-icon" /> },
+              { key: 'assign', label: 'Assign Audit', icon: <FiSend className="folder-tab-icon" /> },
+              { key: 'submissions', label: 'Submissions', icon: <FiFileText className="folder-tab-icon" /> },
+              { key: 'questions', label: 'Edit Questions', icon: <FiHelpCircle className="folder-tab-icon" /> },
+              { key: 'assigned', label: 'Assigned To', icon: <FiClipboard className="folder-tab-icon" /> },
             ]}
             activeTab={activeTab}
             onChange={(tabKey) => setActiveTab(tabKey as typeof activeTab)}
           />
-          <div className="mb-6" />
+          <div className="audit-manager-tab-spacer" />
           {activeTab === 'create' && <CreateAuditTab />}
           {activeTab === 'view' && <ViewAuditTab setActiveTab={setActiveTab} />}
           {activeTab === 'assign' && <AssignAuditTab />}

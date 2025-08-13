@@ -1,12 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/lib/supabase-client'
-import { ChevronDown, ChevronRight, Pencil, Plus, Users } from 'lucide-react'
-import { FiArchive } from 'react-icons/fi'
+import { FiArchive, FiChevronDown, FiChevronRight, FiEdit, FiPlus, FiUsers } from 'react-icons/fi'
 import Link from 'next/link'
 import NeonPanel from '@/components/NeonPanel'
-import HeroHeader from '@/components/HeroHeader'
 import NeonIconButton from '@/components/ui/NeonIconButton'
 
 interface Department {
@@ -139,7 +138,6 @@ export default function OrgChartPage() {
     const descendants = getDescendants(dept.id, tree)
 
     const handleExpand = () => {
-    const handleExpand = () => {
       // Optionally, you can keep the logic for future use, but currently expandDirection is not used.
       setActiveAndExpand(dept.id, currentPath)
     }
@@ -159,7 +157,7 @@ export default function OrgChartPage() {
           onClick={handleExpand}
         >
           <div className="org-chart-header-main">
-            {expanded[dept.id] ? <ChevronDown className="org-chart-chevron" /> : <ChevronRight className="org-chart-chevron" />}
+            {expanded[dept.id] ? <FiChevronDown className="org-chart-chevron" /> : <FiChevronRight className="org-chart-chevron" />}
             <h2 className="neon-form-title org-chart-title">{dept.name}</h2>
             {dept.is_archived && <span className="org-chart-archived">Archived</span>}
           </div>
@@ -168,7 +166,7 @@ export default function OrgChartPage() {
             <NeonIconButton
               as="button"
               variant="edit"
-              icon={<Pencil className="org-chart-action-icon" />}
+              icon={<FiEdit className="org-chart-action-icon" />}
               title="Edit Department"
               onClick={(e) => {
                 e.stopPropagation()
@@ -257,7 +255,7 @@ export default function OrgChartPage() {
                       }}
                       title="Edit Role"
                     >
-                      <Users className="org-chart-role-icon" /> {role.title}
+                      <FiUsers className="org-chart-role-icon" /> {role.title}
                     </span>
                   )}
                 </div>
@@ -265,12 +263,12 @@ export default function OrgChartPage() {
             </div>
             <div className="org-chart-actions">
               <Link href={`/admin/departments/add?parent_id=${dept.id}`} className="neon-btn neon-btn-add org-chart-btn">
-                <Plus className="org-chart-toolbar-icon" /> Add Child Department
+                <FiPlus className="org-chart-toolbar-icon" /> Add Child Department
               </Link>
               <NeonIconButton
                 as="button"
                 variant="refresh"
-                icon={<ChevronRight className="org-chart-toolbar-icon" />}
+                icon={<FiChevronRight className="org-chart-toolbar-icon" />}
                 title="Change Parent Department"
                 onClick={() => {
                   setShowModalFor(dept.id)
@@ -279,7 +277,7 @@ export default function OrgChartPage() {
                 className="org-chart-btn ml-2"
               />
               <Link href={`/admin/roles/add?department_id=${dept.id}`} className="neon-btn neon-btn-add org-chart-btn">
-                <Plus className="org-chart-toolbar-icon" /> Add Role
+                <FiPlus className="org-chart-toolbar-icon" /> Add Role
               </Link>
             </div>
             {showModalFor === dept.id && (
@@ -358,7 +356,6 @@ export default function OrgChartPage() {
 
   return (
     <>
-      <HeroHeader title="Org Chart" subtitle="Visualize your organization's structure and roles." />
       <main className="org-chart-main">
         <section className="org-chart-section">
           <div className="org-chart-container">
@@ -368,13 +365,13 @@ export default function OrgChartPage() {
                 href="/admin/departments/add"
                 className="neon-btn neon-btn-add"
               >
-                <Plus className="org-chart-toolbar-icon" /> Add Department
+                <FiPlus className="org-chart-toolbar-icon" /> Add Department
               </Link>
               <Link
                 href="/admin/roles/add"
                 className="neon-btn neon-btn-add"
               >
-                <Plus className="org-chart-toolbar-icon" /> Add Role
+                <FiPlus className="org-chart-toolbar-icon" /> Add Role
               </Link>
             </div>
             {departments.length === 0 ? (
@@ -386,4 +383,5 @@ export default function OrgChartPage() {
         </section>
       </main>
     </>
-  )
+  );
+}

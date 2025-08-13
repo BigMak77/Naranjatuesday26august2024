@@ -51,40 +51,40 @@ export default function TaskCreateWidget() {
   if (userLoading) return <p className="text-neon">Loading user...</p>;
 
   return (
-    <div className="bg-card p-6 rounded-xl shadow-glow border border-neon mb-8 text-neon">
-      <h2 className="text-xl font-bold mb-4 flex items-center gap-2 drop-shadow-glow">
+    <div className="task-create-widget-container">
+      <h2 className="task-create-widget-title">
         <FiEdit /> Create Task
       </h2>
       <NeonForm title="Create Task" submitLabel={saving ? 'Creating...' : 'Create Task'} onSubmit={handleCreate}>
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="w-full border border-neon rounded bg-background px-3 py-2 text-neon shadow-glow"
+          className="task-create-widget-input"
           placeholder="Title"
           required
         />
         <input
           value={area}
           onChange={(e) => setArea(e.target.value)}
-          className="w-full border border-neon rounded bg-background px-3 py-2 text-neon shadow-glow"
+          className="task-create-widget-input"
           placeholder="Area"
           required
         />
         <input
           value={frequency}
           onChange={(e) => setFrequency(e.target.value)}
-          className="w-full border border-neon rounded bg-background px-3 py-2 text-neon shadow-glow"
+          className="task-create-widget-input"
           placeholder="Frequency"
           required
         />
         <textarea
           value={instructions}
           onChange={(e) => setInstructions(e.target.value)}
-          className="w-full border border-neon rounded bg-background px-3 py-2 text-neon shadow-glow"
+          className="task-create-widget-input"
           placeholder="Instructions"
         />
-        {error && <p className="text-red-400 mt-2">{error}</p>}
-        {success && <p className="text-green-400 mt-2">Task created successfully!</p>}
+        {error && <p className="task-create-widget-error">{error}</p>}
+        {success && <p className="task-create-widget-success">Task created successfully!</p>}
       </NeonForm>
     </div>
   );

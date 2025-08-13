@@ -1,11 +1,8 @@
-import HeroHeader from '@/components/HeroHeader'
-
-// ...existing imports
-
 const YourComponent = () => {
   return (
     <>
-      <HeroHeader title="Manage Role Profiles" subtitle="View, edit, and organize your role profiles." />
+      <h1>Manage Role Profiles</h1>
+      <p>View, edit, and organize your role profiles.</p>
       {/* ...existing page content... */}
     </>
   )

@@ -78,19 +78,18 @@ export default function StandardSectionPage() {
   }, {} as Record<string, Section[]>);
 
   return (
-    <main className="p-6 max-w-5xl mx-auto">
-      <h1 className="text-3xl font-bold text-orange-600 mb-4">Standard Sections</h1>
-      <p className="text-teal-900 mb-6">
+    <main className="standard-sections-page-wrapper">
+      <h1 className="standard-sections-title">Standard Sections</h1>
+      <p className="standard-sections-desc">
         Below are the structured clauses and sub-clauses for each compliance standard used in your system.
       </p>
-
       {/* Filter Dropdown */}
-      <div className="mb-6">
-        <label className="block text-sm font-medium text-teal-900 mb-1">Filter by Standard</label>
+      <div className="standard-sections-filter-wrapper">
+        <label className="standard-sections-filter-label">Filter by Standard</label>
         <select
           value={selectedStandard}
           onChange={(e) => setSelectedStandard(e.target.value)}
-          className="border px-3 py-2 rounded w-full max-w-sm"
+          className="standard-sections-filter-select"
         >
           <option value="All">All Standards</option>
           {standardOptions.map((std) => (
@@ -100,9 +99,8 @@ export default function StandardSectionPage() {
           ))}
         </select>
       </div>
-
       {loading ? (
-        <p className="text-teal-500">Loading sections...</p>
+        <p className="standard-sections-loading">Loading sections...</p>
       ) : (
         Object.entries(groupedByStandard)
           .filter(([key]) => {
@@ -121,25 +119,24 @@ export default function StandardSectionPage() {
               }
               return 0;
             });
-
             return (
-              <div key={standardKey} className="mb-8">
-                <h2 className="text-2xl font-semibold text-orange-600 mb-2">
+              <div key={standardKey} className="standard-sections-group">
+                <h2 className="standard-sections-group-title">
                   {standardOptions.find((std) => std.trim().toLowerCase() === standardKey) || standardKey}
                 </h2>
-                <div className="bg-teal-900 rounded-xl overflow-hidden divide-y divide-white">
+                <div className="standard-sections-list">
                   {sortedItems.length === 0 ? (
-                    <div className="p-4 text-white">No sections found.</div>
+                    <div className="standard-sections-empty">No sections found.</div>
                   ) : (
                     sortedItems.map((section) => (
                       <div
                         key={section.id}
-                        className="p-4 hover:bg-orange-50 hover:text-teal-900 text-white transition-colors"
+                        className="standard-sections-list-item"
                       >
-                        <div className="text-sm font-medium">{section.code}</div>
-                        <div className="font-semibold">{section.title}</div>
+                        <div className="standard-sections-list-code">{section.code}</div>
+                        <div className="standard-sections-list-title">{section.title}</div>
                         {section.description && (
-                          <div className="text-sm mt-1">{section.description}</div>
+                          <div className="standard-sections-list-desc">{section.description}</div>
                         )}
                       </div>
                     ))

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase-client'
-import HeroHeader from '@/components/HeroHeader'
 import NeonTable from '@/components/NeonTable'
 import { FiSearch, FiUsers, FiLayers, FiBookOpen } from 'react-icons/fi'
 
@@ -101,74 +100,77 @@ export default function IncompleteTrainingPage() {
   }))
 
   return (
-    <>
-      <HeroHeader title="Incomplete Training" subtitle="View users with incomplete training modules." />
-      <main className="min-h-screen flex flex-col bg-[#013b3b] text-[#40E0D0]">
-        <div className="p-6 max-w-6xl mx-auto flex-grow">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6 items-center">
-            <div className="flex items-center col-span-1 md:col-span-2">
-              <FiSearch className="text-[#40E0D0] text-lg mr-2" />
-              <input
-                type="search"
-                placeholder="Search users..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="border border-[#40E0D0] bg-transparent rounded px-3 py-2 w-full text-[#40E0D0] placeholder:text-[#40E0D0]/60 focus:ring-2 focus:ring-[#40E0D0]"
-              />
-            </div>
-            <div className="flex items-center">
-              <FiUsers className="text-[#40E0D0] text-lg mr-2" />
-              <select
-                value={selectedDept}
-                onChange={(e) => setSelectedDept(e.target.value)}
-                className="border border-[#40E0D0] bg-transparent rounded px-3 py-2 w-full text-[#40E0D0] focus:ring-2 focus:ring-[#40E0D0]"
-              >
-                <option value="All">All Departments</option>
-                {departments.map((d) => (
-                  <option key={d} value={d}>{d}</option>
-                ))}
-              </select>
-            </div>
-            <div className="flex items-center">
-              <FiLayers className="text-[#40E0D0] text-lg mr-2" />
-              <select
-                value={selectedRole}
-                onChange={(e) => setSelectedRole(e.target.value)}
-                className="border border-[#40E0D0] bg-transparent rounded px-3 py-2 w-full text-[#40E0D0] focus:ring-2 focus:ring-[#40E0D0]"
-              >
-                <option value="All">All Roles</option>
-                {roles.map((r) => (
-                  <option key={r} value={r}>{r}</option>
-                ))}
-              </select>
-            </div>
-            <div className="flex items-center">
-              <FiBookOpen className="text-[#40E0D0] text-lg mr-2" />
-              <select
-                value={selectedModule}
-                onChange={(e) => setSelectedModule(e.target.value)}
-                className="border border-[#40E0D0] bg-transparent rounded px-3 py-2 w-full text-[#40E0D0] focus:ring-2 focus:ring-[#40E0D0]"
-              >
-                <option value="All">All Modules</option>
-                {modules.map((m) => (
-                  <option key={m} value={m}>{m}</option>
-                ))}
-              </select>
+    <div className="after-hero">
+      <div className="page-content">
+        <main className="page-main">
+          <div className="neon-panel">
+            <div className="neon-panel-content">
+              <div className="neon-form-row">
+                <div className="neon-form-group">
+                  <FiSearch className="neon-form-icon" />
+                  <input
+                    type="search"
+                    placeholder="Search users..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="neon-input"
+                  />
+                </div>
+                <div className="neon-form-group">
+                  <FiUsers className="neon-form-icon" />
+                  <select
+                    value={selectedDept}
+                    onChange={(e) => setSelectedDept(e.target.value)}
+                    className="neon-input"
+                  >
+                    <option value="All">All Departments</option>
+                    {departments.map((d) => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="neon-form-group">
+                  <FiLayers className="neon-form-icon" />
+                  <select
+                    value={selectedRole}
+                    onChange={(e) => setSelectedRole(e.target.value)}
+                    className="neon-input"
+                  >
+                    <option value="All">All Roles</option>
+                    {roles.map((r) => (
+                      <option key={r} value={r}>{r}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="neon-form-group">
+                  <FiBookOpen className="neon-form-icon" />
+                  <select
+                    value={selectedModule}
+                    onChange={(e) => setSelectedModule(e.target.value)}
+                    className="neon-input"
+                  >
+                    <option value="All">All Modules</option>
+                    {modules.map((m) => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="neon-table-wrapper">
+                <NeonTable
+                  columns={[
+                    { header: 'User', accessor: 'user' },
+                    { header: 'Department', accessor: 'department' },
+                    { header: 'Role', accessor: 'role' },
+                    { header: 'Module', accessor: 'module' }
+                  ]}
+                  data={filteredData}
+                />
+              </div>
             </div>
           </div>
-          <div className="w-full">
-            <NeonTable
-              columns={[
-                { header: 'User', accessor: 'user' },
-                { header: 'Department', accessor: 'department' },
-                { header: 'Role', accessor: 'role' },
-                { header: 'Module', accessor: 'module' }
-              ]}
-              data={filteredData}
-            />
-          </div>
-        </div>
-      </main>
-    </>
+        </main>
+      </div>
+    </div>
   )
 }

@@ -5,10 +5,22 @@ import { supabase } from '@/lib/supabase-client';
 import { useUser } from '@/context/UserContext';
 import { FiClipboard } from 'react-icons/fi';
 import NeonTable from '@/components/NeonTable';
+import NeonIconButton from '@/components/ui/NeonIconButton';
 
 export default function MyTasksWidget() {
   const { user, loading: userLoading } = useUser();
-  const [tasks, setTasks] = useState<any[]>([]);
+  type TaskAssignment = {
+    id: number;
+    due_date: string | null;
+    status: string;
+    task: {
+      id: number;
+      title: string;
+      description: string;
+    } | null;
+  };
+
+  const [tasks, setTasks] = useState<TaskAssignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,45 +37,65 @@ export default function MyTasksWidget() {
         .order('due_date', { ascending: true });
 
       if (error) setError('Failed to load tasks.');
-      setTasks(data || []);
+      setTasks(
+        (data || []).map((item: {
+          id: number;
+          due_date: string | null;
+          status: string;
+          task: { id: number; title: string; description: string }[] | { id: number; title: string; description: string } | null;
+        }) => ({
+          ...item,
+          task: Array.isArray(item.task) ? item.task[0] || null : item.task ?? null,
+        }))
+      );
       setLoading(false);
     };
 
     fetchTasks();
   }, [user]);
 
-  if (userLoading) return <p className="text-neon">Loading user...</p>;
+  if (userLoading) return <p className="neon-loading">Loading user...</p>;
   if (!user) return null;
 
   return (
-    <div className="bg-card p-6 rounded-xl shadow-glow border border-neon mb-8 text-neon">
-      <h2 className="text-xl font-bold mb-4 flex items-center gap-2 drop-shadow-glow">
+    <div>
+      <h2 className="neon-section-title">
         <FiClipboard /> My Tasks
       </h2>
 
       {loading ? (
-        <p>Loading tasks...</p>
+        <p className="neon-loading">Loading tasks...</p>
       ) : error ? (
-        <p className="text-red-400">{error}</p>
+        <p className="neon-error">{error}</p>
       ) : tasks.length === 0 ? (
-        <p className="text-muted">No tasks assigned to you.</p>
+        <p className="neon-muted">No tasks assigned to you.</p>
       ) : (
-        <div className="overflow-x-auto">
-          <NeonTable
-            columns={[
-              { header: 'Task', accessor: 'task' },
-              { header: 'Description', accessor: 'description' },
-              { header: 'Due Date', accessor: 'due_date' },
-              { header: 'Status', accessor: 'status' },
-            ]}
-            data={tasks.map((t) => ({
-              task: t.task?.title || 'Untitled',
-              description: t.task?.description || '—',
-              due_date: t.due_date ? new Date(t.due_date).toLocaleDateString('en-GB') : '—',
-              status: t.status || 'Pending',
-            }))}
-          />
-        </div>
+        <NeonTable
+          columns={[
+            { header: 'Task', accessor: 'task' },
+            { header: 'Description', accessor: 'description' },
+            { header: 'Due Date', accessor: 'due_date' },
+            { header: 'Status', accessor: 'status' },
+            {
+              header: 'Actions',
+              accessor: 'id',
+              render: (_value, _row) => (
+                <NeonIconButton
+                  variant="view"
+                  title="View Task"
+                  aria-label="View Task"
+                />
+              ),
+            },
+          ]}
+          data={tasks.map((t) => ({
+            task: t.task?.title || 'Untitled',
+            description: t.task?.description || '—',
+            due_date: t.due_date ? new Date(t.due_date).toLocaleDateString('en-GB') : '—',
+            status: t.status || 'Pending',
+            id: t.id,
+          }))}
+        />
       )}
     </div>
   );

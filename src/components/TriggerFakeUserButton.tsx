@@ -25,17 +25,17 @@ export default function TriggerFakeUserButton() {
   }
 
   return (
-    <div className="max-w-xl mx-auto p-6">
+    <div className="trigger-fake-user-root">
       <button
         onClick={handleClick}
         disabled={loading}
-        className="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700 disabled:opacity-50"
+        className="trigger-fake-user-btn"
       >
         {loading ? 'Creating Fake Users...' : 'Register Fake Users'}
       </button>
 
       {results && (
-        <pre className="mt-4 p-4 bg-gray-100 text-sm overflow-x-auto">
+        <pre className="trigger-fake-user-results">
           {JSON.stringify(results, null, 2)}
         </pre>
       )}

@@ -5,10 +5,19 @@ import { supabase } from '@/lib/supabase-client'
 import { useUser } from '@/context/UserContext'
 import { FiEdit, FiTrash2 } from 'react-icons/fi'
 import NeonForm from '@/components/NeonForm'
+import NeonIconButton from '@/components/ui/NeonIconButton'
 
 export default function TaskAmendWidget() {
   const { user, loading: userLoading } = useUser()
-  const [tasks, setTasks] = useState<any[]>([])
+  type Task = {
+    id: string
+    title: string
+    area: string
+    frequency: string
+    instructions: string
+    created_by: string
+  }
+  const [tasks, setTasks] = useState<Task[]>([])
   const [selectedTask, setSelectedTask] = useState<string>('')
   const [title, setTitle] = useState('')
   const [area, setArea] = useState('')
@@ -94,17 +103,15 @@ export default function TaskAmendWidget() {
   if (userLoading) return <p className="neon-info">Loading user...</p>
 
   return (
-    <div className="neon-panel neon-task-amend mb-8">
-      <div className="neon-flex items-center gap-3 mb-4">
-        <div className="neon-icon-bg">
-          <FiEdit />
-        </div>
+    <div>
+      <div>
+        <span className="neon-icon-bg"><FiEdit /></span>
         <h2 className="neon-section-title">Amend Task</h2>
       </div>
 
-      <ul className="neon-list mb-6">
+      <ul className="neon-list">
         {tasks.length === 0 ? (
-          <li className="neon-info">You haven't created any tasks to amend.</li>
+          <li className="neon-info">You have not created any tasks to amend.</li>
         ) : (
           tasks.map(t => (
             <li key={t.id}>
@@ -120,7 +127,7 @@ export default function TaskAmendWidget() {
       </ul>
 
       {selectedTask && (
-        <NeonForm title="Amend Task" submitLabel={saving ? 'Saving...' : 'Save Changes'} onSubmit={handleSave}>
+        <NeonForm title="Amend Task" onSubmit={handleSave}>
           <div className="neon-grid">
             <input
               value={title}
@@ -148,26 +155,25 @@ export default function TaskAmendWidget() {
             placeholder="Instructions"
             rows={4}
           />
-          <div className="neon-flex gap-4 justify-between neon-flex-col-md-row">
-            <button
+          <div className="neon-panel-actions">
+            <NeonIconButton
               type="submit"
+              variant="edit"
+              icon={<FiEdit />}
+              title={saving ? 'Saving...' : 'Save Changes'}
               disabled={saving}
-              className="neon-btn neon-btn-edit w-full md:w-auto"
-            >
-              {saving ? 'Saving...' : 'Save Changes'}
-            </button>
-            <button
+            />
+            <NeonIconButton
               type="button"
+              variant="delete"
+              icon={<FiTrash2 />}
+              title={deleting ? 'Deleting...' : 'Delete Task'}
               onClick={handleDelete}
               disabled={deleting}
-              className="neon-btn neon-btn-danger w-full md:w-auto flex items-center gap-2"
-            >
-              <FiTrash2 />
-              {deleting ? 'Deleting...' : 'Delete Task'}
-            </button>
+            />
           </div>
-          {error && <p className="neon-error mt-2">{error}</p>}
-          {success && <p className="neon-success mt-2">Changes saved successfully.</p>}
+          {error && <p className="neon-error">{error}</p>}
+          {success && <p className="neon-success">Changes saved successfully.</p>}
         </NeonForm>
       )}
     </div>

@@ -202,7 +202,7 @@ export default function TaskRoleManager() {
 
   return (
     <div>
-      <h2 className="neon-section-title mb-4 flex items-center gap-2">
+      <h2 className="neon-section-title">
         <FiClipboard /> Task Role Manager
       </h2>
       {/* ...rest of your component UI... */}

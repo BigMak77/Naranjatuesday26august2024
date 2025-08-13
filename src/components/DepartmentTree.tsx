@@ -46,15 +46,15 @@ const DepartmentTree: React.FC<Props> = ({ departments, roles }) => {
 
   const renderTree = (nodes: TreeNode[], level = 0) => {
     return nodes.map((node) => (
-      <div key={node.id} className="ml-4 border-l border-gray-300 pl-4 mt-2">
-        <div className="font-medium text-teal-800">
-          {'—'.repeat(level)} {node.name}
+      <div key={node.id} className="department-tree-node">
+        <div className="department-tree-department" style={{ marginLeft: level ? `${level * 1.5}rem` : undefined }}>
+          <span className="department-tree-department-name">{'—'.repeat(level)} {node.name}</span>
         </div>
-        <ul className="text-sm text-gray-600 ml-4">
+        <ul className="department-tree-role-list">
           {roles
             .filter((r) => r.department_id === node.id)
             .map((r) => (
-              <li key={r.id} className="list-disc ml-4">
+              <li key={r.id} className="department-tree-role-item">
                 {r.title}
               </li>
             ))}
@@ -64,7 +64,7 @@ const DepartmentTree: React.FC<Props> = ({ departments, roles }) => {
     ))
   }
 
-  return <div>{renderTree(tree)}</div>
+  return <div className="department-tree-root">{renderTree(tree)}</div>
 }
 
 export default DepartmentTree

@@ -103,24 +103,24 @@ export default function ModuleAssignmentPanel({ moduleId }: Props) {
     setSaving(false)
   }
 
-  if (loading) return <p className="p-4">Loading assignments...</p>
+  if (loading) return <p className="module-assignment-loading-msg">Loading assignments...</p>
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-orange-700">
-        🎯 Assign Roles & Departments
+    <div className="module-assignment-panel">
+      <h3 className="module-assignment-title">
+        <span className="module-assignment-title-icon" aria-label="Assign Roles and Departments" role="img">🎯</span> Assign Roles & Departments
       </h3>
 
       {departments.map((dep) => (
-        <div key={dep.id} className="border rounded-md p-3 bg-orange-50">
-          <h4 className="font-medium text-teal-800 mb-2">{dep.name}</h4>
-          <div className="space-y-1">
+        <div key={dep.id} className="module-assignment-department">
+          <h4 className="module-assignment-department-title">{dep.name}</h4>
+          <div className="module-assignment-role-list">
             {roles
               .filter((r) => r.department_id === dep.id)
               .map((role) => (
                 <label
                   key={role.id}
-                  className="flex items-center gap-2 text-sm text-teal-900"
+                  className="module-assignment-role-label"
                 >
                   <input
                     type="checkbox"
@@ -134,24 +134,24 @@ export default function ModuleAssignmentPanel({ moduleId }: Props) {
         </div>
       ))}
 
-      <div className="flex items-center gap-4 mt-4">
+      <div className="module-assignment-actions">
         <button
           onClick={handleSave}
           disabled={saving}
-          className="bg-teal-700 text-white px-4 py-2 rounded hover:bg-teal-800 disabled:opacity-50"
+          className="module-assignment-save-btn"
         >
           {saving ? 'Saving...' : 'Save Assignments'}
         </button>
         <button
           type="button"
-          className="text-sm text-blue-700 underline"
+          className="module-assignment-edit-btn"
           onClick={() => router.push(`/admin/modules/edit/${moduleId}`)}
         >
           Edit Module
         </button>
         <button
           type="button"
-          className="text-sm text-orange-700 underline"
+          className="module-assignment-view-btn"
           onClick={() => router.push(`/admin/modules/${moduleId}`)}
         >
           View Module

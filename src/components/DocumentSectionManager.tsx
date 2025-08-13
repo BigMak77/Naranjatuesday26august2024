@@ -5,8 +5,9 @@ import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase-client'
 import NeonTable from '@/components/NeonTable'
-import { FiArchive, FiFileText, FiBookOpen, FiClipboard, FiPlus } from 'react-icons/fi'
+import { FiArchive, FiFileText, FiBookOpen, FiClipboard, FiPlus, FiEdit } from 'react-icons/fi'
 import { useUser } from '@/lib/useUser'
+import NeonIconButton from '@/components/ui/NeonIconButton'
 
 interface Document {
   id: string
@@ -27,7 +28,10 @@ interface Section {
   title: string
 }
 
-const PAGE_SIZE_OPTIONS = [10, 25, 50]
+// Helper function to check for valid UUID
+function isValidUUID(str: string | null | undefined) {
+  return !!str && /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(str)
+}
 
 export default function DocumentManager() {
   const [documents, setDocuments] = useState<Document[]>([])
@@ -36,7 +40,6 @@ export default function DocumentManager() {
   const [filterType, setFilterType] = useState('')
   const [filterSection, setFilterSection] = useState('')
   const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(25)
   const [loading, setLoading] = useState(true)
   const [showArchiveModal, setShowArchiveModal] = useState(false)
   const [archiveDocId, setArchiveDocId] = useState<string | null>(null)
@@ -76,8 +79,8 @@ export default function DocumentManager() {
     return matchesSearch && matchesType && matchesSection
   })
 
-  const paged = filtered.slice((page - 1) * pageSize, page * pageSize)
-  const totalPages = Math.ceil(filtered.length / pageSize)
+  const paged = filtered.slice((page - 1) * 25, page * 25) // Default/fixed page size
+  const totalPages = Math.ceil(filtered.length / 25)
 
   const handlePageChange = (dir: 'prev' | 'next') => {
     if (dir === 'prev' && page > 1) setPage(page - 1)
@@ -158,27 +161,29 @@ export default function DocumentManager() {
     <>
       {/* Archive Modal */}
       {showArchiveModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-          <div className="bg-gray-900 border-2 border-teal-400 rounded-lg shadow-lg p-6 w-full max-w-md">
-            <h2 className="text-lg font-bold text-teal-300 mb-2">Archive Document</h2>
-            <label className="block text-sm text-white mb-1" htmlFor="changeSummary">Change Summary <span className="text-red-400">*</span></label>
+        <div className="modal-archive-overlay">
+          <div className="modal-archive-container">
+            <h2 className="modal-archive-title">Archive Document</h2>
+            <label className="modal-archive-label" htmlFor="changeSummary">
+              Change Summary <span className="modal-archive-label-required">*</span>
+            </label>
             <textarea
               id="changeSummary"
               value={changeSummary}
               onChange={e => setChangeSummary(e.target.value)}
-              className="w-full h-24 p-2 rounded border border-teal-400 bg-gray-800 text-white mb-2"
+              className="modal-archive-textarea"
               placeholder="Describe why this document is being archived..."
               required
             />
-            {archiveErrorMsg && <p className="text-red-400 text-sm mb-2">{archiveErrorMsg}</p>}
-            <div className="flex justify-end gap-2 mt-2">
+            {archiveErrorMsg && <p className="modal-archive-error">{archiveErrorMsg}</p>}
+            <div className="modal-archive-actions">
               <button
-                className="px-4 py-2 rounded bg-gray-700 text-white hover:bg-gray-600"
+                className="modal-archive-cancel"
                 onClick={() => { setShowArchiveModal(false); setArchiveDocId(null); setChangeSummary(''); setButtonLoading(null); }}
                 disabled={!!buttonLoading}
               >Cancel</button>
               <button
-                className="px-4 py-2 rounded bg-teal-600 text-white hover:bg-teal-700 font-bold"
+                className="modal-archive-submit"
                 onClick={handleArchiveSubmit}
                 disabled={!!buttonLoading}
               >{buttonLoading ? 'Archiving...' : 'Archive'}</button>
@@ -187,21 +192,12 @@ export default function DocumentManager() {
         </div>
       )}
 
-      <div className="flex justify-between items-center mt-10 px-10">
-        <div className="flex flex-col md:flex-row md:items-end gap-4 w-full">
-          <div className="neon-search-bar-wrapper">
-            <input
-              type="search"
-              placeholder="Search by title..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="neon-input neon-input-search"
-            />
-          </div>
+      <div className="document-section-controls">
+        <div className="document-section-controls-filters">
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="border rounded h-10 w-full md:w-1/4 min-w-[180px] max-w-[220px]"
+            className="document-section-filter-select"
           >
             <option value="">All Types</option>
             <option value="policy">Policy</option>
@@ -211,7 +207,7 @@ export default function DocumentManager() {
           <select
             value={filterSection}
             onChange={(e) => setFilterSection(e.target.value)}
-            className="border rounded h-10 w-full md:w-1/4 min-w-[180px] max-w-[220px]"
+            className="document-section-filter-select"
           >
             <option value="">All Sections</option>
             {sections.map((s) => (
@@ -219,48 +215,38 @@ export default function DocumentManager() {
             ))}
           </select>
         </div>
-        <div className="flex gap-2">
+        <div className="document-section-controls-actions">
           <button
             onClick={() => router.push('/admin/documents/add')}
-            className="bg-teal-600 text-white rounded shadow hover:bg-teal-700 flex items-center justify-center h-10 w-10"
+            className="document-section-action-btn"
             title="Add Document"
-            style={{ minWidth: 40, minHeight: 40, padding: 0 }}
             disabled={!!buttonLoading}
           >
-            <FiPlus size={22} style={{ color: '#fff', display: 'block' }} />
+            <FiPlus size={22} />
             <span className="sr-only">Add Document</span>
           </button>
           <button
             onClick={() => router.push('/admin/documents/archived')}
-            className="bg-teal-600 text-white rounded shadow hover:bg-teal-700 flex items-center justify-center h-10 w-10"
+            className="document-section-action-btn"
             title="View Archived Documents"
-            style={{ minWidth: 40, minHeight: 40, padding: 0 }}
             disabled={!!buttonLoading}
           >
-            <FiArchive size={22} style={{ color: '#fff', display: 'block' }} />
+            <FiArchive size={22} />
             <span className="sr-only">Archived Documents</span>
           </button>
         </div>
       </div>
 
       {loading ? (
-        <p className="p-6 text-gray-400">Loading...</p>
+        <p className="neon-loading">Loading...</p>
       ) : (
         <>
-          <div className="flex justify-between items-center px-10 mt-4">
-            <p className="text-sm text-white">Showing {paged.length} of {filtered.length} matching documents</p>
-            <select
-              value={pageSize}
-              onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1) }}
-              className="border rounded text-sm"
-            >
-              {PAGE_SIZE_OPTIONS.map(size => (
-                <option key={size} value={size}>{size} per page</option>
-              ))}
-            </select>
+          <div className="document-section-table-toolbar">
+            <p className="document-section-table-count">Showing {paged.length} of {filtered.length} matching documents</p>
+            {/* Page size selector removed: now handled globally */}
           </div>
 
-          <div className="px-10 mt-2">
+          <div className="document-section-table-wrapper">
             <NeonTable
               columns={[
                 { header: 'Title', accessor: 'title' },
@@ -271,62 +257,47 @@ export default function DocumentManager() {
                 { header: 'Edit', accessor: 'edit' },
                 { header: 'Archive', accessor: 'archive' },
               ]}
-              data={paged.map((doc: Document) => {
-                const section = sections.find(s => s.id === doc.section_id)
-                let typeIcon = null
-                if (doc.document_type === 'policy') {
-                  typeIcon = <FiFileText size={18} className="text-orange-400 mx-auto" title="Policy" />
-                } else if (doc.document_type === 'ssow') {
-                  typeIcon = <FiClipboard size={18} className="text-teal-400 mx-auto" title="SSOW" />
-                } else if (doc.document_type === 'work_instruction') {
-                  typeIcon = <FiBookOpen size={18} className="text-blue-400 mx-auto" title="Work Instruction" />
-                }
-                return {
-                  title: doc.title,
-                  document_type: <div className="flex justify-center items-center">{typeIcon}</div>,
-                  section: section ? `${section.code} – ${section.title}` : '—',
-                  created: doc.created_at ? new Date(doc.created_at).toLocaleDateString('en-GB') : '—',
-                  version: <div className="flex justify-center items-center">{doc.current_version || '—'}</div>,
-                  edit: (
-                    <div className="flex justify-center items-center">
-                      <a href={`/admin/documents/edit/${doc.id}`} title="Edit document">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-teal-400 hover:text-teal-600 cursor-pointer" viewBox="0 0 20 20" fill="currentColor">
-                          <path d="M17.414 2.586a2 2 0 00-2.828 0l-9.192 9.192a2 2 0 00-.497.879l-1 4A1 1 0 004 18a1 1 0 00.242-.03l4-1a2 2 0 00.879-.497l9.192-9.192a2 2 0 000-2.828zM5.121 16.121l-1-4 9.192-9.192 4 4-9.192 9.192z" />
-                        </svg>
-                      </a>
-                    </div>
-                  ),
-                  archive: user?.auth_id ? (
-                    <div className="flex justify-center items-center">
-                      <FiArchive
-                        size={18}
-                        className="text-red-600 hover:text-red-800 cursor-pointer"
-                        title="Archive document"
-                        onClick={() => handleArchiveClick(doc.id)}
-                      />
-                    </div>
-                  ) : '—',
-                }
-              })}
+              data={paged
+                .filter(doc => isValidUUID(doc.id) && (!doc.section_id || isValidUUID(doc.section_id)))
+                .map((doc: Document) => {
+                  const section = sections.find(s => s.id === doc.section_id)
+                  let typeIcon = null
+                  if (doc.document_type === 'policy') {
+                    typeIcon = <FiFileText size={18} className="neon-icon" title="Policy" />
+                  } else if (doc.document_type === 'ssow') {
+                    typeIcon = <FiClipboard size={18} className="neon-icon" title="SSOW" />
+                  } else if (doc.document_type === 'work_instruction') {
+                    typeIcon = <FiBookOpen size={18} className="neon-icon" title="Work Instruction" />
+                  }
+                  return {
+                    title: doc.title,
+                    document_type: <div className="document-type-icon-cell">{typeIcon}</div>,
+                    section: section ? `${section.code} – ${section.title}` : '—',
+                    created: doc.created_at ? new Date(doc.created_at).toLocaleDateString('en-GB') : '—',
+                    version: <div className="document-version-cell">{doc.current_version || '—'}</div>,
+                    edit: (
+                      <div className="document-edit-cell">
+                        <a href={`/admin/documents/edit/${doc.id}`} title="Edit document">
+                          <NeonIconButton
+                            variant="edit"
+                            title="Edit document"
+                            aria-label="Edit document"
+                          />
+                        </a>
+                      </div>
+                    ),
+                    archive: user?.auth_id ? (
+                      <div className="document-archive-cell">
+                        <FiArchive
+                          size={18}
+                          title="Archive document"
+                          onClick={() => handleArchiveClick(doc.id)}
+                        />
+                      </div>
+                    ) : '—',
+                  }
+                })}
             />
-          </div>
-
-          <div className="flex justify-between items-center px-10 mt-4">
-            <button
-              disabled={page === 1}
-              onClick={() => handlePageChange('prev')}
-              className="bg-teal-600 text-white rounded disabled:opacity-50 px-3 py-1"
-            >
-              ◀ Prev
-            </button>
-            <span className="text-sm text-white">Page {page} of {totalPages}</span>
-            <button
-              disabled={page === totalPages}
-              onClick={() => handlePageChange('next')}
-              className="bg-teal-600 text-white rounded disabled:opacity-50 px-3 py-1"
-            >
-              Next ▶
-            </button>
           </div>
         </>
       )}

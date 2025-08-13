@@ -99,17 +99,16 @@ export default function NeonDashboard({ editable = false }: { editable?: boolean
 
   if (loading || !user) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+      <div className="neon-dashboard-skeleton-list">
         {[...Array(4)].map((_, i) => (
           <div
             key={i}
-            className="relative rounded-2xl bg-[#0c1f24] animate-pulse p-6 h-56 overflow-hidden"
-            style={{ boxShadow: '0 0 12px #40E0D0' }}
+            className="neon-dashboard-skeleton-card"
           >
-            <div className="absolute top-0 left-0 h-full w-[3px] bg-[#40E0D0]" />
-            <div className="h-10 w-10 mb-4 bg-[#1b3e44] rounded-full mx-auto" />
-            <div className="h-4 bg-[#1b3e44] rounded w-2/3 mx-auto mb-2" />
-            <div className="h-3 bg-[#1b3e44] rounded w-1/2 mx-auto" />
+            <div className="neon-feature-card-accent" />
+            <div className="neon-feature-card-skeleton-icon" />
+            <div className="neon-feature-card-skeleton-title" />
+            <div className="neon-feature-card-skeleton-text" />
           </div>
         ))}
       </div>
@@ -117,9 +116,9 @@ export default function NeonDashboard({ editable = false }: { editable?: boolean
   }
 
   return (
-    <div className="mb-12">
+    <div className="neon-dashboard">
       {editable && (
-        <div className="neon-flex justify-between items-center mb-4">
+        <div className="neon-dashboard-toolbar">
           <button
             onClick={handleAddCard}
             className="neon-btn neon-btn-add"
@@ -136,38 +135,38 @@ export default function NeonDashboard({ editable = false }: { editable?: boolean
         </div>
       )}
 
-      <div className="neon-grid-cards">
+      <div className="neon-feature-card-list">
         {cards.map((card, i) => {
-          const IconComponent = (FiIcons as any)[card.icon] || FiIcons.FiActivity
+          const IconComponent = (FiIcons as Record<string, React.ComponentType<{ className?: string }>>)[card.icon] || FiIcons.FiActivity
 
           return (
             <div
               key={i}
-              className="neon-feature-card relative text-center transition hover:scale-[1.02] overflow-hidden"
+              className="neon-feature-card"
               style={{
                 backgroundColor: card.bgcolor || '',
                 boxShadow: '0 0 12px var(--neon)',
               }}
             >
               <div
-                className="neon-feature-card-accent absolute top-0 left-0 h-full"
+                className="neon-feature-card-accent"
                 style={{
                   width: '3px',
                   backgroundColor: card.accentcolor || 'var(--neon)',
                 }}
               />
 
-              <div className="p-4">
+              <div className="neon-feature-card-content">
                 {editable && (
                   <button
                     onClick={() => handleRemoveCard(i)}
-                    className="neon-btn neon-btn-delete absolute top-2 right-2 text-sm px-2 py-1"
+                    className="neon-btn neon-btn-delete neon-feature-card-remove-btn"
                   >
                     ✖
                   </button>
                 )}
 
-                <div className="neon-feature-card-icon text-5xl mb-4 mt-4">
+                <div className="neon-feature-card-icon">
                   <IconComponent />
                 </div>
 
@@ -177,13 +176,13 @@ export default function NeonDashboard({ editable = false }: { editable?: boolean
                       type="text"
                       value={card.title}
                       onChange={(e) => handleChange(i, 'title', e.target.value)}
-                      className="neon-input neon-feature-card-title w-full text-center mb-2"
+                      className="neon-input neon-feature-card-title"
                       placeholder="Card Title"
                     />
                     <textarea
                       value={card.text}
                       onChange={(e) => handleChange(i, 'text', e.target.value)}
-                      className="neon-input neon-feature-card-text w-full mb-2"
+                      className="neon-input neon-feature-card-text"
                       rows={2}
                       placeholder="Card description"
                     />
@@ -191,13 +190,13 @@ export default function NeonDashboard({ editable = false }: { editable?: boolean
                       type="text"
                       value={card.href}
                       onChange={(e) => handleChange(i, 'href', e.target.value)}
-                      className="neon-input w-full mb-2"
+                      className="neon-input"
                       placeholder="Link URL"
                     />
                     <select
                       value={card.icon}
                       onChange={(e) => handleChange(i, 'icon', e.target.value)}
-                      className="neon-input w-full mb-2"
+                      className="neon-input"
                     >
                       {iconNames.map((name) => (
                         <option key={name} value={name}>
@@ -206,31 +205,31 @@ export default function NeonDashboard({ editable = false }: { editable?: boolean
                       ))}
                     </select>
 
-                    <div className="neon-flex items-center justify-between gap-2 mb-2">
-                      <label className="neon-label text-sm">Background</label>
+                    <div className="neon-feature-card-color-row">
+                      <label className="neon-label">Background</label>
                       <input
                         type="color"
                         value={card.bgcolor || '#0c1f24'}
                         onChange={(e) => handleChange(i, 'bgcolor', e.target.value)}
-                        className="neon-input neon-color-input w-10 h-8"
+                        className="neon-input neon-color-input"
                       />
                     </div>
 
-                    <div className="neon-flex items-center justify-between gap-2 mb-4">
-                      <label className="neon-label text-sm">Accent</label>
+                    <div className="neon-feature-card-color-row">
+                      <label className="neon-label">Accent</label>
                       <input
                         type="color"
                         value={card.accentcolor || '#40E0D0'}
                         onChange={(e) => handleChange(i, 'accentcolor', e.target.value)}
-                        className="neon-input neon-color-input w-10 h-8"
+                        className="neon-input neon-color-input"
                       />
                     </div>
                   </>
                 ) : (
                   <>
-                    <h3 className="neon-feature-card-title mb-1">{card.title}</h3>
+                    <h3 className="neon-feature-card-title">{card.title}</h3>
                     <p className="neon-feature-card-text" style={{whiteSpace: 'pre-line'}}>{card.text}</p>
-                    <a href={card.href} className="neon-link block mt-4 text-sm">
+                    <a href={card.href} className="neon-link">
                       Go
                     </a>
                   </>
