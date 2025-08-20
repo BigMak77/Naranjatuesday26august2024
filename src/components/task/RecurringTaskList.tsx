@@ -76,11 +76,11 @@ export default function RecurringTaskList() {
   return (
     <div>
       <h2 className="neon-section-title">
-        <FiRepeat /> Recurring Tasks
+        <FiRepeat className="recurring-task-list-title-icon" />
       </h2>
 
       {loading ? (
-        <p className="neon-loading">Loading...</p>
+        <p className="neon-loading">Loading recurring tasks...</p>
       ) : error ? (
         <p className="neon-error">{error}</p>
       ) : recurring.length === 0 ? (
@@ -98,11 +98,13 @@ export default function RecurringTaskList() {
             frequency: r.frequency,
             interval: r.interval_count,
             next_due: r.next_due_at
-              ? new Date(r.next_due_at).toLocaleDateString('en-GB', {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                })
+              ? (typeof window !== 'undefined'
+                  ? new Date(r.next_due_at).toLocaleDateString('en-GB', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                    })
+                  : '—')
               : '—',
           }))}
         />

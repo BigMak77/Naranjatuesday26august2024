@@ -67,7 +67,13 @@ export default function RaiseIssuePage() {
   }
 
   return (
-    <NeonForm title="New Issue" onSubmit={handleSubmit}>
+    <form
+      style={{
+        display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '500px', margin: '3rem auto', padding: '2.5rem 2rem', background: 'var(--panel)', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-neon)', border: '2px solid var(--accent)'
+      }}
+      onSubmit={handleSubmit}
+    >
+      <h1 style={{ color: 'var(--accent)', fontSize: '2rem', fontWeight: 800, marginBottom: '1rem', textAlign: 'center' }}>New Issue</h1>
       <input
         className="neon-input"
         placeholder="Issue Title"
@@ -106,13 +112,13 @@ export default function RaiseIssuePage() {
         ))}
       </select>
       {error && (
-        <p className="neon-error flex items-center gap-2 mt-2">
+        <p className="neon-error" style={{ color: '#ff4d4f', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1rem' }}>
           <FiAlertCircle /> {error}
         </p>
       )}
-      <button type="submit" className="neon-btn mt-4" disabled={loading}>
+      <button type="submit" className="neon-btn neon-btn-submit" style={{ marginTop: '1.5rem', width: '100%', padding: '.85rem 0', borderRadius: 'var(--r-md)', background: 'linear-gradient(90deg, var(--accent) 0%, #ffb84d 100%)', color: '#2d2d2d', fontWeight: 700, fontSize: '1.08rem', boxShadow: '0 2px 12px 0 #ffa50099', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', transition: 'background .18s,color .18s, box-shadow .18s, transform .08s' }} disabled={loading}>
         {loading ? 'Submitting...' : 'Submit Issue'}
       </button>
-    </NeonForm>
+    </form>
   )
 }

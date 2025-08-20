@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase-client'
 import toast from 'react-hot-toast'
-import HeroHeader from '@/components/HeroHeader'
+import ContentHeader from '@/components/headersandfooters/ContentHeader'
 import ModuleSelectorWidget from './widgets/ModuleSelectorWidget'
 import DocumentSelectorWidget from './widgets/DocumentSelectorWidget'
 import BehaviourSelectorWidget from './widgets/BehaviourSelectorWidget'
@@ -17,7 +17,15 @@ export default function RoleProfileEdit({
   onCancel,
 }: {
   roleProfileId: string
-  onSubmit?: (data: any) => void
+  onSubmit?: (data: {
+    roleProfileId: string
+    name: string
+    description: string
+    selectedModules: string[]
+    selectedDocuments: string[]
+    selectedBehaviours: string[]
+    selectedRoles: string[]
+  }) => void
   onCancel?: () => void
 }) {
   const [step, setStep] = useState(0)
@@ -140,7 +148,9 @@ export default function RoleProfileEdit({
 
   return (
     <>
-      <HeroHeader title="Edit Role Profile" subtitle={`Step ${step + 1} of 5`} />
+      <ContentHeader>
+        Edit Role Profile
+      </ContentHeader>
       <div className="role-profile-edit-content">
         {step === 0 && (
           <>

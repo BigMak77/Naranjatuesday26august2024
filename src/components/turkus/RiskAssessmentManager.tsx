@@ -2,11 +2,12 @@
 
 import React, { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase-client'
-import { FiClipboard } from 'react-icons/fi'
+import { FiClipboard, FiEdit2, FiUserPlus } from 'react-icons/fi'
 import NeonFeatureCard from '@/components/NeonFeatureCard'
 import NeonForm from '@/components/NeonForm'
 import NeonTable from '@/components/NeonTable'
 import NeonPanel from '@/components/NeonPanel'
+import NeonIconButton from '@/components/ui/NeonIconButton'
 
 type TurkusRisk = {
   id: string
@@ -128,13 +129,23 @@ export default function RiskAssessmentManager() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex gap-3 items-center">
-        <h2 className="neon-form-title flex items-center gap-2">
+    <div className="risk-assessment-manager-global">
+      <div className="risk-assessment-header-global">
+        <h2 className="neon-form-title">
           <FiClipboard /> Risk Assessments
         </h2>
-        <button className="neon-btn neon-btn-add" onClick={() => { setMode('create'); setSelectedId(null); }}>Create New</button>
-        <button className="neon-btn neon-btn-view" onClick={() => setMode('list')}>View All</button>
+        <NeonIconButton
+          variant="add"
+          title="Create New"
+          icon={<FiEdit2 />}
+          onClick={() => { setMode('create'); setSelectedId(null); }}
+        />
+        <NeonIconButton
+          variant="view"
+          title="View All"
+          icon={<FiClipboard />}
+          onClick={() => setMode('list')}
+        />
       </div>
 
       {mode === 'list' && (
@@ -150,9 +161,19 @@ export default function RiskAssessmentManager() {
             description: risk.description,
             severity: risk.severity,
             actions: (
-              <div key={risk.id} className="flex gap-2">
-                <button className="neon-btn neon-btn-edit" onClick={() => { setMode('edit'); setSelectedId(risk.id) }}>Amend</button>
-                <button className="neon-btn neon-btn-assign" onClick={() => { setMode('assign'); setSelectedId(risk.id) }}>Assign</button>
+              <div key={risk.id} className="risk-assessment-actions-global">
+                <NeonIconButton
+                  variant="edit"
+                  title="Amend"
+                  icon={<FiEdit2 />}
+                  onClick={() => { setMode('edit'); setSelectedId(risk.id) }}
+                />
+                <NeonIconButton
+                  variant="view"
+                  title="Assign"
+                  icon={<FiUserPlus />}
+                  onClick={() => { setMode('assign'); setSelectedId(risk.id) }}
+                />
               </div>
             ),
           }))}
@@ -187,9 +208,9 @@ export default function RiskAssessmentManager() {
 
       {mode === 'assign' && (
         <NeonPanel>
-          <h3 className="neon-form-title mb-3">Assign Risk Assessment</h3>
+          <h3 className="neon-form-title">Assign Risk Assessment</h3>
           <p>Assigning: <strong>{riskAssessments.find(r => r.id === selectedId)?.title}</strong></p>
-          <select className="neon-input mt-4 mb-3" value={assignUserId} onChange={e => setAssignUserId(e.target.value)}>
+          <select className="neon-input" value={assignUserId} onChange={e => setAssignUserId(e.target.value)}>
             <option value="">Select user from department</option>
             {departmentUsers.map(user => (
               <option key={user.auth_id} value={user.auth_id}>{user.email}</option>
@@ -197,6 +218,7 @@ export default function RiskAssessmentManager() {
           </select>
           <button
             className="neon-btn neon-btn-assign"
+            type="button"
             onClick={async () => {
               if (!selectedId || !assignUserId) return
               const { error } = await supabase.from('turkus_risk_assignments').insert({

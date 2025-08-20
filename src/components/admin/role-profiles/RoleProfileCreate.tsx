@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase-client'
 import toast from 'react-hot-toast'
-import HeroHeader from '@/components/HeroHeader'
+import ContentHeader from '@/components/headersandfooters/ContentHeader'
 import NeonPanel from '@/components/NeonPanel'
 
 import ModuleSelectorWidget from './widgets/ModuleSelectorWidget'
@@ -22,9 +22,19 @@ const steps = [
 export default function RoleProfileCreate({
   onSubmit,
   onCancel,
+  profileId, // <-- add optional profileId prop
 }: {
-  onSubmit?: (data: any) => void
+  onSubmit?: (data: {
+    id: string
+    name: string
+    description: string
+    selectedModules: string[]
+    selectedDocuments: string[]
+    selectedBehaviours: string[]
+    selectedAssignments: { type: 'user' | 'role' | 'department'; id: string; label: string }[]
+  }) => void
   onCancel?: () => void
+  profileId?: string // <-- add optional profileId prop
 }) {
   const [step, setStep] = useState(0)
   const [name, setName] = useState('')
@@ -37,6 +47,33 @@ export default function RoleProfileCreate({
   >([])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (!profileId) return
+    const fetchProfile = async () => {
+      const { data } = await supabase
+        .from('role_profiles')
+        .select('*')
+        .eq('id', profileId)
+        .single()
+      if (data) {
+        setName(data.name || '')
+        setDescription(data.description || '')
+        // Fetch related modules, documents, behaviours, assignments
+        const [modules, documents, behaviours, assignments] = await Promise.all([
+          supabase.from('role_profile_modules').select('module_id').eq('role_profile_id', profileId),
+          supabase.from('role_profile_documents').select('document_id').eq('role_profile_id', profileId),
+          supabase.from('role_profile_behaviours').select('behaviour_id').eq('role_profile_id', profileId),
+          supabase.from('user_training_assignments').select('target_type, target_id, label').eq('role_profile_id', profileId),
+        ])
+        setSelectedModules((modules.data as { module_id: string }[] ?? []).map(m => m.module_id))
+        setSelectedDocuments((documents.data as { document_id: string }[] ?? []).map(d => d.document_id))
+        setSelectedBehaviours((behaviours.data as { behaviour_id: string }[] ?? []).map(b => b.behaviour_id))
+        setSelectedAssignments((assignments.data as { target_type: 'user' | 'role' | 'department'; target_id: string; label: string }[] ?? []).map(a => ({ type: a.target_type, id: a.target_id, label: a.label })))
+      }
+    }
+    fetchProfile()
+  }, [profileId])
 
   const handleNext = () => setStep((s) => Math.min(s + 1, steps.length - 1))
   const handleBack = () => setStep((s) => Math.max(s - 1, 0))
@@ -150,10 +187,9 @@ export default function RoleProfileCreate({
 
   return (
     <>
-      <HeroHeader
-        title="Create Role Profile"
-        subtitle="Define training modules, documents, behaviours, and assignments for a job role."
-      />
+      <ContentHeader>
+        Create Role Profile
+      </ContentHeader>
       <NeonPanel className="neon-panel-lg">
         <div className="mt-8 pt-6">
           <div className="mb-6">
@@ -225,10 +261,11 @@ export default function RoleProfileCreate({
 
           <div className="neon-flex gap-4 justify-between">
             <button
-              className="neon-btn neon-btn-view"
+              className="neon-btn neon-btn-danger"
               onClick={step === 0 ? onCancel : handleBack}
               type="button"
               data-tooltip={step === 0 ? 'Cancel' : 'Back'}
+              style={{ borderRadius: 'var(--radius)', width: 44, height: 44, minWidth: 44, minHeight: 44, aspectRatio: '1 / 1' }}
             >
               <FiArrowLeft />
             </button>
@@ -239,16 +276,18 @@ export default function RoleProfileCreate({
                 type="button"
                 data-tooltip="Next"
                 disabled={saving}
+                style={{ borderRadius: 'var(--radius)', width: 44, height: 44, minWidth: 44, minHeight: 44, aspectRatio: '1 / 1' }}
               >
                 <FiArrowRight />
               </button>
             ) : (
               <button
-                className="neon-btn neon-btn-submit"
+                className="neon-btn neon-btn-save"
                 onClick={handleSave}
                 type="button"
                 data-tooltip="Submit Role Profile"
                 disabled={saving}
+                style={{ borderRadius: 'var(--radius)', width: 44, height: 44, minWidth: 44, minHeight: 44, aspectRatio: '1 / 1' }}
               >
                 <FiSave />
               </button>

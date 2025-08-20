@@ -36,7 +36,7 @@ export default function RoleProfilesPage() {
 
   return (
     <div className="after-hero">
-      <div className="page-content">
+      <div className="global-content">
         <main className="page-main">
           {error && <div className="error-message">{error}</div>}
           {loading ? (

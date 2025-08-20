@@ -8,7 +8,7 @@ export function useUser() {
   const [user, setUser] = useState<{
     id?: string
     auth_id: string
-    access_level: number
+    access_level: string // changed from number to string
     department_id: string
     first_name?: string
     last_name?: string
@@ -37,7 +37,8 @@ export function useUser() {
       if (error || !data) {
         setUser(null)
       } else {
-        setUser(data)
+        // Ensure access_level is a string
+        setUser({ ...data, access_level: String(data.access_level) })
       }
 
       setLoading(false)

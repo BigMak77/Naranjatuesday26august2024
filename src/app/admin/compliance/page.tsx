@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase-client'
 import NeonTable from '@/components/NeonTable'
 import NeonForm from '@/components/NeonForm'
 import NeonPanel from '@/components/NeonPanel'
+import ContentHeader from '@/components/headersandfooters/ContentHeader'
 
 interface Assignment {
   auth_id: string
@@ -82,10 +83,11 @@ export default function CompliancePage() {
 
   return (
     <>
-      <NeonPanel>
-        <h1 className="neon-form-title">Compliance Dashboard</h1>
+      <ContentHeader>
+        <h1>Compliance Dashboard</h1>
         <p>Completion Rate: <strong>{completionRate}%</strong></p>
-
+      </ContentHeader>
+      <NeonPanel>
         <NeonForm title="Compliance Filters" onSubmit={e => e.preventDefault()} submitLabel={undefined}>
           <div className="neon-form-actions" style={{flexWrap: 'wrap'}}>
             <div>

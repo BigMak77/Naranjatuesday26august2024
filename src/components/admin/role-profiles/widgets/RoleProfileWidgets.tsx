@@ -3,6 +3,7 @@ import DocumentSelectorWidget from '@/components/admin/role-profiles/widgets/Doc
 import BehaviourSelectorWidget from '@/components/admin/role-profiles/widgets/BehaviourSelectorWidget'
 import AssignmentSelectorWidget from '@/components/admin/role-profiles/widgets/AssignmentSelectorWidget'
 import { FiUserPlus } from 'react-icons/fi'
+import NeonIconButton from '@/components/ui/NeonIconButton'
 
 interface RoleProfileWidgetsProps {
   selectedModules: string[]
@@ -28,19 +29,27 @@ export default function RoleProfileWidgets({
   return (
     <>
       <div className="neon-widget-section">
-        <h2 className="neon-section-title"><FiUserPlus /> Add Modules</h2>
+        <h2 className="neon-section-title">
+          <NeonIconButton variant="add" icon={<FiUserPlus />} title="Add" />
+        </h2>
         <ModuleSelectorWidget selectedModules={selectedModules} onChange={setSelectedModules} />
       </div>
       <div className="neon-widget-section">
-        <h2 className="neon-section-title"><FiUserPlus /> Add Documents</h2>
+        <h2 className="neon-section-title">
+          <NeonIconButton variant="add" icon={<FiUserPlus />} title="Add" />
+        </h2>
         <DocumentSelectorWidget selectedDocuments={selectedDocuments} onChange={setSelectedDocuments} />
       </div>
       <div className="neon-widget-section">
-        <h2 className="neon-section-title"><FiUserPlus /> Add Behaviours</h2>
+        <h2 className="neon-section-title">
+          <NeonIconButton variant="add" icon={<FiUserPlus />} title="Add" />
+        </h2>
         <BehaviourSelectorWidget selectedBehaviours={selectedBehaviours} onChange={setSelectedBehaviours} />
       </div>
       <div className="neon-widget-section">
-        <h2 className="neon-section-title"><FiUserPlus /> Assign Profile</h2>
+        <h2 className="neon-section-title">
+          <NeonIconButton variant="add" icon={<FiUserPlus />} title="Add" />
+        </h2>
         <AssignmentSelectorWidget selectedAssignments={selectedAssignments} onChange={setSelectedAssignments} />
       </div>
     </>

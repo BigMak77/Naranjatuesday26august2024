@@ -19,7 +19,7 @@ export default function NeonTable({ columns, data, toolbar }: NeonTableProps) {
   const [sortBy, setSortBy] = useState<string | null>(null)
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
+  const [pageSize, setPageSize] = useState(50)
   const [search, setSearch] = useState('')
 
   // Filter data by search
@@ -62,9 +62,9 @@ export default function NeonTable({ columns, data, toolbar }: NeonTableProps) {
   return (
     <div>
       {/* Controls Row: Search (left), Toolbar (center, optional), Pagination (right) in-line */}
-      <div className="neon-table-controls-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', gap: 0 }}>
+      <div className="neon-table-controls-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1.5rem', marginBottom: '1.5rem', padding: '1rem 0' }}>
         {/* Search Bar (left) */}
-        <div className="neon-table-search-bar" style={{ flex: 1, maxWidth: 320, marginRight: 'auto' }}>
+        <div className="neon-table-search-bar" style={{ flex: '1 1 320px', minWidth: 220, maxWidth: 320, paddingLeft: '1rem' }}>
           <div style={{ position: 'relative' }}>
             <FiSearch style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--neon)' }} />
             <input
@@ -81,7 +81,7 @@ export default function NeonTable({ columns, data, toolbar }: NeonTableProps) {
         </div>
         {/* Toolbar (center, optional) */}
         {toolbar && (
-          <div className="neon-table-toolbar" style={{ flex: '0 0 auto', margin: '0 1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div className="neon-table-toolbar" style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             {toolbar}
           </div>
         )}
@@ -96,6 +96,7 @@ export default function NeonTable({ columns, data, toolbar }: NeonTableProps) {
           >
             <option value={10}>10</option>
             <option value={25}>25</option>
+            <option value={50}>50</option>
           </select>
           <button
             onClick={handlePrev}

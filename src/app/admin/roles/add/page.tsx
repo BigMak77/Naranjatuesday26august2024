@@ -50,7 +50,7 @@ export default function AddRolePage() {
 
   return (
     <div className="after-hero">
-      <div className="page-content">
+      <div className="global-content">
         <form onSubmit={handleSubmit} className="add-role-form">
           <h1 className="add-role-title">Add Role</h1>
 

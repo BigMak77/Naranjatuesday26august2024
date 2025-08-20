@@ -2,6 +2,8 @@
   display: flex;
   width: 100%;
   border-bottom: 2px solid #40E0D0;
+  background: linear-gradient(90deg, #0f2027 0%, #2c5364 100%);
+  box-shadow: 0 2px 8px rgba(64,224,208,0.08);
 }
 .folder-tab {
   flex: 1 1 0;
@@ -11,15 +13,26 @@
   gap: 0.5rem;
   padding: 0.75rem 0;
   font-weight: 600;
-  font-size: 1rem;
+  
   color: #40E0D0;
   border-bottom: 2px solid transparent;
   cursor: pointer;
   transition: all 0.2s;
   min-width: 0;
+  background: none;
+  position: relative;
 }
 .folder-tab.active {
   border-bottom: 2px solid #FFA500;
-  background: #012626;
+  background: linear-gradient(90deg, #012626 0%, #1a1a1a 100%);
   color: #40E0D0;
+  box-shadow: 0 2px 12px 0 #FFA50044;
+}
+.folder-tab:hover {
+  color: #FFA500;
+  background: #012626;
+}
+.folder-tab:focus {
+  outline: 2px solid #40E0D0;
+  outline-offset: -2px;
 }

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase-client";
-import { FiUser, FiPhone, FiMail, FiShield, FiBell, FiLogIn } from "react-icons/fi";
+import { FiUser, FiPhone, FiMail, FiShield, FiBell, FiLogIn, FiClock } from "react-icons/fi";
 
 interface UserProfileCardProps {
   authId: string;
@@ -23,6 +23,7 @@ export default function UserProfileCard({ authId }: UserProfileCardProps) {
   const [user, setUser] = useState<UserRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
+  const [shift, setShift] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -39,6 +40,15 @@ export default function UserProfileCard({ authId }: UserProfileCardProps) {
       if (error) setErr(error.message);
       setUser(data ?? null);
       setLoading(false);
+
+      // Fetch assigned shift
+      const { data: shiftData, error: shiftError } = await supabase
+        .from("user_shifts")
+        .select("shift_id")
+        .eq("auth_id", authId)
+        .maybeSingle();
+      if (shiftError) setShift(null);
+      else setShift(shiftData?.shift_id ?? null);
     })();
     return () => {
       isMounted = false;
@@ -97,6 +107,10 @@ export default function UserProfileCard({ authId }: UserProfileCardProps) {
         <span className="pair" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <FiShield className="neon-icon" />
           <span className="label">Access Level:</span> {level}
+        </span>
+        <span className="pair" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <FiClock className="neon-icon" />
+          <span className="label">Shift:</span> {shift || "—"}
         </span>
         <div className="actions" style={{ display: "flex", alignItems: "center", gap: "1rem", marginLeft: "auto" }}>
           {/* Raise an Issue */}

@@ -1,29 +1,15 @@
 import NeonFeatureCard from '@/components/NeonFeatureCard';
-import { FiBarChart2, FiGrid, FiPieChart, FiSettings, FiClipboard, FiFileText, FiAlertTriangle } from 'react-icons/fi';
+import { FiBarChart2, FiGrid, FiPieChart, FiSettings, FiFileText, FiAlertTriangle, FiCheckCircle, FiShield } from 'react-icons/fi';
 
 export default function TurkusHomePage() {
   const iconSize = 20;
   const cards = [
-    {
-      title: 'Dashboard',
-      icon: <FiBarChart2 size={iconSize} />,
-      text: 'View Turkus dashboard and analytics.',
-      href: '/turkus/tasks/dashboard',
-      accentColor: '#40E0D0',
-    },
     {
       title: 'Tasks',
       icon: <FiGrid size={iconSize} />,
       text: 'Manage and assign tasks.',
       href: '/turkus/tasks',
       accentColor: '#FF8C00',
-    },
-    {
-      title: 'Reports',
-      icon: <FiPieChart size={iconSize} />,
-      text: 'View and create reports.',
-      href: '/turkus/reports',
-      accentColor: '#FFD700',
     },
     {
       title: 'Assignments',
@@ -33,13 +19,6 @@ export default function TurkusHomePage() {
       accentColor: '#00BFFF',
     },
     {
-      title: 'Task Manager',
-      icon: <FiClipboard size={iconSize} />,
-      text: 'Advanced task management.',
-      href: '/turkus/taskmanager',
-      accentColor: '#FF69B4',
-    },
-    {
       title: 'Audit',
       icon: <FiBarChart2 size={iconSize} />,
       text: 'Audit and compliance tools.',
@@ -47,11 +26,25 @@ export default function TurkusHomePage() {
       accentColor: '#32CD32',
     },
     {
-      title: 'Document Manager',
+      title: 'Documents',
       icon: <FiFileText size={iconSize} />,
       text: 'Manage Turkus documents.',
       href: '/turkus/documents',
       accentColor: '#FF6347',
+    },
+    {
+      title: 'First Aid',
+      icon: <FiCheckCircle size={iconSize} />,
+      text: 'Record and view first aid incidents.',
+      href: '/turkus/firstaid',
+      accentColor: '#40E0D0',
+    },
+    {
+      title: 'Health & Safety',
+      icon: <FiShield size={iconSize} />,
+      text: 'Policies, incidents, and risk assessments.',
+      href: '/turkus/health-safety',
+      accentColor: '#FFD700',
     },
     {
       title: 'Issues',
@@ -60,23 +53,25 @@ export default function TurkusHomePage() {
       href: '/turkus/issues',
       accentColor: '#8A2BE2',
     },
+    {
+      title: 'Reports',
+      icon: <FiPieChart size={iconSize} />,
+      text: 'View and create reports.',
+      href: '/turkus/reports',
+      accentColor: '#FFA500',
+    },
+    
   ];
   return (
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-8 mt-10">
-        {cards.map((card, idx) => (
+        {cards.map((card) => (
           <NeonFeatureCard
             key={card.title}
             icon={card.icon}
             title={card.title}
             text={card.text}
             href={card.href}
-            bgColor="#011f24"
-            borderColor="#40E0D0"
-            textColor="#b2f1ec"
-            linkColor="#40E0D0"
-            glowColor="#40E0D0"
-            accentColor={card.accentColor}
           />
         ))}
       </div>

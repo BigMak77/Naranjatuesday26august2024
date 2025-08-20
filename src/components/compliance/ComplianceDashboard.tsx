@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase-client'
 import Papa from 'papaparse'
 import NeonTable from '@/components/NeonTable'
+import ContentHeader from '@/components/headersandfooters/ContentHeader'
 
 interface ComplianceRow {
   auth_id: string
@@ -75,99 +76,104 @@ export default function ComplianceDashboard() {
   }
 
   return (
-    <div className="neon-panel">
-      <h2 className="neon-form-title">Compliance Dashboard</h2>
-      {/* Filters */}
-      <div className="neon-form-actions" style={{flexWrap: 'wrap'}}>
-        <div>
-          <label>Department</label>
-          <select value={selectedDept} onChange={e => setSelectedDept(e.target.value)} className="neon-input">
-            <option value="all">All</option>
-            {deptOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-          </select>
+    <>
+      <ContentHeader>
+        <h2>Compliance Dashboard</h2>
+      </ContentHeader>
+      <div className="neon-panel">
+        <h2 className="neon-form-title">Compliance Dashboard</h2>
+        {/* Filters */}
+        <div className="neon-form-actions" style={{flexWrap: 'wrap'}}>
+          <div>
+            <label>Department</label>
+            <select value={selectedDept} onChange={e => setSelectedDept(e.target.value)} className="neon-input">
+              <option value="all">All</option>
+              {deptOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
+          </div>
+          <div>
+            <label>Role</label>
+            <select value={selectedRole} onChange={e => setSelectedRole(e.target.value)} className="neon-input">
+              <option value="all">All</option>
+              {roleOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
+          </div>
+          <div>
+            <label>Module</label>
+            <select value={selectedModule} onChange={e => setSelectedModule(e.target.value)} className="neon-input">
+              <option value="all">All</option>
+              {moduleOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
+          </div>
         </div>
-        <div>
-          <label>Role</label>
-          <select value={selectedRole} onChange={e => setSelectedRole(e.target.value)} className="neon-input">
-            <option value="all">All</option>
-            {roleOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-          </select>
+        <div className="neon-form-actions neon-flex-wrap">
+          <button
+            type="button"
+            onClick={handleCSVExport}
+            className="neon-btn"
+          >
+            Export CSV
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const template = [{
+                auth_id: '',
+                first_name: '',
+                last_name: '',
+                department_id: '',
+                email: '',
+                nationality: '',
+                access_level: '',
+                shift: '',
+                phone: '',
+                department_name: '',
+                role_title: '',
+                start_date: ''
+              }]
+              const csv = Papa.unparse(template)
+              const blob = new Blob([csv], { type: 'text/csv' })
+              const url = URL.createObjectURL(blob)
+              const a = document.createElement('a')
+              a.href = url
+              a.download = 'user_template.csv'
+              document.body.appendChild(a)
+              a.click()
+              document.body.removeChild(a)
+              URL.revokeObjectURL(url)
+            }}
+            className="neon-btn neon-btn-orange"
+          >
+            Download CSV Template
+          </button>
         </div>
-        <div>
-          <label>Module</label>
-          <select value={selectedModule} onChange={e => setSelectedModule(e.target.value)} className="neon-input">
-            <option value="all">All</option>
-            {moduleOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-          </select>
-        </div>
+        {loading ? (
+          <p>Loading...</p>
+        ) : error ? (
+          <p className="neon-error">{error}</p>
+        ) : data.length === 0 ? (
+          <p>No compliance data found.</p>
+        ) : (
+          <NeonTable
+            columns={[
+              { header: 'User', accessor: 'auth_id' },
+              { header: 'Department', accessor: 'department' },
+              { header: 'Role', accessor: 'role' },
+              { header: 'Module', accessor: 'module' },
+              { header: 'Status', accessor: 'status' },
+              { header: 'Completed At', accessor: 'completed_at' },
+            ]}
+            data={data.map((row) => ({
+              auth_id: row.auth_id,
+              department: row.department,
+              role: row.role,
+              module: row.module,
+              status: row.status,
+              completed_at: row.completed_at ? new Date(row.completed_at).toLocaleDateString('en-GB') : '—',
+            }))}
+          />
+        )}
       </div>
-      <div className="neon-form-actions neon-flex-wrap">
-        <button
-          type="button"
-          onClick={handleCSVExport}
-          className="neon-btn"
-        >
-          Export CSV
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            const template = [{
-              auth_id: '',
-              first_name: '',
-              last_name: '',
-              department_id: '',
-              email: '',
-              nationality: '',
-              access_level: '',
-              shift: '',
-              phone: '',
-              department_name: '',
-              role_title: '',
-              start_date: ''
-            }]
-            const csv = Papa.unparse(template)
-            const blob = new Blob([csv], { type: 'text/csv' })
-            const url = URL.createObjectURL(blob)
-            const a = document.createElement('a')
-            a.href = url
-            a.download = 'user_template.csv'
-            document.body.appendChild(a)
-            a.click()
-            document.body.removeChild(a)
-            URL.revokeObjectURL(url)
-          }}
-          className="neon-btn neon-btn-orange"
-        >
-          Download CSV Template
-        </button>
-      </div>
-      {loading ? (
-        <p>Loading...</p>
-      ) : error ? (
-        <p className="neon-error">{error}</p>
-      ) : data.length === 0 ? (
-        <p>No compliance data found.</p>
-      ) : (
-        <NeonTable
-          columns={[
-            { header: 'User', accessor: 'auth_id' },
-            { header: 'Department', accessor: 'department' },
-            { header: 'Role', accessor: 'role' },
-            { header: 'Module', accessor: 'module' },
-            { header: 'Status', accessor: 'status' },
-            { header: 'Completed At', accessor: 'completed_at' },
-          ]}
-          data={data.map((row) => ({
-            auth_id: row.auth_id,
-            department: row.department,
-            role: row.role,
-            module: row.module,
-            status: row.status,
-            completed_at: row.completed_at ? new Date(row.completed_at).toLocaleDateString('en-GB') : '—',
-          }))}
-        />
-      )}
-    </div>
+    </>
   )
 }

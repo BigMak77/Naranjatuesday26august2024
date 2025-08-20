@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase-client'
 import NeonTable from '@/components/NeonTable'
+import NeonIconButton from '@/components/ui/NeonIconButton'
 
 type Issue = {
   id: string
@@ -53,10 +54,10 @@ export default function IssuesListPage() {
 
   return (
     <>
-      <div className="centered-content">
-        <div className="max-w-6xl w-full px-8 mt-10">
+      <div className="centered-content" style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', width: '100%' }}>
+        <div style={{ maxWidth: '1200px', width: '100%', padding: '0 2rem', marginTop: '2.5rem' }}>
           {loading ? (
-            <p className="neon-success">Loading issues...</p>
+            <p className="neon-success" style={{ color: 'var(--neon)', textAlign: 'center', fontWeight: 600, fontSize: '1.1rem' }}>Loading issues...</p>
           ) : (
             <NeonTable
               columns={[
@@ -65,6 +66,7 @@ export default function IssuesListPage() {
                 { header: 'Status', accessor: 'status' },
                 { header: 'Created', accessor: 'created_at' },
                 { header: 'Department', accessor: 'department' },
+                { header: '', accessor: 'actions' },
               ]}
               data={issues.map(issue => ({
                 title: issue.title,
@@ -72,6 +74,15 @@ export default function IssuesListPage() {
                 status: issue.status,
                 created_at: issue.created_at ? new Date(issue.created_at).toLocaleDateString('en-GB') : '—',
                 department: issue.departments?.name || '—',
+                actions: (
+                  <NeonIconButton
+                    variant="view"
+                    as="link"
+                    href={`/turkus/issues/${issue.id}`}
+                    title="View Issue"
+                    className="neon-btn-view"
+                  />
+                ),
               }))}
             />
           )}

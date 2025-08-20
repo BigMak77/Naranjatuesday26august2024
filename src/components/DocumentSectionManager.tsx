@@ -8,6 +8,8 @@ import NeonTable from '@/components/NeonTable'
 import { FiArchive, FiFileText, FiBookOpen, FiClipboard, FiPlus, FiEdit } from 'react-icons/fi'
 import { useUser } from '@/lib/useUser'
 import NeonIconButton from '@/components/ui/NeonIconButton'
+import Modal from '@/components/modal'
+import NeonForm from '@/components/NeonForm'
 
 interface Document {
   id: string
@@ -39,7 +41,6 @@ export default function DocumentManager() {
   const [search, setSearch] = useState('')
   const [filterType, setFilterType] = useState('')
   const [filterSection, setFilterSection] = useState('')
-  const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
   const [showArchiveModal, setShowArchiveModal] = useState(false)
   const [archiveDocId, setArchiveDocId] = useState<string | null>(null)
@@ -69,8 +70,10 @@ export default function DocumentManager() {
   }, [])
 
   useEffect(() => {
-    setPage(1)
-  }, [search, filterType, filterSection])
+    setSearch('')
+    setFilterType('')
+    setFilterSection('')
+  }, [])
 
   const filtered = documents.filter((doc) => {
     const matchesSearch = doc.title.toLowerCase().includes(search.toLowerCase())
@@ -78,14 +81,6 @@ export default function DocumentManager() {
     const matchesSection = filterSection ? doc.section_id === filterSection : true
     return matchesSearch && matchesType && matchesSection
   })
-
-  const paged = filtered.slice((page - 1) * 25, page * 25) // Default/fixed page size
-  const totalPages = Math.ceil(filtered.length / 25)
-
-  const handlePageChange = (dir: 'prev' | 'next') => {
-    if (dir === 'prev' && page > 1) setPage(page - 1)
-    if (dir === 'next' && page < totalPages) setPage(page + 1)
-  }
 
   const handleArchiveClick = async (id: string) => {
     if (buttonLoading) return; // Prevent double click
@@ -160,37 +155,43 @@ export default function DocumentManager() {
   return (
     <>
       {/* Archive Modal */}
-      {showArchiveModal && (
-        <div className="modal-archive-overlay">
-          <div className="modal-archive-container">
-            <h2 className="modal-archive-title">Archive Document</h2>
-            <label className="modal-archive-label" htmlFor="changeSummary">
-              Change Summary <span className="modal-archive-label-required">*</span>
-            </label>
-            <textarea
-              id="changeSummary"
-              value={changeSummary}
-              onChange={e => setChangeSummary(e.target.value)}
-              className="modal-archive-textarea"
-              placeholder="Describe why this document is being archived..."
-              required
-            />
-            {archiveErrorMsg && <p className="modal-archive-error">{archiveErrorMsg}</p>}
-            <div className="modal-archive-actions">
-              <button
-                className="modal-archive-cancel"
-                onClick={() => { setShowArchiveModal(false); setArchiveDocId(null); setChangeSummary(''); setButtonLoading(null); }}
-                disabled={!!buttonLoading}
-              >Cancel</button>
-              <button
-                className="modal-archive-submit"
-                onClick={handleArchiveSubmit}
-                disabled={!!buttonLoading}
-              >{buttonLoading ? 'Archiving...' : 'Archive'}</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Modal open={showArchiveModal} onClose={() => {
+        setShowArchiveModal(false);
+        setArchiveDocId(null);
+        setChangeSummary('');
+        setButtonLoading(null);
+      }}>
+        <NeonForm
+          title="Archive Document"
+          onSubmit={e => {
+            e.preventDefault();
+            handleArchiveSubmit();
+          }}
+          submitLabel={buttonLoading ? 'Archiving...' : 'Archive'}
+          onCancel={() => {
+            setShowArchiveModal(false);
+            setArchiveDocId(null);
+            setChangeSummary('');
+            setButtonLoading(null);
+          }}
+        >
+          <label className="neon-label" htmlFor="changeSummary">
+            Change Summary <span className="danger-text">*</span>
+          </label>
+          <textarea
+            id="changeSummary"
+            value={changeSummary}
+            onChange={e => setChangeSummary(e.target.value)}
+            className="neon-input mb-2"
+            placeholder="Describe why this document is being archived..."
+            required
+            rows={3}
+          />
+          {archiveErrorMsg && (
+            <p className="danger-text mb-2">{archiveErrorMsg}</p>
+          )}
+        </NeonForm>
+      </Modal>
 
       <div className="document-section-controls">
         <div className="document-section-controls-filters">
@@ -218,7 +219,7 @@ export default function DocumentManager() {
         <div className="document-section-controls-actions">
           <button
             onClick={() => router.push('/admin/documents/add')}
-            className="document-section-action-btn"
+            className="neon-btn neon-btn-add"
             title="Add Document"
             disabled={!!buttonLoading}
           >
@@ -227,7 +228,7 @@ export default function DocumentManager() {
           </button>
           <button
             onClick={() => router.push('/admin/documents/archived')}
-            className="document-section-action-btn"
+            className="neon-btn neon-btn-archive"
             title="View Archived Documents"
             disabled={!!buttonLoading}
           >
@@ -241,11 +242,6 @@ export default function DocumentManager() {
         <p className="neon-loading">Loading...</p>
       ) : (
         <>
-          <div className="document-section-table-toolbar">
-            <p className="document-section-table-count">Showing {paged.length} of {filtered.length} matching documents</p>
-            {/* Page size selector removed: now handled globally */}
-          </div>
-
           <div className="document-section-table-wrapper">
             <NeonTable
               columns={[
@@ -257,7 +253,7 @@ export default function DocumentManager() {
                 { header: 'Edit', accessor: 'edit' },
                 { header: 'Archive', accessor: 'archive' },
               ]}
-              data={paged
+              data={filtered
                 .filter(doc => isValidUUID(doc.id) && (!doc.section_id || isValidUUID(doc.section_id)))
                 .map((doc: Document) => {
                   const section = sections.find(s => s.id === doc.section_id)
@@ -297,6 +293,9 @@ export default function DocumentManager() {
                     ) : '—',
                   }
                 })}
+              toolbar={
+                <p className="document-section-table-count">Showing {filtered.length} matching documents</p>
+              }
             />
           </div>
         </>

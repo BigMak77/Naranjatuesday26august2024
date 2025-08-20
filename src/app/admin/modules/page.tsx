@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase-client'
-import TrainingModuleManager from '@/components/TrainingModuleManager'
+import TrainingModuleManager from '@/components/modules/TrainingModuleManager'
 import { FiPackage } from 'react-icons/fi'
 
 export default function ModuleViewPage() {

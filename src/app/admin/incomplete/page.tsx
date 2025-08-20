@@ -101,7 +101,7 @@ export default function IncompleteTrainingPage() {
 
   return (
     <div className="after-hero">
-      <div className="page-content">
+      <div className="global-content">
         <main className="page-main">
           <div className="neon-panel">
             <div className="neon-panel-content">

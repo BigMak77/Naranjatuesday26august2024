@@ -22,7 +22,7 @@ import {
   FiDatabase
 } from 'react-icons/fi'
 import NeonFeatureCard from '@/components/NeonFeatureCard'
-
+import NeonPanel from '@/components/NeonPanel'
 
 interface DashboardLink {
   href: string
@@ -109,7 +109,7 @@ export default function DashboardPage() {
       links: [
         { href: '/admin/role-profiles', label: <><FiBookOpen size={iconSize} /> View Profiles</> },
         { href: '/admin/role-profiles/add', label: <><FiPlusCircle size={iconSize} /> Create Profile</> },
-        { href: '/admin/role-profiles/manage', label: <><FiSettings size={iconSize} /> Manage Assignments</> },
+        { href: '/admin/role-profiles/manage', label: <><FiSettings size={iconSize} /> Manage Profiles</> },
       ],
     },
     {
@@ -126,8 +126,8 @@ export default function DashboardPage() {
       title: <><FiHome size={20} /> Turkus</>,
       links: [
         { href: '/turkus', label: <><FiHome size={iconSize} /> Turkus Home</> },
-        { href: '/tasks/dashboard', label: <><FiBarChart2 size={iconSize} /> Dashboard</> },
-        { href: '/tasks', label: <><FiGrid size={iconSize} /> Tasks</> },
+        { href: '/turkus/tasks/dashboard', label: <><FiBarChart2 size={iconSize} /> Dashboard</> },
+        { href: '/turkus/tasks', label: <><FiGrid size={iconSize} /> Tasks</> },
         { href: '/turkus/reports', label: <><FiPieChart size={iconSize} /> Reports</> },
         { href: '/turkus/assignments', label: <><FiSettings size={iconSize} /> Assignments</> },
         { href: '/turkus/taskmanager', label: <><FiClipboard size={iconSize} /> Task Manager</> },
@@ -140,44 +140,32 @@ export default function DashboardPage() {
 
   return (
     <>
-      <main>
+      <main className="global-content dashboard-panel">
+        <NeonPanel>
+          <section className="dashboard-overview neon-panel-border">
+            <div className="overview-info">
+              <p className="overview-title neon-header">
+                <FiPieChart size={iconSize} />
+              </p>
+              <p className="overview-desc">Live summary of completion status</p>
+            </div>
+            <div className="overview-stats">
+              <p className="overview-stat">
+                <FiCheckCircle size={iconSize} /> <strong>Avg Compliance:</strong> {avgCompliance ?? 'Loading...'}%
+              </p>
+              <p className="overview-stat">
+                <FiAlertTriangle size={iconSize} className="icon-warning" /> <strong>Users &lt; 70%:</strong> {lowComplianceCount}
+              </p>
+              <Link
+                href="/admin/compliance"
+                className="dashboard-btn neon-btn"
+              >
+                <FiPieChart size={iconSize} />
+              </Link>
+            </div>
+          </section>
+        </NeonPanel>
         <section className="dashboard-grid">
-          {/* Compliance Feature Card with embedded compliance overview */}
-          <div className="dashboard-card">
-            <NeonFeatureCard
-              icon={<FiPieChart size={24} color="#ffa500" aria-label="Compliance" />}
-              title="Compliance Dashboard"
-              text="Track and manage training compliance across your organization."
-              href="/admin/compliance"
-              className="neon-feature-card neon-feature-card-compliance"
-            >
-              {/* Compliance Overview Section embedded here */}
-              <section className="dashboard-overview">
-                <div className="overview-info">
-                  <p className="overview-title">
-                    <FiPieChart size={iconSize} /> Compliance Overview
-                  </p>
-                  <p className="overview-desc">Live summary of completion status</p>
-                </div>
-                <div className="overview-stats">
-                  <p className="overview-stat">
-                    <FiCheckCircle size={iconSize} /> <strong>Avg Compliance:</strong> {avgCompliance ?? 'Loading...'}%
-                  </p>
-                  <p className="overview-stat">
-                    <FiAlertTriangle size={iconSize} className="icon-warning" /> <strong>Users &lt; 70%:</strong> {lowComplianceCount}
-                  </p>
-                </div>
-              </section>
-              <div className="dashboard-links">
-                <Link href="/admin/compliance" className="dashboard-link">
-                  <FiPieChart size={16} color="#ffa500" aria-label="Compliance" /> View Compliance Overview
-                </Link>
-                <Link href="/admin/incomplete" className="dashboard-link">
-                  <FiAlertTriangle size={16} color="#ffa500" aria-label="Incomplete" /> Incomplete Training
-                </Link>
-              </div>
-            </NeonFeatureCard>
-          </div>
           {cards.map((card, idx) => {
             let icon = <FiActivity />
             let title = 'Feature'

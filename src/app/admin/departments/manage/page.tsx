@@ -54,7 +54,7 @@ export default function ManageDepartmentsPage() {
 
   return (
     <div className="after-hero">
-      <div className="page-content">
+      <div className="global-content">
         <section className="departments-manage-section flex-grow">
           <h1 className="departments-manage-title">Manage Departments</h1>
 

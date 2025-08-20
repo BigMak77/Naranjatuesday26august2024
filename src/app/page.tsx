@@ -46,6 +46,7 @@ export default function HomePage() {
           marginLeft: "-50vw",
           marginRight: "-50vw",
           height: "120px",
+          background: "#159ca3",
           overflow: "hidden",
         }}
       >
@@ -60,6 +61,18 @@ export default function HomePage() {
             priority
             style={{ objectFit: "cover", objectPosition: "center top" }}
           />
+          {/* Turquoise overlay filter */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background:
+                "linear-gradient(180deg, rgba(4, 8, 9, 0.89) 0%, rgba(31, 118, 125, 0.89) 100%)",
+              mixBlendMode: "multiply",
+              pointerEvents: "none",
+              zIndex: 1,
+            }}
+          />
         </div>
         <div
           className="homepage-panel-inner"
@@ -73,8 +86,28 @@ export default function HomePage() {
             alignItems: "center",
           }}
         >
-          <h2 className="homepage-panel-title">Welcome to Naranja</h2>
-          <p className="homepage-panel-desc">
+          <h2
+            className="homepage-panel-title"
+            style={{
+              color: "#fff",
+              fontSize: "2.4rem",
+              fontWeight: 700,
+              letterSpacing: "0.01em",
+              margin: 0,
+            }}
+          >
+            Welcome to Naranja
+          </h2>
+          <p
+            className="homepage-panel-desc"
+            style={{
+              color: "#e6f9f8",
+              fontSize: "1.18rem",
+              fontWeight: 500,
+              margin: "0.5rem 0 0 0",
+              textAlign: "center",
+            }}
+          >
             Training & Compliance for Food Manufacturing. Streamline SOPs,
             policies, risk assessments, and training with a beautiful, auditable
             platform.
@@ -84,48 +117,36 @@ export default function HomePage() {
 
       {/* Action buttons */}
       <div
-        className="homepage-action-panel"
-        style={{
-          position: "relative",
-          width: "100vw",
-          left: "50%",
-          right: "50%",
-          marginLeft: "-50vw",
-          marginRight: "-50vw",
-          height: "80px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "2rem",
-          background: "rgba(215, 111, 7, 0.91)",
-          borderBottom: "1px solid #eee",
-        }}
-      >
-        <NeonIconButton
-          as="link"
-          href="/contact-us"
-          variant="view"
-          title="Contact Us"
-        />
-        <NeonIconButton
-          as="link"
-          href="/features"
-          variant="star"
-          title="Features"
-        />
-        <NeonIconButton
-          as="link"
-          href="/about"
-          variant="info"
-          title="About Us"
-        />
-        <NeonIconButton
-          as="link"
-          href="/login"
-          variant="login"
-          title="Log In"
-        />
-      </div>
+  className="homepage-action-panel"
+  style={{
+    position: "relative",
+    width: "100vw",
+    left: "50%",
+    right: "50%",
+    marginLeft: "-50vw",
+    marginRight: "-50vw",
+    height: "50px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "2rem",
+    background: "#159ca3",
+    borderBottom: "1px solid #eee",
+  }}
+>
+  <NeonIconButton as="link" href="/contact-us" variant="view" title="Contact Us">
+    Contact Us
+  </NeonIconButton>
+  <NeonIconButton as="link" href="/features" variant="star" title="Features">
+    Features
+  </NeonIconButton>
+  <NeonIconButton as="link" href="/about" variant="info" title="About Us">
+    About Us
+  </NeonIconButton>
+  <NeonIconButton as="link" href="/login" variant="login" title="Log In">
+    Log In
+  </NeonIconButton>
+</div>
 
       {/* Full-bleed wrapper to escape any parent max-width */}
       <div
@@ -145,8 +166,9 @@ export default function HomePage() {
           style={{
             width: "calc(100% - 4rem)",
             margin: "2rem auto",
-            background: "#fff",
+            background: "#0d3c47", // deep blue/dark turquoise
             borderRadius: "18px",
+            border: "2.5px solid #ffb347", // orange border
             boxShadow: "0 4px 24px rgba(0,0,0,0.07)",
             padding: "1rem",
             boxSizing: "border-box",
@@ -158,32 +180,41 @@ export default function HomePage() {
             className="homepage-cards-row"
             style={{
               display: "flex",
-              gap: "0.5rem",
+              gap: 0,
               height: "320px",
-              minWidth: "calc(756px + 300px + 0.5rem)",
+              minWidth: "calc(756px + 300px)",
               width: "100%",
               margin: "0 auto",
+              position: "relative",
             }}
           >
             {/* Left card */}
             <div
               className="homepage-card-large"
               style={{
-                flex: "1 1 0",
+                flex: "0 0 580px",
                 minWidth: "580px",
-                background: "#19e6d9",
+                maxWidth: "580px",
+                background: "#159ca3", // darker turquoise
                 borderRadius: "14px",
-                padding: "2rem",
+                paddingLeft: "2rem", // 2rem left padding
+                paddingTop: 0,
+                paddingBottom: 0,
                 boxSizing: "border-box",
                 display: "flex",
                 flexDirection: "column",
-                justifyContent: "flex-start",
+                justifyContent: "center",
+                alignItems: "flex-start", // left align horizontally
+                position: "relative",
+                zIndex: 1,
+                height: "100%",
+                color: "#fff", // white text for all content
               }}
             >
               <h2
                 style={{
                   margin: 0,
-                  color: "#222",
+                  color: "#fff",
                   display: "flex",
                   alignItems: "center",
                   gap: "0.5rem",
@@ -198,7 +229,7 @@ export default function HomePage() {
                   paddingLeft: "1.25rem",
                   fontSize: "1.08rem",
                   fontWeight: 500,
-                  color: "#222",
+                  color: "#fff",
                 }}
               >
                 <li>Scattered SOPs and outdated versions</li>
@@ -209,7 +240,7 @@ export default function HomePage() {
               <h2
                 style={{
                   margin: "1.25rem 0 0",
-                  color: "#ff5a36",
+                  color: "#fff",
                   display: "flex",
                   alignItems: "center",
                   gap: "0.5rem",
@@ -224,7 +255,7 @@ export default function HomePage() {
                   paddingLeft: "1.25rem",
                   fontSize: "1.08rem",
                   fontWeight: 500,
-                  color: "#222",
+                  color: "#fff",
                 }}
               >
                 <li>Single source of truth for every controlled document</li>
@@ -233,36 +264,44 @@ export default function HomePage() {
               </ul>
             </div>
 
-            {/* Right cards with inline icon + title */}
+            {/* Right cards with overlap */}
             <div
               className="homepage-card-rights"
               style={{
-                flex: "1.5 1 0",
+                flex: "1 1 0",
                 minWidth: "460px",
                 display: "grid",
                 gridTemplateRows: "repeat(4, 1fr)",
                 gap: "0.5rem",
+                position: "absolute",
+                top: "50%", // center vertically
+                left: "calc(580px - 2rem)", // overlap by 2rem over left card
+                width: "calc(100% - 580px + 2rem)",
+                zIndex: 2,
+                transform: "translateY(-50%)", // center vertically
               }}
             >
               {FEATURES.map(({ Icon, title, text, href }, i) => {
-                const colors = ["#ffb347", "#19e6d9", "#4f8cff", "#ff5ad1"];
+                const neonColors = ["#ffb347", "#19e6d9", "#4f8cff", "#ff5ad1"];
                 return (
                   <Link
                     key={title}
                     href={href}
+                    className={`homepage-feature-card homepage-feature-card-${i}`}
                     style={{
-                      background: colors[i % colors.length],
+                      background: `linear-gradient(90deg, #159ca3 0%, #159ca3 80%, ${neonColors[i % neonColors.length]} 100%)`,
                       borderRadius: "14px",
-                      border: "1.5px solid #e0e0e0",
                       boxShadow:
                         "0 2px 12px rgba(0,0,0,0.07), 0 1.5px 0 rgba(255,255,255,0.4) inset",
                       textDecoration: "none",
                       display: "flex",
                       flexDirection: "column",
                       justifyContent: "center",
-                      padding: "0.5rem 1rem", // reduced top/bottom padding
+                      padding: "0.5rem 1rem",
                       gap: "0.5rem",
                       color: "#222",
+                      position: "relative",
+                      overflow: "hidden",
                     }}
                   >
                     {/* Title row with inline icon */}
@@ -274,6 +313,7 @@ export default function HomePage() {
                         fontWeight: 700,
                         fontSize: "1.05rem",
                         lineHeight: 1.2,
+                        color: "#fff", // white text
                       }}
                     >
                       <Icon style={{ fontSize: "1.25em" }} />
@@ -284,7 +324,7 @@ export default function HomePage() {
                     <div
                       style={{
                         fontSize: "0.96rem",
-                        color: "#333",
+                        color: "#fff", // white text
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                         display: "-webkit-box",
@@ -298,6 +338,235 @@ export default function HomePage() {
                 );
               })}
             </div>
+          </div>
+        </div>
+
+        {/* CTO Panel Section */}
+        <div
+          className="homepage-cto-panel"
+          style={{
+            width: "calc(100% - 4rem)",
+            margin: "2rem auto 0 auto",
+            background: "#0d3c47", // deep blue/dark turquoise
+            borderRadius: "18px",
+            boxShadow: "0 2px 16px rgba(0,0,0,0.10)",
+            padding: "2.5rem 2rem 2rem 2rem",
+            boxSizing: "border-box",
+            display: "flex",
+            alignItems: "center",
+            gap: "2.5rem",
+            color: "#fff",
+            position: "relative",
+            overflow: "hidden",
+            border: "2.5px solid #ffb347", // orange border for emphasis
+          }}
+        >
+          <div
+            style={{
+              flex: "0 0 120px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <FiStar
+              style={{
+                fontSize: "5.5rem",
+                color: "#ffb347",
+                filter:
+                  "drop-shadow(0 0 12px #ffb347) drop-shadow(0 0 24px #fff7e6)",
+                animation: "homepage-cto-star-pulse 1.2s infinite alternate",
+              }}
+              aria-label="CTO Star Icon"
+            />
+          </div>
+          <div style={{ flex: 1 }}>
+            <h3
+              style={{
+                margin: 0,
+                fontSize: "1.35rem",
+                fontWeight: 700,
+                letterSpacing: "0.01em",
+                color: "#fff",
+              }}
+            >
+              Our Purpose is Simple{" "}
+              <span
+                style={{
+                  fontWeight: 400,
+                  fontSize: "1.05rem",
+                  color: "#19e6d9",
+                  marginLeft: "0.5rem",
+                }}
+              >
+                To help food and drink businesses keep their people safe
+              </span>
+            </h3>
+            <blockquote
+              style={{
+                margin: "1.1rem 0 0 0",
+                fontSize: "1.08rem",
+                fontWeight: 400,
+                lineHeight: 1.5,
+                color: "#fff",
+                borderLeft: "4px solid #19e6d9",
+                paddingLeft: "1rem",
+              }}
+            >
+              "We built Naranja to help food and drink businesses keep their people safe and deliver the highest quality products to consumers. By taking care of compliance, training, and audit readiness, we free you to focus on what matters most — running your operation and making great products."
+            </blockquote>
+          </div>
+        </div>
+
+        {/* Action buttons panel clone beneath CTO section */}
+        <div
+          className="homepage-action-panel homepage-action-panel-bottom"
+          style={{
+            position: "relative",
+            width: "100vw",
+            left: "50%",
+            right: "50%",
+            marginLeft: "-50vw",
+            marginRight: "-50vw",
+            height: "auto",
+            minHeight: "120px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "1.5rem",
+            background: "#159ca3", // light turquoise
+            borderTop: "2.5px solid #ffb347", // orange border on top
+            borderBottom: "none",
+            marginTop: "4rem",
+            padding: "2.5rem 0 2rem 0",
+            color: "#fff",
+            fontSize: "1.05rem",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              gap: "2.5rem",
+              flexWrap: "wrap",
+              justifyContent: "center",
+              alignItems: "center",
+              width: "100%",
+              maxWidth: "1100px",
+            }}
+          >
+            {/* Socials */}
+            <div
+              style={{
+                display: "flex",
+                gap: "1.5rem",
+                alignItems: "center",
+              }}
+            >
+              <a
+                href="https://linkedin.com/company/your-company"
+                target="_blank"
+                rel="noopener"
+                aria-label="LinkedIn"
+                style={{
+                  color: "#19e6d9",
+                  fontSize: "1.7rem",
+                }}
+              >
+                <svg
+                  width="1em"
+                  height="1em"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.761 0 5-2.239 5-5v-14c0-2.761-2.239-5-5-5zm-11 19h-3v-10h3v10zm-1.5-11.268c-.966 0-1.75-.784-1.75-1.75s.784-1.75 1.75-1.75 1.75.784 1.75 1.75-.784 1.75-1.75 1.75zm13.5 11.268h-3v-5.604c0-1.337-.026-3.063-1.867-3.063-1.868 0-2.154 1.459-2.154 2.967v5.7h-3v-10h2.881v1.367h.041c.401-.761 1.379-1.563 2.838-1.563 3.036 0 3.6 2.001 3.6 4.601v5.595z" />
+                </svg>
+              </a>
+              <a
+                href="https://x.com/your-company"
+                target="_blank"
+                rel="noopener"
+                aria-label="Twitter/X"
+                style={{
+                  color: "#19e6d9",
+                  fontSize: "1.7rem",
+                }}
+              >
+                <svg
+                  width="1em"
+                  height="1em"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M17.53 7.477l-4.06 4.73 4.06 4.316h-1.44l-3.36-3.574-2.97 3.574h-1.44l3.36-4.316-3.36-4.73h1.44l2.97 3.988 3.36-3.988z" />
+                </svg>
+              </a>
+              <a
+                href="mailto:info@naranja.app"
+                aria-label="Email"
+                style={{
+                  color: "#19e6d9",
+                  fontSize: "1.7rem",
+                }}
+              >
+                <svg
+                  width="1em"
+                  height="1em"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M12 13.065l-11.99-7.065v14h23.98v-14l-11.99 7.065zm11.99-9.065h-23.98l11.99 7.065 11.99-7.065z" />
+                </svg>
+              </a>
+            </div>
+            {/* Company details */}
+            <div
+              style={{
+                textAlign: "center",
+                minWidth: "220px",
+              }}
+            >
+              <strong>Naranja Ltd</strong>
+              <br />
+              Training & Compliance for Food Manufacturing
+              <br />
+              Company No. 12345678
+              <br />
+              Registered in England & Wales
+              <br />
+            </div>
+            {/* Contact info */}
+            <div
+              style={{
+                textAlign: "center",
+                minWidth: "220px",
+              }}
+            >
+              <strong>Contact Us</strong>
+              <br />
+              <a
+                href="mailto:info@naranja.app"
+                style={{
+                  color: "#19e6d9",
+                  textDecoration: "none",
+                }}
+              >
+                info@naranja.app
+              </a>
+              <br />
+              123 Orange Street, London, UK
+              <br />
+              +44 1234 567890
+            </div>
+          </div>
+          <div
+            style={{
+              marginTop: "2rem",
+              fontSize: "0.95rem",
+              color: "#b2e6e6",
+            }}
+          >
+            &copy; {new Date().getFullYear()} Naranja Ltd. All rights reserved.
           </div>
         </div>
 
@@ -319,6 +588,137 @@ export default function HomePage() {
             margin: 0 !important;
             padding-left: 1.rem !important;
           }
+          .homepage-feature-card {
+            transition: box-shadow 0.3s, filter 0.3s;
+          }
+          .homepage-feature-card::after,
+          .homepage-feature-card::before,
+          .homepage-feature-card-right {
+            pointer-events: none;
+            z-index: 2;
+            transition: box-shadow 0.3s, filter 0.3s;
+          }
+          .homepage-feature-card::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 4px;
+            border-bottom-left-radius: 14px;
+            border-bottom-right-radius: 14px;
+          }
+          .homepage-feature-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            height: 4px;
+            border-top-left-radius: 14px;
+            border-top-right-radius: 14px;
+          }
+          .homepage-feature-card-right {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 4px;
+            border-top-right-radius: 14px;
+            border-bottom-right-radius: 14px;
+            pointer-events: none;
+            z-index: 2;
+          }
+          .homepage-feature-card-0::after,
+          .homepage-feature-card-0::before {
+            background: linear-gradient(90deg, #159ca3 0%, #159ca3 5%, #ffb347 100%);
+          }
+          .homepage-feature-card-1::after,
+          .homepage-feature-card-1::before {
+            background: linear-gradient(90deg, #159ca3 0%, #159ca3 5%, #19e6d9 100%);
+          }
+          .homepage-feature-card-2::after,
+          .homepage-feature-card-2::before {
+            background: linear-gradient(90deg, #159ca3 0%, #159ca3 5%, #4f8cff 100%);
+          }
+          .homepage-feature-card-3::after,
+          .homepage-feature-card-3::before {
+            background: linear-gradient(90deg, #159ca3 0%, #159ca3 5%, #ff5ad1 100%);
+          }
+          .homepage-feature-card-0 .homepage-feature-card-right {
+            background: linear-gradient(180deg, #159ca3 0%, #159ca3 5%, #ffb347 100%);
+          }
+          .homepage-feature-card-1 .homepage-feature-card-right {
+            background: linear-gradient(180deg, #159ca3 0%, #159ca3 5%, #19e6d9 100%);
+          }
+          .homepage-feature-card-2 .homepage-feature-card-right {
+            background: linear-gradient(180deg, #159ca3 0%, #159ca3 5%, #4f8cff 100%);
+          }
+          .homepage-feature-card-3 .homepage-feature-card-right {
+            background: linear-gradient(180deg, #159ca3 0%, #159ca3 5%, #ff5ad1 100%);
+          }
+          /* Subtle glow and pulse on hover - use border neon color for each card */
+          .homepage-feature-card-0:hover {
+            box-shadow: 0 0 8px 2px #ffb347;
+            filter: brightness(1.03) drop-shadow(0 0 3px #ffb347);
+            animation: homepage-feature-card-pulse-0 1.1s infinite alternate;
+          }
+          .homepage-feature-card-1:hover {
+            box-shadow: 0 0 8px 2px #19e6d9;
+            filter: brightness(1.03) drop-shadow(0 0 3px #19e6d9);
+            animation: homepage-feature-card-pulse-1 1.1s infinite alternate;
+          }
+          .homepage-feature-card-2:hover {
+            box-shadow: 0 0 8px 2px #4f8cff;
+            filter: brightness(1.03) drop-shadow(0 0 3px #4f8cff);
+            animation: homepage-feature-card-pulse-2 1.1s infinite alternate;
+          }
+          .homepage-feature-card-3:hover {
+            box-shadow: 0 0 8px 2px #ff5ad1;
+            filter: brightness(1.03) drop-shadow(0 0 3px #ff5ad1);
+            animation: homepage-feature-card-pulse-3 1.1s infinite alternate;
+          }
+          .homepage-feature-card-0:hover::after,
+          .homepage-feature-card-0:hover::before,
+          .homepage-feature-card-0:hover .homepage-feature-card-right {
+            box-shadow: 0 0 4px 1px #ffb347;
+            filter: brightness(1.07);
+          }
+          .homepage-feature-card-1:hover::after,
+          .homepage-feature-card-1:hover::before,
+          .homepage-feature-card-1:hover .homepage-feature-card-right {
+            box-shadow: 0 0 4px 1px #19e6d9;
+            filter: brightness(1.07);
+          }
+          .homepage-feature-card-2:hover::after,
+          .homepage-feature-card-2:hover::before,
+          .homepage-feature-card-2:hover .homepage-feature-card-right {
+            box-shadow: 0 0 4px 1px #4f8cff;
+            filter: brightness(1.07);
+          }
+          .homepage-feature-card-3:hover::after,
+          .homepage-feature-card-3:hover::before,
+          .homepage-feature-card-3:hover .homepage-feature-card-right {
+            box-shadow: 0 0 4px 1px #ff5ad1;
+            filter: brightness(1.07);
+          }
+          @keyframes homepage-feature-card-pulse-0 {
+            0% { box-shadow: 0 0 8px 2px #ffb347; }
+            100% { box-shadow: 0 0 8px 4px #ffb347; }
+          }
+          @keyframes homepage-feature-card-pulse-1 {
+            0% { box-shadow: 0 0 8px 2px #19e6d9; }
+            100% { box-shadow: 0 0 8px 4px #19e6d9; }
+          }
+          @keyframes homepage-feature-card-pulse-2 {
+            0% { box-shadow: 0 0 8px 2px #4f8cff; }
+            100% { box-shadow: 0 0 8px 4px #4f8cff; }
+          }
+          @keyframes homepage-feature-card-pulse-3 {
+            0% { box-shadow: 0 0 8px 2px #ff5ad1; }
+            100% { box-shadow: 0 0 8px 4px #ff5ad1; }
+          }
         `}</style>
       </div>
     </main>
@@ -330,24 +730,24 @@ const FEATURES = [
     Icon: FiFileText,
     title: "SOPs & Policies",
     text: "Create, assign, and manage controlled documents with acknowledgments & audit trail.",
-    href: "/policies-and-procedures",
+    href: "/about/sops-policies",
   },
   {
     Icon: FiLayers,
-    title: "SmartDoc",
+    title: "Turkus",
     text: "Your single source of truth: versioned docs, linked to modules and roles.",
-    href: "/smartdoc",
+    href: "/about/turkus",
   },
   {
     Icon: FiAlertTriangle,
     title: "Risk Assessments",
     text: "Assign and track risk controls with evidence, sign-off, and reminders.",
-    href: "/managing-risks",
+    href: "/about/managing-risks",
   },
   {
     Icon: FiPlayCircle,
     title: "Instructional Media",
     text: "Embed videos and visuals straight into training to boost retention.",
-    href: "/instructional-media",
+    href: "/about/instructional-media",
   },
 ];

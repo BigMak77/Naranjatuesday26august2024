@@ -42,8 +42,8 @@ export default function ModuleViewPage() {
     if (id) fetchModule()
   }, [id])
 
-  if (loading) return <p className="admin-module-loading-msg">Loading module...</p>
-  if (error) return <p className="admin-module-error-msg">{error}</p>
+  if (loading) return <p className="neon-loading">Loading module...</p>
+  if (error) return <p className="neon-error">{error}</p>
   if (!module) return null;
 
   return (

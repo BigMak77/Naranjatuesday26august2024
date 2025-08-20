@@ -36,16 +36,58 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
       setError(null)
 
       try {
+        // 1. Get user and their role_profile_id
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('id, first_name, last_name, role_profile_id')
+          .eq('auth_id', authId)
+          .single()
+        if (userError || !userData) throw userError
+
+        // 2. Get direct assignments
         const { data: assignmentsRaw, error: assignErr } = await supabase
           .from('user_training_assignments')
           .select('*')
           .eq('auth_id', authId)
-
         if (assignErr) throw assignErr
 
-        const moduleIds = assignmentsRaw.filter(a => a.type === 'module').map(a => a.module_id)
-        const documentIds = assignmentsRaw.filter(a => a.type === 'document').map(a => a.document_id)
-        const behaviourIds = assignmentsRaw.filter(a => a.type === 'behaviour').map(a => a.behaviour_id)
+        // 3. Get role profile assignments (modules, documents, behaviours)
+        let roleProfileAssignments: Assignment[] = []
+        if (userData.role_profile_id) {
+          // Modules
+          const { data: rpModules } = await supabase
+            .from('role_profile_modules')
+            .select('module_id')
+            .eq('role_profile_id', userData.role_profile_id)
+          // Documents
+          const { data: rpDocuments } = await supabase
+            .from('role_profile_documents')
+            .select('document_id')
+            .eq('role_profile_id', userData.role_profile_id)
+          // Behaviours
+          const { data: rpBehaviours } = await supabase
+            .from('role_profile_behaviours')
+            .select('behaviour_id')
+            .eq('role_profile_id', userData.role_profile_id)
+          // Map to Assignment shape
+          roleProfileAssignments = [
+            ...(rpModules || []).map(m => ({ id: m.module_id, name: '', type: 'module' as const, completed: false })),
+            ...(rpDocuments || []).map(d => ({ id: d.document_id, name: '', type: 'document' as const, completed: false })),
+            ...(rpBehaviours || []).map(b => ({ id: b.behaviour_id, name: '', type: 'behaviour' as const, completed: false })),
+          ]
+        }
+
+        // 4. Merge direct and role profile assignments (avoid duplicates)
+        const directIds = new Set(assignmentsRaw.map(a => a.module_id || a.document_id || a.behaviour_id))
+        const allAssignmentsRaw = [
+          ...assignmentsRaw,
+          ...roleProfileAssignments.filter(a => !directIds.has(a.id)),
+        ]
+
+        // 5. Fetch module/document/behaviour names and completion info
+        const moduleIds = allAssignmentsRaw.filter(a => a.type === 'module').map(a => a.module_id || a.id)
+        const documentIds = allAssignmentsRaw.filter(a => a.type === 'document').map(a => a.document_id || a.id)
+        const behaviourIds = allAssignmentsRaw.filter(a => a.type === 'behaviour').map(a => a.behaviour_id || a.id)
 
         const [{ data: modules }, { data: documents }, { data: behaviours }, { data: moduleCompletions }, { data: documentCompletions }] = await Promise.all([
           supabase.from('modules').select('id, name'),
@@ -70,18 +112,24 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
         const moduleCompletionMap = Object.fromEntries((moduleCompletions || []).map(c => [c.module_id, c.completed_at]))
         const documentCompletionMap = Object.fromEntries((documentCompletions || []).map(c => [c.document_id, c.completed_at]))
 
-        const finalAssignments: Assignment[] = assignmentsRaw.map(a => {
-          const id = a.module_id || a.document_id || a.behaviour_id
+        // Use assignmentsRaw.status and assignmentsRaw.completed_at for completion
+        const finalAssignments: Assignment[] = allAssignmentsRaw.map(a => {
+          const id = a.module_id || a.document_id || a.behaviour_id || a.id
           const type = a.type
           const name = type === 'module' ? moduleMap[id]
                       : type === 'document' ? documentMap[id]
                       : behaviourMap[id] || 'Behaviour'
-          const completed = type === 'module' ? !!moduleCompletionMap[id]
-                          : type === 'document' ? !!documentCompletionMap[id]
-                          : false
-          const completed_at = type === 'module' ? moduleCompletionMap[id]
-                              : type === 'document' ? documentCompletionMap[id]
-                              : undefined
+          // Completion logic
+          let completed = a.status === 'completed' || !!a.completed_at
+          let completed_at = a.completed_at || undefined
+          if (!completed && type === 'module' && moduleCompletionMap[id]) {
+            completed = true
+            completed_at = moduleCompletionMap[id]
+          }
+          if (!completed && type === 'document' && documentCompletionMap[id]) {
+            completed = true
+            completed_at = documentCompletionMap[id]
+          }
           const opened_at = type === 'module' ? moduleOpenMap[id]
                           : type === 'document' ? documentOpenMap[id]
                           : undefined
@@ -89,8 +137,8 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
           return { id, name, type, completed, completed_at, opened_at }
         })
 
-        const userFirstName = assignmentsRaw[0]?.first_name
-        const userLastName = assignmentsRaw[0]?.last_name
+        const userFirstName = userData.first_name
+        const userLastName = userData.last_name
         if (userFirstName || userLastName) {
           setUserFullName(`${userFirstName || ''} ${userLastName || ''}`.trim())
         } else {
@@ -118,32 +166,11 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
     if (assignment.completed) return
     const now = new Date().toISOString()
 
-    // Fetch user's name from users table
-    const { data: userData } = await supabase
-      .from('users')
-      .select('first_name, last_name')
-      .eq('auth_id', authId)
-      .single()
-    const userFirstName = userData?.first_name || ''
-    const userLastName = userData?.last_name || ''
-
-    if (assignment.type === 'module') {
-      await supabase.from('module_completions').insert({
-        auth_id: authId,
-        module_id: assignment.id,
-        completed_at: now,
-        first_name: userFirstName,
-        last_name: userLastName
-      })
-    } else if (assignment.type === 'document') {
-      await supabase.from('document_completions').insert({
-        auth_id: authId,
-        document_id: assignment.id,
-        completed_at: now,
-        first_name: userFirstName,
-        last_name: userLastName
-      })
-    }
+    // Mark assignment as completed in user_training_assignments
+    await supabase
+      .from('user_training_assignments')
+      .update({ status: 'completed', completed_at: now })
+      .eq('id', assignment.id)
 
     setAssignments(prev =>
       prev.map(item =>
@@ -336,7 +363,13 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
               trainingName={showCert.training}
               completionDate={showCert.date}
             />
-            <NeonIconButton variant="download" icon={<FiDownload />} title="Print / Save as PDF" onClick={() => window.print()} className="user-training-modal-print-btn" />
+            <NeonIconButton
+              variant="download"
+              icon={<FiDownload />}
+              title="Print / Save as PDF"
+              onClick={() => window.print()}
+              className="neon-btn neon-btn-print user-training-modal-print-btn"
+            />
           </div>
         </div>
       )}

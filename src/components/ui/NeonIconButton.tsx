@@ -1,10 +1,13 @@
 "use client";
 
-import Link from "next/link";
-import { ComponentProps, ReactElement } from "react";
-import { FiLogIn, FiInfo, FiPlus, FiEye, FiTrash2, FiChevronRight, FiChevronLeft, FiArchive, FiCheck, FiSave, FiX, FiEdit2, FiDownload, FiUpload, FiSearch, FiRefreshCw } from "react-icons/fi";
+import Link, { LinkProps } from "next/link";
+import React, { ComponentProps, ReactElement } from "react";
+import {
+  FiLogIn, FiInfo, FiPlus, FiEye, FiTrash2, FiChevronRight, FiChevronLeft,
+  FiArchive, FiCheck, FiSave, FiX, FiEdit, FiDownload, FiUpload, FiSearch, FiRefreshCw
+} from "react-icons/fi";
 
-const ICONS: Record<string, ReactElement> = {
+const ICONS = {
   add: <FiPlus />,
   view: <FiEye />,
   delete: <FiTrash2 />,
@@ -14,59 +17,73 @@ const ICONS: Record<string, ReactElement> = {
   submit: <FiCheck />,
   save: <FiSave />,
   cancel: <FiX />,
-  edit: <FiEdit2 />,
+  edit: <FiEdit />,
   download: <FiDownload />,
   upload: <FiUpload />,
   search: <FiSearch />,
   refresh: <FiRefreshCw />,
   info: <FiInfo />,
   login: <FiLogIn />,
-};
+} as const;
 
 type Variant = keyof typeof ICONS;
 
 type BaseProps = {
   variant: Variant;
-  icon?: ReactElement;           // optional, will use default if not provided
-  title: string;                // tooltip + aria-label
-  className?: string;           // optional extra classes
-  children?: React.ReactNode;   // allow text if needed
+  icon?: ReactElement;        // optional override
+  title: string;              // tooltip + aria-label
+  className?: string;
+  children?: React.ReactNode;
 };
 
-type ButtonProps = BaseProps & { as?: "button" } & ComponentProps<"button">;
-type AnchorProps = BaseProps & { as: "a" } & ComponentProps<"a">;
-type NextLinkProps = BaseProps & { as: "link"; href: string };
+type ButtonProps = BaseProps & { as?: "button" } & Omit<ComponentProps<"button">, "className" | "title">;
+type AnchorProps = BaseProps & { as: "a" } & Omit<ComponentProps<"a">, "className" | "title">;
+type NextLinkOwn = BaseProps & { as: "link" } & Omit<LinkProps, "href"> & { href: LinkProps["href"] };
 
-export default function NeonIconButton(props: ButtonProps | AnchorProps | NextLinkProps) {
-  const { variant, icon, title, className = "", children } = props;
-  const classes = `neon-btn-square neon-btn-${variant} ${className}`.trim();
-  const IconEl = icon || ICONS[variant] || <FiChevronRight />;
+type Props = ButtonProps | AnchorProps | NextLinkOwn;
 
-  if (props.as === "a") {
-    const rest = props as AnchorProps;
+export default function NeonIconButton(p: Props) {
+  const { variant, icon, title, className = "", children } = p;
+  const classes = `neon-btn neon-btn-${variant} ${className}`.trim();
+  const IconEl = icon ?? ICONS[variant] ?? <FiChevronRight />;
+
+  // <a> branch
+  if (p.as === "a") {
+    // strip internal props so they don't end up on the DOM
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { as, variant, icon, className, title, children, ...domProps } = p as AnchorProps & BaseProps;
     return (
-      <a {...rest} className={classes} aria-label={title} title={title}>
+      <a {...domProps} className={classes} title={title}>
         {IconEl}
         {children}
       </a>
     );
   }
 
-  if (props.as === "link") {
-    const { href, ...rest } = props as NextLinkProps;
+  // Next <Link> branch
+  if (p.as === "link") {
+    const { href, /* strip */ as, variant, icon, className, title, children, ...linkProps } = p as NextLinkOwn & BaseProps;
     return (
-      <Link href={href} className={classes} aria-label={title} title={title} {...(rest as Omit<NextLinkProps, 'href' | 'as' | 'variant' | 'icon' | 'title' | 'className' | 'children'>)}>
+      <Link href={href} {...linkProps} className={classes} title={title}>
         {IconEl}
         {children}
       </Link>
     );
   }
 
-  const rest = props as ButtonProps;
-  return (
-    <button {...rest} className={classes} aria-label={title} title={title}>
-      {IconEl}
-      {children}
-    </button>
-  );
+  // <button> branch (default)
+  {
+    const { as, variant, icon, className, title, children, type, ...domProps } = p as ButtonProps & BaseProps;
+    return (
+      <button
+        {...domProps}
+        type={type ?? "button"}
+        className={classes}
+        title={title}
+      >
+        {IconEl}
+        {children}
+      </button>
+    );
+  }
 }

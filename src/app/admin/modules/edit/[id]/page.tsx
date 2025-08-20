@@ -84,8 +84,8 @@ export default function EditModulePage() {
     }
   }
 
-  if (loading) return <p className="p-6">Loading module...</p>
-  if (error) return <p className="p-6 text-red-600">{error}</p>
+  if (loading) return <p className="neon-loading">Loading module...</p>
+  if (error) return <p className="neon-error">{error}</p>
 
   // Prepare fields for NeonModuleForm
   const fields: NeonModuleFormField[] = [
@@ -163,13 +163,25 @@ export default function EditModulePage() {
         />
       </div>
       {showVersionModal && (
-        <div className="module-version-modal-overlay">
-          <div className="module-version-modal">
-            <h2 className="module-version-modal-title">Is this a new version of the module?</h2>
-            <p className="module-version-modal-desc">If yes, the version number will be incremented automatically.</p>
-            <div className="module-version-modal-actions">
-              <button className="module-version-confirm-btn-yes" onClick={() => handleVersionConfirm(true)}>Yes, new version</button>
-              <button className="module-version-confirm-btn-no" onClick={() => handleVersionConfirm(false)}>No, keep version</button>
+        <div className="ui-dialog-overlay">
+          <div className="app-modal" style={{ maxWidth: 420 }}>
+            <h2 className="font-title neon-text mb-2">Is this a new version of the module?</h2>
+            <p className="font-body mb-4">If yes, the version number will be incremented automatically.</p>
+            <div className="flex gap-3 justify-end">
+              <button
+                className="neon-utility-btn neon-btn-save"
+                onClick={() => handleVersionConfirm(true)}
+                style={{ minWidth: 120 }}
+              >
+                Yes, new version
+              </button>
+              <button
+                className="neon-utility-btn neon-btn-edit"
+                onClick={() => handleVersionConfirm(false)}
+                style={{ minWidth: 120 }}
+              >
+                No, keep version
+              </button>
             </div>
           </div>
         </div>

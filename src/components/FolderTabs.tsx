@@ -21,9 +21,17 @@ export default function FolderTabs({ tabs, activeTab, onChange }: FolderTabsProp
           key={tab.key}
           className={`folder-tab${activeTab === tab.key ? ' active' : ''}`}
           onClick={() => onChange(tab.key)}
+          tabIndex={0}
+          role="button"
+          aria-pressed={activeTab === tab.key}
+          onKeyDown={e => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              onChange(tab.key)
+            }
+          }}
         >
-          {tab.icon && <span className="inline-flex items-center mr-2">{tab.icon}</span>}
-          <span className="inline-flex items-center">{tab.label}</span>
+          {tab.icon && <span className="folder-tab-icon neon-icon-white" aria-hidden="true">{tab.icon}</span>}
+          <span className="folder-tab-label">{tab.label}</span>
         </div>
       ))}
     </div>

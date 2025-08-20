@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useUser } from "@/lib/useUser";
-import UserProfileCard from "@/components/user/UserProfileCard";
 
 type GlobalHeaderProps = {
   logoOnly?: boolean;
@@ -31,7 +30,7 @@ export default function GlobalHeader({ logoOnly = false }: GlobalHeaderProps) {
   }
 
   return (
-    <div className="global-logo-header-rows" style={{ width: '100%' }}>
+    <div className="global-logo-header-rows" style={{ position: 'relative', width: '100vw', left: '50%', right: '50%', marginLeft: '-50vw', marginRight: '-50vw' }}>
       {/* Top row: logo and controls */}
       <div className="global-logo-header" style={{ display: 'flex', alignItems: 'center', width: '100%', height: '80px', minHeight: '80px', maxHeight: '80px', boxSizing: 'border-box' }}>
         <Image
@@ -44,12 +43,10 @@ export default function GlobalHeader({ logoOnly = false }: GlobalHeaderProps) {
           priority
         />
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginLeft: '2rem', height: '80px' }}>
-          {user?.auth_id ? (
-            <UserProfileCard authId={user.auth_id} />
-          ) : (
+          {/* Only show login status and button, no UserProfileCard */}
+          {!user?.auth_id && (
             <div className="user-profile-card user-profile-card-placeholder">Not logged in</div>
           )}
-          {/* Always render login button in-line if not logged in */}
           {!loading && !user && (
             <Link
               href="/login"
@@ -68,6 +65,7 @@ export default function GlobalHeader({ logoOnly = false }: GlobalHeaderProps) {
         {/* Example placeholder content for the second row */}
         <span style={{ color: '#888' }}>Second row content goes here</span>
       </div>
+      {/* Footer removed */}
     </div>
   );
 }

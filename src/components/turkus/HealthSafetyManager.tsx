@@ -1,60 +1,50 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+// Removed unused NeonFeatureCard import
 import RiskAssessmentManager from '@/components/turkus/RiskAssessmentManager';
 import { FiClipboard, FiAlertCircle, FiFileText, FiHeart } from 'react-icons/fi';
 import NeonForm from '@/components/NeonForm';
-import NeonFeatureCard from '@/components/NeonFeatureCard';
 import NeonPanel from '@/components/NeonPanel';
+import NeonIconButton from '@/components/ui/NeonIconButton';
+import HealthSafetyPolicyManager from '@/components/turkus/HealthSafetyPolicyManager';
 
 export default function HealthSafetyManager() {
   const [activeTab, setActiveTab] = useState<'assessments' | 'incidents' | 'policies' | 'firstaid'>('assessments');
 
+  useEffect(() => {
+    // Simulate fetching policies (replace with supabase or API call)
+  }, []);
+
   return (
     <div className="after-hero">
-      <div className="page-content">
-        <main className="page-main">
+      <div className="global-content">
+        <main className="global-content">
           <div className="neon-tab-bar">
-            <button
-              className={`neon-tab-btn${activeTab === 'assessments' ? ' active' : ''}`}
+            <NeonIconButton
+              variant={activeTab === 'assessments' ? 'view' : 'info'}
+              icon={<FiClipboard />}
+              title="Risk Assessments"
               onClick={() => setActiveTab('assessments')}
-              type="button"
-              aria-pressed={activeTab === 'assessments'}
-            >
-              <span className="neon-tab-btn-inner">
-                <FiClipboard className="neon-icon" /> Risk Assessments
-              </span>
-            </button>
-            <button
-              className={`neon-tab-btn${activeTab === 'incidents' ? ' active' : ''}`}
+            />
+            <NeonIconButton
+              variant={activeTab === 'incidents' ? 'view' : 'info'}
+              icon={<FiAlertCircle />}
+              title="Incidents"
               onClick={() => setActiveTab('incidents')}
-              type="button"
-              aria-pressed={activeTab === 'incidents'}
-            >
-              <span className="neon-tab-btn-inner">
-                <FiAlertCircle className="neon-icon" /> Incidents
-              </span>
-            </button>
-            <button
-              className={`neon-tab-btn${activeTab === 'policies' ? ' active' : ''}`}
+            />
+            <NeonIconButton
+              variant={activeTab === 'policies' ? 'view' : 'info'}
+              icon={<FiFileText />}
+              title="Policies"
               onClick={() => setActiveTab('policies')}
-              type="button"
-              aria-pressed={activeTab === 'policies'}
-            >
-              <span className="neon-tab-btn-inner">
-                <FiFileText className="neon-icon" /> Policies
-              </span>
-            </button>
-            <button
-              className={`neon-tab-btn${activeTab === 'firstaid' ? ' active' : ''}`}
+            />
+            <NeonIconButton
+              variant={activeTab === 'firstaid' ? 'view' : 'info'}
+              icon={<FiHeart />}
+              title="First Aid"
               onClick={() => setActiveTab('firstaid')}
-              type="button"
-              aria-pressed={activeTab === 'firstaid'}
-            >
-              <span className="neon-tab-btn-inner">
-                <FiHeart className="neon-icon" /> First Aid
-              </span>
-            </button>
+            />
           </div>
 
           {activeTab === 'assessments' && <RiskAssessmentManager />}
@@ -72,25 +62,14 @@ export default function HealthSafetyManager() {
           )}
 
           {activeTab === 'policies' && (
-            <NeonPanel>
-              <NeonForm
-                title="Policy Upload"
-                onSubmit={e => { e.preventDefault(); /* handle policy upload */ }}
-              >
-                <input className="neon-input" placeholder="Policy Title" />
-                <textarea className="neon-input" placeholder="Policy Details" rows={3} />
-              </NeonForm>
-            </NeonPanel>
+            <HealthSafetyPolicyManager />
           )}
 
           {activeTab === 'firstaid' && (
             <NeonPanel>
               <h2 className="neon-form-title">
-                <FiHeart className="neon-icon" /> First Aid Information
+                <NeonIconButton variant="view" icon={<FiHeart />} title="First Aid" onClick={() => window.location.href = '/firstaid/'} />
               </h2>
-              <p className="neon-info">
-                This section will soon provide details about first aid procedures, contacts, and resources for your site.
-              </p>
             </NeonPanel>
           )}
         </main>

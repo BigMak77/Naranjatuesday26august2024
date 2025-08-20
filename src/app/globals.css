@@ -16,542 +16,727 @@
   font-display: swap;
 }
 
-/* =========================================
-   1) Theme variables
-   ========================================= */
-:root{
-  --neon:#40E0D0;
-  --neon-2:#2edbd0;
-  --bg:#013b3b;
-  --panel:#012b2f;
-  --field:#012b2b;
-  --text:#ffffff;
-  --ink:#011f24;
-  --accent:#ffa500;
-  --muted:#014d4d;
-  --danger:#ea1c1c;
-  --border:var(--neon);
-
-  --radius:12px; --r-sm:6px; --r-md:8px;
-  --space-1:.5rem; --space-2:.75rem; --space-3:1rem; --space-4:1.5rem;
-
-  --shadow-neon:0 0 8px 0 var(--neon), 0 0 1px 0 var(--neon-2);
-  --shadow-neon-soft:0 0 4px var(--neon);
-  --focus-ring:0 0 0 2px var(--neon);
-}
-:root.flat{ --shadow-neon:none; --shadow-neon-soft:none; --border:transparent; }
+@import url('../components/folder-tabs-equal-width.css');
 
 /* =========================================
-   2) Base & layout
+   1) Theme variables (neon/orange design)
    ========================================= */
-html,body{
-  font-family:'Geist',system-ui,sans-serif;
-  font-size:16px; line-height:1.5; color:var(--text);
-  background:var(--bg); color-scheme:dark;
-  -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
-  margin:0; width:100%; min-width:0; max-width:100%; overflow-x:hidden;
-  box-sizing:border-box;
-  height: auto;
-  display: block;
-  flex-direction: unset;
-}
-*,*::before,*::after{ box-sizing:border-box; }
-input,select,textarea,button,label,option{ font-family:inherit; }
+:root {
+  --neon: #40E0D0;
+  --accent: #ffa500;
+  --bg: rgb(0,206,209);
 
-.page{
+  --text: #ffffff;
+  --ink: #011f24;
+  --danger: #ea1c1c;
+
+  /* Added missing variables */
+  --panel: #05363a;
+  --field: #073f44;
+  --muted: #0a4c52;
+  --border: #0fe0ce;
+
+  --radius: 12px;
+  --space-1: .5rem;
+  --space-2: .75rem;
+  --space-3: 1rem;
+  --space-4: 1.5rem;
+}
+
+/* =========================================
+   2) Base / Resets
+   ========================================= */
+html, body {
+  font-family: 'Geist', system-ui, sans-serif;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--bg);
+  color-scheme: dark;
+  margin: 0;
+  width: 100%;
   min-height: 100vh;
-  display: grid;
-  grid-template-rows: auto auto 1fr auto;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
+*, *::before, *::after { box-sizing: border-box; }
+img, svg, video, canvas { max-width: 100%; height: auto; }
+input, select, textarea, button, label, option { font-family: inherit; }
 
-/* === GLOBAL PAGE LAYOUT & UTILITY CLASSES (migrated from task-list.css) === */
-.page-main {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
-}
-
-.page-title {
-  font-size: 2rem;
-  font-weight: 600;
-  margin-bottom: 2rem;
-  text-align: center;
-}
-
-.info-message {
-  color: #666;
-  text-align: center;
-  margin: 2rem 0;
-}
-
-.error-message {
-  color: #d32f2f;
-  text-align: center;
-  margin: 2rem 0;
-}
-
-.task-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.task-list-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid #eee;
-  padding: 1rem 0;
-}
-
-.task-list-item-content {
-  flex: 1;
-}
-
-.task-list-item-title {
-  font-size: 1.1rem;
-  font-weight: 500;
-  margin: 0 0 0.2rem 0;
-}
-
-.task-list-item-meta {
-  color: #888;
-  font-size: 0.95rem;
-  margin: 0;
-}
-
-.task-list-item-action {
-  margin-left: 1rem;
-}
+/* Page skeleton */
+body { display:flex; flex-direction:column; min-height:100vh; }
+main { flex:1 0 auto; }
 
 /* =========================================
-   3) Top logo/nav header (full-bleed)
+   3) Layout primitives
    ========================================= */
-.logo-header{
-  inline-size:100vw;
-  margin-inline:calc(50% - 50vw);
-  background:linear-gradient(90deg,#014f4f 0%, #013b3b 60%, #014f4f 100%);
-  border-block-end:3px solid var(--accent);
-  padding-block:.6rem;
-  margin-bottom: var(--space-2) !important; /* Ensure margin below the header is always applied */
-}
-.logo-header .logo-inner{
-  width:min(100%,1300px);
-  margin-inline:auto;
-  padding-inline:2vw;
-  display:flex; align-items:center; gap:1rem; justify-content:space-between;
+
+/* Full-bleed band: header/hero/footer stripes */
+.full-bleed {
+  inline-size: 100%;
+  margin-inline: calc(50% - 50vw); /* stretch background to edges */
+  overflow-x: clip; /* prevent accidental horizontal scroll */
 }
 
-/* =========================================
-   4) Hero header (full-bleed, no side spacing)
-   ========================================= */
-.hero-header-neon{
-  inline-size:100vw;
-  margin-inline:calc(50% - 50vw);
-  padding-block:1rem; padding-inline:0;
-  background:linear-gradient(90deg,#013b3b 0%,#011f24 50%,#014f4f 100%);
-  border-block-end:3px solid var(--accent);
-  color:var(--neon);
-}
-.hero-header-neon .hero-inner{
-  width:min(100%,1300px);
-  margin-inline:auto;
-  padding-inline:2vw;
-}
-.hero-header-neon h1{
-  font-size:2rem; font-weight:800; color:var(--accent);
-  text-align:center; margin:0;
-}
-.hero-header-neon p{
-  font-size:1.125rem; color:var(--neon);
-  text-align:center; margin:0;
-}
-
-/* =========================================
-   5) Main area (ONLY place where page spacing lives)
-   ========================================= */
-.after-hero{
-  display:grid; place-items:stretch;
-  padding-inline:2vw;
-}
-.after-hero .page-content{
-  width:min(100%,1200px);
-  margin-inline:auto; display:block;
-}
-.after-hero .page-content > * + *{
-  margin-top:1.25rem;
-}
-
-/* =========================================
-   6) Footer (full-bleed with inner)
-   ========================================= */
-.global-footer{
-  inline-size:100vw;
-  margin-inline:calc(50% - 50vw);
-  background:linear-gradient(90deg,#014f4f 0%,#03807c 100%);
-  color:var(--text);
-  border-top:3px solid var(--accent);
-  display: flex;
-  align-items: center;
-  padding-block: 0;
-  width: 100vw;
-  position: relative;
-  margin-top: 2.5rem;
-  margin-bottom: 0; /* Remove margin below the footer */
-  min-height: 90px;
-  max-height: 90px;
-  height: 90px;
+/* Inner content container */
+.container {
+  max-width: 1800px;
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: 2vw;
   box-sizing: border-box;
 }
-.global-footer .inner{
-  width:100%; max-width:1300px; display:grid; gap:1.5rem; margin-inline:auto; padding-inline:2vw;
-  align-items: center;
-  height: 100%;
+@media (max-width:900px){ .container{ padding-inline:1rem; } }
+@media (max-width:600px){ .container{ padding-inline:.5rem; } }
+
+/* Page block */
+.page {
+  width: 100%;
+  margin: 0;
+  padding-block: 2rem;
 }
-@media (min-width:1300px){
-  .global-footer .inner{
-    grid-auto-flow:column; justify-content:space-between; align-items:center; gap:3.5rem;
-  }
+.page .container {
+  padding-block: 0;
 }
-.global-footer a{ color:var(--neon); text-decoration:none; transition:color .18s, text-shadow .18s, transform .12s, filter .18s; }
-.global-footer a:hover{ color:var(--accent); text-shadow:0 0 8px var(--accent); transform:translateY(-1px); }
-.global-footer svg{ color:#fff; transition:color .18s, filter .18s, transform .12s; filter:drop-shadow(0 0 2px #fff); }
-.global-footer a:hover svg{ color:var(--neon); filter:drop-shadow(0 0 4px var(--neon)); transform:scale(1.12); }
+
+/* Framed main content helper */
+.frame {
+  max-width: 1800px;
+  width: 100%;
+  margin-inline: auto;
+  padding: clamp(1rem, 2vw, 1rem);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 0 8px rgba(0,0,0,.35), 0 0 6px var(--neon);
+}
+
+/* Ensure overlays are not clipped by layout wrappers */
+.page, .container, .frame {
+  position: static !important;
+  overflow: visible !important;
+}
 
 /* =========================================
-   7) Components (no external margins; let main control spacing)
+   4) Header
    ========================================= */
-form,.neon-form{
-  background:var(--panel);
-  border:1px solid var(--border);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow-neon);
-  padding:calc(var(--space-4) + .5rem);
-  margin: 2rem auto 0 auto;
+.logo-header {
+  background: linear-gradient(90deg,#014f4f 0%, #013b3b 60%, #014f4f 100%);
+  border-block-end: 3px solid var(--accent);
+  padding-block: .6rem;
 }
-.neon-form-title{ font-size:1.5rem; font-weight:700; color:var(--neon); text-align:left; }
-.neon-form-actions{ 
-  display: flex;
-  gap: 2rem;
-  justify-content: flex-end;
-  margin-top: 2rem;
+.logo-header .logo-inner {
+  display:flex; align-items:center; justify-content:space-between; gap:1rem;
 }
 
-input[type="text"],input[type="search"],input[type="date"],input[type="number"],select,textarea{
-  width:100%; background:var(--field); color:var(--text);
-  border:1px solid var(--border); border-radius:var(--r-sm);
-  padding:var(--space-2) var(--space-3);
-  transition:border-color .2s, box-shadow .2s, background-color .2s;
+/* Hero band */
+.hero-header-neon {
+  background: linear-gradient(90deg,#013b3b 0%,#011f24 50%,#014f4f 100%);
+  border-block-end: 3px solid var(--accent);
+  color: var(--neon); 
+  padding-block: 1rem;
 }
-input[type="search"],.neon-input-search{ width:100%; max-width:400px; min-width:180px; display:block; margin-inline:auto; }
-label{ display:block; font-weight:600; color:var(--neon); margin-block-end:.5rem; }
-:where(input,select,textarea):focus-visible{ outline:none; border-color:var(--neon); box-shadow:var(--focus-ring); }
-
-select,.geist-select{
-  -webkit-appearance:none; appearance:none; padding-right:2.25rem;
-  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2340E0D0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
-  background-repeat:no-repeat; background-position:right .6rem center; background-size:1rem;
+.hero-header-neon h1 {
+  margin: 0; text-align: center; font-weight: 800; color: var(--accent);
 }
-.geist-select option,.geist-select optgroup{ font-family:inherit; }
-.neon-input{ width:100%; background:var(--field); color:var(--text); border:1.5px solid var(--neon); border-radius:var(--r-sm); padding:var(--space-2) var(--space-3); font-size:1rem; transition:border-color .2s, box-shadow .2s, background-color .2s; }
-.neon-input:focus-visible{ outline:none; border-color:var(--accent); box-shadow:0 0 0 2px var(--accent); }
-.neon-error{ color:#ff4d4f; font-weight:600; letter-spacing:.01em; }
-.neon-success{ color:#2fffd2; font-weight:600; letter-spacing:.01em; }
-.neon-search-bar-wrapper{ width:100%; max-width:1300px; margin-inline:auto; padding-inline:2vw; margin-block:0 1.5rem; }
+.hero-header-neon p {
+  margin: 0; text-align: center; color: var(--neon);
+}
 
-.neon-btn,button.neon-btn,
-.neon-btn-square,
-.neon-btn-square-form {
+/* =========================================
+   5) Footer
+   ========================================= */
+.global-footer {
+  background: linear-gradient(90deg,#014f4f 0%,#03807c 100%);
+  border-top: 3px solid var(--accent);
+  color: var(--text);
+  min-height: 90px; height: 90px;
+  display: flex; align-items: center;
+}
+.global-footer .inner {
+  display: grid; gap: 1.5rem; align-items: center; height: 100%;
+}
+@media (min-width:1300px){
+  .global-footer .inner {
+    grid-auto-flow: column; justify-content: space-between; gap: 3.5rem;
+  }
+}
+
+/* =========================================
+   6) Page helpers
+   ========================================= */
+.page-title { font-size:2rem; font-weight:700; text-align:center; margin:0 0 2rem; }
+.info-message { color:#bbb; text-align:center; margin:2rem 0; }
+.error-message { color:#ff6b6b; text-align:center; margin:2rem 0; }
+
+/* =========================================
+   7) Dialogs (Radix-based only, cleaned)
+   ========================================= */
+   /* Force the Radix dialog to max 900px even if earlier rules say 90vw */
+.ui-dialog-content,
+.neon-dialog { /* you add "neon-dialog" in your component */
+  width: clamp(320px, 90vw, 900px) !important;
+  max-width: 900px !important;
+  box-sizing: border-box;
+}
+.ui-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.7);
+  backdrop-filter: blur(2px);
+  z-index: 1200;
+
+  /* Center children cleanly */
+  display: grid;
+  place-items: center;
+}
+
+/* Dialog */
+.ui-dialog-content {
+  position: relative;           /* no fixed, no transform */
+  z-index: 1201;
+
+  width: min(900px, calc(100vw - 32px));
+  max-width: 900px;
+  max-height: min(90vh, 720px);
+  overflow: auto;
+  box-sizing: border-box;
+
+  background: var(--panel, #012b2f);
+  color: var(--text, #fff);
+  border: 1px solid var(--border, #40E0D0);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 0 8px var(--neon, #40E0D0);
+}
+
+/* =========================================
+   8) Utilities
+   ========================================= */
+.wrap { white-space: normal; word-break: break-word; }
+.nowrap { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.neon-text { color: var(--neon); }
+.accent-text { color: var(--accent); }
+.danger-text { color: var(--danger); }
+.ink-text { color: var(--ink); }
+.font-title { font-weight: 700; }
+.font-subtitle { font-weight: 600; }
+.font-body { font-weight: 400; }
+.font-bold { font-weight: 700; }
+.font-normal { font-weight: 400; }
+.center { text-align: center; }
+.mt-2 { margin-top: var(--space-2); }
+.mb-2 { margin-bottom: var(--space-2); }
+.p-2 { padding: var(--space-2); }
+.px-2 { padding-left: var(--space-2); padding-right: var(--space-2); }
+.py-2 { padding-top: var(--space-2); padding-bottom: var(--space-2); }
+.rounded { border-radius: var(--radius); }
+
+/* =========================================
+   9) Components (buttons, tables, forms, panels, widgets)
+   ========================================= */
+
+/* ===============================
+   Neon Square Buttons (icon-only, 20px)
+   =============================== */
+.neon-btn, .neon-icon-btn, button.neon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 30px;
   height: 30px;
   min-width: 30px;
   min-height: 30px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--r-md);
-  font-size: 1.25rem;
-  padding: 0 !important;
-  box-shadow: 0 0 1px var(--neon);
+  aspect-ratio: 1 / 1;
+  border-radius: 4px; /* force square with slightly rounded corners */
+  padding: 0;
+  overflow: hidden;
+  background: var(--neon);
+  color: #fff;
   border: none;
   cursor: pointer;
-  transition: background .2s, box-shadow .2s, transform .06s, filter .18s;
-  margin-right: 2rem;
+  box-shadow: 0 0 4px currentColor;
+  transition: background .2s, box-shadow .2s, transform .06s;
 }
 
-.neon-panel-actions {
-  margin-top: 2rem;
-  display: flex;
-  gap: 0;
-}
-
-.neon-panel-actions > :last-child {
-  margin-right: 0 !important;
-}
-
-.neon-btn:hover{ background:linear-gradient(90deg,var(--neon-2) 0%,var(--neon) 100%); color:#fff; box-shadow:0 2px 8px 0 var(--neon); }
-.neon-btn:active{ transform:translateY(1px); }
-
-.neon-btn[data-variant="danger"],.neon-btn-delete{ background:var(--danger); color:#fff; }
-.neon-btn[data-variant="secondary"],.neon-btn-back{ background:#475569; color:#fff; }
-.neon-btn-archive,.neon-btn-submit,.neon-btn-save,.neon-btn-next{ background:var(--neon); color:#012b2b; }
-
-.neon-btn-square svg,
-.neon-btn-square-form svg,
-.neon-btn svg,
-button.neon-btn svg {
+.neon-btn svg, .neon-icon-btn svg, button.neon-btn svg {
   width: 20px;
   height: 20px;
-  color: #fff !important;
+  fill: none;
+  color: #fff;
+  pointer-events: none;
   display: block;
-  margin: auto;
 }
 
-.neon-btn-add{ background-color:#0f766e; }
-.neon-btn-view{ background-color:#2563eb; }
-.neon-btn-delete{ background-color:#ea1c1c; }
-.neon-btn-next{ background-color:var(--neon); }
-.neon-btn-back{ background-color:#475569; }
-.neon-btn-archive{ background-color:var(--neon); }
-.neon-btn-submit{ background-color:var(--neon); }
-.neon-btn-edit{ background-color:#1b640e; }
-.neon-btn-download{ background-color:#0284c7; }
-.neon-btn-upload{ background-color:#16a34a; }
-.neon-btn-search{ background-color:#f59e0b; }
-.neon-btn-refresh{ background-color:#14b8a6; }
-.neon-btn-save{ background-color:#39ff14; color:#012b2b; }
-
-.login-btn-orange{
-  background:linear-gradient(90deg,#ffa500 0%,#ffb84d 100%);
-  color:#2d2d2d !important; font-weight:700; border:none; border-radius:var(--r-md);
-  padding:.65rem 1.4rem; box-shadow:0 2px 12px 0 #ffa50099;
-  transition:background .18s,color .18s, box-shadow .18s, transform .08s;
-  font-size:1.08rem; margin-left:auto;
-}
-.login-btn-orange:hover{
-  background:linear-gradient(90deg,#ffb84d 0%,#ffa500 100%);
-  color:#fff !important; box-shadow:0 4px 18px 0 #ffa500cc; transform:translateY(-1px) scale(1.04);
+/* Ensure feather icons are visible in neon buttons */
+.neon-btn .feather, .neon-icon-btn .feather, button.neon-btn .feather {
+  width: 20px;
+  height: 20px;
+  stroke: #fff;
+  fill: none;
+  stroke-width: 2px;
+  vertical-align: middle;
+  display: inline-block;
 }
 
-.table-default,.neon-table{
-  width:100%; border-collapse:collapse; font-size:1rem; color:var(--text);
-  background:var(--field); border:1px solid var(--border);
-  border-radius:var(--radius); overflow:clip; box-shadow:var(--shadow-neon-soft);
-  margin:0 !important;
-}
-.table-default thead,.neon-table thead{ background:var(--neon); color:var(--ink); text-align:left; }
-.table-default th,.table-default td,.neon-table th,.neon-table td{ padding:.75rem 1rem; border-bottom:1px solid var(--border); }
-.table-default tbody tr:hover,.neon-table tbody tr:hover{ background:var(--muted); }
-.table-default th:first-child,.table-default td:first-child,
-.neon-table th:first-child,.neon-table td:first-child{ padding-left:1.25rem; }
-.table-default th:last-child,.table-default td:last-child,
-.neon-table th:last-child,.neon-table td:last-child{ padding-right:1.25rem; }
-.neon-table td, .neon-table th {
-  text-decoration: none !important;
+.neon-btn span, .neon-icon-btn span, button.neon-btn span {
+  display: none !important; /* hide text, icon-only */
 }
 
-.card{
-  background:#fff; color:#000; border:1px solid #5eead4; border-radius:12px;
-  box-shadow:0 1px 2px rgba(16,185,129,.08), 0 1px 1px rgba(16,185,129,.04);
-  margin:0 !important;
+/* Hover / Active states */
+.neon-btn:hover {
+  box-shadow: 0 0 8px currentColor;
+  transform: scale(1.05);
 }
-.card-header{ background:#14b8a6; color:#fff; font-weight:600; padding:1rem 1.5rem; border-top-left-radius:12px; border-top-right-radius:12px; }
-.card-note{ font-size:.875rem; color:#fff !important; margin:0; }
-.card-note a {
-  display: inline-flex;
+.neon-btn:active {
+  transform: scale(0.95);
+}
+
+/* ===============================
+   Color Variants
+   =============================== */
+.neon-btn[data-variant="danger"], .neon-btn-danger {
+  background: var(--danger) !important;
+}
+
+.neon-btn[data-variant="accent"], .neon-btn-accent {
+  background: var(--accent) !important;
+}
+
+.neon-btn[data-variant="add"], .neon-btn-add {
+  background: #c6e70e !important;
+}
+
+.neon-btn[data-variant="edit"], .neon-btn-edit {
+  background: #2a05cef5 !important;
+}
+
+.neon-btn[data-variant="save"], .neon-btn-save {
+  background: #096703 !important;
+}
+
+.neon-btn[data-variant="download"], .neon-btn-download {
+  background: #ffa500 !important;
+}
+
+.neon-btn[data-variant="upload"], .neon-btn-upload {
+  background: #40E0D0 !important;
+}
+
+.neon-btn[data-variant="close"], .neon-btn-close,
+.neon-btn[data-variant="delete"], .neon-btn-delete,
+.neon-btn[data-variant="cross"], .neon-btn-cross {
+  background: var(--danger) !important;
+}
+
+.neon-btn[data-variant="tick"], .neon-btn-tick {
+  background: #39ff14 !important;
+}
+
+.neon-btn[data-variant="orgchart"], .neon-btn-orgchart {
+  background: #ffa500 !important;
+}
+
+.neon-btn[data-variant="firstaid"], .neon-btn-firstaid {
+  background: #39ff14 !important;
+}
+
+.neon-btn[data-variant="reports"], .neon-btn-reports {
+  background: #ffa500 !important;
+}
+
+.neon-btn[data-variant="print"], .neon-btn-print {
+  background: #40E0D0 !important;
+}
+
+.neon-btn[data-variant="login"], .neon-btn-login {
+  background: #05363a !important;
+}
+.neon-btn[data-variant="submit"], .neon-btn-submit {
+  background: #048437 !important;
+}
+
+.neon-btn[data-variant="close"], .neon-btn-close {
+  background: var(--danger) !important;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
   align-items: center;
-  margin: 0 1.25rem 0 0 !important;
-  white-space: nowrap;
+  justify-content: center;
+  box-shadow: 0 0 8px var(--danger);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: background 0.18s;
 }
-.card-note a:last-child {
-  margin-right: 0 !important;
+.neon-btn[data-variant="close"]:hover, .neon-btn-close:hover {
+  background: #ff5a5a !important;
 }
 
-/* Neon Feature Card Grid (responsive 3-column, white text) */
-.neon-feature-card-list {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
+/* Neon table */
+.neon-table, .table-default {
   width: 100%;
-  margin: 0 auto;
-  padding: 0;
+  border-collapse: collapse;
+  color: var(--text);
+  background: var(--field);
+  border: 1px solid var(--neon);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 0 8px var(--neon);
 }
-@media (max-width: 1100px) {
-  .neon-feature-card-list {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.neon-table thead, .table-default thead {
+  background: var(--neon); color: var(--ink); text-align: left;
 }
-@media (max-width: 700px) {
-  .neon-feature-card-list {
-    grid-template-columns: 1fr;
-  }
+.neon-table th, .neon-table td,
+.table-default th, .table-default td {
+  padding: .75rem 1rem;
+  border-bottom: 1px solid var(--neon);
+}
+.neon-table tbody tr:hover, .table-default tbody tr:hover {
+  background: var(--muted);
+}
+.neon-table th:first-child, .neon-table td:first-child,
+.table-default th:first-child, .table-default td:first-child { padding-left: 1.25rem; }
+.neon-table th:last-child, .neon-table td:last-child,
+.table-default th:last-child, .table-default td:last-child { padding-right: 1.25rem; }
+
+/* Scrollable neon table */
+.neon-table-scroll {
+  max-height: 480px;
+  overflow-y: auto;
+  width: 100%;
+  display: block;
+  border-radius: 12px;
+  box-shadow: 0 0 8px var(--neon);
 }
 
-.neon-feature-card {
+/* Neon form */
+.neon-form, form {
   background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  box-shadow: var(--shadow-neon);
-  padding: 1.5rem;
-  transition: box-shadow .18s, transform .12s;
+  border: 1px solid var(--neon);
+  border-radius: var(--radius);
+  box-shadow: 0 0 8px var(--neon);
+  padding: 2rem;
+}
+.neon-form-title {
+font-weight: 700; color: var(--neon);
+  margin-bottom: 1.25rem; text-align: left;
+}
+.neon-form-actions {
+  display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;
+}
+.neon-input {
+  width: 100%;
+  background-color: var(--field);
+  color: var(--text);
+  border: 1.5px solid var(--neon);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  transition: border-color .2s, box-shadow .2s, background-color .2s;
+}
+.neon-input:focus {
+  outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent);
+}
+
+.neon-form label {
   display: flex;
   flex-direction: column;
-  gap: .75rem;
-  margin: 0 0 2rem 0 !important; /* Add margin-bottom for spacing between cards */
-  color: #fff !important;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+.neon-form label:last-child {
+  margin-bottom: 0;
+}
+
+.neon-form .neon-input,
+.neon-form input,
+.neon-form select,
+.neon-form textarea {
+  margin-top: 0.25rem;
+}
+
+/* Neon panel */
+.neon-panel {
+  background: var(--panel);
+  border: 1.5px solid var(--neon);
+  border-radius: var(--radius);
+  box-shadow: 0 0 8px var(--neon);
+  padding: 1.5rem;
+  color: var(--text);
+}
+
+/* Neon widget */
+.neon-widget {
+  background: var(--panel);
+  border: 1.5px solid var(--accent);
+  border-radius: 10px;
+  box-shadow: 0 0 8px var(--accent);
+  padding: 1rem;
+  color: var(--text);
+}
+
+/* Neon feature card */
+.neon-feature-card {
+  background: var(--panel);
+  border: 1.5px solid var(--neon);
+  border-radius: 16px;
+  box-shadow: 0 0 8px var(--neon);
+  padding: 1.5rem;
+  transition: box-shadow .18s, transform .12s;
+  cursor: pointer;
+  width: 100%;
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: flex-start;
+  justify-content: flex-start;
 }
 .neon-feature-card:hover {
-  box-shadow: 0 0 12px var(--neon);
-  transform: translateY(-2px);
+  box-shadow: 0 0 8px var(--neon);
+  transform: scale(1.03);
 }
 .neon-feature-card-header {
   display: flex;
   align-items: center;
-  gap: .75rem;
-  margin-bottom: .5rem;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 .neon-feature-card-title {
-  font-size: 1.25rem;
   font-weight: 700;
-  color: #fff !important;
+  color: var(--neon);
 }
 .neon-feature-card-text {
-  font-size: 1rem;
-  color: #fff !important;
-  margin: 0;
-}
-.neon-feature-card .neon-link,
-.neon-feature-card a {
-  display: inline-block;
+  color: var(--text);
   margin-bottom: 0.5rem;
-  margin-right: 2rem;
 }
-.neon-feature-card .neon-link:last-child,
-.neon-feature-card a:last-child {
-  margin-right: 0;
-  margin-bottom: 0;
+.neon-feature-card-children {
+  margin-top: 0.75rem;
+  width: 100%;
 }
 
-.user-profile-card{ display:flex; align-items:center; gap:1.25rem; padding:.75rem 2vw; background:none; color:var(--text); width:100%; box-sizing:border-box; margin:0 !important; }
-.folder-container{ background:#111; border-radius:10px; padding:0; color:var(--neon); box-shadow:0 0 4px #0ff3; max-width:1300px; width:100%; margin:0 auto; box-sizing:border-box; }
-.folder-tabs{ display:flex; gap:10px; margin:0; border-bottom:2px solid #0ff5; justify-content:center; padding-inline:2vw; }
-.folder-tab{ padding:10px 16px; cursor:pointer; background:#222; border-top-left-radius:8px; border-top-right-radius:8px; transition:all .3s ease; color:var(--neon); box-shadow:0 0 2px #0ff3; }
-.folder-tab:hover{ background:#0ff1; }
-.folder-tab.active{ background:#0ff2; color:#fff; box-shadow:0 0 4px #0ff; }
-.folder-content{ padding-top:0; text-align:center; }
-.folder-file-box{ background:#1a1a1a; border:1px solid #0ff3; border-radius:8px; padding:12px; margin:0; box-shadow:0 0 3px #0ff2; }
-.file-meta{ font-size:.85rem; color:#aaa; }
-
-.center-block{ margin-inline:auto; }
-.shadow-glow{ box-shadow:var(--shadow-neon-soft); }
-.no-shadow-glow{ box-shadow:none !important; }
-
-@media (prefers-reduced-motion:reduce){ *{ animation:none !important; transition:none !important; } }
-
-.neon-link, .card-note a, .neon-feature-card a {
-  
-  transition: color .18s, text-shadow .18s;
-}
-.neon-link:hover, .card-note a:hover, .neon-feature-card a:hover {
-  color: #fff !important;
-  text-shadow: 0 0 8px var(--neon);
-}
-.neon-panel, .neon-panel a {
-
-  transition: color .18s, text-shadow .18s;
-}
-.neon-panel a:hover {
-  color: #fff !important;
-  text-shadow: 0 0 8px var(--neon);
-}
-/* Utility for extra spacing if needed */
-.neon-pagination-controls {
-  gap: 2rem !important;
-  margin-bottom: 2rem !important;
-  margin-top: 1.5rem !important;
-}
-
-.neon-feature-card-compliance {
-  border-color: #ffa500 !important;
-  box-shadow: 0 0 8px 0 #ffa500, 0 0 1px 0 #ffa50099;
-}
-.neon-feature-card-compliance .dashboard-link,
-.neon-feature-card-compliance .neon-feature-card-title {
-  color: #ffa500 !important;
-}
-.neon-feature-card-compliance svg {
-  color: #ffa500 !important;
-}
-.neon-feature-card-compliance:hover {
-  box-shadow: 0 0 16px #ffa500, 0 0 4px #ffa500cc;
-  border-color: #ffa500;
-}
-
-/* Increase specificity of the .logo-header margin-bottom and add a body > .logo-header rule to ensure the margin is always applied, even if other components or global styles override it */
-.logo-header {
-  margin-bottom: var(--space-2) !important;
-}
-body > .logo-header {
-  margin-bottom: var(--space-2) !important;
-}
-
-/* If dashboard-grid or feature card is removing margin, restore it here */
-.dashboard-grid {
-  margin-top: 2rem !important;
-}
-
-/* Optionally, add extra spacing if needed for the dashboard page only */
-body.admin-dashboard .logo-header {
-  margin-bottom: var(--space-2) !important;
-}
-
-.dashboard-link,
-.neon-link,
-.neon-feature-card a,
-.neon-feature-card .dashboard-link {
-  color: var(--neon) !important;
-  text-decoration: underline;
-  display: inline;
-}
-.dashboard-link:visited,
-.neon-link:visited,
-.neon-feature-card a:visited,
-.neon-feature-card .dashboard-link:visited {
-  color: var(--neon) !important;
-  display: inline;
-}
-
-.neon-btn-square-form {
-  width: 48px;
-  height: 48px;
-  min-width: 48px;
-  min-height: 48px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--r-md);
-  font-size: 1.25rem;
-  padding: 0;
-}
-
-/* Add form row and group for semantic, global layout */
-.neon-form-row {
-  display: flex;
-  gap: 2rem;
-  margin-bottom: 1.5rem;
-}
-
-.neon-form-group {
-  flex: 1;
+/* Dashboard card */
+.dashboard-card {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto 2rem auto;
   display: flex;
   flex-direction: column;
+  align-items: stretch;
 }
 
-@media (max-width: 700px) {
-  .neon-form-row {
-    flex-direction: column;
-    gap: 1rem;
+/* Dashboard grid */
+.dashboard-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  margin-top: 2rem;
+}
+
+/* Dashboard links */
+.dashboard-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+/* Dashboard link */
+.dashboard-link {
+  color: var(--neon);
+  text-decoration: underline;
+  font-weight: 500;
+  transition: color .18s, text-shadow .18s;
+}
+.dashboard-link:hover {
+  color: var(--accent);
+  text-shadow: 0 0 8px var(--accent);
+}
+
+/* Manager dashboard cards */
+.manager-dashboard-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+/* ======== ADD BELOW (Sidebar + outline neon buttons) ======== */
+
+/* Optional outline variant (non-breaking) */
+.neon-outline {
+  --_neon: var(--neon);
+  background: transparent !important;
+  color: var(--text);
+  border: 2px solid var(--_neon);
+  box-shadow: none;
+  width: auto; height: auto; min-width: unset; min-height: unset; /* don't force 30px square */
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+  transition: box-shadow .2s ease, transform .12s ease, border-color .2s ease;
+}
+.neon-outline svg { width: 18px; height: 20px; stroke-width: 2; }
+.neon-outline:hover {
+  box-shadow:
+    0 0 8px rgba(64, 224, 208, .6),
+    inset 0 0 8px rgba(64, 224, 208, .15);
+  transform: translateY(-1px);
+}
+.neon-outline:active { transform: translateY(0); }
+.neon-btn-accent.neon-outline { --_neon: var(--accent); }
+.neon-btn-close.neon-outline { --_neon: var(--danger); }
+
+/* =========================================
+   10) Neon Sidebar
+   ========================================= */
+
+.sidebar-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  height: 100vh;
+  width: 120px; /* reduced from 280px for slimmer sidebar */
+  max-width: 70vw; /* reduced from 90vw for mobile */
+  background: rgba(236, 146, 13, 0.98);
+  box-shadow: 0 0 8px var(--neon), inset 0 0 20px rgba(64,224,208,.18);
+  border-right: 2px solid var(--neon);
+  transform: translateX(-100%);
+  transition: transform 0.25s cubic-bezier(.7,.3,.3,1);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.2rem 0.75rem;
+  z-index: 1099;
+  color: var(--text);
+}
+
+.sidebar-overlay.open {
+  transform: translateX(0);
+}
+
+/* Dim background behind sidebar */
+.sidebar-overlay::after {
+  content: "";
+  position: fixed;
+  top: 0; left: 160px; right: 0; bottom: 0; /* match sidebar width */
+  background: rgba(0,0,0,.45);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease;
+}
+.sidebar-overlay.open::after {
+  opacity: 6;
+  pointer-events: auto;
+}
+
+/* Close button */
+.sidebar-close-btn {
+  background: var(--danger) !important;
+  border-radius: 50%;
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 8px var(--danger);
+  color: #fff; border: none; cursor: pointer;
+  transition: background 0.18s;
+  margin-left: auto;
+}
+.sidebar-close-btn svg {
+  width: 20px; height: 20px;
+  stroke: #fff; fill: none; stroke-width: 2px;
+}
+.sidebar-close-btn:hover { background: #ff5a5a !important; }
+
+/* Sidebar links */
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  color: var(--text);
+  font-weight: 600;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background 0.18s, color 0.18s, transform .12s;
+}
+.sidebar-link:hover {
+  background: var(--accent);
+  color: #fff;
+  transform: translateX(2px);
+}
+
+.sidebar-icon svg {
+  width: 20px; height: 20px;
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .sidebar-overlay {
+    width: 70vw;
+    padding: 1rem 0.5rem;
   }
+  .sidebar-overlay::after { left: 70vw; }
 }
 
+/* =========================================
+   11) Neon Utility Button
+   ========================================= */
+.neon-utility-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--neon);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  box-shadow: 0 0 8px var(--neon);
+  cursor: pointer;
+  transition: background 0.18s, box-shadow 0.18s, transform 0.12s;
+}
+.neon-utility-btn svg {
+  width: 20px;
+  height: 20px;
+  stroke: #fff;
+  fill: none;
+  stroke-width: 2px;
+  vertical-align: middle;
+  display: inline-block;
+}
+.neon-utility-btn:hover {
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  transform: translateY(-1px);
+}
 
+/* Neon signature pad styles */
+.neon-signature-pad {
+  background: #fff;
+  border: 2px solid var(--neon, #40E0D0);
+  border-radius: 8px;
+  box-shadow: 0 0 8px #40e0d066;
+  display: block;
+  margin: 0 auto;
+}
+
+/* --- Dialog centering hardening (put at file end) --- */
+body .ui-dialog-overlay {
+  display: grid !important;
+  align-items: center !important;
+  justify-items: center !important;
+}
+
+body .ui-dialog-content {
+  position: relative !important;     /* avoid fixed+transform variants */
+  transform: none !important;
+  margin: 0 !important;              /* neutralize my-8, etc. */
+  width: min(900px, calc(100vw - 32px)) !important;
+  max-width: 900px !important;
+  max-height: min(90vh, 720px) !important;
+  overflow: auto !important;
+  box-sizing: border-box;
+}

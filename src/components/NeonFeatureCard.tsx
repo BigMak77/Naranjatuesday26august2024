@@ -44,7 +44,7 @@ export default function NeonFeatureCard({
       }}
     >
       <div className="neon-feature-card-header">
-        <span className="neon-icon">{icon}</span>
+        <span className="neon-btn neon-icon-btn" tabIndex={-1} aria-hidden="true">{icon}</span>
         <span className="neon-feature-card-title">{title}</span>
       </div>
       <div className="neon-feature-card-text">{text}</div>

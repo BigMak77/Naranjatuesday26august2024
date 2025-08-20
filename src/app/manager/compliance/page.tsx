@@ -79,7 +79,7 @@ export default function CompliancePage() {
 
   return (
     <main className="after-hero">
-      <div className="page-content">
+      <div className="global-content">
         <div className="compliance-header">
           <FiBarChart2 className="compliance-header-icon" />
           <h1 className="compliance-title">Compliance Dashboard</h1>

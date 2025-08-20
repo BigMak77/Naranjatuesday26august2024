@@ -4,8 +4,8 @@ import MyIssues from '@/app/turkus/issues/components/MyIssues';
 export default function MyIssuesPage() {
   return (
     <>
-      <div className="centered-content">
-        <div className="max-w-4xl w-full px-8 mt-10">
+      <div className="centered-content" style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', width: '100%' }}>
+        <div style={{ maxWidth: '900px', width: '100%', padding: '0 2rem', marginTop: '2.5rem' }}>
           <MyIssues />
         </div>
       </div>

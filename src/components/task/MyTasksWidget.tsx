@@ -25,34 +25,33 @@ export default function MyTasksWidget() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user?.auth_id) return;
-
-    const fetchTasks = async () => {
+    if (!userLoading && user?.auth_id) {
       setLoading(true);
       setError(null);
-      const { data, error } = await supabase
-        .from('task_assignments')
-        .select('id, due_date, status, task:tasks(id, title, description)')
-        .eq('assigned_to', user.auth_id)
-        .order('due_date', { ascending: true });
+      const fetchTasks = async () => {
+        const { data, error } = await supabase
+          .from('task_assignments')
+          .select('id, due_date, status, task:tasks(id, title, description)')
+          .eq('assigned_to', user.auth_id)
+          .order('due_date', { ascending: true });
 
-      if (error) setError('Failed to load tasks.');
-      setTasks(
-        (data || []).map((item: {
-          id: number;
-          due_date: string | null;
-          status: string;
-          task: { id: number; title: string; description: string }[] | { id: number; title: string; description: string } | null;
-        }) => ({
-          ...item,
-          task: Array.isArray(item.task) ? item.task[0] || null : item.task ?? null,
-        }))
-      );
-      setLoading(false);
-    };
-
-    fetchTasks();
-  }, [user]);
+        if (error) setError('Failed to load tasks.');
+        setTasks(
+          (data || []).map((item: {
+            id: number;
+            due_date: string | null;
+            status: string;
+            task: { id: number; title: string; description: string }[] | { id: number; title: string; description: string } | null;
+          }) => ({
+            ...item,
+            task: Array.isArray(item.task) ? item.task[0] || null : item.task ?? null,
+          }))
+        );
+        setLoading(false);
+      };
+      fetchTasks();
+    }
+  }, [userLoading, user]);
 
   if (userLoading) return <p className="neon-loading">Loading user...</p>;
   if (!user) return null;
@@ -79,7 +78,7 @@ export default function MyTasksWidget() {
             {
               header: 'Actions',
               accessor: 'id',
-              render: (_value, _row) => (
+              render: () => (
                 <NeonIconButton
                   variant="view"
                   title="View Task"
@@ -91,7 +90,16 @@ export default function MyTasksWidget() {
           data={tasks.map((t) => ({
             task: t.task?.title || 'Untitled',
             description: t.task?.description || '—',
-            due_date: t.due_date ? new Date(t.due_date).toLocaleDateString('en-GB') : '—',
+            due_date: t.due_date
+              ? (() => {
+                  if (typeof window === 'undefined') return '—';
+                  try {
+                    return new Date(t.due_date).toLocaleDateString('en-GB');
+                  } catch {
+                    return '—';
+                  }
+                })()
+              : '—',
             status: t.status || 'Pending',
             id: t.id,
           }))}

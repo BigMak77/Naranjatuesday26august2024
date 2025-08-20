@@ -12,6 +12,7 @@ import ModuleSelectorWidget from '@/components/admin/role-profiles/widgets/Modul
 import DocumentSelectorWidget from '@/components/admin/role-profiles/widgets/DocumentSelectorWidget'
 import BehaviourSelectorWidget from '@/components/admin/role-profiles/widgets/BehaviourSelectorWidget'
 import AssignmentSelectorWidget from '@/components/admin/role-profiles/widgets/AssignmentSelectorWidget'
+import ContentHeader from '@/components/headersandfooters/ContentHeader';
 
 export default function RoleProfileBuilderPage() {
   const router = useRouter()
@@ -156,7 +157,9 @@ export default function RoleProfileBuilderPage() {
 
   return (
     <>
-      <HeroHeader title={profileId ? 'Edit Role Profile' : 'Create Role Profile'} />
+      <ContentHeader>
+        {profileId ? 'Edit Role Profile' : 'Create Role Profile'}
+      </ContentHeader>
       <NeonPanel className="neon-panel-lg">
         {error && (
           <p className="text-red-600 text-base font-semibold mb-2 flex items-center gap-2">

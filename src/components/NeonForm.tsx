@@ -1,6 +1,10 @@
 'use client'
 
 import React from 'react'
+import NeonIconButton from './ui/NeonIconButton'
+
+// NOTE: All styling for NeonForm is provided by global neon design system classes in globals.css
+// No local styles are used here. All class names below should be defined in globals.css for consistency.
 
 type NeonFormProps = {
   title: string
@@ -22,19 +26,19 @@ export default function NeonForm({
       <h2 className="neon-form-title">{title}</h2>
       {children}
       <div className="neon-form-actions">
-        <button
+        <NeonIconButton
+          variant="cancel"
+          title="Cancel"
           type="button"
-          className="neon-btn"
           onClick={onCancel ? onCancel : () => window.history.back()}
-        >
-          Cancel
-        </button>
-        <button
+          className="neon-btn-square-form"
+        />
+        <NeonIconButton
+          variant="save"
+          title={submitLabel}
           type="submit"
-          className="neon-btn"
-        >
-          {submitLabel}
-        </button>
+          className="neon-btn-square-form"
+        />
       </div>
     </form>
   )
