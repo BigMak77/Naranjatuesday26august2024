@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase-client'
 import { useRouter } from 'next/navigation'
-import Footer from '@/components/Footer'
 
 interface Department {
   id: string
@@ -114,7 +113,6 @@ export default function AddDepartmentPage() {
             </button>
           </form>
         </div>
-        <Footer />
       </main>
     </>
   )

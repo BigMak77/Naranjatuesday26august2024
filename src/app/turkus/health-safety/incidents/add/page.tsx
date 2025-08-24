@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import NeonPanel from '@/components/NeonPanel';
 import NeonIconButton from '@/components/ui/NeonIconButton';
