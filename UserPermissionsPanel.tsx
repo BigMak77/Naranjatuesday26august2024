@@ -16,6 +16,10 @@ interface Props {
   currentUserPermissions?: string[] // Optional: permissions of the editor (for access check)
 }
 
+function hasCodeProperty(obj: unknown): obj is { code: string } {
+  return typeof obj === 'object' && obj !== null && 'code' in obj && typeof (obj as { code?: unknown }).code === 'string';
+}
+
 export default function UserPermissionsPanel({ authId, currentUserPermissions = [] }: Props) {
   const [permissions, setPermissions] = useState<Permission[]>([])
   const [userPermissionCodes, setUserPermissionCodes] = useState<string[]>([])
@@ -32,14 +36,15 @@ export default function UserPermissionsPanel({ authId, currentUserPermissions = 
         .eq('auth_id', authId)
 
       const codes = userPerms?.map((up) => {
-        if (Array.isArray(up.permission)) {
-          const perm = up.permission[0];
-          return perm && typeof perm === 'object' && 'code' in perm ? perm.code : undefined;
-        } else if (up.permission && typeof up.permission === 'object' && 'code' in up.permission) {
-          return (up.permission as { code?: string }).code;
+        const permObj: unknown = up.permission;
+        if (Array.isArray(permObj)) {
+          const perm = permObj[0];
+          return hasCodeProperty(perm) ? perm.code : undefined;
+        } else if (hasCodeProperty(permObj)) {
+          return permObj.code;
         }
         return undefined;
-      }).filter(Boolean) || []
+      }).filter((c): c is string => typeof c === 'string') || []
       setPermissions(allPerms || [])
       setUserPermissionCodes(codes)
     }
