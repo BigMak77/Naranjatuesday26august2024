@@ -8,10 +8,10 @@ import MyTasksWidget from '@/components/task/MyTasksWidget'
 import { FiAlertCircle, FiClock } from 'react-icons/fi'
 
 export default function TurkusAssignmentsPage() {
-  const [assignments, setAssignments] = useState<any[]>([])
-  const [tasks, setTasks] = useState<any[]>([])
-  const [users, setUsers] = useState<any[]>([])
-  const [departments, setDepartments] = useState<any[]>([])
+  const [assignments, setAssignments] = useState<[]>([])
+  const [tasks, setTasks] = useState<[]>([])
+  const [users, setUsers] = useState<[]>([])
+  const [departments, setDepartments] = useState<[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedTask, setSelectedTask] = useState('')
   const [selectedUser, setSelectedUser] = useState('')

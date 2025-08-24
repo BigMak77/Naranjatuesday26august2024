@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // components/AssignedToTab.tsx
 'use client';
@@ -62,7 +61,7 @@ export default function AssignedToTab() {
       }
 
       // 2) Map base rows
-      const base = (ua ?? []).map((r: any) => {
+      const base = (ua ?? []).map((r) => {
         const u = Array.isArray(r.users) ? r.users[0] : r.users ?? {};
         const dep = u?.departments
           ? (Array.isArray(u.departments) ? u.departments[0] : u.departments)
@@ -94,7 +93,7 @@ export default function AssignedToTab() {
       });
 
       // 3) Try to get audit names (if audits table exists)
-      let titleByAudit = new Map<string, string>();
+      const titleByAudit = new Map<string, string>();
       try {
         const auditIds = Array.from(new Set(base.map(b => b.audit_id)));
         if (auditIds.length) {
@@ -103,7 +102,7 @@ export default function AssignedToTab() {
             .select('id, name, title')
             .in('id', auditIds);
           if (audits) {
-            audits.forEach((a: any) => {
+            audits.forEach((a) => {
               titleByAudit.set(a.id, (a.name || a.title || a.id) as string);
             });
           }
@@ -113,7 +112,7 @@ export default function AssignedToTab() {
       }
 
       // 4) Try to get submissions (if audit_submissions exists)
-      let subByAssign = new Map<string, { status: string | null; submitted_at: string | null }>();
+      const subByAssign = new Map<string, { status: string | null; submitted_at: string | null }>();
       try {
         const assignmentIds = base.map(b => b.assignment_id);
         if (assignmentIds.length) {
@@ -121,7 +120,7 @@ export default function AssignedToTab() {
             .from('audit_submissions')
             .select('assignment_id, status, submitted_at')
             .in('assignment_id', assignmentIds);
-          (subs ?? []).forEach((s: any) => {
+          (subs ?? []).forEach((s) => {
             if (s.assignment_id) subByAssign.set(s.assignment_id, { status: s.status, submitted_at: s.submitted_at });
           });
         }
@@ -276,7 +275,7 @@ export default function AssignedToTab() {
                   key={col.accessor}
                   className="neon-table-th cursor-pointer select-none"
                   onClick={() => {
-                    if (sortBy === (col.accessor as any)) {
+                    if (sortBy === col.accessor) {
                       setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
                     }
                     setSortBy(col.accessor as typeof sortBy);
