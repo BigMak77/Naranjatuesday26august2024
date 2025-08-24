@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { FaLinkedin, FaEnvelope } from 'react-icons/fa';
 import { FiX } from 'react-icons/fi';
-import styles from './GlobalFooter.module.css';
+import styles from '@/components/GlobalFooterModule.css';
 
 export default function GlobalFooter() {
   return (
