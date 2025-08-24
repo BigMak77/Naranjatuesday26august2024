@@ -1,16 +1,15 @@
 import "./globals.css";
 import type { ReactNode } from "react";
-// Removed GlobalHeader import
+import GlobalFooter from '@/components/GlobalFooter';
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
-        {/* Removed header and GlobalHeader */}
-        <main className="after-hero">
+        <main>
           <div className="global-content">{children}</div>
         </main>
-        {/* Footer removed as requested */}
+        <GlobalFooter />
       </body>
     </html>
   );

@@ -18,7 +18,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <section className="frame">{children}</section>
         </div>
       </main>
-
     </UserProvider>
   );
 }

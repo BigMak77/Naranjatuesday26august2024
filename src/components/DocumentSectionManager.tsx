@@ -193,12 +193,12 @@ export default function DocumentManager() {
         </NeonForm>
       </Modal>
 
-      <div className="document-section-controls">
+      <div className="document-section-controls neon-panel neon-form-padding">
         <div className="document-section-controls-filters">
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="document-section-filter-select"
+            className="neon-input neon-select"
           >
             <option value="">All Types</option>
             <option value="policy">Policy</option>
@@ -208,7 +208,7 @@ export default function DocumentManager() {
           <select
             value={filterSection}
             onChange={(e) => setFilterSection(e.target.value)}
-            className="document-section-filter-select"
+            className="neon-input neon-select"
           >
             <option value="">All Sections</option>
             {sections.map((s) => (
@@ -242,7 +242,7 @@ export default function DocumentManager() {
         <p className="neon-loading">Loading...</p>
       ) : (
         <>
-          <div className="document-section-table-wrapper">
+          <div className="document-section-table-wrapper neon-panel neon-form-padding">
             <NeonTable
               columns={[
                 { header: 'Title', accessor: 'title' },
@@ -267,10 +267,10 @@ export default function DocumentManager() {
                   }
                   return {
                     title: doc.title,
-                    document_type: <div className="document-type-icon-cell">{typeIcon}</div>,
+                    document_type: <div className="document-type-icon-cell neon-label">{typeIcon}</div>,
                     section: section ? `${section.code} – ${section.title}` : '—',
                     created: doc.created_at ? new Date(doc.created_at).toLocaleDateString('en-GB') : '—',
-                    version: <div className="document-version-cell">{doc.current_version || '—'}</div>,
+                    version: <div className="document-version-cell neon-label">{doc.current_version || '—'}</div>,
                     edit: (
                       <div className="document-edit-cell">
                         <a href={`/admin/documents/edit/${doc.id}`} title="Edit document">
@@ -284,9 +284,11 @@ export default function DocumentManager() {
                     ),
                     archive: user?.auth_id ? (
                       <div className="document-archive-cell">
-                        <FiArchive
-                          size={18}
+                        <NeonIconButton
+                          variant="archive"
+                          icon={<FiArchive size={18} />}
                           title="Archive document"
+                          aria-label="Archive document"
                           onClick={() => handleArchiveClick(doc.id)}
                         />
                       </div>
@@ -294,7 +296,7 @@ export default function DocumentManager() {
                   }
                 })}
               toolbar={
-                <p className="document-section-table-count">Showing {filtered.length} matching documents</p>
+                <p className="document-section-table-count neon-label">Showing {filtered.length} matching documents</p>
               }
             />
           </div>

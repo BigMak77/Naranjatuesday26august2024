@@ -9,7 +9,17 @@ import { FiAlertCircle } from 'react-icons/fi';
 export default function IssueDetailsPage() {
   const params = useParams();
   const issueId = params?.issueId as string;
-  const [issue, setIssue] = useState<any>(null);
+  type Issue = {
+    id: string;
+    title: string;
+    description: string;
+    priority: string;
+    status: string;
+    created_at: string;
+    departments: { name: string } | { name: string }[] | null;
+  };
+
+  const [issue, setIssue] = useState<Issue | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,8 +39,8 @@ export default function IssueDetailsPage() {
   if (!issue) return <div className="neon-panel">Issue not found.</div>;
 
   return (
-    <>
-      <div className="neon-panel">
+    <div className="ui-dialog-overlay">
+      <div className="ui-dialog-content neon-panel" style={{ maxWidth: 600 }}>
         <NeonFeatureCard
           icon={<FiAlertCircle />}
           title={issue.title}
@@ -39,6 +49,6 @@ export default function IssueDetailsPage() {
         />
         <AssignIssue issueId={issue.id} />
       </div>
-    </>
+    </div>
   );
 }

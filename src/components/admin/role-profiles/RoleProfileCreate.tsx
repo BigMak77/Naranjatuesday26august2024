@@ -6,11 +6,11 @@ import toast from 'react-hot-toast'
 import ContentHeader from '@/components/headersandfooters/ContentHeader'
 import NeonPanel from '@/components/NeonPanel'
 
-import ModuleSelectorWidget from './widgets/ModuleSelectorWidget'
 import DocumentSelectorWidget from './widgets/DocumentSelectorWidget'
 import BehaviourSelectorWidget from './widgets/BehaviourSelectorWidget'
 import AssignmentSelectorWidget from './widgets/AssignmentSelectorWidget'
 import { FiArrowLeft, FiArrowRight, FiSave } from 'react-icons/fi'
+import NeonDualListbox from '@/components/ui/NeonDualListbox'
 
 const steps = [
   { label: 'Modules' },
@@ -19,10 +19,12 @@ const steps = [
   { label: 'Assignments' },
 ]
 
+type TargetType = 'user' | 'role' | 'department'
+
 export default function RoleProfileCreate({
   onSubmit,
   onCancel,
-  profileId, // <-- add optional profileId prop
+  profileId,
 }: {
   onSubmit?: (data: {
     id: string
@@ -31,10 +33,10 @@ export default function RoleProfileCreate({
     selectedModules: string[]
     selectedDocuments: string[]
     selectedBehaviours: string[]
-    selectedAssignments: { type: 'user' | 'role' | 'department'; id: string; label: string }[]
+    selectedAssignments: { type: TargetType; id: string; label: string }[]
   }) => void
   onCancel?: () => void
-  profileId?: string // <-- add optional profileId prop
+  profileId?: string
 }) {
   const [step, setStep] = useState(0)
   const [name, setName] = useState('')
@@ -43,42 +45,96 @@ export default function RoleProfileCreate({
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([])
   const [selectedBehaviours, setSelectedBehaviours] = useState<string[]>([])
   const [selectedAssignments, setSelectedAssignments] = useState<
-    { type: 'user' | 'role' | 'department'; id: string; label: string }[]
+    { type: TargetType; id: string; label: string }[]
   >([])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [modules, setModules] = useState<{ id: string; label: string }[]>([])
 
+  // ---------- Prefill when editing ----------
   useEffect(() => {
+    let cancelled = false
     if (!profileId) return
+
     const fetchProfile = async () => {
-      const { data } = await supabase
-        .from('role_profiles')
-        .select('*')
-        .eq('id', profileId)
-        .single()
-      if (data) {
-        setName(data.name || '')
-        setDescription(data.description || '')
-        // Fetch related modules, documents, behaviours, assignments
-        const [modules, documents, behaviours, assignments] = await Promise.all([
+      try {
+        const { data: profile, error: profileErr } = await supabase
+          .from('role_profiles')
+          .select('*')
+          .eq('id', profileId)
+          .maybeSingle()
+
+        if (profileErr) throw profileErr
+        if (!profile) {
+          // profile missing — show message but don’t crash
+          toast.error('Role profile not found')
+          return
+        }
+
+        if (cancelled) return
+        setName(profile.name || '')
+        setDescription(profile.description || '')
+
+        const [mods, docs, behs, targets] = await Promise.all([
           supabase.from('role_profile_modules').select('module_id').eq('role_profile_id', profileId),
           supabase.from('role_profile_documents').select('document_id').eq('role_profile_id', profileId),
           supabase.from('role_profile_behaviours').select('behaviour_id').eq('role_profile_id', profileId),
-          supabase.from('user_training_assignments').select('target_type, target_id, label').eq('role_profile_id', profileId),
+          supabase.from('role_profile_targets').select('target_type, target_id, label').eq('role_profile_id', profileId),
         ])
-        setSelectedModules((modules.data as { module_id: string }[] ?? []).map(m => m.module_id))
-        setSelectedDocuments((documents.data as { document_id: string }[] ?? []).map(d => d.document_id))
-        setSelectedBehaviours((behaviours.data as { behaviour_id: string }[] ?? []).map(b => b.behaviour_id))
-        setSelectedAssignments((assignments.data as { target_type: 'user' | 'role' | 'department'; target_id: string; label: string }[] ?? []).map(a => ({ type: a.target_type, id: a.target_id, label: a.label })))
+
+        if (cancelled) return
+        setSelectedModules((mods.data ?? []).map((m: any) => m.module_id))
+        setSelectedDocuments((docs.data ?? []).map((d: any) => d.document_id))
+        setSelectedBehaviours((behs.data ?? []).map((b: any) => b.behaviour_id))
+        setSelectedAssignments(
+          (targets.data ?? []).map((t: any) => ({
+            type: t.target_type as TargetType,
+            id: t.target_id,
+            label: t.label ?? '',
+          }))
+        )
+      } catch (e: any) {
+        console.error('Prefill error:', e?.message || e)
+        toast.error(e?.message || 'Failed to load role profile')
       }
     }
+
     fetchProfile()
+    return () => {
+      cancelled = true
+    }
   }, [profileId])
+
+  // ---------- Load selectable modules for dual listbox ----------
+  useEffect(() => {
+    let cancelled = false
+    const fetchModules = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('modules')
+          .select('id, name')
+          .order('name', { ascending: true })
+        if (error) throw error
+        if (!cancelled && data) {
+          setModules(data.map((m: any) => ({ id: m.id, label: m.name })))
+        }
+      } catch (e: any) {
+        console.error('Load modules error:', e?.message || e)
+        toast.error(e?.message || 'Failed to load modules')
+      }
+    }
+    fetchModules()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const handleNext = () => setStep((s) => Math.min(s + 1, steps.length - 1))
   const handleBack = () => setStep((s) => Math.max(s - 1, 0))
 
+  // ---------- Save via one API call ----------
   const handleSave = async () => {
+    if (saving) return
     setSaving(true)
     setError('')
 
@@ -88,80 +144,65 @@ export default function RoleProfileCreate({
       return
     }
 
-    const { data: profileData, error: profileError } = await supabase
-      .from('role_profiles')
-      .insert({ name, description })
-      .select()
-      .single()
-
-    if (profileError || !profileData) {
-      setError('Failed to save role profile.')
-      setSaving(false)
-      return
-    }
-
-    const roleProfileId = profileData.id
-
-    if (selectedModules.length > 0) {
-      const { error } = await supabase.from('role_profile_modules').insert(
-        selectedModules.map((moduleId) => ({
-          role_profile_id: roleProfileId,
-          module_id: moduleId,
-        }))
-      )
-      if (error) {
-        setError('Failed to link modules.')
-        setSaving(false)
-        return
+    try {
+      let profileRow;
+      if (profileId) {
+        // Update existing profile
+        const { error: updateErr } = await supabase
+          .from('role_profiles')
+          .update({ name, description })
+          .eq('id', profileId)
+        if (updateErr) throw updateErr
+        profileRow = { id: profileId }
+      } else {
+        // Insert new profile
+        const { data, error: insertErr } = await supabase
+          .from('role_profiles')
+          .insert([{ name, description }])
+          .select('id')
+          .single()
+        if (insertErr) throw insertErr
+        profileRow = data
       }
-    }
+      const id = profileRow.id
 
-    if (selectedDocuments.length > 0) {
-      const { error } = await supabase.from('role_profile_documents').insert(
-        selectedDocuments.map((documentId) => ({
-          role_profile_id: roleProfileId,
-          document_id: documentId,
-        }))
-      )
-      if (error) {
-        setError('Failed to link documents.')
-        setSaving(false)
-        return
+      // Remove old module/document/behaviour/assignment links if editing
+      if (profileId) {
+        await Promise.all([
+          supabase.from('role_profile_modules').delete().eq('role_profile_id', id),
+          supabase.from('role_profile_documents').delete().eq('role_profile_id', id),
+          supabase.from('role_profile_behaviours').delete().eq('role_profile_id', id),
+          supabase.from('role_profile_targets').delete().eq('role_profile_id', id),
+        ])
       }
-    }
 
-    if (selectedBehaviours.length > 0) {
-      const { error } = await supabase.from('role_profile_behaviours').insert(
-        selectedBehaviours.map((behaviourId) => ({
-          role_profile_id: roleProfileId,
-          behaviour_id: behaviourId,
-        }))
-      )
-      if (error) {
-        setError('Failed to link behaviours.')
-        setSaving(false)
-        return
+      // Insert new module links
+      if (selectedModules.length > 0) {
+        await supabase.from('role_profile_modules').insert(
+          selectedModules.map(module_id => ({ role_profile_id: id, module_id }))
+        )
       }
-    }
-
-    if (selectedAssignments.length > 0) {
-      const { error } = await supabase.from('user_training_assignments').insert(
-        selectedAssignments.map((a) => ({
-          role_profile_id: roleProfileId,
-          target_type: a.type,
-          target_id: a.id,
-        }))
-      )
-      if (error) {
-        setError('Failed to create assignments.')
-        setSaving(false)
-        return
+      // Insert new document links
+      if (selectedDocuments.length > 0) {
+        await supabase.from('role_profile_documents').insert(
+          selectedDocuments.map(document_id => ({ role_profile_id: id, document_id }))
+        )
       }
-    }
+      // Insert new behaviour links
+      if (selectedBehaviours.length > 0) {
+        await supabase.from('role_profile_behaviours').insert(
+          selectedBehaviours.map(behaviour_id => ({ role_profile_id: id, behaviour_id }))
+        )
+      }
+      // Insert new assignment links
+      if (selectedAssignments.length > 0) {
+        await supabase.from('role_profile_targets').insert(
+          selectedAssignments.map(a => ({ role_profile_id: id, target_type: a.type, target_id: a.id, label: a.label }))
+        )
+      }
 
-    if (onSubmit) {
-      onSubmit({
-        id: roleProfileId,
+      onSubmit?.({
+        id,
         name,
         description,
         selectedModules,
@@ -169,27 +210,30 @@ export default function RoleProfileCreate({
         selectedBehaviours,
         selectedAssignments,
       })
+
+      if (!profileId) {
+        setName('')
+        setDescription('')
+        setSelectedModules([])
+        setSelectedDocuments([])
+        setSelectedBehaviours([])
+        setSelectedAssignments([])
+        setStep(0)
+      }
+
+      toast.success('✅ Role profile saved and assignments materialized')
+    } catch (e) {
+      setError((e as Error)?.message || 'Failed to save role profile')
+      toast.error((e as Error)?.message || 'Failed to save role profile')
+    } finally {
+      setSaving(false)
     }
-
-    // ✅ Reset form
-    setName('')
-    setDescription('')
-    setSelectedModules([])
-    setSelectedDocuments([])
-    setSelectedBehaviours([])
-    setSelectedAssignments([])
-    setStep(0)
-    setSaving(false)
-
-    // ✅ Show toast
-    toast.success('✅ Role profile saved successfully')
   }
 
   return (
     <>
-      <ContentHeader>
-        Create Role Profile
-      </ContentHeader>
+      <ContentHeader title="Create Role Profile" />
+
       <NeonPanel className="neon-panel-lg">
         <div className="mt-8 pt-6">
           <div className="mb-6">
@@ -201,7 +245,7 @@ export default function RoleProfileCreate({
                 <div
                   key={s.label}
                   className={`h-2 w-8 rounded-full ${i <= step ? 'neon-progress' : 'neon-progress-inactive'}`}
-                ></div>
+                />
               ))}
             </div>
           </div>
@@ -227,16 +271,19 @@ export default function RoleProfileCreate({
                   placeholder="Enter description"
                 />
               </div>
+              <div className="mb-6">
+                <NeonDualListbox
+                  items={modules}
+                  selected={selectedModules}
+                  onChange={setSelectedModules}
+                  titleLeft="Available Modules"
+                  titleRight="Selected Modules"
+                />
+              </div>
             </>
           )}
 
           <div className="mb-6">
-            {step === 0 && (
-              <ModuleSelectorWidget
-                selectedModules={selectedModules}
-                onChange={setSelectedModules}
-              />
-            )}
             {step === 1 && (
               <DocumentSelectorWidget
                 selectedDocuments={selectedDocuments}
@@ -257,37 +304,38 @@ export default function RoleProfileCreate({
             )}
           </div>
 
-          {error && <div className="neon-error mb-4">{error}</div>}
+          {error && <div className="neon-message neon-message-error mb-4">{error}</div>}
 
           <div className="neon-flex gap-4 justify-between">
             <button
-              className="neon-btn neon-btn-danger"
+              className="neon-btn neon-btn-danger neon-btn-icon"
               onClick={step === 0 ? onCancel : handleBack}
               type="button"
+              aria-label={step === 0 ? 'Cancel' : 'Back'}
               data-tooltip={step === 0 ? 'Cancel' : 'Back'}
-              style={{ borderRadius: 'var(--radius)', width: 44, height: 44, minWidth: 44, minHeight: 44, aspectRatio: '1 / 1' }}
+              disabled={saving}
             >
               <FiArrowLeft />
             </button>
             {step < steps.length - 1 ? (
               <button
-                className="neon-btn neon-btn-edit"
+                className="neon-btn neon-btn-next neon-btn-icon"
                 onClick={handleNext}
                 type="button"
+                aria-label="Next"
                 data-tooltip="Next"
                 disabled={saving}
-                style={{ borderRadius: 'var(--radius)', width: 44, height: 44, minWidth: 44, minHeight: 44, aspectRatio: '1 / 1' }}
               >
                 <FiArrowRight />
               </button>
             ) : (
               <button
-                className="neon-btn neon-btn-save"
+                className="neon-btn neon-btn-save neon-btn-icon"
                 onClick={handleSave}
                 type="button"
+                aria-label="Submit Role Profile"
                 data-tooltip="Submit Role Profile"
                 disabled={saving}
-                style={{ borderRadius: 'var(--radius)', width: 44, height: 44, minWidth: 44, minHeight: 44, aspectRatio: '1 / 1' }}
               >
                 <FiSave />
               </button>

@@ -33,7 +33,6 @@ export default function AssignmentSelectorWidget({ selectedAssignments, onChange
         supabase.from('departments').select('id, name'),
       ])
 
-      // ✅ Use auth_id for user assignment IDs
       setUsers(
         u.data?.map((u) => ({
           type: 'user',
@@ -86,7 +85,7 @@ export default function AssignmentSelectorWidget({ selectedAssignments, onChange
   const filteredDepts = departments.filter((d) => d.label.toLowerCase().includes(search.toLowerCase()))
 
   return (
-    <NeonPanel className="mt-6">
+    <NeonPanel className="neon-panel mt-6">
       <h3 className="neon-section-title">Assign To</h3>
 
       <input
@@ -97,7 +96,7 @@ export default function AssignmentSelectorWidget({ selectedAssignments, onChange
         className="neon-input"
       />
 
-      <div className="flex gap-2">
+      <div className="neon-row">
         <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} className="neon-input">
           <option value="">All Roles</option>
           {roles.map((r) => (
@@ -120,11 +119,11 @@ export default function AssignmentSelectorWidget({ selectedAssignments, onChange
       <div>
         <button
           type="button"
-          className="btn-add neon-section-toggle"
-          data-tooltip={showDepts ? 'Hide Departments' : 'Show Departments'}
+          className="neon-btn neon-section-toggle"
+          aria-label={showDepts ? 'Hide Departments' : 'Show Departments'}
           onClick={() => setShowDepts((v) => !v)}
         >
-          {showDepts ? <span className="text-white">➖</span> : <span className="text-white">➕</span>}
+          {showDepts ? <span className="neon-btn-label">➖</span> : <span className="neon-btn-label">➕</span>}
         </button>
         {showDepts && (
           <div className="neon-grid">
@@ -148,7 +147,7 @@ export default function AssignmentSelectorWidget({ selectedAssignments, onChange
         <button
           type="button"
           className="neon-btn neon-section-toggle"
-          data-tooltip={showRoles ? 'Hide Roles' : 'Show Roles'}
+          aria-label={showRoles ? 'Hide Roles' : 'Show Roles'}
           onClick={() => setShowRoles((v) => !v)}
         >
           {showRoles ? <span className="neon-btn-label">➖</span> : <span className="neon-btn-label">➕</span>}
@@ -174,11 +173,11 @@ export default function AssignmentSelectorWidget({ selectedAssignments, onChange
       <div>
         <button
           type="button"
-          className="btn-add neon-section-toggle"
-          data-tooltip={showUsers ? 'Hide Users' : 'Show Users'}
+          className="neon-btn neon-section-toggle"
+          aria-label={showUsers ? 'Hide Users' : 'Show Users'}
           onClick={() => setShowUsers((v) => !v)}
         >
-          {showUsers ? <span className="text-white">➖</span> : <span className="text-white">➕</span>}
+          {showUsers ? <span className="neon-btn-label">➖</span> : <span className="neon-btn-label">➕</span>}
         </button>
         {showUsers && (
           <div className="neon-grid">

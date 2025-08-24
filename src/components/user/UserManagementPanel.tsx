@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/lib/supabase-client'
-// Removed unused Dialog imports
-import BehaviourSelector from '@/components/BehaviourSelector'
 import NeonTable from '@/components/NeonTable'
 import NeonIconButton from '@/components/ui/NeonIconButton'
 import { FiSave, FiEdit, FiUserPlus, FiDownload, FiUpload, FiCheck, FiX } from 'react-icons/fi'
+import { FaFirstAid } from 'react-icons/fa'
 import { useUser } from '@/lib/useUser'
 
 interface User {
@@ -43,14 +42,13 @@ export default function UserManagementPanel() {
   const [departments, setDepartments] = useState<{ id: string; name: string }[]>([])
   const [roles, setRoles] = useState<{ id: string; title: string; department_id: string }[]>([])
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
-  const [behaviours, setBehaviours] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [isAddMode, setIsAddMode] = useState(false)
   const [shiftPatterns, setShiftPatterns] = useState<{ id: string; name: string }[]>([])
-  const [roleProfiles, setRoleProfiles] = useState<{ id: string; name: string }[]>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     setLoading(true);
@@ -77,7 +75,6 @@ export default function UserManagementPanel() {
         setDepartments(d || [])
         setRoles(r || [])
         setShiftPatterns(s || [])
-        setRoleProfiles(rp || [])
       } catch {
         // Optionally set error state here
       } finally {
@@ -90,27 +87,37 @@ export default function UserManagementPanel() {
   const handleCloseDialog = () => {
     setDialogOpen(false)
     setSelectedUser(null)
-    setBehaviours([])
     setIsAddMode(false)
   }
+
+  const allowedAccessLevels = ['User', 'Manager', 'Admin']
+  const cleanUserFields = (user: User): User => ({
+    ...user,
+    department_id: user.department_id || undefined,
+    role_id: user.role_id || undefined,
+    shift_id: user.shift_id || undefined,
+    role_profile_id: user.role_profile_id || undefined,
+    access_level: allowedAccessLevels.includes((user.access_level || '').trim()) ? (user.access_level || '').trim() : 'User',
+  })
 
   const handleSave = async () => {
     if (!selectedUser) return
     setSaving(true)
+    const cleanedUser = cleanUserFields(selectedUser)
     if (isAddMode) {
       // Add new user
       const { error: userErr, data: newUser } = await supabase
         .from('users')
         .insert({
-          first_name: selectedUser.first_name,
-          last_name: selectedUser.last_name,
-          email: selectedUser.email,
-          department_id: selectedUser.department_id,
-          role_id: selectedUser.role_id,
-          access_level: selectedUser.access_level,
-          phone: selectedUser.phone,
-          shift_id: selectedUser.shift_id,
-          role_profile_id: selectedUser.role_profile_id,
+          first_name: cleanedUser.first_name,
+          last_name: cleanedUser.last_name,
+          email: cleanedUser.email,
+          department_id: cleanedUser.department_id,
+          role_id: cleanedUser.role_id,
+          access_level: cleanedUser.access_level,
+          phone: cleanedUser.phone,
+          shift_id: cleanedUser.shift_id,
+          role_profile_id: cleanedUser.role_profile_id,
         })
         .select()
         .single()
@@ -119,40 +126,29 @@ export default function UserManagementPanel() {
         setSaving(false)
         return
       }
-      if (behaviours.length > 0 && newUser?.id) {
-        await supabase.from('user_behaviours').insert(
-          behaviours.map((b) => ({ auth_id: newUser.id, behaviour_id: b }))
-        )
-      }
       setUsers([...users, newUser])
     } else {
       // Edit existing user
       const { error: userErr } = await supabase
         .from('users')
         .update({
-          first_name: selectedUser.first_name,
-          last_name: selectedUser.last_name,
-          email: selectedUser.email,
-          department_id: selectedUser.department_id,
-          role_id: selectedUser.role_id,
-          access_level: selectedUser.access_level,
-          phone: selectedUser.phone,
-          shift_id: selectedUser.shift_id,
-          role_profile_id: selectedUser.role_profile_id,
+          first_name: cleanedUser.first_name,
+          last_name: cleanedUser.last_name,
+          email: cleanedUser.email,
+          department_id: cleanedUser.department_id,
+          role_id: cleanedUser.role_id,
+          access_level: cleanedUser.access_level,
+          phone: cleanedUser.phone,
+          shift_id: cleanedUser.shift_id,
+          role_profile_id: cleanedUser.role_profile_id,
         })
-        .eq('id', selectedUser.id)
+        .eq('id', cleanedUser.id)
       if (userErr) {
         console.error('Failed to update user:', userErr)
         setSaving(false)
         return
       }
-      await supabase.from('user_behaviours').delete().eq('auth_id', selectedUser.id)
-      if (behaviours.length > 0) {
-        await supabase.from('user_behaviours').insert(
-          behaviours.map((b) => ({ auth_id: selectedUser.id, behaviour_id: b }))
-        )
-      }
-      setUsers(users.map(u => u.id === selectedUser.id ? selectedUser : u))
+      setUsers(users.map(u => u.id === cleanedUser.id ? { ...u, ...cleanedUser } : u))
     }
     setSaving(false)
     setShowSuccess(true)
@@ -191,27 +187,43 @@ export default function UserManagementPanel() {
   };
 
   // CSV Upload handler
-  const handleImportUsers = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImportUsers = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      const text = event.target?.result as string;
-      const lines = text.split(/\r?\n/).filter(Boolean);
-      if (lines.length < 2) return;
-      const headers = lines[0].split(',');
-      const usersToImport = lines.slice(1).map(line => {
-        const values = line.split(',');
-        const obj: Record<string, string> = {};
-        headers.forEach((h, i) => { obj[h.trim()] = (values[i] || '').replace(/^"|"$/g, '').replace(/""/g, '"'); });
-        return obj;
-      });
-      await supabase.from('users').upsert(usersToImport, { onConflict: 'id' });
-      const { data: u } = await supabase.from('users').select('id, email, first_name, last_name, department_id, role_id, access_level, phone');
-      setUsers(u || []);
-    };
-    reader.readAsText(file);
+    const text = await file.text();
+    // Use csv-parse for robust parsing
+    let usersToImport: Record<string, unknown>[] = [];
+    try {
+      // @ts-expect-error: dynamic import for csv-parse/sync in browser
+      const csvParse = (await import('csv-parse/sync')).parse;
+      usersToImport = csvParse(text, { columns: true, skip_empty_lines: true });
+      // Convert booleans and clean up fields
+      usersToImport = usersToImport.map(u => ({
+        ...u,
+        is_first_aid: u.is_first_aid === 'true' || u.is_first_aid === true,
+        is_trainer: u.is_trainer === 'true' || u.is_trainer === true,
+      }));
+    } catch (err) {
+      console.error('CSV parse error:', err);
+      return;
+    }
+    await supabase.from('users').upsert(usersToImport, { onConflict: 'id' });
+    const { data: u } = await supabase.from('users').select('*');
+    setUsers(u || []);
   };
+
+  const userTableColumns = [
+    { header: 'Name', accessor: 'name' },
+    { header: 'Department', accessor: 'department_name' },
+    { header: 'Role', accessor: 'role_title' },
+    { header: 'Access', accessor: 'access_level' },
+    { header: 'Role Profile', accessor: 'role_profile_name' },
+    { header: 'Shift', accessor: 'shift_name' },
+    { header: 'Email', accessor: 'email' },
+    { header: 'Start Date', accessor: 'start_date' },
+    { header: 'First Aid', accessor: 'is_first_aid' },
+    { header: 'Trainer', accessor: 'is_trainer' },
+  ];
 
   if (loading) return <p className="neon-loading">Loading users...</p>
 
@@ -220,19 +232,7 @@ export default function UserManagementPanel() {
       <div className="neon-table-panel">
         <div className="neon-table-scroll">
           <NeonTable
-            columns={[
-              { header: 'Name', accessor: 'name' },
-              { header: 'Department', accessor: 'department_name' },
-              { header: 'Role', accessor: 'role_title' },
-              { header: 'Status', accessor: 'status' },
-              { header: 'Access', accessor: 'access_level' },
-              { header: 'Role Profile', accessor: 'role_profile_name' }, // show name, not ID
-              { header: 'Shift', accessor: 'shift_name' },
-              { header: 'Email', accessor: 'email' },
-              { header: 'Start Date', accessor: 'start_date' },
-              { header: 'First Aid', accessor: 'is_first_aid' },
-              { header: 'Trainer', accessor: 'is_trainer' },
-            ]}
+            columns={userTableColumns}
             data={users.map((user) => {
               const department = departments.find(d => d.id === user.department_id);
               const role = roles.find(r => r.id === user.role_id);
@@ -279,7 +279,6 @@ export default function UserManagementPanel() {
                   icon={<FiUserPlus />} title="Add User" variant="add"
                   onClick={() => {
                     setSelectedUser({ id: '', email: '', first_name: '', last_name: '', department_id: '', role_id: '', access_level: 'User', phone: '' })
-                    setBehaviours([])
                     setIsAddMode(true)
                     setDialogOpen(true)
                   }}
@@ -291,9 +290,15 @@ export default function UserManagementPanel() {
                 <label style={{ display: 'inline-block' }}>
                   <NeonIconButton
                     icon={<FiUpload />} title="Upload Users CSV" variant="upload" as="button"
-                    onClick={() => {}}
+                    onClick={() => fileInputRef.current?.click()}
                   />
-                  <input type="file" accept=".csv" style={{ display: 'none' }} onChange={handleImportUsers} />
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".csv"
+                    style={{ display: 'none' }}
+                    onChange={handleImportUsers}
+                  />
                 </label>
               </>
             }
@@ -309,16 +314,6 @@ export default function UserManagementPanel() {
             </div>
             {selectedUser && (
               <div className="neon-form-grid neon-form-padding" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '1.5rem', rowGap: '2rem', alignItems: 'start' }}>
-                {/* id (read-only) */}
-                <div>
-                  <label className="neon-label">ID</label>
-                  <input className="neon-input" value={selectedUser.id || ''} readOnly placeholder="ID" />
-                </div>
-                {/* created_at (read-only) */}
-                <div>
-                  <label className="neon-label">Created At</label>
-                  <input className="neon-input" value={selectedUser.created_at || ''} readOnly placeholder="Created At" />
-                </div>
                 {/* first_name */}
                 <div>
                   <label className="neon-label">First Name</label>
@@ -328,6 +323,11 @@ export default function UserManagementPanel() {
                 <div>
                   <label className="neon-label">Last Name</label>
                   <input className="neon-input" value={selectedUser.last_name || ''} onChange={e => setSelectedUser({ ...selectedUser, last_name: e.target.value })} placeholder="Last Name" />
+                </div>
+                {/* email */}
+                <div>
+                  <label className="neon-label">Email</label>
+                  <input className="neon-input" value={selectedUser.email || ''} onChange={e => setSelectedUser({ ...selectedUser, email: e.target.value })} placeholder="Email" />
                 </div>
                 {/* department_id */}
                 <div>
@@ -347,25 +347,6 @@ export default function UserManagementPanel() {
                     ))}
                   </select>
                 </div>
-                {/* status */}
-                <div>
-                  <label className="neon-label">Status</label>
-                  <select className="neon-input" value={selectedUser.status || ''} onChange={e => setSelectedUser({ ...selectedUser, status: e.target.value })}>
-                    <option value="active">active</option>
-                    <option value="inactive">inactive</option>
-                    <option value="archived">archived</option>
-                  </select>
-                </div>
-                {/* nationality */}
-                <div>
-                  <label className="neon-label">Nationality</label>
-                  <input className="neon-input" value={selectedUser.nationality || ''} onChange={e => setSelectedUser({ ...selectedUser, nationality: e.target.value })} placeholder="Nationality" />
-                </div>
-                {/* document_path */}
-                <div>
-                  <label className="neon-label">Document Path</label>
-                  <input className="neon-input" value={selectedUser.document_path || ''} onChange={e => setSelectedUser({ ...selectedUser, document_path: e.target.value })} placeholder="Document Path" />
-                </div>
                 {/* access_level */}
                 <div>
                   <label className="neon-label">Access Level</label>
@@ -375,131 +356,59 @@ export default function UserManagementPanel() {
                     <option value="Admin">Admin</option>
                   </select>
                 </div>
-                {/* role_profile_id */}
+                {/* phone */}
                 <div>
-                  <label className="neon-label">Role Profile ID</label>
-                  <input className="neon-input" value={selectedUser.role_profile_id || ''} onChange={e => setSelectedUser({ ...selectedUser, role_profile_id: e.target.value })} placeholder="Role Profile ID" />
+                  <label className="neon-label">Phone</label>
+                  <input className="neon-input" value={selectedUser.phone || ''} onChange={e => setSelectedUser({ ...selectedUser, phone: e.target.value })} placeholder="Phone" />
                 </div>
-                {/* is_archived */}
+                {/* nationality */}
                 <div>
-                  <label className="neon-label">Archived</label>
-                  <select className="neon-input" value={selectedUser.is_archived ? 'true' : 'false'} onChange={e => setSelectedUser({ ...selectedUser, is_archived: e.target.value === 'true' })}>
-                    <option value="false">false</option>
-                    <option value="true">true</option>
+                  <label className="neon-label">Nationality</label>
+                  <input className="neon-input" value={selectedUser.nationality || ''} onChange={e => setSelectedUser({ ...selectedUser, nationality: e.target.value })} placeholder="Nationality" />
+                </div>
+                {/* is_first_aid */}
+                <div>
+                  <label className="neon-label">First Aid</label>
+                  <select className="neon-input" value={selectedUser.is_first_aid ? 'true' : 'false'} onChange={e => setSelectedUser({ ...selectedUser, is_first_aid: e.target.value === 'true' })}>
+                    <option value="false">No</option>
+                    <option value="true">Yes</option>
                   </select>
                 </div>
-                {/* last_updated_at (read-only) */}
+                {/* is_trainer */}
                 <div>
-                  <label className="neon-label">Last Updated At</label>
-                  <input className="neon-input" value={selectedUser.last_updated_at || ''} readOnly placeholder="Last Updated At" />
+                  <label className="neon-label">Trainer</label>
+                  <select className="neon-input" value={selectedUser.is_trainer ? 'true' : 'false'} onChange={e => setSelectedUser({ ...selectedUser, is_trainer: e.target.value === 'true' })}>
+                    <option value="false">No</option>
+                    <option value="true">Yes</option>
+                  </select>
                 </div>
-                {/* shift (editable) */}
+                {/* shift_id */}
                 <div>
                   <label className="neon-label">Shift</label>
-                  <select
-                    className="neon-input"
-                    value={selectedUser.shift_id || ''}
-                    onChange={e => {
-                      const selectedPattern = shiftPatterns?.find(s => s.id === e.target.value)
-                      setSelectedUser({
-                        ...selectedUser,
-                        shift_id: e.target.value,
-                        shift_name: selectedPattern ? selectedPattern.name : ''
-                      })
-                    }}
-                  >
+                  <select className="neon-input" value={selectedUser.shift_id || ''} onChange={e => {
+                    const selectedPattern = shiftPatterns?.find(s => s.id === e.target.value)
+                    setSelectedUser({
+                      ...selectedUser,
+                      shift_id: e.target.value,
+                      shift_name: selectedPattern ? selectedPattern.name : ''
+                    })
+                  }}>
                     <option value="">Select Shift</option>
                     {shiftPatterns?.map(s => (
                       <option key={s.id} value={s.id}>{s.name}</option>
                     ))}
                   </select>
                 </div>
-                {/* email */}
-                <div>
-                  <label className="neon-label">Email</label>
-                  <input className="neon-input" value={selectedUser.email || ''} onChange={e => setSelectedUser({ ...selectedUser, email: e.target.value })} placeholder="Email" />
-                </div>
-                {/* phone */}
-                <div>
-                  <label className="neon-label">Phone</label>
-                  <input className="neon-input" value={selectedUser.phone || ''} onChange={e => setSelectedUser({ ...selectedUser, phone: e.target.value })} placeholder="Phone" />
-                </div>
-                {/* is_anonymous */}
-                <div>
-                  <label className="neon-label">Anonymous</label>
-                  <select className="neon-input" value={selectedUser.is_anonymous ? 'true' : 'false'} onChange={e => setSelectedUser({ ...selectedUser, is_anonymous: e.target.value === 'true' })}>
-                    <option value="false">false</option>
-                    <option value="true">true</option>
-                  </select>
-                </div>
-                {/* auth_id (read-only) */}
-                <div>
-                  <label className="neon-label">Auth ID</label>
-                  <input className="neon-input" value={selectedUser.auth_id || ''} readOnly placeholder="Auth ID" />
-                </div>
-                {/* department_name (read-only) */}
-                <div>
-                  <label className="neon-label">Department Name</label>
-                  <input className="neon-input" value={selectedUser.department_name || ''} readOnly placeholder="Department Name" />
-                </div>
-                {/* role_title (read-only) */}
-                <div>
-                  <label className="neon-label">Role Title</label>
-                  <input className="neon-input" value={selectedUser.role_title || ''} readOnly placeholder="Role Title" />
-                </div>
                 {/* start_date */}
                 <div>
                   <label className="neon-label">Start Date</label>
                   <input className="neon-input" type="date" value={selectedUser.start_date || ''} onChange={e => setSelectedUser({ ...selectedUser, start_date: e.target.value })} placeholder="Start Date" />
                 </div>
-                {/* is_first_aid */}
-                <div>
-                  <label className="neon-label">First Aid</label>
-                  <select className="neon-input" value={selectedUser.is_first_aid === true ? 'YES' : 'NO'} onChange={e => setSelectedUser({ ...selectedUser, is_first_aid: e.target.value === 'YES' })}>
-                    <option value="NO">NO</option>
-                    <option value="YES">YES</option>
-                  </select>
-                </div>
-                {/* avatar_url */}
-                <div>
-                  <label className="neon-label">Avatar URL</label>
-                  <input className="neon-input" value={selectedUser.avatar_url || ''} onChange={e => setSelectedUser({ ...selectedUser, avatar_url: e.target.value })} placeholder="Avatar URL" />
-                </div>
-                {/* is_trainer */}
-                <div>
-                  <label className="neon-label">Trainer</label>
-                  <select className="neon-input" value={selectedUser.is_trainer === true ? 'yes' : 'no'} onChange={e => setSelectedUser({ ...selectedUser, is_trainer: e.target.value === 'yes' })}>
-                    <option value="no">no</option>
-                    <option value="yes">yes</option>
-                  </select>
-                </div>
-                {/* role_profile_id (editable dropdown) */}
-                <div>
-                  <label className="neon-label">Role Profile</label>
-                  <select
-                    className="neon-input"
-                    value={selectedUser.role_profile_id || ''}
-                    onChange={e => {
-                      const selectedProfile = roleProfiles.find(rp => rp.id === e.target.value)
-                      setSelectedUser({
-                        ...selectedUser,
-                        role_profile_id: e.target.value,
-                        role_profile_name: selectedProfile ? selectedProfile.name : ''
-                      })
-                    }}
-                  >
-                    <option value="">Select Role Profile</option>
-                    {roleProfiles.map(rp => (
-                      <option key={rp.id} value={rp.id}>{rp.name}</option>
-                    ))}
-                  </select>
-                </div>
-                {/* BehaviourSelector */}
-                <div className="neon-behaviour-inline md:col-span-3 lg:col-span-3" style={{ gridColumn: 'span 3', marginTop: '0.5rem', marginBottom: '0.5rem' }}>
-                  <label className="neon-label">Behaviours</label>
-                  <BehaviourSelector selected={behaviours} onChange={setBehaviours} max={5} />
-                </div>
-                {showSuccess && <p className="neon-success md:col-span-3 lg:col-span-3" style={{ gridColumn: 'span 3', marginTop: '0.5rem' }}>✅ User saved successfully!</p>}
+                {showSuccess && (
+                  <div className="md:col-span-3 lg:col-span-3" style={{ gridColumn: 'span 3', marginTop: '0.5rem' }}>
+                    <p className="neon-success">✅ User saved successfully!</p>
+                  </div>
+                )}
               </div>
             )}
             <div className="neon-panel-actions" style={{display:'flex',gap:'1rem',justifyContent:'flex-end',marginTop:'2rem'}}>

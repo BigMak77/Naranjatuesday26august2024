@@ -23,13 +23,13 @@
   position: relative;
 }
 .folder-tab.active {
-  border-bottom: 2px solid #FFA500;
+  border-bottom: 2px solid #FA7A20;
   background: linear-gradient(90deg, #012626 0%, #1a1a1a 100%);
   color: #40E0D0;
-  box-shadow: 0 2px 12px 0 #FFA50044;
+  box-shadow: 0 2px 12px 0 #FA7A2044;
 }
 .folder-tab:hover {
-  color: #FFA500;
+  color: #FA7A20;
   background: #012626;
 }
 .folder-tab:focus {

@@ -26,7 +26,7 @@ export default function InstructionalMediaPage() {
               <li style={{ marginBottom: '1rem', color: '#fff', fontSize: '1rem' }}><FiFolder className="instructional-media-list-icon" style={{ color: 'var(--neon)', marginRight: '0.5rem' }} aria-label="Easy Assignment" /> <strong>Easy Assignment</strong>: Assign by department, job role, or location.</li>
             </ul>
             <div className="instructional-media-cta-wrapper" style={{ textAlign: 'center', marginTop: '2rem' }}>
-              <button className="instructional-media-cta" style={{ background: 'linear-gradient(90deg, var(--accent) 0%, #ffb84d 100%)', color: '#2d2d2d', fontWeight: 700, border: 'none', borderRadius: 'var(--r-md)', padding: '1rem 2rem', fontSize: '1.08rem', boxShadow: '0 2px 12px 0 #ffa50099', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.75rem', transition: 'background .18s,color .18s, box-shadow .18s, transform .08s' }}>
+              <button className="instructional-media-cta" style={{ background: 'linear-gradient(90deg, var(--accent) 0%, #ffb84d 100%)', color: '#2d2d2d', fontWeight: 700, border: 'none', borderRadius: 'var(--r-md)', padding: '1rem 2rem', fontSize: '1.08rem', boxShadow: '0 2px 12px 0 #FA7A2099', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.75rem', transition: 'background .18s,color .18s, box-shadow .18s, transform .08s' }}>
                 <FiMail className="instructional-media-cta-icon" style={{ color: 'var(--neon)' }} aria-label="Contact" /> Contact Us to Get Started
               </button>
             </div>

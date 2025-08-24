@@ -14,7 +14,7 @@ import {
   FiLogIn,
   FiLogOut,
   FiChevronDown,
-  FiMenu,
+  FiAlertOctagon,
 } from "react-icons/fi";
 import styles from "@/components/ui/ProjectGlobalHeader.module.css";
 import MyProfileModal from "@/components/user/MyProfileModal";
@@ -190,51 +190,22 @@ export default function GlobalHeader({
               </div>
             )}
 
-            {/* Mobile menu trigger: shows primary nav in a sheet */}
-            {!loading && user && (
-              <button
-                type="button"
-                aria-label="Open menu"
-                className={styles.menuBtn}
-                onClick={() => document.documentElement.classList.toggle("nav-open")}
-              >
-                <FiMenu aria-hidden="true" />
-              </button>
-            )}
-          </div>
-        </div>
 
-        {/* Second row (optional) */}
-        {secondRow && (
-          <div className={styles.secondRow} role="region" aria-label="Secondary">
-            {secondRow}
-          </div>
-        )}
-
-        {/* Mobile sheet (uses same links) */}
-        <div className={styles.mobileSheet} aria-hidden="true">
-          <nav className={styles.mobileNav} aria-label="Mobile">
-            {links.map((l) => (
-              <Link key={l.href} href={l.href} className={styles.mobileItem} onClick={() => document.documentElement.classList.remove("nav-open")} prefetch>
-                <span className={styles.mobileIcon} aria-hidden="true">
-                  {l.icon}
-                </span>
-                <span>{l.label}</span>
-              </Link>
-            ))}
-            <div className={styles.mobileDivider} />
-            <Link href="/profile" className={styles.mobileItem} onClick={() => document.documentElement.classList.remove("nav-open")}>
-              Profile
+            {/* Siren button */}
+            <Link
+              href="/turkus/issues/add"
+              className="neon-btn neon-btn-danger"
+              title="Raise an issue"
+              aria-label="Raise an issue"
+              style={{ marginLeft: '0.75rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <FiAlertOctagon />
             </Link>
-            <button type="button" className={styles.mobileItemDanger} onClick={handleSignOut}>
-              <FiLogOut aria-hidden="true" />
-              Sign out
-            </button>
-          </nav>
+          </div>
         </div>
 
-        {/* Add route rendering logic for /profile */}
-        {/* If current route is /profile, render <MyProfile /> */}
+       
+        
       </header>
       <Modal open={profileModalOpen} onClose={() => setProfileModalOpen(false)}>
         <MyProfileModal open={profileModalOpen} onClose={() => setProfileModalOpen(false)} />

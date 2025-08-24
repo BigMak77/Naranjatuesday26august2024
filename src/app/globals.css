@@ -23,7 +23,7 @@
    ========================================= */
 :root {
   --neon: #40E0D0;
-  --accent: #ffa500;
+  --accent: #FA7A20;
   --bg: rgb(0,206,209);
 
   --text: #ffffff;
@@ -121,7 +121,7 @@ main { flex:1 0 auto; }
    4) Header
    ========================================= */
 .logo-header {
-  background: linear-gradient(90deg,#014f4f 0%, #013b3b 60%, #014f4f 100%);
+  background: linear-gradient(90deg,#007872 0%, #024545c1 60%,  rgb(0,206,209) 100%);
   border-block-end: 3px solid var(--accent);
   padding-block: .6rem;
 }
@@ -316,7 +316,7 @@ main { flex:1 0 auto; }
 }
 
 .neon-btn[data-variant="download"], .neon-btn-download {
-  background: #ffa500 !important;
+  background: #FA7A20 !important;
 }
 
 .neon-btn[data-variant="upload"], .neon-btn-upload {
@@ -334,7 +334,7 @@ main { flex:1 0 auto; }
 }
 
 .neon-btn[data-variant="orgchart"], .neon-btn-orgchart {
-  background: #ffa500 !important;
+  background: #FA7A20 !important;
 }
 
 .neon-btn[data-variant="firstaid"], .neon-btn-firstaid {
@@ -342,7 +342,7 @@ main { flex:1 0 auto; }
 }
 
 .neon-btn[data-variant="reports"], .neon-btn-reports {
-  background: #ffa500 !important;
+  background: #FA7A20 !important;
 }
 
 .neon-btn[data-variant="print"], .neon-btn-print {
@@ -372,6 +372,16 @@ main { flex:1 0 auto; }
 }
 .neon-btn[data-variant="close"]:hover, .neon-btn-close:hover {
   background: #ff5a5a !important;
+}
+
+.neon-btn[data-variant="cert"], .neon-btn-cert {
+  background: #6029a9 !important;
+  color: #fff !important;
+  box-shadow: 0 0 8px #a259ff;
+}
+.neon-btn-cert:hover {
+  background: #c084fc !important;
+  box-shadow: 0 0 12px #c084fc;
 }
 
 /* Neon table */
@@ -462,8 +472,31 @@ font-weight: 700; color: var(--neon);
   border: 1.5px solid var(--neon);
   border-radius: var(--radius);
   box-shadow: 0 0 8px var(--neon);
-  padding: 1.5rem;
+  padding: var(--space-4); /* Use global spacing variable for consistent padding */
   color: var(--text);
+}
+
+.neon-panel .neon-btn,
+.neon-panel button,
+.neon-panel .neon-icon-btn {
+  margin-right: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.neon-panel .neon-btn:last-child,
+.neon-panel button:last-child,
+.neon-panel .neon-icon-btn:last-child {
+  margin-right: 0;
+}
+
+.neon-panel textarea,
+.neon-panel .neon-input,
+.neon-panel select {
+  margin-bottom: var(--space-2);
+}
+
+.neon-panel label {
+  margin-bottom: var(--space-2);
 }
 
 /* Neon widget */
@@ -599,7 +632,7 @@ font-weight: 700; color: var(--neon);
   height: 100vh;
   width: 120px; /* reduced from 280px for slimmer sidebar */
   max-width: 70vw; /* reduced from 90vw for mobile */
-  background: rgba(236, 146, 13, 0.98);
+  background: rgba(236, 146, 13, 0.50);
   box-shadow: 0 0 8px var(--neon), inset 0 0 20px rgba(64,224,208,.18);
   border-right: 2px solid var(--neon);
   transform: translateX(-100%);
@@ -610,6 +643,8 @@ font-weight: 700; color: var(--neon);
   padding: 1.2rem 0.75rem;
   z-index: 1099;
   color: var(--text);
+    backdrop-filter: blur(10px);  /* <- adds the blur */
+  -webkit-backdrop-filter: blur(10px); /* Safari support */
 }
 
 .sidebar-overlay.open {
@@ -629,7 +664,7 @@ font-weight: 700; color: var(--neon);
   transition: opacity .25s ease;
 }
 .sidebar-overlay.open::after {
-  opacity: 6;
+  opacity: 0.6;
   pointer-events: auto;
 }
 
@@ -739,4 +774,100 @@ body .ui-dialog-content {
   max-height: min(90vh, 720px) !important;
   overflow: auto !important;
   box-sizing: border-box;
+}
+/* put space between adjacent neon icon buttons anywhere */
+.neon-btn + .neon-btn {
+  margin-left: 0.75rem;
+}
+
+.user-view {
+  display: flex;
+  flex-direction: column;
+  gap: 24px; /* vertical spacing between sections */
+}
+/* Base orange avatar */
+.orange-avatar {
+  --size: 20px;
+  --orange-light: #ffad42;
+  --orange-base:  #f98a1b;
+  --orange-dark:  #d66a00;
+
+  position: relative;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+
+  /* Peel + shine + subtle pores */
+  background:
+    /* soft highlight */
+    radial-gradient(120% 120% at 30% 25%, rgba(255,255,255,0.45) 0 12%, rgba(255,255,255,0) 13%),
+    /* tiny pores (speckles) */
+    radial-gradient(rgba(255,255,255,0.18) 0 1px, transparent 2px),
+    /* main orange gradient */
+    radial-gradient(110% 110% at 50% 65%, var(--orange-light), var(--orange-base) 55%, var(--orange-dark) 100%);
+  background-size:
+    100% 100%,
+    10px 10px,
+    100% 100%;
+  background-position:
+    center,
+    center,
+    center;
+  background-repeat:
+    no-repeat,
+    repeat,
+    no-repeat;
+
+  /* shape depth */
+  box-shadow:
+    inset 0 -8px 14px rgba(0,0,0,0.18),
+    inset 0 6px 10px rgba(255,255,255,0.25),
+    0 6px 16px rgba(0,0,0,0.18);
+}
+
+/* Stem */
+.orange-avatar::before {
+  content: "";
+  position: absolute;
+  top: -4%;
+  right: 34%;
+  width: calc(var(--size) * 0.12);
+  height: calc(var(--size) * 0.22);
+  background: #6b4f1d;
+  border-radius: 999px;
+  transform: rotate(18deg);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+}
+
+/* Leaf */
+.orange-avatar::after {
+  content: "";
+  position: absolute;
+  top: -2%;
+  right: 16%;
+  width: calc(var(--size) * 0.34);
+  height: calc(var(--size) * 0.28);
+  background:
+    radial-gradient(120% 100% at 70% 50%, rgba(255,255,255,0.35), rgba(255,255,255,0) 60%),
+    linear-gradient(135deg, #2f9e44, #217a33);
+  border-radius: 0 100% 100% 100% / 0 90% 100% 100%;
+  transform: rotate(-22deg);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
+
+/* Optional initials centered inside */
+.orange-avatar__initials {
+  font-weight: 700;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial, sans-serif;
+  font-size: calc(var(--size) * 0.36);
+  line-height: 1;
+  color: #fff;
+  text-shadow:
+    0 1px 2px rgba(0,0,0,0.35),
+    0 0 18px rgba(255,255,255,0.25);
+  user-select: none;
+  pointer-events: none;
 }

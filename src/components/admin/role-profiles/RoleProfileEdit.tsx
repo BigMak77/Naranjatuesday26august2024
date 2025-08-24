@@ -4,12 +4,11 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase-client'
 import toast from 'react-hot-toast'
 import ContentHeader from '@/components/headersandfooters/ContentHeader'
-import ModuleSelectorWidget from './widgets/ModuleSelectorWidget'
 import DocumentSelectorWidget from './widgets/DocumentSelectorWidget'
 import BehaviourSelectorWidget from './widgets/BehaviourSelectorWidget'
-import RoleAssignmentWidget from '@/components/admin/role-profiles/widgets/RoleAssignmentWidget'
 import NeonIconButton from '../../ui/NeonIconButton'
 import { FiArrowLeft, FiArrowRight, FiSave } from 'react-icons/fi'
+import NeonDualListbox from '@/components/ui/NeonDualListbox'
 
 export default function RoleProfileEdit({
   roleProfileId,
@@ -45,6 +44,9 @@ export default function RoleProfileEdit({
   const [editDocuments, setEditDocuments] = useState<boolean | null>(null)
   const [editBehaviours, setEditBehaviours] = useState<boolean | null>(null)
 
+  const [modules, setModules] = useState<{ id: string; label: string }[]>([])
+  const [roles, setRoles] = useState<{ id: string; label: string }[]>([])
+
   useEffect(() => {
     const fetchProfile = async () => {
       const { data: profile, error } = await supabase
@@ -57,6 +59,13 @@ export default function RoleProfileEdit({
       setName(profile.name || '')
       setDescription(profile.description || '')
 
+      // Fetch all modules for dual listbox
+      const { data: allModules } = await supabase
+        .from('modules')
+        .select('id, name')
+      setModules((allModules || []).map((m) => ({ id: m.id, label: m.name })))
+
+      // Fetch selected modules
       const { data: modules } = await supabase
         .from('role_profile_modules')
         .select('module_id')
@@ -75,6 +84,13 @@ export default function RoleProfileEdit({
         .eq('role_profile_id', roleProfileId)
       setSelectedBehaviours((behaviours || []).map((b) => b.behaviour_id))
 
+      // Fetch all roles for dual listbox
+      const { data: allRoles } = await supabase
+        .from('roles')
+        .select('id, name')
+      setRoles((allRoles || []).map((r) => ({ id: r.id, label: r.name })))
+
+      // Fetch selected roles
       const { data: assignments } = await supabase
         .from('role_profile_assignments')
         .select('role_id')
@@ -181,9 +197,12 @@ export default function RoleProfileEdit({
               />
             ) : (
               editModules && (
-                <ModuleSelectorWidget
-                  selectedModules={selectedModules}
+                <NeonDualListbox
+                  items={modules}
+                  selected={selectedModules}
                   onChange={setSelectedModules}
+                  titleLeft="Available Modules"
+                  titleRight="Selected Modules"
                 />
               )
             )}
@@ -229,10 +248,15 @@ export default function RoleProfileEdit({
         )}
 
         {step === 4 && (
-          <RoleAssignmentWidget
-            selectedRoles={selectedRoles}
-            onChange={setSelectedRoles}
-          />
+          <>
+            <NeonDualListbox
+              items={roles}
+              selected={selectedRoles}
+              onChange={setSelectedRoles}
+              titleLeft="Available Roles"
+              titleRight="Assigned Roles"
+            />
+          </>
         )}
 
         {/* Controls */}

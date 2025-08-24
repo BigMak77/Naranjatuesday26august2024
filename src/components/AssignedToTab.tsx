@@ -1,14 +1,25 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // components/AssignedToTab.tsx
-'use client'
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase-client'
-import NeonPanel from '@/components/NeonPanel'
-import { FiSearch, FiFilter, FiChevronDown, FiCheckCircle, FiXCircle, FiMail } from 'react-icons/fi';
+'use client';
+
+import { useEffect, useMemo, useState } from 'react';
+import { supabase } from '@/lib/supabase-client';
+import NeonPanel from '@/components/NeonPanel';
+import { FiSearch, FiChevronDown, FiCheckCircle, FiXCircle, FiMail } from 'react-icons/fi';
+
+type Row = {
+  assignment_id: string;
+  template_title: string;
+  assigned_to_name: string;
+  department_name: string;
+  scheduled_for: string | null;    // display value (localised)
+  scheduled_for_sort: number;      // unix ms for sorting
+  submission_status: 'Completed' | 'In Progress' | 'Not Started';
+};
 
 export default function AssignedToTab() {
-  const [rows, setRows] = useState<any[]>([]);
+  const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState<'assigned_to_name' | 'department_name' | 'template_title' | 'scheduled_for' | 'submission_status'>('scheduled_for');
@@ -17,44 +28,188 @@ export default function AssignedToTab() {
   const [filterDept, setFilterDept] = useState<string>('');
 
   useEffect(() => {
-    const load = async () => {
-      const { data, error } = await supabase
-        .from('assigned_audit_status_view')
-        .select('*');
-      if (!error && data) setRows(data);
+    let alive = true;
+    (async () => {
+      setLoading(true);
+
+      // 1) Load audit assignments from the single sink
+      const { data: ua, error: uaErr } = await supabase
+        .from('user_assignments')
+        .select(`
+          id,
+          auth_id,
+          item_id,
+          assigned_at,
+          due_at,
+          opened_at,
+          completed_at,
+          users:users!inner(
+            first_name,
+            last_name,
+            departments(name)
+          )
+        `)
+        .eq('item_type', 'audit')
+        .order('due_at', { ascending: false });
+
+      if (!alive) return;
+
+      if (uaErr) {
+        console.error('user_assignments load error:', uaErr);
+        setRows([]);
+        setLoading(false);
+        return;
+      }
+
+      // 2) Map base rows
+      const base = (ua ?? []).map((r: any) => {
+        const u = Array.isArray(r.users) ? r.users[0] : r.users ?? {};
+        const dep = u?.departments
+          ? (Array.isArray(u.departments) ? u.departments[0] : u.departments)
+          : {};
+        const name = `${u?.first_name ?? ''} ${u?.last_name ?? ''}`.trim() || '(no name)';
+
+        const dueIso = r.due_at as string | null;
+        const dueMs = dueIso ? Date.parse(dueIso) : 0;
+        const dueDisplay = dueIso
+          ? new Date(dueIso).toLocaleString(undefined, {
+              year: 'numeric',
+              month: 'short',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+            })
+          : null;
+
+        return {
+          assignment_id: r.id as string,
+          audit_id: r.item_id as string,
+          assigned_to_name: name,
+          department_name: (dep?.name as string) ?? '—',
+          scheduled_for: dueDisplay,
+          scheduled_for_sort: isNaN(dueMs) ? 0 : dueMs,
+          completed_at: r.completed_at as string | null,
+          opened_at: r.opened_at as string | null,
+        };
+      });
+
+      // 3) Try to get audit names (if audits table exists)
+      let titleByAudit = new Map<string, string>();
+      try {
+        const auditIds = Array.from(new Set(base.map(b => b.audit_id)));
+        if (auditIds.length) {
+          const { data: audits } = await supabase
+            .from('audits')
+            .select('id, name, title')
+            .in('id', auditIds);
+          if (audits) {
+            audits.forEach((a: any) => {
+              titleByAudit.set(a.id, (a.name || a.title || a.id) as string);
+            });
+          }
+        }
+      } catch {
+        // audits table might not exist yet; fall back to id
+      }
+
+      // 4) Try to get submissions (if audit_submissions exists)
+      let subByAssign = new Map<string, { status: string | null; submitted_at: string | null }>();
+      try {
+        const assignmentIds = base.map(b => b.assignment_id);
+        if (assignmentIds.length) {
+          const { data: subs } = await supabase
+            .from('audit_submissions')
+            .select('assignment_id, status, submitted_at')
+            .in('assignment_id', assignmentIds);
+          (subs ?? []).forEach((s: any) => {
+            if (s.assignment_id) subByAssign.set(s.assignment_id, { status: s.status, submitted_at: s.submitted_at });
+          });
+        }
+      } catch {
+        // audit_submissions table might not exist yet; treat as no submissions
+      }
+
+      // 5) Build final rows with status + title
+      const finalRows: Row[] = base.map(b => {
+        const sub = subByAssign.get(b.assignment_id);
+        const completed = Boolean(b.completed_at || sub?.submitted_at);
+        const inProgress = !completed && (Boolean(b.opened_at) || sub?.status === 'in_progress');
+
+        const status: Row['submission_status'] = completed
+          ? 'Completed'
+          : inProgress
+          ? 'In Progress'
+          : 'Not Started';
+
+        return {
+          assignment_id: b.assignment_id,
+          template_title: titleByAudit.get(b.audit_id) ?? b.audit_id, // fallback to id if audits table not present
+          assigned_to_name: b.assigned_to_name,
+          department_name: b.department_name,
+          scheduled_for: b.scheduled_for,
+          scheduled_for_sort: b.scheduled_for_sort,
+          submission_status: status,
+        };
+      });
+
+      if (!alive) return;
+      setRows(finalRows);
       setLoading(false);
+    })();
+
+    return () => {
+      alive = false;
     };
-    load();
   }, []);
 
-  // Filter, search, and sort logic
-  let filtered = rows;
-  if (filterStatus) filtered = filtered.filter(r => r.submission_status === filterStatus);
-  if (filterDept) filtered = filtered.filter(r => r.department_name === filterDept);
-  if (search) filtered = filtered.filter(r =>
-    r.assigned_to_name?.toLowerCase().includes(search.toLowerCase()) ||
-    r.department_name?.toLowerCase().includes(search.toLowerCase()) ||
-    r.template_title?.toLowerCase().includes(search.toLowerCase())
-  );
-  filtered = [...filtered].sort((a, b) => {
-    if (a[sortBy] < b[sortBy]) return sortDir === 'asc' ? -1 : 1;
-    if (a[sortBy] > b[sortBy]) return sortDir === 'asc' ? 1 : -1;
-    return 0;
-  });
+  // Filter, search
+  const filtered = useMemo(() => {
+    let list = rows;
+    if (filterStatus) list = list.filter(r => r.submission_status === filterStatus);
+    if (filterDept) list = list.filter(r => r.department_name === filterDept);
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(r =>
+        (r.assigned_to_name || '').toLowerCase().includes(q) ||
+        (r.department_name || '').toLowerCase().includes(q) ||
+        (r.template_title || '').toLowerCase().includes(q)
+      );
+    }
+    // Sort (special case for date)
+    const sorted = [...list].sort((a, b) => {
+      if (sortBy === 'scheduled_for') {
+        const A = a.scheduled_for_sort;
+        const B = b.scheduled_for_sort;
+        return sortDir === 'asc' ? A - B : B - A;
+      }
+      const A = (a[sortBy] || '') as string;
+      const B = (b[sortBy] || '') as string;
+      return sortDir === 'asc' ? A.localeCompare(B) : B.localeCompare(A);
+    });
+    return sorted;
+  }, [rows, search, filterStatus, filterDept, sortBy, sortDir]);
 
-  // Get unique status and department values for filters
-  const statusOptions = Array.from(new Set(rows.map(r => r.submission_status))).filter(Boolean);
-  const deptOptions = Array.from(new Set(rows.map(r => r.department_name))).filter(Boolean);
+  // Unique options
+  const statusOptions = useMemo(
+    () => Array.from(new Set(rows.map(r => r.submission_status))).filter(Boolean) as string[],
+    [rows]
+  );
+  const deptOptions = useMemo(
+    () => Array.from(new Set(rows.map(r => r.department_name))).filter(Boolean) as string[],
+    [rows]
+  );
 
   async function sendReminderEmail(assignmentId: string, assignedTo: string) {
-    // Call your backend API or Supabase function to send the email
-    // Example: await fetch(`/api/send-reminder?assignmentId=${assignmentId}`)
-    alert(`Reminder sent to ${assignedTo}`);
+    // Hook up to your API or Postgres function when ready
+    // e.g. await fetch(`/api/remind-audit?assignmentId=${assignmentId}`, { method: 'POST' })
+    alert(`Reminder queued for ${assignedTo}`);
   }
 
   return (
     <NeonPanel className="neon-panel-audit space-y-4">
       <h3 className="neon-section-title">Assigned Audits</h3>
+
+      {/* Controls */}
       <div className="neon-flex neon-flex-wrap gap-4 items-center mb-4">
         <div className="neon-relative">
           <FiSearch className="neon-icon-search" />
@@ -68,6 +223,7 @@ export default function AssignedToTab() {
             />
           </div>
         </div>
+
         <div className="neon-flex gap-2">
           <select
             value={filterStatus}
@@ -75,18 +231,29 @@ export default function AssignedToTab() {
             className="neon-input"
           >
             <option value="">All Statuses</option>
-            {statusOptions.map(s => <option key={s} value={s}>{s}</option>)}
+            {statusOptions.map(s => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
           </select>
+
           <select
             value={filterDept}
             onChange={e => setFilterDept(e.target.value)}
             className="neon-input"
           >
             <option value="">All Departments</option>
-            {deptOptions.map(d => <option key={d} value={d}>{d}</option>)}
+            {deptOptions.map(d => (
+              <option key={d} value={d}>
+                {d}
+              </option>
+            ))}
           </select>
         </div>
       </div>
+
+      {/* Table */}
       <div className="neon-table-wrapper">
         <table className="neon-table min-w-full table-fixed">
           <colgroup>
@@ -109,7 +276,9 @@ export default function AssignedToTab() {
                   key={col.accessor}
                   className="neon-table-th cursor-pointer select-none"
                   onClick={() => {
-                    if (sortBy === col.accessor) setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+                    if (sortBy === (col.accessor as any)) {
+                      setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+                    }
                     setSortBy(col.accessor as typeof sortBy);
                   }}
                 >
@@ -123,24 +292,39 @@ export default function AssignedToTab() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={5} className="neon-table-info">Loading...</td></tr>
+              <tr>
+                <td colSpan={5} className="neon-table-info">
+                  Loading...
+                </td>
+              </tr>
             ) : filtered.length === 0 ? (
-              <tr><td colSpan={5} className="neon-table-info">No assigned audits found.</td></tr>
+              <tr>
+                <td colSpan={5} className="neon-table-info">
+                  No assigned audits found.
+                </td>
+              </tr>
             ) : (
-              filtered.map((row, i) => (
-                <tr key={i} className="neon-table-row">
+              filtered.map(row => (
+                <tr key={row.assignment_id} className="neon-table-row">
                   <td className="neon-table-cell">{row.template_title}</td>
                   <td className="neon-table-cell">{row.assigned_to_name}</td>
                   <td className="neon-table-cell">{row.department_name}</td>
-                  <td className="neon-table-cell">{row.scheduled_for}</td>
+                  <td className="neon-table-cell">{row.scheduled_for ?? '—'}</td>
                   <td className="neon-table-cell">
                     {row.submission_status === 'Completed' ? (
                       <FiCheckCircle className="neon-status-complete neon-table-status-icon" title="Completed" />
                     ) : (
-                      <>
-                        <FiXCircle className="neon-status-incomplete neon-table-status-icon" title="Not Completed" />
-                        <FiMail className="neon-table-remind-icon" title={`Remind ${row.assigned_to_name}`} />
-                      </>
+                      <div className="flex items-center gap-2">
+                        <FiXCircle className="neon-status-incomplete neon-table-status-icon" title={row.submission_status} />
+                        <button
+                          type="button"
+                          title={`Remind ${row.assigned_to_name}`}
+                          className="inline-flex items-center opacity-80 hover:opacity-100"
+                          onClick={() => sendReminderEmail(row.assignment_id, row.assigned_to_name)}
+                        >
+                          <FiMail className="neon-table-remind-icon" />
+                        </button>
+                      </div>
                     )}
                   </td>
                 </tr>

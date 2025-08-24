@@ -62,8 +62,9 @@ export default function ModuleViewPage() {
         <div className="admin-module-meta">Tags: <span>{(module.tags && module.tags.length > 0) ? module.tags.join(', ') : '—'}</span></div>
         <div className="admin-module-meta">Created At: <span>{module.created_at ? new Date(module.created_at).toLocaleString() : '—'}</span></div>
         <div className="admin-module-meta">Updated At: <span>{module.updated_at ? new Date(module.updated_at).toLocaleString() : '—'}</span></div>
-        <button onClick={() => router.push(`/admin/modules/edit/${module.id}`)} className="mt-6 px-4 py-2 rounded font-semibold shadow transition">Edit Module</button>
-        <button onClick={() => router.push('/admin/modules')} className="mt-2 ml-4 px-4 py-2 rounded font-semibold shadow transition">Cancel</button>
+        <button onClick={() => router.push(`/admin/modules/edit/${module.id}`)} className="neon-btn neon-btn-edit" data-variant="edit">Edit Module</button>
+        <button onClick={() => router.push('/admin/modules')} className="neon-btn neon-btn-cancel ml-4" data-variant="cancel">Cancel</button>
+        <button onClick={() => router.push(`/admin/modules/archive/${module.id}`)} className="neon-btn neon-btn-archive ml-4" data-variant="archive">Archive</button>
       </NeonPanel>
     </div>
   )

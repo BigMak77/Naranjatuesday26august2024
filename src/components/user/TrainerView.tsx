@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, {
   useMemo,
@@ -14,12 +14,14 @@ import {
   FiArchive,
   FiAward,
   FiFilter,
+  FiAlertOctagon,
 } from "react-icons/fi";
 import { createClient } from "@supabase/supabase-js";
 import SignaturePad from "react-signature-canvas";
 import NeonTable from "../NeonTable";
 import NeonForm from "../NeonForm";
 import NeonPanel from "../NeonPanel";
+import Image from "next/image";
 
 // ==========================
 // Types
@@ -36,13 +38,14 @@ export type UserRow = {
 };
 
 export type LogTrainingPayload = {
-  userId: string;
-  date: string; // ISO yyyy-mm-dd
-  topic: string;
-  durationHours: number;
+  auth_id: string;           // use auth_id, not app user id
+  date: string;              // ISO yyyy-mm-dd
+  topic: string;             // module_id or human topic
+  duration_hours: number;
   outcome: "completed" | "needs-followup";
-  notes?: string;
-  signature: string; // base64 PNG dataURL
+  notes?: string | null;
+  signature: string;         // base64 PNG dataURL
+  assignment_id?: string | null;
 };
 
 export type Section = "log" | "history" | "assign" | "certs" | "profile";
@@ -148,7 +151,6 @@ const SignatureBox = React.memo(function SignatureBox({
 }: SignatureBoxProps) {
   const padRef = useRef<SignaturePad>(null);
 
-  // Stable canvas props so the component isn't recreated
   const canvasProps = useMemo(
     () => ({
       width: 320,
@@ -159,7 +161,6 @@ const SignatureBox = React.memo(function SignatureBox({
     []
   );
 
-  // Stable handler so React.memo doesn't re-render the child
   const handleEnd = useCallback(() => {
     const pad = padRef.current;
     if (!pad || pad.isEmpty()) {
@@ -171,7 +172,6 @@ const SignatureBox = React.memo(function SignatureBox({
     onChange(trimmed.toDataURL("image/png"));
   }, [onChange]);
 
-  // Clear without causing a parent re-render
   const handleClear = useCallback(() => {
     padRef.current?.clear();
     onChange("");
@@ -180,7 +180,7 @@ const SignatureBox = React.memo(function SignatureBox({
   return (
     <div className="flex flex-col gap-2">
       <div className="inline-flex items-center gap-2">
-        <div className="text-sm opacity-80">Draw here</div>
+        <div className="font-body opacity-80">Draw here</div>
         <button
           type="button"
           onClick={handleClear}
@@ -195,7 +195,6 @@ const SignatureBox = React.memo(function SignatureBox({
       <SignaturePad
         ref={padRef}
         penColor="#40E0D0"
-        // NOTE: some versions ignore this, but it's harmless when present
         clearOnResize={false}
         canvasProps={canvasProps}
         onEnd={handleEnd}
@@ -249,40 +248,43 @@ export default function TrainerRecordingPage({
 
       type SupabaseUser = {
         id: string;
-        auth_id: string;
-        first_name?: string;
-        last_name?: string;
-        name?: string;
-        email?: string;
-        department_id?: string;
-        departments?: { name?: string }[] | { name?: string };
+        auth_id: string | null;
+        first_name?: string | null;
+        last_name?: string | null;
+        name?: string | null;
+        email?: string | null;
+        department_id?: string | null;
+        departments?: { name?: string | null }[] | { name?: string | null } | null;
       };
 
-      const mapped: UserRow[] = (users ?? []).map((u: SupabaseUser) => {
-        const displayName =
-          [u.first_name, u.last_name].filter(Boolean).join(" ").trim() ||
-          u.name ||
-          u.email ||
-          "—";
-        let departmentName = "";
-        if (Array.isArray(u.departments) && u.departments.length > 0) {
-          departmentName = u.departments[0]?.name ?? "";
-        } else if (
-          u.departments &&
-          typeof u.departments === "object" &&
-          "name" in u.departments
-        ) {
-          departmentName = (u.departments as { name?: string }).name ?? "";
-        }
-        return {
-          id: u.id,
-          auth_id: u.auth_id,
-          name: displayName,
-          departmentId: u.department_id ?? "",
-          departmentName,
-          lastTrainingDate: undefined,
-        };
-      });
+      const mapped: UserRow[] = (users ?? [])
+        .map((u: SupabaseUser) => {
+          const displayName =
+            [u.first_name, u.last_name].filter(Boolean).join(" ").trim() ||
+            u.name ||
+            u.email ||
+            "—";
+          let departmentName = "";
+          if (Array.isArray(u.departments) && u.departments.length > 0) {
+            departmentName = u.departments[0]?.name ?? "";
+          } else if (
+            u.departments &&
+            typeof u.departments === "object" &&
+            "name" in u.departments
+          ) {
+            departmentName = (u.departments as { name?: string | null }).name ?? "";
+          }
+          return {
+            id: u.id,
+            auth_id: u.auth_id ?? "", // filtered out below if missing
+            name: displayName,
+            departmentId: u.department_id ?? "",
+            departmentName,
+            lastTrainingDate: undefined,
+          };
+        })
+        // Only keep users that can be acted on (must have auth_id)
+        .filter((r) => !!r.auth_id);
 
       setRows(mapped);
     }
@@ -302,11 +304,12 @@ export default function TrainerRecordingPage({
   const [busy, setBusy] = useState(false);
 
   // ==========================
-  // Assignment fetch for log modal
+  // Assignment fetch for log modal (from user_assignments)
   // ==========================
   type TrainingAssignment = {
-    id: string;
-    module_id: string;
+    id: string;          // user_assignments.id
+    module_id: string;   // user_assignments.item_id
+    module_name?: string | null;
   };
 
   const [assignments, setAssignments] = useState<TrainingAssignment[]>([]);
@@ -314,39 +317,37 @@ export default function TrainerRecordingPage({
 
   const fetchAssignments = async (authId: string) => {
     try {
-      // Fetch user to get role_profile_id
-      const { data: userData, error: userError } = await supabase
-        .from("users")
-        .select("id, role_profile_id")
+      // Direct assignments that are not completed
+      const { data: ua, error: uaErr } = await supabase
+        .from("user_assignments")
+        .select("id, item_id, item_type, completed_at")
         .eq("auth_id", authId)
-        .single();
-      if (userError || !userData) throw userError;
-      let assignments: TrainingAssignment[] = [];
-      // 1. Direct assignments
-      const { data: directAssignments, error: directError } = await supabase
-        .from("user_training_assignments")
-        .select("id, module_id, status")
-        .eq("auth_id", authId);
-      if (directError) throw directError;
-      assignments = (directAssignments || []).filter(a => a.status !== "completed").map(({ id, module_id }) => ({ id, module_id }));
-      // 2. Role profile modules
-      if (userData.role_profile_id) {
-        const { data: rpModules, error: rpError } = await supabase
-          .from("role_profile_modules")
-          .select("module_id")
-          .eq("role_profile_id", userData.role_profile_id);
-        if (!rpError && rpModules) {
-          // Add modules from role profile if not already assigned
-          const alreadyAssigned = new Set(assignments.map(a => a.module_id));
-          rpModules.forEach((m: { module_id: string }) => {
-            if (!alreadyAssigned.has(m.module_id)) {
-              assignments.push({ id: `roleprofile-${m.module_id}`, module_id: m.module_id });
-            }
-          });
+        .eq("item_type", "module")
+        .is("completed_at", null);
+
+      if (uaErr) throw uaErr;
+
+      let list: TrainingAssignment[] =
+        (ua ?? []).map((row) => ({
+          id: row.id,
+          module_id: row.item_id,
+        }));
+
+      // Fetch module names for nicer labels
+      const ids = Array.from(new Set(list.map((a) => a.module_id)));
+      if (ids.length) {
+        const { data: mods, error: mErr } = await supabase
+          .from("modules")
+          .select("id, name")
+          .in("id", ids);
+        if (!mErr && mods?.length) {
+          const nameById = new Map(mods.map((m) => [m.id, m.name]));
+          list = list.map((a) => ({ ...a, module_name: nameById.get(a.module_id) ?? null }));
         }
       }
-      setAssignments(assignments);
-      setSelectedModuleId(assignments[0]?.module_id || "");
+
+      setAssignments(list);
+      setSelectedModuleId(list[0]?.module_id || "");
     } catch (e) {
       console.error("Failed to fetch assignments:", e);
       setAssignments([]);
@@ -411,7 +412,6 @@ export default function TrainerRecordingPage({
   };
 
   const handleSignatureChange = useCallback((dataUrl: string) => {
-    // Store into form without touching the signature pad component
     setForm((f) => ({ ...f, signature: dataUrl }));
   }, []);
 
@@ -429,39 +429,38 @@ export default function TrainerRecordingPage({
     setBusy(true);
     try {
       const assignment = assignments.find((a) => a.module_id === selectedModuleId);
-      const payload = {
-        auth_id: openFor.id,
-        date: form.date, // "YYYY-MM-DD"
-        topic: selectedModuleId, // use module_id as topic
-        duration_hours: Number(form.durationHours) || 1,
-        outcome: form.outcome,
-        notes: form.notes?.trim() || null,
-        signature: form.signature, // base64 PNG dataURL
-        assignment_id: assignment?.id || null,
-      };
 
-      // Insert training log
-      const res = await fetch("/api/training-logs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        console.error("Save failed:", json);
-        alert(`Failed to log training: ${json.error || "Unknown error"}`);
+      // 1) Insert into training_logs directly (client-side)
+      const { error: insertErr } = await supabase
+        .from("training_logs")
+        .insert([{
+          auth_id: openFor.auth_id,                              // 👈 use auth_id
+          date: form.date,
+          topic: selectedModuleId,                               // or assignment?.module_name
+          duration_hours: Number(form.durationHours) || 1,
+          outcome: form.outcome,
+          notes: form.notes?.trim() || null,
+          signature: form.signature,
+          // assignment_id: assignment?.id ?? null,               // uncomment if column exists
+        }]);
+
+      if (insertErr) {
+        console.error("Insert training_logs failed:", insertErr);
+        alert(`Failed to log training: ${insertErr.message}`);
+        setBusy(false);
         return;
       }
 
-      // Mark assignment as completed
-      if (assignment?.id && /^[0-9a-fA-F-]{36}$/.test(assignment.id)) {
+      // 2) Mark assignment completed (if we have a UA row id)
+      if (assignment?.id) {
         const { error: updateError } = await supabase
-          .from("user_training_assignments")
-          .update({ status: "completed" })
+          .from("user_assignments")
+          .update({ completed_at: new Date().toISOString() })
           .eq("id", assignment.id);
+
         if (updateError) {
           console.error("Failed to update assignment status:", updateError);
-          // Optionally alert or ignore
+          // Not fatal to the log, so we don't block UX
         }
       }
 
@@ -515,38 +514,52 @@ export default function TrainerRecordingPage({
             header: "Actions",
             accessor: "actions",
             render: (_, row) => (
-              <div className="flex flex-wrap gap-2">
+              <div className="inline-flex items-center gap-4">
                 <button
-                  className="neon-utility-btn"
+                  className="neon-btn neon-btn-utility neon-btn-global"
                   onClick={() => openLog(row as UserRow)}
                   title="Log a training session"
+                  aria-label="Log session"
+                  type="button"
                 >
-                  <FiUserPlus /> Log session
+                  <FiUserPlus />
                 </button>
                 <button
-                  className="neon-utility-btn"
+                  className="neon-btn neon-btn-utility neon-btn-global"
                   onClick={() => openHistory(row as UserRow)}
                   title="View training history"
+                  aria-label="History"
+                  type="button"
                 >
-                  <FiArchive /> History
+                  <FiArchive />
                 </button>
                 <button
-                  className="neon-utility-btn"
-                  onClick={() =>
-                    onOpenSection?.((row as UserRow).id, "assign")
-                  }
+                  className="neon-btn neon-btn-utility neon-btn-global"
+                  onClick={() => onOpenSection?.((row as UserRow).id, "assign")}
                   title="Assign training"
+                  aria-label="Assign"
+                  type="button"
                 >
-                  <FiClock /> Assign
+                  <FiClock />
                 </button>
                 <button
-                  className="neon-utility-btn"
-                  onClick={() =>
-                    onOpenSection?.((row as UserRow).id, "certs")
-                  }
+                  className="neon-btn neon-btn-cert neon-btn-utility"
+                  style={{ background: '#a259ff' }}
+                  onClick={() => onOpenSection?.((row as UserRow).id, "certs")}
                   title="Certificates & status"
+                  aria-label="Certs"
+                  type="button"
                 >
-                  <FiAward /> Certs
+                  <FiAward />
+                </button>
+                <button
+                  className="neon-btn neon-btn-danger neon-btn-utility"
+                  onClick={() => window.open('/raise-issue', '_blank')}
+                  title="Raise an issue"
+                  aria-label="Raise an issue"
+                  type="button"
+                >
+                  <FiAlertOctagon />
                 </button>
               </div>
             ),
@@ -563,7 +576,7 @@ export default function TrainerRecordingPage({
         >
           <div
             className="ui-dialog-content"
-            onClick={(e) => e.stopPropagation()} // prevent overlay close when clicking inside
+            onClick={(e) => e.stopPropagation()}
           >
             <NeonForm
               title={`Log training • ${openFor.name} • ${openFor.departmentName}`}
@@ -574,12 +587,12 @@ export default function TrainerRecordingPage({
               }}
               onCancel={() => !busy && setOpenFor(null)}
             >
-              <span className="text-sm opacity-75 mb-2 block">
+              <span className="font-body opacity-75 mb-2 block">
                 Today: {new Date().toLocaleDateString()}
               </span>
 
               <label className="grid gap-1">
-                <span className="text-sm opacity-80">Date</span>
+                <span className="font-body opacity-80">Date</span>
                 <input
                   type="date"
                   className="neon-input"
@@ -592,7 +605,7 @@ export default function TrainerRecordingPage({
               </label>
 
               <label className="grid gap-1">
-                <span className="text-sm opacity-80">Duration (hours)</span>
+                <span className="font-body opacity-80">Duration (hours)</span>
                 <input
                   type="number"
                   min={0.5}
@@ -611,7 +624,7 @@ export default function TrainerRecordingPage({
 
               {assignments.length > 0 ? (
                 <label className="grid gap-1">
-                  <span className="text-sm opacity-80">Module</span>
+                  <span className="font-body opacity-80">Module</span>
                   <select
                     className="neon-input"
                     value={selectedModuleId}
@@ -620,30 +633,29 @@ export default function TrainerRecordingPage({
                   >
                     {assignments.map((a) => (
                       <option key={a.id} value={a.module_id}>
-                        Module ID: {a.module_id}
+                        {a.module_name ? a.module_name : `Module ID: ${a.module_id}`}
                       </option>
                     ))}
                   </select>
                 </label>
               ) : (
                 <label className="grid gap-1">
-                  <span className="text-sm opacity-80">Module</span>
-                  <span className="text-xs opacity-60">
+                  <span className="font-body opacity-80">Module</span>
+                  <span className="font-body opacity-60">
                     No modules assigned.
                   </span>
                 </label>
               )}
 
               <label className="grid gap-1">
-                <span className="text-sm opacity-80">Outcome</span>
+                <span className="font-body opacity-80">Outcome</span>
                 <select
                   className="neon-input"
                   value={form.outcome}
                   onChange={(e) =>
                     setForm((f) => ({
                       ...f,
-                      outcome: e.target
-                        .value as LogTrainingPayload["outcome"],
+                      outcome: e.target.value as LogTrainingPayload["outcome"],
                     }))
                   }
                   disabled={busy}
@@ -654,7 +666,7 @@ export default function TrainerRecordingPage({
               </label>
 
               <label className="grid gap-1">
-                <span className="text-sm opacity-80">Notes</span>
+                <span className="font-body opacity-80">Notes</span>
                 <textarea
                   rows={4}
                   className="neon-input"
@@ -667,21 +679,23 @@ export default function TrainerRecordingPage({
                 />
               </label>
 
-              {/* E-signature field (isolated, won't disappear) */}
+              {/* E-signature field */}
               <div className="grid gap-2 mt-3">
-                <span className="text-sm opacity-80">
+                <span className="font-body opacity-80">
                   E-signature (draw your signature below)
                 </span>
                 <SignatureBox
                   disabled={busy}
                   onChange={handleSignatureChange}
                 />
-                {/* Optional preview to confirm it's captured */}
                 {form.signature && (
-                  <img
+                  <Image
                     alt="Signature preview"
                     src={form.signature}
+                    width={320}
+                    height={120}
                     className="mt-1 w-[320px] h-[120px] object-contain bg-black/10 rounded"
+                    unoptimized
                   />
                 )}
               </div>
@@ -718,16 +732,21 @@ export default function TrainerRecordingPage({
                     {
                       header: "Signature",
                       accessor: "signature",
-                      render: (sig) =>
-                        typeof sig === "string" && sig ? (
-                          <img
+                      render: (value) => {
+                        const sig = value as string | null;
+                        return sig ? (
+                          <Image
                             src={sig}
                             alt="Signature"
+                            width={96}
+                            height={48}
                             className="w-24 h-12 object-contain bg-black/10 rounded"
+                            unoptimized
                           />
                         ) : (
                           <span className="opacity-50">—</span>
-                        ),
+                        );
+                      },
                     },
                   ]}
                   data={historyLogs}
@@ -735,6 +754,7 @@ export default function TrainerRecordingPage({
               )}
               <button
                 className="neon-btn neon-btn-secondary mt-4"
+                style={{ marginTop: '1rem' }}
                 onClick={() => setHistoryFor(null)}
               >
                 Close

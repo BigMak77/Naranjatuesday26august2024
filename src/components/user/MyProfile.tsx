@@ -17,12 +17,12 @@ export default function MyProfile() {
               width: 96,
               height: 96,
               borderRadius: "50%",
-              border: "3px solid #ffa500",
+              border: "3px solid #FA7A20",
               background: "#222",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              color: "#ffa500",
+              color: "#FA7A20",
               fontSize: 48,
             }}
           >

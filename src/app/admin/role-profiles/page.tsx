@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase-client'
 import NeonTable from '@/components/NeonTable'
 import Link from 'next/link'
+import { FiEye, FiEdit } from 'react-icons/fi'
 
 type RoleProfile = {
   id: number
@@ -38,27 +39,35 @@ export default function RoleProfilesPage() {
     <div className="after-hero">
       <div className="global-content">
         <main className="page-main">
-          {error && <div className="error-message">{error}</div>}
+          {error && <div className="neon-message neon-message-error">{error}</div>}
           {loading ? (
-            <div className="info-message">Loading...</div>
+            <div className="neon-message neon-message-info">Loading...</div>
           ) : (
-            <NeonTable
-              columns={[
-                { header: 'Name', accessor: 'name' },
-                { header: 'Description', accessor: 'description' },
-                {
-                  header: 'Actions',
-                  accessor: 'id',
-                  render: (value, row) => (
-                    <div className="neon-panel-actions">
-                      <Link href={`/admin/role-profiles/${row.id}`} className="neon-btn neon-btn-view" title="View">View</Link>
-                      <Link href={`/admin/role-profiles/${row.id}/edit`} className="neon-btn neon-btn-edit" title="Edit">Edit</Link>
-                    </div>
-                  ),
-                },
-              ]}
-              data={profiles}
-            />
+            <div className="neon-table-wrapper">
+              <NeonTable
+                columns={[
+                  { header: 'Name', accessor: 'name' },
+                  { header: 'Description', accessor: 'description' },
+                  {
+                    header: 'Actions',
+                    accessor: 'id',
+                    render: (value, row) => (
+                      <div className="neon-panel-actions neon-flex gap-2">
+                        <Link href={`/admin/role-profiles/${row.id}`} className="neon-btn neon-btn-view neon-btn-icon" title="View" aria-label="View Role Profile">
+                          <FiEye />
+                          <span className="neon-btn-label">View</span>
+                        </Link>
+                        <Link href={`/admin/role-profiles/${row.id}/edit`} className="neon-btn neon-btn-edit neon-btn-icon" title="Edit" aria-label="Edit Role Profile">
+                          <FiEdit />
+                          <span className="neon-btn-label">Edit</span>
+                        </Link>
+                      </div>
+                    ),
+                  },
+                ]}
+                data={profiles}
+              />
+            </div>
           )}
         </main>
       </div>

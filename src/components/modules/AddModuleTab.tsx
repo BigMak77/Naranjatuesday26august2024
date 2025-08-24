@@ -9,13 +9,9 @@ export default function AddModuleTab({ onSuccess }: { onSuccess?: () => void }) 
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [version, setVersion] = useState(1)
-  const [groupId, setGroupId] = useState('')
   const [learningObjectives, setLearningObjectives] = useState('')
   const [estimatedDuration, setEstimatedDuration] = useState('')
   const [deliveryFormat, setDeliveryFormat] = useState('')
-  const [targetAudience, setTargetAudience] = useState('')
-  const [prerequisites, setPrerequisites] = useState<string[]>([])
-  const [thumbnailUrl, setThumbnailUrl] = useState('')
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState('')
   // Removed unused 'saving' state
@@ -26,25 +22,17 @@ export default function AddModuleTab({ onSuccess }: { onSuccess?: () => void }) 
     e.preventDefault();
     setError(null);
     try {
-      const { error } = await supabase.from('modules').insert([
-        {
-          name,
-          description,
-          version,
-          group_id: groupId,
-          learning_objectives: learningObjectives,
-          estimated_duration: estimatedDuration,
-          delivery_format: deliveryFormat,
-          target_audience: targetAudience,
-          prerequisites,
-          thumbnail_url: thumbnailUrl,
-          tags,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          is_archived: false
-        }
-      ]);
-      if (error) throw error;
+      // Only export fields present in the add form
+      const payload = {
+        name: name, // required, never null
+        description: description || null,
+        version: version, // required, never null
+        learning_objectives: learningObjectives || null,
+        estimated_duration: estimatedDuration || null,
+        delivery_format: deliveryFormat || null,
+        tags: tags.length > 0 ? tags : null,
+      };
+      const { error } = await supabase.from('modules').insert([payload]);
       if (error) throw error;
       setSuccess(true);
       if (onSuccess) onSuccess();
@@ -52,13 +40,10 @@ export default function AddModuleTab({ onSuccess }: { onSuccess?: () => void }) 
       // Optionally reset form fields here
       setDescription('');
       setVersion(1);
-      setGroupId('');
+      setName('');
       setLearningObjectives('');
       setEstimatedDuration('');
       setDeliveryFormat('');
-      setTargetAudience('');
-      setPrerequisites([]);
-      setThumbnailUrl('');
       setTags([]);
       setTagInput('');
     } catch (err) {
@@ -85,10 +70,7 @@ export default function AddModuleTab({ onSuccess }: { onSuccess?: () => void }) 
           <label className="add-module-tab-label">Version</label>
           <input type="number" value={version} onChange={e => setVersion(Number(e.target.value))} className="add-module-tab-input neon-input" min={1} required />
         </div>
-        <div className="add-module-tab-field">
-          <label className="add-module-tab-label">Group ID</label>
-          <input type="text" value={groupId} onChange={e => setGroupId(e.target.value)} className="add-module-tab-input neon-input" required />
-        </div>
+       
         <div className="add-module-tab-field">
           <label className="add-module-tab-label">Learning Objectives</label>
           <textarea value={learningObjectives} onChange={e => setLearningObjectives(e.target.value)} className="add-module-tab-input neon-input" rows={2} />
@@ -100,32 +82,6 @@ export default function AddModuleTab({ onSuccess }: { onSuccess?: () => void }) 
         <div className="add-module-tab-field">
           <label className="add-module-tab-label">Delivery Format</label>
           <input type="text" value={deliveryFormat} onChange={e => setDeliveryFormat(e.target.value)} className="add-module-tab-input neon-input" />
-        </div>
-        <div className="add-module-tab-field">
-          <label className="add-module-tab-label">Target Audience</label>
-          <input type="text" value={targetAudience} onChange={e => setTargetAudience(e.target.value)} className="add-module-tab-input neon-input" />
-        </div>
-        <div className="add-module-tab-field">
-          <label className="add-module-tab-label">Prerequisites</label>
-          
-          <div className="add-module-tab-prereq-list">
-            {prerequisites.map((p, i) => (
-              <span key={i} className="add-module-tab-prereq">
-                {p}
-                <NeonIconButton
-                  variant="delete"
-                  icon={<FiX color="white" />}
-                  title="Remove"
-                  onClick={() => setPrerequisites(prerequisites.filter((_, idx) => idx !== i))}
-                  className="add-module-tab-prereq-remove"
-                />
-              </span>
-            ))}
-          </div>
-        </div>
-        <div className="add-module-tab-field">
-          <label className="add-module-tab-label">Thumbnail URL</label>
-          <input type="text" value={thumbnailUrl} onChange={e => setThumbnailUrl(e.target.value)} className="add-module-tab-input neon-input" />
         </div>
         <div className="add-module-tab-field">
           <label className="add-module-tab-label">Tags</label>

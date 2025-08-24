@@ -8,7 +8,7 @@ import React from 'react'
 
 type Document = {
   id: string
-  title: string
+  name: string
   document_type: string
 }
 
@@ -23,13 +23,13 @@ export default function DocumentSelectorWidget({ selectedDocuments, onChange }: 
   const [documents, setDocuments] = useState<Document[]>([])
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState<DocumentType>('all')
-  const [showDocuments, setShowDocuments] = useState(false)
+  const [showDocuments, setShowDocuments] = useState(true)
   const [selectedAvailable, setSelectedAvailable] = useState<string[]>([])
   const [selectedAttached, setSelectedAttached] = useState<string[]>([])
 
   useEffect(() => {
     const fetchDocuments = async () => {
-      const { data, error } = await supabase.from('documents').select('id, title, document_type')
+      const { data, error } = await supabase.from('documents').select('id, name, document_type')
       if (error) console.error('Error fetching documents:', error)
       else setDocuments(data)
     }
@@ -42,7 +42,7 @@ export default function DocumentSelectorWidget({ selectedDocuments, onChange }: 
 
   // Filter available docs by search and type
   const filteredAvailable = availableDocs.filter(doc => {
-    const matchesSearch = doc.title.toLowerCase().includes(search.toLowerCase())
+    const matchesSearch = doc.name.toLowerCase().includes(search.toLowerCase())
     const matchesType = typeFilter === 'all' || doc.document_type === typeFilter
     return matchesSearch && matchesType
   })
@@ -109,7 +109,7 @@ export default function DocumentSelectorWidget({ selectedDocuments, onChange }: 
               >
                 {filteredAvailable.map(doc => (
                   <option key={doc.id} value={doc.id}>
-                    {doc.title} ({doc.document_type})
+                    {doc.name} ({doc.document_type})
                   </option>
                 ))}
               </select>
@@ -149,7 +149,7 @@ export default function DocumentSelectorWidget({ selectedDocuments, onChange }: 
               >
                 {attachedDocs.map(doc => (
                   <option key={doc.id} value={doc.id}>
-                    {doc.title} ({doc.document_type})
+                    {doc.name} ({doc.document_type})
                   </option>
                 ))}
               </select>

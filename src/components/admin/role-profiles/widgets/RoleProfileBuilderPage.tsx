@@ -6,7 +6,6 @@ import { supabase } from '@/lib/supabase-client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { syncRoleProfileAssignments } from '@/lib/syncRoleProfileAssignments'
 import { FiSave, FiArrowLeft, FiUserPlus, FiAlertCircle } from 'react-icons/fi'
-import HeroHeader from '@/components/HeroHeader'
 import NeonPanel from '@/components/NeonPanel'
 import ModuleSelectorWidget from '@/components/admin/role-profiles/widgets/ModuleSelectorWidget'
 import DocumentSelectorWidget from '@/components/admin/role-profiles/widgets/DocumentSelectorWidget'
@@ -162,12 +161,12 @@ export default function RoleProfileBuilderPage() {
       </ContentHeader>
       <NeonPanel className="neon-panel-lg">
         {error && (
-          <p className="text-red-600 text-base font-semibold mb-2 flex items-center gap-2">
+          <div className="neon-message neon-message-error mb-2 flex items-center gap-2">
             <FiAlertCircle className="inline-block" /> {error}
-          </p>
+          </div>
         )}
         <div className="space-y-2">
-          <label className="neon-label">Profile Name</label>
+          <label className="neon-form-title">Profile Name</label>
           <input
             type="text"
             value={name}
@@ -176,7 +175,7 @@ export default function RoleProfileBuilderPage() {
           />
         </div>
         <div className="space-y-2">
-          <label className="neon-label">Description</label>
+          <label className="neon-form-title">Description</label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -203,13 +202,13 @@ export default function RoleProfileBuilderPage() {
           <button
             onClick={handleSubmit}
             disabled={saving}
-            className="neon-btn neon-btn-edit"
+            className="neon-btn neon-btn-save neon-btn-icon"
             data-tooltip={saving ? 'Saving...' : profileId ? 'Update Role Profile' : 'Save Role Profile'}
           >
             <FiSave />
           </button>
           <button
-            className="neon-btn neon-btn-view"
+            className="neon-btn neon-btn-view neon-btn-icon"
             data-tooltip="Back to Profiles"
             onClick={() => router.push('/admin/role-profiles')}
             type="button"
@@ -222,16 +221,16 @@ export default function RoleProfileBuilderPage() {
             <div className="neon-modal p-6 max-w-sm w-full text-center">
               <h2 className="neon-modal-title mb-2 flex items-center gap-2"><FiSave /> Role Profile Saved</h2>
               <p className="mb-4">Would you like to assign this profile now?</p>
-              <div className="flex justify-center gap-4">
+              <div className="neon-flex justify-center gap-4">
                 <button
-                  className="neon-btn neon-btn-edit"
+                  className="neon-btn neon-btn-edit neon-btn-icon"
                   data-tooltip="Assign Now"
                   onClick={() => router.push(`/admin/role-profiles/assign?id=${savedProfileId}`)}
                 >
                   <FiUserPlus />
                 </button>
                 <button
-                  className="neon-btn neon-btn-view"
+                  className="neon-btn neon-btn-view neon-btn-icon"
                   data-tooltip="Maybe Later"
                   onClick={() => router.push('/admin/role-profiles')}
                 >

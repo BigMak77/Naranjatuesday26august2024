@@ -58,9 +58,15 @@ export default function TurkusHomePage() {
       icon: <FiPieChart size={iconSize} />,
       text: 'View and create reports.',
       href: '/turkus/reports',
-      accentColor: '#FFA500',
+      accentColor: '#FA7A20',
     },
-    
+    {
+      title: 'Auditors',
+      icon: <FiShield size={iconSize} />,
+      text: 'Manage and add auditors.',
+      href: '/turkus/auditors',
+      accentColor: '#6A5ACD',
+    },
   ];
   return (
     <>
