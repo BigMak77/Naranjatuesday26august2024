@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import ModuleSelect, { fetchActiveModules, Module } from "@/components/ModuleSelect";
 import ArchiveModuleTab from "@/components/modules/ArchiveModuleTab";
 
@@ -9,14 +9,14 @@ export default function TrainingLogPage() {
   const [selectedModuleId, setSelectedModuleId] = useState<string | null>(null);
   const selectedModule = modules.find((m) => m.id === selectedModuleId) || null;
 
-  const load = async () => {
+  const load = useCallback(async () => {
     const list = await fetchActiveModules();
     setModules(list);
     // keep selection valid
     if (selectedModuleId && !list.some((m) => m.id === selectedModuleId)) {
       setSelectedModuleId(null);
     }
-  };
+  }, [selectedModuleId]);
 
   useEffect(() => {
     // initial fetch

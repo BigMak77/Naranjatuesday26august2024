@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase-client'
 import { useUser } from '@/context/UserContext'
 import { FiEdit, FiTrash2 } from 'react-icons/fi'
@@ -29,7 +29,7 @@ export default function TaskAmendWidget() {
   const [success, setSuccess] = useState(false)
 
   // Fetch tasks for the current user
-  const fetchTasks = async () => {
+  const fetchTasks = useCallback(async () => {
     const { data, error } = await supabase
       .from('tasks')
       .select('id, title, area, frequency, instructions, created_by')
@@ -37,7 +37,7 @@ export default function TaskAmendWidget() {
 
     if (error) setError('Failed to load tasks.')
     setTasks(data || [])
-  }
+  }, [user?.auth_id]);
 
   useEffect(() => {
     if (user?.auth_id) fetchTasks()

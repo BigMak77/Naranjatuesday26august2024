@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase-client'
 import { FiClipboard } from 'react-icons/fi'
 
@@ -39,7 +39,7 @@ export default function TaskRoleManager() {
     load()
   }, [])
 
-  const loadRolesWithTasks = async (deptId: string) => {
+  const loadRolesWithTasks = useCallback(async (deptId: string) => {
     const { data: deptRoles } = await supabase
       .from('roles')
       .select('id, title, department_id')
@@ -61,7 +61,7 @@ export default function TaskRoleManager() {
       const assignedTasks = taskIds.map(id => taskMap.get(id)).filter(Boolean) as Task[]
       return { ...role, tasks: assignedTasks, newTaskId: '' }
     })
-  }
+  }, [tasks]);
 
   useEffect(() => {
     loadRolesWithTasks('')

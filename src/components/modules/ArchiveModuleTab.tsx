@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import NeonPanel from "@/components/NeonPanel";
 import { FiArchive } from "react-icons/fi";
@@ -46,10 +46,10 @@ export default function ArchiveModuleTab({
     setError(null);
     setDialogOpen(true);
   };
-  const closeDialog = () => {
+  const closeDialog = useCallback(() => {
     if (loading) return;
     setDialogOpen(false);
-  };
+  }, [loading]);
 
   // optional: Esc to close (matches your working panel behavior)
   useEffect(() => {

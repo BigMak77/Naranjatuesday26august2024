@@ -66,7 +66,7 @@ export default function RiskAssessmentManager() {
     }
 
     fetchData()
-  }, [riskAssessments])
+  }, [])
 
   useEffect(() => {
     if (mode === 'edit' && selectedId) {
@@ -83,7 +83,7 @@ export default function RiskAssessmentManager() {
         setInjuryRisk(selected.injury_risk || '')
       }
     }
-  }, [mode, selectedId])
+  }, [mode, selectedId, riskAssessments])
 
   useEffect(() => {
     if (mode === 'assign' && selectedId) {
