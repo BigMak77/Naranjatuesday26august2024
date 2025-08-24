@@ -57,7 +57,7 @@ export async function fetchModuleById(id: string): Promise<Module | null> {
   }
 }
 
-export async function updateModule(id: string, moduleData: Module): Promise<{ error: any }> {
+export async function updateModule(id: string, moduleData: Module): Promise<{ error: unknown }> {
   const { error } = await supabase
     .from('modules')
     .update({

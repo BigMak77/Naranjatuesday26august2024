@@ -4,8 +4,19 @@ import { supabase } from '@/lib/supabase-client'
 import NeonTable from '@/components/NeonTable'
 import { FiFileText, FiClipboard, FiBookOpen } from 'react-icons/fi'
 
+type ArchivedDocument = {
+  id: string;
+  document_id: string;
+  title: string;
+  archived_version: string;
+  file_url: string;
+  document_type: string;
+  change_date: string;
+  archived_by_auth_id: string;
+};
+
 export default function ArchivedDocumentsPage() {
-  const [archivedDocs, setArchivedDocs] = useState<any[]>([])
+  const [archivedDocs, setArchivedDocs] = useState<ArchivedDocument[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {

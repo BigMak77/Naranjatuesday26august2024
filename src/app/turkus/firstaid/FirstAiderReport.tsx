@@ -1,10 +1,17 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase-client'
-import { FiHeart } from 'react-icons/fi'
+
+interface FirstAider {
+  id: string;
+  first_name: string;
+  last_name: string;
+  department: { name: string } | { name?: string } | null;
+  is_first_aid: string;
+}
 
 export default function FirstAiderReport() {
-  const [firstAiders, setFirstAiders] = useState<any[]>([])
-  const [departments, setDepartments] = useState<any[]>([])
+  const [firstAiders, setFirstAiders] = useState<FirstAider[]>([]);
+  const [departments, setDepartments] = useState<string[]>([]);
   const [selectedDept, setSelectedDept] = useState('All')
   const [loading, setLoading] = useState(true)
 

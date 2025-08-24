@@ -9,7 +9,7 @@ type Props = {
 };
 
 export default function OrangeAvatar({ size = 20, initials = 'NJ', title = 'Orange avatar' }: Props) {
-  const style = { ['--size' as any]: `${size}px` };
+  const style = { ['--size' as unknown]: `${size}px` };
   return (
     <div className="orange-avatar" style={style} aria-label={title} role="img">
       <span className="orange-avatar__initials">{initials}</span>

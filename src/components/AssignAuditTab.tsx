@@ -74,7 +74,16 @@ export default function AssignAuditTab() {
       const assignedBy = user?.id ?? null;
 
       // Build rows to upsert
-      let rows: any[] = [];
+      type AssignmentRow = {
+        auth_id: string;
+        item_type: 'audit';
+        item_id: string;
+        assigned_by: string | null;
+        origin_type: 'direct' | 'department';
+        origin_id: string | null;
+        due_at: string;
+      };
+      let rows: AssignmentRow[] = [];
 
       if (userAuthId) {
         rows = [
@@ -85,7 +94,7 @@ export default function AssignAuditTab() {
             assigned_by: assignedBy,
             origin_type: 'direct',
             origin_id: null,
-            due_at: dueAtIso,
+            due_at: dueAtIso ?? '',
           },
         ];
       } else if (departmentId) {
@@ -112,7 +121,7 @@ export default function AssignAuditTab() {
           assigned_by: assignedBy,
           origin_type: 'department',
           origin_id: departmentId,
-          due_at: dueAtIso,
+          due_at: dueAtIso ?? '',
         }));
       }
 
@@ -131,7 +140,7 @@ export default function AssignAuditTab() {
       if (error) throw error;
 
       const count = inserted?.length ?? 0;
-      const tplName = templateLabel(templates.find((t) => t.id === templateId) || {});
+      const tplName = templateLabel(templates.find((t) => t.id === templateId) || { id: '' });
 
       setFeedback(
         userAuthId
@@ -147,9 +156,10 @@ export default function AssignAuditTab() {
       setUserAuthId('');
       setDepartmentId('');
       // setScheduledFor(''); // optional: keep the date
-    } catch (e: any) {
-      console.error('Assign audit error:', e);
-      setFeedback(e?.message ?? 'Failed to assign audit.');
+    } catch (e: unknown) {
+      const errMsg = e instanceof Error ? e.message : String(e);
+      console.error('Assign audit error:', errMsg);
+      setFeedback(errMsg ?? 'Failed to assign audit.');
     } finally {
       setAssignLoading(false);
     }
@@ -161,7 +171,6 @@ export default function AssignAuditTab() {
         title="Assign Audit"
         onSubmit={handleAssign}
         submitLabel={assignLoading ? 'Assigning…' : 'Assign Audit'}
-        disabled={assignLoading}
       >
         {/* Template */}
         <select

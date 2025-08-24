@@ -58,7 +58,7 @@ export default function RecurringTaskList() {
         console.error(recurringError)
       } else {
         setRecurring(
-          (data || []).map((item: any) => ({
+          (data || []).map((item: RecurringTask) => ({
             ...item,
             turkus_tasks: Array.isArray(item.turkus_tasks)
               ? item.turkus_tasks[0] || null

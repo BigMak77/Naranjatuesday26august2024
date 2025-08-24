@@ -45,9 +45,9 @@ export default function QuestionTab() {
     fetchAll();
   }, [fetchAll]);
 
-  const updateQuestion = async (id: string, field: keyof Question, value: any) => {
+  const updateQuestion = async (id: string, field: keyof Question, value: unknown) => {
     setErr(null);
-    const patch: Partial<Question> = { [field]: value } as any;
+    const patch: Partial<Question> = { [field]: value };
 
     const { error } = await supabase
       .from('audit_questions')

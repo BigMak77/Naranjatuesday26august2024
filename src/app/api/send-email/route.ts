@@ -11,7 +11,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const data = await resend.emails.send({
+    await resend.emails.send({
       from: 'Naranja Contact <no-reply@naranja.co.uk>',
       to: ['support@naranja.co.uk'],
       subject: `New contact form submission from ${name}`,
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     })
 
     return NextResponse.json({ success: true })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Resend error:', error)
     return NextResponse.json({ error: 'Failed to send email' }, { status: 500 })
   }

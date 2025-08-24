@@ -79,13 +79,13 @@ export async function POST(req: NextRequest) {
 
     if (error) {
       return NextResponse.json(
-        { error: error.message, code: error.code, details: error.details, hint: (error as any).hint },
+        { error: error.message, code: error.code, details: error.details, hint: (error as { hint?: string })?.hint },
         { status: 400 }
       );
     }
 
     return NextResponse.json({ data }, { status: 201 });
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message || "Unexpected server error" }, { status: 500 });
+  } catch (e: unknown) {
+    return NextResponse.json({ error: (e as Error)?.message || "Unexpected server error" }, { status: 500 });
   }
 }

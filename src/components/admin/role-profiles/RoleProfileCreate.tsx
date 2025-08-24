@@ -83,19 +83,20 @@ export default function RoleProfileCreate({
         ])
 
         if (cancelled) return
-        setSelectedModules((mods.data ?? []).map((m: any) => m.module_id))
-        setSelectedDocuments((docs.data ?? []).map((d: any) => d.document_id))
-        setSelectedBehaviours((behs.data ?? []).map((b: any) => b.behaviour_id))
+        setSelectedModules((mods.data ?? []).map((m: { module_id: string }) => m.module_id))
+        setSelectedDocuments((docs.data ?? []).map((d: { document_id: string }) => d.document_id))
+        setSelectedBehaviours((behs.data ?? []).map((b: { behaviour_id: string }) => b.behaviour_id))
         setSelectedAssignments(
-          (targets.data ?? []).map((t: any) => ({
+          (targets.data ?? []).map((t: { target_type: TargetType; target_id: string; label?: string }) => ({
             type: t.target_type as TargetType,
             id: t.target_id,
             label: t.label ?? '',
           }))
         )
-      } catch (e: any) {
-        console.error('Prefill error:', e?.message || e)
-        toast.error(e?.message || 'Failed to load role profile')
+      } catch (e: unknown) {
+        const errMsg = e instanceof Error ? e.message : String(e)
+        console.error('Prefill error:', errMsg)
+        toast.error(errMsg || 'Failed to load role profile')
       }
     }
 
@@ -116,11 +117,12 @@ export default function RoleProfileCreate({
           .order('name', { ascending: true })
         if (error) throw error
         if (!cancelled && data) {
-          setModules(data.map((m: any) => ({ id: m.id, label: m.name })))
+          setModules(data.map((m: { id: string; name: string }) => ({ id: m.id, label: m.name })))
         }
-      } catch (e: any) {
-        console.error('Load modules error:', e?.message || e)
-        toast.error(e?.message || 'Failed to load modules')
+      } catch (e: unknown) {
+        const errMsg = e instanceof Error ? e.message : String(e)
+        console.error('Load modules error:', errMsg)
+        toast.error(errMsg || 'Failed to load modules')
       }
     }
     fetchModules()

@@ -10,7 +10,18 @@ type Section = {
   title: string;
   description: string;
   parent_section_id: string | null;
+  document_standard?: { name?: string };
 };
+
+// Define a type for the raw DB row
+interface RawSectionRow {
+  id: string;
+  code: string;
+  title: string;
+  description: string;
+  parent_section_id: string | null;
+  document_standard?: { name?: string };
+}
 
 export default function StandardSectionPage() {
   const [sections, setSections] = useState<Section[]>([]);
@@ -35,7 +46,7 @@ export default function StandardSectionPage() {
       if (error) {
         console.error('Error loading sections:', error.message);
       } else {
-        const formatted = data.map((item: any) => ({
+        const formatted = (data as RawSectionRow[]).map((item) => ({
           id: item.id,
           code: item.code,
           title: item.title,

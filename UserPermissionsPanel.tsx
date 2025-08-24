@@ -31,7 +31,7 @@ export default function UserPermissionsPanel({ authId, currentUserPermissions = 
         .select('permission_id, permission:permissions(code)')
         .eq('auth_id', authId)
 
-      const codes = userPerms?.map((up) => Array.isArray(up.permission) ? (up.permission as any[])[0]?.code : (up.permission as any)?.code) || []
+      const codes = userPerms?.map((up) => Array.isArray(up.permission) ? (up.permission as unknown[])[0]?.code : (up.permission as { code?: string })?.code) || []
       setPermissions(allPerms || [])
       setUserPermissionCodes(codes)
     }

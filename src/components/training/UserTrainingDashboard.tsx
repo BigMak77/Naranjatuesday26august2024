@@ -90,9 +90,9 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
         .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
 
       setAssignments(normalized);
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(e);
-      setError(e?.message ?? 'Something went wrong.');
+      setError(e instanceof Error ? e.message : 'Something went wrong.');
     } finally {
       setLoading(false);
     }
@@ -136,9 +136,9 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
 
       // optional: refresh to reflect any server-side changes
       fetchAll();
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(e);
-      setError(e?.message ?? 'Failed to mark complete.');
+      setError(e instanceof Error ? e.message : 'Failed to mark complete.');
       // rollback
       setAssignments((prev) =>
         prev.map((x) => (x.id === snapshot.id && x.type === snapshot.type ? snapshot : x))

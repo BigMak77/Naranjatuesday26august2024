@@ -4,10 +4,13 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase-client'
 import { useUser } from '@/lib/useUser'
 
+interface TurkusTask { id: string; title: string; }
+interface User { auth_id: string; first_name: string; last_name: string; }
+
 export default function AssignTask() {
   const { user } = useUser()
-  const [tasks, setTasks] = useState<any[]>([])
-  const [users, setUsers] = useState<any[]>([])
+  const [tasks, setTasks] = useState<TurkusTask[]>([])
+  const [users, setUsers] = useState<User[]>([])
   const [selectedTask, setSelectedTask] = useState('')
   const [selectedUser, setSelectedUser] = useState('')
   const [dueDate, setDueDate] = useState('')

@@ -15,6 +15,15 @@ interface IncompleteRecord {
   document: string;
 }
 
+type Module = { id: string; name: string };
+type Document = { id: string; title?: string; name?: string };
+type IncompleteRow = {
+  users?: Record<string, unknown>;
+  item_type: string;
+  item_id: string;
+  // add other fields as needed
+};
+
 export default function IncompleteTrainingPage() {
   const [data, setData] = useState<IncompleteRecord[]>([]);
   const [search, setSearch] = useState('');
@@ -70,21 +79,21 @@ export default function IncompleteTrainingPage() {
       const [modsRes, docsRes] = await Promise.all([
         moduleIds.length
           ? supabase.from('modules').select('id, name').in('id', moduleIds)
-          : Promise.resolve({ data: [], error: null } as any),
+          : Promise.resolve({ data: [], error: null } as { data: Module[]; error: null }),
         documentIds.length
           ? supabase.from('documents').select('id, title, name').in('id', documentIds)
-          : Promise.resolve({ data: [], error: null } as any),
+          : Promise.resolve({ data: [], error: null } as { data: Document[]; error: null }),
       ]);
 
       const modNameById = new Map<string, string>(
-        (modsRes.data ?? []).map((m: any) => [m.id, m.name])
+        (modsRes.data ?? []).map((m: Module) => [m.id, m.name])
       );
       const docNameById = new Map<string, string>(
-        (docsRes.data ?? []).map((d: any) => [d.id, d.title ?? d.name])
+        (docsRes.data ?? []).map((d: Document) => [d.id, d.title ?? d.name])
       );
 
       // 4) Normalize to UI rows
-      const results: IncompleteRecord[] = rows.map((item: any) => {
+      const results: IncompleteRecord[] = (rows as IncompleteRow[]).map((item) => {
         const user = Array.isArray(item.users) ? item.users[0] : item.users ?? {};
         const dep  = user?.departments
           ? (Array.isArray(user.departments) ? user.departments[0] : user.departments)

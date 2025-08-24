@@ -7,15 +7,31 @@ import { FiAlertCircle, FiEdit, FiEye, FiX, FiCheck } from 'react-icons/fi'
 import NeonTable from '@/components/NeonTable';
 import NeonIconButton from '../ui/NeonIconButton';
 
+interface Issue {
+  id: string;
+  title: string;
+  status: string;
+  priority: string;
+  created_at: string;
+  department?: { id: string; name: string };
+  assigned_to?: string;
+}
+interface Department { id: string; name: string; }
+interface User { id: string; first_name: string; last_name: string; }
+interface AssignIssueState {
+  mode: 'assign' | 'reassign';
+  issue: Issue;
+}
+
 export default function DepartmentIssuesWidget() {
   const { user } = useUser()
-  const [issues, setIssues] = useState<any[]>([])
+  const [issues, setIssues] = useState<Issue[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [viewIssue, setViewIssue] = useState<any | null>(null)
-  const [assignIssue, setAssignIssue] = useState<any | null>(null)
-  const [departments, setDepartments] = useState<any[]>([])
-  const [users, setUsers] = useState<any[]>([])
+  const [viewIssue, setViewIssue] = useState<Issue | null>(null)
+  const [assignIssue, setAssignIssue] = useState<AssignIssueState | null>(null)
+  const [departments, setDepartments] = useState<Department[]>([])
+  const [users, setUsers] = useState<User[]>([])
   const [assignLoading, setAssignLoading] = useState(false)
   const [assignError, setAssignError] = useState<string | null>(null)
 
@@ -27,11 +43,27 @@ export default function DepartmentIssuesWidget() {
       // Fetch issues for the user's department(s)
       const { data, error } = await supabase
         .from('issues')
-        .select('id, title, status, priority, created_at, department:departments(name)')
+        .select('id, title, status, priority, created_at, department:departments(id, name), assigned_to')
         .eq('department_id', user.department_id)
         .order('created_at', { ascending: false })
       if (error) setError('Failed to load issues.')
-      setIssues(data || [])
+      setIssues((data || []).map((i: {
+        id: string;
+        title: string;
+        status: string;
+        priority: string;
+        created_at: string;
+        department: { id: string; name: string }[] | { id: string; name: string };
+        assigned_to?: string;
+      }) => ({
+        id: i.id,
+        title: i.title,
+        status: i.status,
+        priority: i.priority,
+        created_at: i.created_at,
+        department: Array.isArray(i.department) ? i.department[0] : i.department,
+        assigned_to: i.assigned_to
+      })))
       setLoading(false)
     }
     fetchIssues()
@@ -39,14 +71,14 @@ export default function DepartmentIssuesWidget() {
     // Fetch departments for assign/reassign
     const fetchDepartments = async () => {
       const { data, error } = await supabase.from('departments').select('id, name')
-      if (!error) setDepartments(data || [])
+      if (!error) setDepartments((data || []).map((d: { id: string; name: string }) => ({ id: d.id, name: d.name })))
     }
     fetchDepartments()
 
     // Fetch users in the same department for assignment
     const fetchUsers = async () => {
       const { data, error } = await supabase.from('users').select('id, first_name, last_name').eq('department_id', user.department_id)
-      if (!error) setUsers(data || [])
+      if (!error) setUsers((data || []).map((u: { id: string; first_name: string; last_name: string }) => ({ id: u.id, first_name: u.first_name, last_name: u.last_name })))
     }
     fetchUsers()
   }, [user])
@@ -165,10 +197,10 @@ export default function DepartmentIssuesWidget() {
                 <select
                   className="neon-input mb-4"
                   value={assignIssue.issue.assigned_to || ''}
-                  onChange={e => setAssignIssue((prev: any) => ({ ...prev, issue: { ...prev.issue, assigned_to: e.target.value } }))}
+                  onChange={e => setAssignIssue((prev) => prev ? { ...prev, issue: { ...prev.issue, assigned_to: e.target.value } } : null)}
                 >
                   <option value="">Select User</option>
-                  {users.map((u: any) => (
+                  {users.map((u) => (
                     <option key={u.id} value={u.id}>{u.first_name} {u.last_name}</option>
                   ))}
                 </select>
@@ -177,7 +209,7 @@ export default function DepartmentIssuesWidget() {
               <select
                 className="neon-input mb-4"
                 value={assignIssue.issue.department?.id || ''}
-                onChange={e => setAssignIssue((prev: any) => ({ ...prev, issue: { ...prev.issue, department: departments.find(d => d.id === e.target.value) } }))}
+                onChange={e => setAssignIssue((prev) => prev ? { ...prev, issue: { ...prev.issue, department: departments.find(d => d.id === e.target.value) } } : null)}
               >
                 <option value="">Select Department</option>
                 {departments

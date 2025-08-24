@@ -84,7 +84,7 @@ export default function ViewAuditTab({ setActiveTab }: { setActiveTab: (tab: Tab
         return;
       }
 
-      const ids = (linkRows ?? []).map((r: any) => r.question_id).filter(Boolean);
+      const ids = (linkRows ?? []).map((r: { question_id: string }) => r.question_id).filter(Boolean);
       if (ids.length === 0) {
         setQuestionsMap((m) => ({ ...m, [templateId]: [] }));
         setExpanded(templateId);
@@ -100,7 +100,7 @@ export default function ViewAuditTab({ setActiveTab }: { setActiveTab: (tab: Tab
         setErr(qErr.message);
         setQuestionsMap((m) => ({ ...m, [templateId]: [] }));
       } else {
-        const texts = (qs ?? []).map((q: any) => q.question_text).filter(Boolean);
+        const texts = (qs ?? []).map((q: { question_text: string }) => q.question_text).filter(Boolean);
         setQuestionsMap((m) => ({ ...m, [templateId]: texts }));
       }
     }

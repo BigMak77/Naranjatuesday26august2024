@@ -5,15 +5,18 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase-client'
 import NeonForm from '@/components/NeonForm'
 
+interface AuditQuestion { id: string; question_text: string; }
+interface Section { id: string; title: string; }
+
 export default function CreateAuditTab() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [frequency, setFrequency] = useState('')
   const [version, setVersion] = useState('')
   const [sectionId, setSectionId] = useState('')
-  const [availableQuestions, setAvailableQuestions] = useState<any[]>([])
+  const [availableQuestions, setAvailableQuestions] = useState<AuditQuestion[]>([])
   const [selectedQuestions, setSelectedQuestions] = useState<string[]>([])
-  const [sections, setSections] = useState<any[]>([])
+  const [sections, setSections] = useState<Section[]>([])
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
@@ -43,7 +46,7 @@ export default function CreateAuditTab() {
             .from('audit_template_questions_status')
             .select('question_id')
             .eq('template_id', editId)
-          if (qLinks) setSelectedQuestions(qLinks.map((q: any) => q.question_id))
+          if (qLinks) setSelectedQuestions(qLinks.map((q: { question_id: string }) => q.question_id))
         }
       }
     }
@@ -109,7 +112,7 @@ export default function CreateAuditTab() {
           <input value={version} onChange={e => setVersion(e.target.value)} placeholder="Version" className="neon-input" />
           <select value={sectionId} onChange={e => setSectionId(e.target.value)} className="neon-input">
             <option value="">Link to Standard Section (optional)</option>
-            {sections.map((s: any) => (
+            {sections.map((s: Section) => (
               <option key={s.id} value={s.id}>{s.title}</option>
             ))}
           </select>

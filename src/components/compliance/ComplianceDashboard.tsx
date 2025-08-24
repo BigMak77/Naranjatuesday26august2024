@@ -51,11 +51,11 @@ export default function ComplianceDashboard() {
     // Fetch filter options on mount
     const fetchOptions = async () => {
       const { data: depts } = await supabase.from('departments').select('name')
-      setDeptOptions(depts ? depts.map((d: any) => d.name) : [])
+      setDeptOptions(depts ? depts.map((d: { name: string }) => d.name) : [])
       const { data: roles } = await supabase.from('roles').select('title')
-      setRoleOptions(roles ? roles.map((r: any) => r.title) : [])
+      setRoleOptions(roles ? roles.map((r: { title: string }) => r.title) : [])
       const { data: modules } = await supabase.from('modules').select('name')
-      setModuleOptions(modules ? modules.map((m: any) => m.name) : [])
+      setModuleOptions(modules ? modules.map((m: { name: string }) => m.name) : [])
     }
     fetchOptions()
   }, [])

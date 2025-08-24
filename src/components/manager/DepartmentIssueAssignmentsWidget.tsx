@@ -6,9 +6,29 @@ import { useUser } from '@/lib/useUser'
 import { FiUserPlus } from 'react-icons/fi' // Add Fi icon import
 import NeonTable from '@/components/NeonTable'
 
+interface Assignment {
+  id: string;
+  title: string;
+  assigned_to: string;
+  assigned_at: string;
+  users?: {
+    auth_id: string;
+    first_name: string;
+    last_name: string;
+  };
+}
+
+interface RawAssignment {
+  id: string;
+  title: string;
+  assigned_to: string;
+  assigned_at: string;
+  users: { auth_id: string; first_name: string; last_name: string }[] | { auth_id: string; first_name: string; last_name: string };
+}
+
 export default function DepartmentIssueAssignmentsWidget() {
   const { user } = useUser()
-  const [assignments, setAssignments] = useState<any[]>([])
+  const [assignments, setAssignments] = useState<Assignment[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -40,7 +60,14 @@ export default function DepartmentIssueAssignmentsWidget() {
         console.error('Error loading assignments:', error)
         setError('Failed to load assignments.')
       } else {
-        setAssignments(data || [])
+        const mapped = (data || []).map((a: RawAssignment) => ({
+          id: a.id,
+          title: a.title,
+          assigned_to: a.assigned_to,
+          assigned_at: a.assigned_at,
+          users: Array.isArray(a.users) ? a.users[0] : a.users
+        }))
+        setAssignments(mapped)
       }
 
       setLoading(false)

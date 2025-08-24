@@ -87,8 +87,8 @@ export default function ArchiveModuleTab({
 
       onArchive?.(archived!);
       setDialogOpen(false);
-    } catch (e: any) {
-      setError(`Failed to archive module: ${e.message ?? "Unknown error"}`);
+    } catch (e: unknown) {
+      setError(`Failed to archive module: ${e instanceof Error ? e.message : "Unknown error"}`);
     } finally {
       setLoading(false);
     }

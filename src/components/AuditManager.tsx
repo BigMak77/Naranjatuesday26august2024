@@ -69,10 +69,10 @@ export default function AuditManager() {
           .is('completed_at', null);
         setAssignments(uaAll ?? 0);
         setIncomplete(uaOpen ?? 0);
-      } catch (e: any) {
+      } catch (e: unknown) {
         setAssignments(null);
         setIncomplete(null);
-        setStatsError(e?.message ?? 'Failed to read assignments');
+        setStatsError(e instanceof Error ? e.message : 'Failed to read assignments');
       }
       try {
         const { count: subs } = await supabase

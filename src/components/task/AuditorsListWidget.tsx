@@ -4,6 +4,19 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase-client';
 
+interface SupabaseAuditorRow {
+  id: number;
+  users?: {
+    first_name?: string;
+    last_name?: string;
+    role?: { title?: string } | { title?: string }[];
+  } | {
+    first_name?: string;
+    last_name?: string;
+    role?: { title?: string } | { title?: string }[];
+  }[];
+}
+
 export default function AuditorsListWidget() {
   const [auditors, setAuditors] = useState<Array<{ id: number; firstName: string; lastName: string; role: string }>>([]);
   const [loading, setLoading] = useState(true);
@@ -21,9 +34,10 @@ export default function AuditorsListWidget() {
         setAuditors([]);
       } else {
         setAuditors(
-          data.map((row: any) => {
+          data.map((row: SupabaseAuditorRow) => {
+            const userObj = Array.isArray(row.users) ? row.users[0] : row.users;
             let roleTitle = '';
-            const role = row.users?.role;
+            const role = userObj?.role;
             if (Array.isArray(role)) {
               roleTitle = role[0]?.title || '';
             } else if (role && typeof role === 'object' && 'title' in role) {
@@ -31,8 +45,8 @@ export default function AuditorsListWidget() {
             }
             return {
               id: row.id,
-              firstName: row.users?.first_name || '',
-              lastName: row.users?.last_name || '',
+              firstName: userObj?.first_name || '',
+              lastName: userObj?.last_name || '',
               role: roleTitle,
             };
           })

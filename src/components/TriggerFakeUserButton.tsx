@@ -4,7 +4,7 @@ import { useState } from 'react'
 
 export default function TriggerFakeUserButton() {
   const [loading, setLoading] = useState(false)
-  const [results, setResults] = useState<any>(null)
+  const [results, setResults] = useState<Record<string, unknown> | null>(null)
 
   const handleClick = async () => {
     setLoading(true)
@@ -17,7 +17,7 @@ export default function TriggerFakeUserButton() {
 
       const data = await res.json()
       setResults(data)
-    } catch (err) {
+    } catch {
       setResults({ error: 'Something went wrong' })
     } finally {
       setLoading(false)

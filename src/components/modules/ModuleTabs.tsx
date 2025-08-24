@@ -4,10 +4,28 @@ import NeonPanel from '@/components/NeonPanel'
 import NeonIconButton from '../ui/NeonIconButton';
 import { FiEdit, FiEye } from 'react-icons/fi';
 
+interface Module {
+  id: string;
+  name: string;
+  description?: string;
+  version?: string;
+  is_archived?: boolean;
+  group_id?: string;
+  learning_objectives?: string;
+  estimated_duration?: string;
+  delivery_format?: string;
+  target_audience?: string;
+  prerequisites?: string[];
+  tags?: string[];
+  thumbnail_url?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 interface ModuleTabsProps {
-  module: any
-  onEdit?: () => void
-  onCancel?: () => void
+  module: Module;
+  onEdit?: () => void;
+  onCancel?: () => void;
 }
 
 const tabList = [

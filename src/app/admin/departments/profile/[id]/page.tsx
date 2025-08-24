@@ -5,13 +5,16 @@ import { useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase-client'
 import { toast } from 'react-hot-toast'
 
+type Module = { id: string; name: string };
+type Document = { id: string; title: string; name?: string };
+
 export default function DepartmentProfilePage() {
   const { id } = useParams()
   const departmentId = id as string
 
   const [departmentName, setDepartmentName] = useState('')
-  const [modules, setModules] = useState<any[]>([])
-  const [documents, setDocuments] = useState<any[]>([])
+  const [modules, setModules] = useState<Module[]>([])
+  const [documents, setDocuments] = useState<Document[]>([])
   const [selectedModuleIds, setSelectedModuleIds] = useState<string[]>([])
   const [selectedDocumentIds, setSelectedDocumentIds] = useState<string[]>([])
   const [docTypeFilter, setDocTypeFilter] = useState('All')

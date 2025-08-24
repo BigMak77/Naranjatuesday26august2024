@@ -1,6 +1,5 @@
 import DepartmentIssuesWidget from '@/components/manager/DepartmentIssuesWidget'
 import DepartmentIssueAssignmentsWidget from '@/components/manager/DepartmentIssueAssignmentsWidget'
-import { FiAlertCircle } from 'react-icons/fi' // Add Fi icon import
 
 export default function ManagerIssuesPage() {
   return (

@@ -6,8 +6,8 @@ export interface NeonModuleFormField {
   key: string;
   label: string;
   type: 'text' | 'textarea' | 'number' | 'select';
-  value: any;
-  onChange: (value: any) => void;
+  value: unknown;
+  onChange: (value: unknown) => void;
   required?: boolean;
   options?: string[]; // For select
   placeholder?: string;

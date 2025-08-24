@@ -3,12 +3,11 @@
 
 import { Question, Department } from '@/types'
 import { useState } from 'react'
-import { v4 as uuidv4 } from 'uuid'
 
 type Props = {
   questions: Question[]
   departments: Department[]
-  updateQuestion: (id: string, field: keyof Question, value: any) => void
+  updateQuestion: (id: string, field: keyof Question, value: string | number | boolean | null) => void
   removeQuestion: (id: string) => void
   addQuestion: () => void
   bulkAddQuestions: (bulkText: string) => void

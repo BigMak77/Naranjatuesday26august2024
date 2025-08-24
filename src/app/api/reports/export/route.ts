@@ -1,11 +1,7 @@
 // src/app/api/reports/export/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-import { compile } from "@/lib/sqlTemplate";
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
-
-function toCSV(rows: any[]): string {
+function toCSV<T extends Record<string, unknown>>(rows: T[]): string {
   if (!rows?.length) return "";
   const headers = Object.keys(rows[0]);
   const lines = [headers.join(",")];
@@ -14,10 +10,9 @@ function toCSV(rows: any[]): string {
 }
 
 export async function POST(req: NextRequest) {
-  const { org_id, metric_key, grain, from, to, filters } = await req.json();
-  // (Reuse metric fetching + compile like /run)
+  const { metric_key, grain } = await req.json();
   // ...get rows...
-  const rows = []; // replace with real data
+  const rows: Record<string, unknown>[] = []; // replace with real data
   const csv = toCSV(rows);
   return new NextResponse(csv, {
     headers: {

@@ -72,7 +72,7 @@ export default function SubmissionsTab() {
             .from('audits')
             .select('id, name, title')
             .in('id', auditIds);
-          (audits ?? []).forEach((a: any) => {
+          (audits ?? []).forEach((a: { id: string; name?: string; title?: string }) => {
             titleMap.set(a.id, (a.title || a.name || a.id) as string);
           });
         } catch {
@@ -92,7 +92,7 @@ export default function SubmissionsTab() {
           .in('auth_id', userIds);
 
         if (!uErr && users) {
-          users.forEach((u: any) => {
+          users.forEach((u: { auth_id: string; first_name?: string | null; last_name?: string | null; email?: string | null; departments?: { name?: string }[] | { name?: string } }) => {
             const dep = Array.isArray(u.departments) ? u.departments[0]?.name : u.departments?.name;
             userMap.set(u.auth_id, {
               first_name: u.first_name,
@@ -112,7 +112,7 @@ export default function SubmissionsTab() {
             .from('user_assignments')
             .select('id, due_at')
             .in('id', assignIds);
-          (assigns ?? []).forEach((a: any) => {
+          (assigns ?? []).forEach((a: { id: string; due_at?: string | null }) => {
             dueMap.set(a.id, a.due_at ?? null);
           });
         } catch {

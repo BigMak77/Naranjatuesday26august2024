@@ -5,7 +5,7 @@ import React from "react";
 
 interface ThemedTableProps {
   headers: string[];
-  rows: any[][];
+  rows: unknown[][];
 }
 
 export default function ThemedTable({ headers, rows }: ThemedTableProps) {
@@ -24,7 +24,7 @@ export default function ThemedTable({ headers, rows }: ThemedTableProps) {
         {rows.map((row, rowIndex) => (
           <tr key={rowIndex}>
             {row.map((cell, colIndex) => (
-              <td key={colIndex}>{cell}</td>
+              <td key={colIndex}>{cell as React.ReactNode}</td>
             ))}
           </tr>
         ))}

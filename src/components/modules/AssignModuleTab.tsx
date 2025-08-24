@@ -166,8 +166,9 @@ If this persists, check Row Level Security policies on "user_assignments".`);
       setSelectedDeptIds([]);
       setSelectedUserAuthIds([]);
       setStep(1);
-    } catch (e: any) {
-      setFeedback(`Unexpected error: ${e?.message ?? e}`);
+    } catch (e: unknown) {
+      const errMsg = e instanceof Error ? e.message : String(e);
+      setFeedback(`Unexpected error: ${errMsg}`);
     } finally {
       setAssigning(false);
     }

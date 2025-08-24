@@ -31,7 +31,15 @@ export async function syncRoleProfileAssignments(auth_id: string) {
     supabase.from('role_profile_behaviours').select('behaviour_id').in('role_profile_id', profileIds),
   ])
 
-  const allRows: any[] = []
+  type AssignmentRow = {
+    auth_id: string;
+    type: 'module' | 'document' | 'behaviour';
+    module_id?: string;
+    document_id?: string;
+    behaviour_id?: string;
+  };
+
+  const allRows: AssignmentRow[] = []
 
   for (const m of modules || []) {
     allRows.push({ auth_id, type: 'module', module_id: m.module_id })
@@ -48,8 +56,8 @@ export async function syncRoleProfileAssignments(auth_id: string) {
     .select('type, module_id, document_id, behaviour_id')
     .eq('auth_id', auth_id)
 
-  const key = (r: any) => `${r.type}:${r.module_id || r.document_id || r.behaviour_id}`
-  const existingKeys = new Set((existing || []).map(key))
+  const key = (r: AssignmentRow) => `${r.type}:${r.module_id || r.document_id || r.behaviour_id}`
+  const existingKeys = new Set((existing || []).map(r => key(r as AssignmentRow)))
   const toInsert = allRows.filter(r => !existingKeys.has(key(r)))
 
   if (toInsert.length > 0) {

@@ -80,7 +80,7 @@ export default function TrainingModuleManager() {
 
     if (error) return;
 
-    const cleaned = (data || []).map((m: any) => ({
+    const cleaned = (data || []).map((m: Module) => ({
       ...m,
       learning_objectives: m.learning_objectives ?? '',
       estimated_duration: m.estimated_duration ?? '',
