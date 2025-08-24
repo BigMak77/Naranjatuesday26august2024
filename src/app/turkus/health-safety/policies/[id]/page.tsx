@@ -5,14 +5,26 @@ import { supabase } from '@/lib/supabase-client';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
+type Policy = {
+  id?: string;
+  title?: string;
+  description?: string;
+  // Add more fields as needed
+};
+
 export default function PolicyDetailPage() {
   const params = useParams();
-  const { id } = params as { id: string };
-  const [policy, setPolicy] = useState<any>(null);
+  const id = typeof params === 'object' && params !== null && 'id' in params ? (params as { id?: string }).id : undefined;
+  const [policy, setPolicy] = useState<Policy | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
+    if (!id) {
+      setError('No policy ID provided.');
+      setLoading(false);
+      return;
+    }
     const fetchPolicy = async () => {
       setLoading(true);
       const { data, error } = await supabase
@@ -24,7 +36,7 @@ export default function PolicyDetailPage() {
       setPolicy(data);
       setLoading(false);
     };
-    if (id) fetchPolicy();
+    fetchPolicy();
   }, [id]);
 
   if (loading) return <NeonPanel><p>Loading...</p></NeonPanel>;
