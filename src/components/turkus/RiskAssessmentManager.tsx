@@ -83,7 +83,7 @@ export default function RiskAssessmentManager() {
         setInjuryRisk(selected.injury_risk || '')
       }
     }
-  }, [mode, selectedId, riskAssessments])
+  }, [mode, selectedId, riskAssessments]);
 
   useEffect(() => {
     if (mode === 'assign' && selectedId) {
@@ -96,7 +96,7 @@ export default function RiskAssessmentManager() {
         .eq('department_id', selected.department_id)
         .then(({ data }) => setDepartmentUsers(data || []))
     }
-  }, [mode, selectedId, riskAssessments])
+  }, [mode, selectedId, riskAssessments]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
