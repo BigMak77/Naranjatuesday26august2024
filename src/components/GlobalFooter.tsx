@@ -1,36 +1,35 @@
 import Link from 'next/link';
 import { FaLinkedin, FaEnvelope } from 'react-icons/fa';
 import { FiX } from 'react-icons/fi';
-// Removed CSS module import; using global styles only
 
 export default function GlobalFooter() {
   return (
-    <footer className="globalFooter">
-      <div className="inner">
-        <div className="links">
-          <div className="linkGroup">
-            <Link href="/homepage/contact-us" className="link">
+    <footer className={styles.globalFooter}>
+      <div className={styles.inner}>
+        <div className={styles.links}>
+          <div className={styles.linkGroup}>
+            <Link href="/homepage/contact-us" className={styles.link}>
               Contact Us
             </Link>
-            <Link href="/homepage/about" className="link">
+            <Link href="/homepage/about" className={styles.link}>
               About Us
             </Link>
           </div>
-          <div className="addressBlock">
-            <span className="address">
+          <div className={styles.addressBlock}>
+            <span className={styles.address}>
               123 Orange Street, London, UK &bull; +44 20 1234 5678
             </span>
-            <span className="copyright">
+            <span className={styles.copyright}>
               © {new Date().getFullYear()} Naranja Ltd.
             </span>
           </div>
         </div>
-        <div className="socials">
+        <div className={styles.socials}>
           <a
             href="https://www.linkedin.com/company/naranja"
             rel="noopener noreferrer"
             aria-label="LinkedIn"
-            className="social"
+            className={styles.social}
           >
             <FaLinkedin />
           </a>
@@ -38,14 +37,14 @@ export default function GlobalFooter() {
             href="https://x.com/naranjateam"
             rel="noopener noreferrer"
             aria-label="X (Twitter)"
-            className="social"
+            className={styles.social}
           >
             <FiX />
           </a>
           <a
             href="mailto:support@naranja.co.uk"
             aria-label="Email"
-            className="social"
+            className={styles.social}
           >
             <FaEnvelope />
           </a>

@@ -1,6 +1,6 @@
-/* =========================================
+/* ================================
    0) Font faces (load FIRST)
-   ========================================= */
+   ================================ */
 @font-face {
   font-family: 'Geist';
   src: url('/fonts/Geist.woff2') format('woff2');
@@ -16,445 +16,152 @@
   font-display: swap;
 }
 
-@import url('../components/folder-tabs-equal-width.css');
+/* If you use Tailwind, import it AFTER fonts. Otherwise remove this line. */
+/* @import "tailwindcss"; */
 
-/* =========================================
-   1) Theme variables (neon/orange design)
-   ========================================= */
+/* ================================
+   1) Theme variables
+   ================================ */
 :root {
   --neon: #40E0D0;
-  --accent: #FA7A20;
-  --bg: rgb(0,206,209);
-
+  --neon-2: #2edbd0;
+  --bg: #013b3b;
+  --panel: #012b2f;
+  --field: #012b2b;
   --text: #ffffff;
   --ink: #011f24;
-  --danger: #ea1c1c;
-
-  /* Added missing variables */
-  --panel: #05363a;
-  --field: #073f44;
-  --muted: #0a4c52;
-  --border: #0fe0ce;
-
+  --accent: #ffa500;
+  --muted: #014d4d;
+  --border: #40E0D0;
   --radius: 12px;
-  --space-1: .5rem;
-  --space-2: .75rem;
-  --space-3: 1rem;
-  --space-4: 1.5rem;
 }
 
-/* =========================================
-   2) Base / Resets
-   ========================================= */
+/* ================================
+   2) Base
+   ================================ */
 html, body {
   font-family: 'Geist', system-ui, sans-serif;
-  font-size: 12px;
+  font-size: 16px;
   line-height: 1.5;
   color: var(--text);
-  background: var(--bg);
-  color-scheme: dark;
-  margin: 0;
-  width: 100%;
-  min-height: 100vh;
-  box-sizing: border-box;
-  overflow-x: hidden;
-}
-*, *::before, *::after { box-sizing: border-box; }
-img, svg, video, canvas { max-width: 100%; height: auto; }
-input, select, textarea, button, label, option { font-family: inherit; }
-
-/* Page skeleton */
-body { display:flex; flex-direction:column; min-height:100vh; }
-main { flex:1 0 auto; }
-
-/* =========================================
-   3) Layout primitives
-   ========================================= */
-
-/* Full-bleed band: header/hero/footer stripes */
-.full-bleed {
-  inline-size: 100%;
-  margin-inline: calc(50% - 50vw); /* stretch background to edges */
-  overflow-x: clip; /* prevent accidental horizontal scroll */
+  background-color: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Inner content container */
-.container {
-  max-width: 1800px;
-  width: 100%;
-  margin-inline: auto;
-  padding-inline: 2vw;
+*, *::before, *::after {
   box-sizing: border-box;
 }
-@media (max-width:900px){ .container{ padding-inline:1rem; } }
-@media (max-width:600px){ .container{ padding-inline:.5rem; } }
 
-/* Page block */
-.page {
+/* Make sure all form UI uses Geist (no global appearance reset) */
+input, select, textarea, button, label, option {
+  font-family: inherit;
+}
+
+/* Utility */
+.shadow-glow { box-shadow: 0 0 12px var(--neon); }
+.no-shadow-glow {
+  box-shadow: none !important;
+}
+
+/* ================================
+   3) Form controls (single source)
+   ================================ */
+input[type="text"],
+input[type="search"],
+input[type="date"],
+input[type="number"],
+select,
+textarea {
   width: 100%;
-  margin: 0;
-  padding-block: 2rem;
-}
-.page .container {
-  padding-block: 0;
-}
-
-/* Framed main content helper */
-.frame {
-  max-width: 1800px;
-  width: 100%;
-  margin-inline: auto;
-  padding: clamp(1rem, 2vw, 1rem);
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: 0 0 8px rgba(0,0,0,.35), 0 0 6px var(--neon);
-}
-
-/* Ensure overlays are not clipped by layout wrappers */
-.page, .container, .frame {
-  position: static !important;
-  overflow: visible !important;
-}
-
-/* =========================================
-   4) Header
-   ========================================= */
-.logo-header {
-  background: linear-gradient(90deg,#007872 0%, #024545c1 60%,  rgb(0,206,209) 100%);
-  border-block-end: 3px solid var(--accent);
-  padding-block: .6rem;
-}
-.logo-header .logo-inner {
-  display:flex; align-items:center; justify-content:space-between; gap:1rem;
-}
-
-/* Hero band */
-.hero-header-neon {
-  background: linear-gradient(90deg,#013b3b 0%,#011f24 50%,#014f4f 100%);
-  border-block-end: 3px solid var(--accent);
-  color: var(--neon); 
-  padding-block: 1rem;
-}
-.hero-header-neon h1 {
-  margin: 0; text-align: center; font-weight: 800; color: var(--accent);
-}
-.hero-header-neon p {
-  margin: 0; text-align: center; color: var(--neon);
-}
-
-/* =========================================
-   5) Footer
-   ========================================= */
-.global-footer {
-  background: linear-gradient(90deg,#014f4f 0%,#03807c 100%);
-  border-top: 3px solid var(--accent);
+  background-color: var(--field);
   color: var(--text);
-  min-height: 90px; height: 90px;
-  display: flex; align-items: center;
-}
-.global-footer .inner {
-  display: grid; gap: 1.5rem; align-items: center; height: 100%;
-}
-@media (min-width:1300px){
-  .global-footer .inner {
-    grid-auto-flow: column; justify-content: space-between; gap: 3.5rem;
-  }
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+  margin-bottom: 1rem;
 }
 
-/* Global footer styles moved from GlobalFooterModule.css */
-.globalFooter {
-  background: var(--panel, #012b2f);
-  color: var(--text, #fff);
-  padding: 2rem 1rem;
-  border-top: 10px solid #fa7a20;
-}
-.inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  align-items: center;
-  justify-content: space-between;
-}
-@media (min-width: 700px) {
-  .inner {
-    flex-direction: row;
-    gap: 0;
-  }
-}
-.links {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  font-family: var(--font-family, inherit);
-  font-size: 1rem;
-}
-@media (min-width: 700px) {
-  .links {
-    flex-direction: row;
-    gap: 2rem;
-  }
-}
-.link {
-  color: var(--accent, #40E0D0);
-  text-decoration: underline;
-  font-weight: 500;
-  transition: color .18s, text-shadow .18s;
-}
-.link:hover {
-  color: var(--neon, #FA7A20);
-  text-shadow: 0 0 8px var(--neon, #FA7A20);
-}
-.copyright {
-  color: #bbb;
-  font-size: 0.95em;
-}
-.socials {
-  display: flex;
-  gap: 1.5rem;
-  align-items: center;
-}
-.social {
-  color: var(--accent, #40E0D0);
-  font-size: 1.5rem;
-  transition: color .18s, transform .18s;
-  display: flex;
-  align-items: center;
-}
-.social:hover {
-  color: var(--neon, #FA7A20);
-  transform: scale(1.15);
+/* Focus glow */
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--neon);
+  box-shadow: 0 0 0 2px var(--neon);
 }
 
-/* =========================================
-   6) Page helpers
-   ========================================= */
-.page-title { font-size:2rem; font-weight:700; text-align:center; margin:0 0 2rem; }
-.info-message { color:#bbb; text-align:center; margin:2rem 0; }
-.error-message { color:#ff6b6b; text-align:center; margin:2rem 0; }
-
-/* =========================================
-   7) Dialogs (Radix-based only, cleaned)
-   ========================================= */
-   /* Force the Radix dialog to max 900px even if earlier rules say 90vw */
-.ui-dialog-content,
-.neon-dialog { /* you add "neon-dialog" in your component */
-  width: clamp(320px, 90vw, 900px) !important;
-  max-width: 900px !important;
-  box-sizing: border-box;
-}
-.ui-dialog-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.7);
-  backdrop-filter: blur(2px);
-  z-index: 1200;
-
-  /* Center children cleanly */
-  display: grid;
-  place-items: center;
+/* Search sizing helper */
+input[type="search"] {
+  max-width: 20rem;
 }
 
-/* Dialog */
-.ui-dialog-content {
-  position: relative;           /* no fixed, no transform */
-  z-index: 1201;
-
-  width: min(900px, calc(100vw - 32px));
-  max-width: 900px;
-  max-height: min(90vh, 720px);
-  overflow: auto;
-  box-sizing: border-box;
-
-  background: var(--panel, #012b2f);
-  color: var(--text, #fff);
-  border: 1px solid var(--border, #40E0D0);
-  border-radius: 1rem;
-  padding: 1.5rem;
-  box-shadow: 0 0 8px var(--neon, #40E0D0);
+/* Labels */
+label {
+  display: block;
+  font-weight: 600;
+  color: var(--neon);
+  margin-bottom: 0.5rem;
 }
 
-/* =========================================
-   8) Utilities
-   ========================================= */
-.wrap { white-space: normal; word-break: break-word; }
-.nowrap { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.neon-text { color: var(--neon); }
-.accent-text { color: var(--accent); }
-.danger-text { color: var(--danger); }
-.ink-text { color: var(--ink); }
-.font-title { font-weight: 700; }
-.font-subtitle { font-weight: 600; }
-.font-body { font-weight: 400; }
-.font-bold { font-weight: 700; }
-.font-normal { font-weight: 400; }
-.center { text-align: center; }
-.mt-2 { margin-top: var(--space-2); }
-.mb-2 { margin-bottom: var(--space-2); }
-.p-2 { padding: var(--space-2); }
-.px-2 { padding-left: var(--space-2); padding-right: var(--space-2); }
-.py-2 { padding-top: var(--space-2); padding-bottom: var(--space-2); }
-.rounded { border-radius: var(--radius); }
+/* ================================
+   4) Select: force non‑native look only here
+   ================================ */
+select,
+.geist-select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  padding-right: 2.25rem; /* room for arrow */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2340E0D0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right .6rem center;
+  background-size: 1rem;
+}
+.geist-select option,
+.geist-select optgroup { font-family: inherit; }
 
-/* =========================================
-   9) Components (buttons, tables, forms, panels, widgets)
-   ========================================= */
+/* ================================
+   5) Forms / panels / buttons
+   ================================ */
+form, .neon-form {
+  background: var(--panel);
+  border: 1px solid var(--neon);
+  border-radius: var(--radius);
+  box-shadow: 0 0 12px var(--neon);
+  padding: 2rem;
+}
 
-/* ===============================
-   Neon Square Buttons (icon-only, 20px)
-   =============================== */
-.neon-btn, .neon-icon-btn, button.neon-btn {
+button, .neon-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
-  min-width: 30px;
-  min-height: 30px;
-  aspect-ratio: 1 / 1;
-  border-radius: 4px; /* force square with slightly rounded corners */
-  padding: 0;
-  overflow: hidden;
-  background: var(--neon);
-  color: #fff;
+  gap: .5rem;
+  background: linear-gradient(90deg, var(--neon) 0%, var(--neon-2) 100%);
+  color: var(--ink);
+  font-weight: 700;
   border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  box-shadow: 0 2px 8px 0 var(--neon);
+  transition: background .2s, color .2s, box-shadow .2s, transform .06s;
   cursor: pointer;
-  box-shadow: 0 0 4px currentColor;
-  transition: background .2s, box-shadow .2s, transform .06s;
 }
-
-.neon-btn svg, .neon-icon-btn svg, button.neon-btn svg {
-  width: 20px;
-  height: 20px;
-  fill: none;
+button:hover, .neon-btn:hover {
+  background: linear-gradient(90deg, var(--neon-2) 0%, var(--neon) 100%);
   color: #fff;
-  pointer-events: none;
-  display: block;
+  box-shadow: 0 4px 16px 0 var(--neon);
 }
+button:active, .neon-btn:active { transform: translateY(1px); }
 
-/* Ensure feather icons are visible in neon buttons */
-.neon-btn .feather, .neon-icon-btn .feather, button.neon-btn .feather {
-  width: 20px;
-  height: 20px;
-  stroke: #fff;
-  fill: none;
-  stroke-width: 2px;
-  vertical-align: middle;
-  display: inline-block;
-}
-
-.neon-btn span, .neon-icon-btn span, button.neon-btn span {
-  display: none !important; /* hide text, icon-only */
-}
-
-/* Hover / Active states */
-.neon-btn:hover {
-  box-shadow: 0 0 8px currentColor;
-  transform: scale(1.05);
-}
-.neon-btn:active {
-  transform: scale(0.95);
-}
-
-/* ===============================
-   Color Variants
-   =============================== */
-.neon-btn[data-variant="danger"], .neon-btn-danger {
-  background: var(--danger) !important;
-}
-
-.neon-btn[data-variant="accent"], .neon-btn-accent {
-  background: var(--accent) !important;
-}
-
-.neon-btn[data-variant="add"], .neon-btn-add {
-  background: #c6e70e !important;
-}
-
-.neon-btn[data-variant="edit"], .neon-btn-edit {
-  background: #2a05cef5 !important;
-}
-
-.neon-btn[data-variant="save"], .neon-btn-save {
-  background: #096703 !important;
-}
-
-.neon-btn[data-variant="download"], .neon-btn-download {
-  background: #FA7A20 !important;
-}
-
-.neon-btn[data-variant="upload"], .neon-btn-upload {
-  background: #40E0D0 !important;
-}
-
-.neon-btn[data-variant="close"], .neon-btn-close,
-.neon-btn[data-variant="delete"], .neon-btn-delete,
-.neon-btn[data-variant="cross"], .neon-btn-cross {
-  background: var(--danger) !important;
-}
-
-.neon-btn[data-variant="tick"], .neon-btn-tick {
-  background: #39ff14 !important;
-}
-
-.neon-btn[data-variant="orgchart"], .neon-btn-orgchart {
-  background: #FA7A20 !important;
-}
-
-.neon-btn[data-variant="firstaid"], .neon-btn-firstaid {
-  background: #39ff14 !important;
-}
-
-.neon-btn[data-variant="reports"], .neon-btn-reports {
-  background: #FA7A20 !important;
-}
-
-.neon-btn[data-variant="print"], .neon-btn-print {
-  background: #40E0D0 !important;
-}
-
-.neon-btn[data-variant="login"], .neon-btn-login {
-  background: #05363a !important;
-}
-.neon-btn[data-variant="submit"], .neon-btn-submit {
-  background: #048437 !important;
-}
-
-.neon-btn[data-variant="close"], .neon-btn-close {
-  background: var(--danger) !important;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 0 8px var(--danger);
-  color: #fff;
-  border: none;
-  cursor: pointer;
-  transition: background 0.18s;
-}
-.neon-btn[data-variant="close"]:hover, .neon-btn-close:hover {
-  background: #ff5a5a !important;
-}
-
-.neon-btn[data-variant="cert"], .neon-btn-cert {
-  background: #6029a9 !important;
-  color: #fff !important;
-  box-shadow: 0 0 8px #a259ff;
-}
-.neon-btn-cert:hover {
-  background: #c084fc !important;
-  box-shadow: 0 0 12px #c084fc;
-}
-
-/* Neon table */
-.neon-table, .table-default {
+/* ================================
+   6) Tables (neon)
+   ================================ */
+.table-default, .neon-table {
   width: 100%;
   border-collapse: collapse;
+  font-size: 1rem;
   color: var(--text);
   background: var(--field);
   border: 1px solid var(--neon);
@@ -462,47 +169,349 @@ main { flex:1 0 auto; }
   overflow: hidden;
   box-shadow: 0 0 8px var(--neon);
 }
-.neon-table thead, .table-default thead {
-  background: var(--neon); color: var(--ink); text-align: left;
+.table-default thead, .neon-table thead {
+  background: var(--neon);
+  color: var(--ink);
+  text-align: left;
 }
-.neon-table th, .neon-table td,
-.table-default th, .table-default td {
+.table-default th, .table-default td,
+.neon-table th, .neon-table td {
   padding: .75rem 1rem;
   border-bottom: 1px solid var(--neon);
 }
-.neon-table tbody tr:hover, .table-default tbody tr:hover {
+.table-default tbody tr:hover, .neon-table tbody tr:hover {
   background: var(--muted);
 }
-.neon-table th:first-child, .neon-table td:first-child,
-.table-default th:first-child, .table-default td:first-child { padding-left: 1.25rem; }
-.neon-table th:last-child, .neon-table td:last-child,
-.table-default th:last-child, .table-default td:last-child { padding-right: 1.25rem; }
+.table-default th:first-child, .table-default td:first-child,
+.neon-table th:first-child, .neon-table td:first-child { padding-left: 1.25rem; }
+.table-default th:last-child, .table-default td:last-child,
+.neon-table th:last-child, .neon-table td:last-child { padding-right: 1.25rem; }
 
-/* Scrollable neon table */
-.neon-table-scroll {
-  max-height: 480px;
-  overflow-y: auto;
-  width: 100%;
-  display: block;
+/* ================================
+   7) Hero header
+   ================================ */
+.hero-header-neon {
+  width: 100vw;
+  max-width: 100vw;
+  margin: 0 0 1.5rem 0 !important;
+  border-radius: 0 !important;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  transform: translateX(-50%);
+  padding: 1rem 0;
+  background: linear-gradient(90deg, #013b3b 0%, #011f24 50%, #014f4f 100%);
+  border-bottom: 3px solid var(--accent);
+  color: var(--neon);
+}
+.hero-header-neon h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--accent);
+  text-align: center;
+}
+.hero-header-neon p {
+  font-size: 1.125rem;
+  color: var(--neon);
+  text-align: center;
+}
+
+/* ================================
+   8) Cards (optional)
+   ================================ */
+.card {
+  background: #fff;
+  color: #000;
+  border: 1px solid #5eead4;
   border-radius: 12px;
-  box-shadow: 0 0 8px var(--neon);
+  box-shadow: 0 1px 3px rgba(16,185,129,0.1), 0 1px 2px rgba(16,185,129,0.06);
+}
+.card-header {
+  background: #14b8a6;
+  color: #fff;
+  font-weight: 600;
+  padding: 1rem 1.5rem;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+.card-note { font-size: .875rem; color: #4b5563; margin-top: .25rem; }
+
+/* ================================
+   9) File/folder UI (neon)
+   ================================ */
+.folder-container {
+  background: #111;
+  border-radius: 10px;
+  padding: 20px;
+  color: var(--neon);
+  box-shadow: 0 0 10px #0ff4;
+}
+.folder-tabs {
+  display: flex; gap: 10px; margin-bottom: 20px;
+  border-bottom: 2px solid #0ff5;
+}
+.folder-tab {
+  padding: 10px 16px; cursor: pointer; background: #222;
+  border-top-left-radius: 8px; border-top-right-radius: 8px;
+  transition: all .3s ease; color: var(--neon); box-shadow: 0 0 4px #0ff5;
+}
+.folder-tab:hover { background: #0ff1; }
+.folder-tab.active { background: #0ff2; color: #fff; box-shadow: 0 0 8px #0ff; }
+.folder-content { padding-top: 10px; }
+.folder-file-box {
+  background: #1a1a1a; border: 1px solid #0ff3; border-radius: 8px;
+  padding: 12px; margin-bottom: 12px; box-shadow: 0 0 6px #0ff2;
+}
+.file-meta { font-size: .85rem; color: #aaa; }
+
+/* UserProfileCard (neon) */
+.user-profile-card {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 0.75rem 2vw;
+  background: none;
+  border-radius: 0;
+  color: var(--text);
+  margin: 0 !important;
+  border: none !important;
+  width: 100vw;
+  max-width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  transform: translateX(-50%);
+  box-sizing: border-box;
 }
 
-/* Neon form */
-.neon-form, form {
-  background: var(--panel);
-  border: 1px solid var(--neon);
-  border-radius: var(--radius);
-  box-shadow: 0 0 8px var(--neon);
-  padding: 2rem;
+.user-profile-card .brand {
+  flex-shrink: 0;
+  /* Remove drop-shadow from logo */
+  filter: none !important;
 }
+
+.user-profile-card .row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 24px;
+  width: 100%;
+}
+
+.user-profile-card .pair {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 1rem;
+}
+
+.user-profile-card .label {
+  color: var(--neon);
+  font-weight: 700;
+}
+
+.user-profile-card .actions {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ================================
+   Neon Square Action Buttons
+   ================================ */
+.neon-btn-square {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.06s;
+}
+.neon-btn-square svg {
+  width: 20px;
+  height: 20px;
+  color: #fff; /* always white */
+}
+.neon-btn-square:hover {
+  transform: translateY(-1px);
+}
+.neon-btn-square:active {
+  transform: translateY(1px);
+}
+
+/* ADD */
+.neon-btn-add {
+  background-color: #0f766e;
+  box-shadow: 0 0 2px #0f766e;
+}
+.neon-btn-add:hover {
+  background-color: #134e4a;
+  box-shadow: 0 0 6px #0f766e;
+}
+
+/* VIEW */
+.neon-btn-view {
+  background-color: #2563eb;
+  box-shadow: 0 0 2px #2563eb;
+}
+.neon-btn-view:hover {
+  background-color: #1d4ed8;
+  box-shadow: 0 0 6px #2563eb;
+}
+
+/* DELETE */
+.neon-btn-delete {
+  background-color: #ea1c1c;
+  box-shadow: 0 0 2px #ea1c1c;
+}
+.neon-btn-delete:hover {
+  background-color: #b91c1c;
+  box-shadow: 0 0 6px #ea1c1c;
+}
+
+/* NEXT */
+.neon-btn-next {
+  background-color: var(--neon);
+  box-shadow: 0 0 2px var(--neon);
+}
+.neon-btn-next:hover {
+  background-color: var(--neon-2);
+  box-shadow: 0 0 6px var(--neon);
+}
+
+/* BACK */
+.neon-btn-back {
+  background-color: #475569;
+  box-shadow: 0 0 2px #475569;
+}
+.neon-btn-back:hover {
+  background-color: #334155;
+  box-shadow: 0 0 6px #475569;
+}
+
+/* ARCHIVE */
+.neon-btn-archive {
+  background-color: var(--neon);
+  box-shadow: 0 0 2px var(--neon);
+}
+.neon-btn-archive:hover {
+  background-color: var(--neon-2);
+  box-shadow: 0 0 6px var(--neon);
+}
+
+/* SUBMIT */
+.neon-btn-submit {
+  background-color: var(--neon);
+  color: #012b2b;
+  font-weight: bold;
+  box-shadow: 0 0 2px var(--neon);
+}
+.neon-btn-submit:hover {
+  background-color: var(--neon-2);
+  box-shadow: 0 0 6px var(--neon);
+}
+
+/* EDIT */
+.neon-btn-edit {
+  background-color: #1b640e;
+  box-shadow: 0 0 4px #39ff14;
+}
+.neon-btn-edit:hover {
+  background-color: #00e600;
+  box-shadow: 0 0 6px #39ff14;
+}
+
+/* DOWNLOAD */
+.neon-btn-download {
+  background-color: #0284c7;
+  box-shadow: 0 0 2px #0284c7;
+}
+.neon-btn-download:hover {
+  background-color: #0369a1;
+  box-shadow: 0 0 6px #0284c7;
+}
+
+/* UPLOAD */
+.neon-btn-upload {
+  background-color: #16a34a;
+  box-shadow: 0 0 2px #16a34a;
+}
+.neon-btn-upload:hover {
+  background-color: #15803d;
+  box-shadow: 0 0 6px #16a34a;
+}
+
+/* SEARCH */
+.neon-btn-search {
+  background-color: #f59e0b;
+  box-shadow: 0 0 2px #f59e0b;
+}
+.neon-btn-search:hover {
+  background-color: #d97706;
+  box-shadow: 0 0 6px #f59e0b;
+}
+
+/* REFRESH */
+.neon-btn-refresh {
+  background-color: #14b8a6;
+  box-shadow: 0 0 2px #14b8a6;
+}
+.neon-btn-refresh:hover {
+  background-color: #0d9488;
+  box-shadow: 0 0 6px #14b8a6;
+}
+
+/* SAVE */
+.neon-btn-save {
+  background-color: #39ff14;
+  color: #012b2b;
+  font-weight: bold;
+  box-shadow: 0 0 2px #39ff14;
+}
+.neon-btn-save:hover {
+  background-color: #00e600;
+  color: #fff;
+  box-shadow: 0 0 6px #39ff14;
+}
+
+/* CANCEL */
+.neon-btn-cancel {
+  background-color: #ea1c1c;
+  color: #fff;
+  font-weight: bold;
+  box-shadow: 0 0 2px #ea1c1c;
+}
+.neon-btn-cancel:hover {
+  background-color: #b91c1c;
+  color: #fff;
+  box-shadow: 0 0 6px #ea1c1c;
+}
+
+/* ================================
+   Neon Form Title and Actions
+   ================================ */
 .neon-form-title {
-font-weight: 700; color: var(--neon);
-  margin-bottom: 1.25rem; text-align: left;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--neon);
+  margin-bottom: 1.25rem;
+  text-align: left;
 }
+
 .neon-form-actions {
-  display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 2rem;
 }
+
+/* ================================
+   Neon Input and Messages
+   ================================ */
 .neon-input {
   width: 100%;
   background-color: var(--field);
@@ -510,78 +519,35 @@ font-weight: 700; color: var(--neon);
   border: 1.5px solid var(--neon);
   border-radius: 6px;
   padding: 0.75rem 1rem;
+  font-size: 1rem;
   transition: border-color .2s, box-shadow .2s, background-color .2s;
 }
 .neon-input:focus {
-  outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent);
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
 }
 
-.neon-form label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 1.25rem;
-}
-.neon-form label:last-child {
-  margin-bottom: 0;
+.neon-error {
+  color: #ff4d4f;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
-.neon-form .neon-input,
-.neon-form input,
-.neon-form select,
-.neon-form textarea {
-  margin-top: 0.25rem;
+.neon-success {
+  color: #2fffd2;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
-/* Neon panel */
-.neon-panel {
-  background: var(--panel);
-  border: 1.5px solid var(--neon);
-  border-radius: var(--radius);
-  box-shadow: 0 0 8px var(--neon);
-  padding: var(--space-4); /* Use global spacing variable for consistent padding */
-  color: var(--text);
-}
-
-.neon-panel .neon-btn,
-.neon-panel button,
-.neon-panel .neon-icon-btn {
-  margin-right: var(--space-2);
-  margin-bottom: var(--space-2);
-}
-
-.neon-panel .neon-btn:last-child,
-.neon-panel button:last-child,
-.neon-panel .neon-icon-btn:last-child {
-  margin-right: 0;
-}
-
-.neon-panel textarea,
-.neon-panel .neon-input,
-.neon-panel select {
-  margin-bottom: var(--space-2);
-}
-
-.neon-panel label {
-  margin-bottom: var(--space-2);
-}
-
-/* Neon widget */
-.neon-widget {
-  background: var(--panel);
-  border: 1.5px solid var(--accent);
-  border-radius: 10px;
-  box-shadow: 0 0 8px var(--accent);
-  padding: 1rem;
-  color: var(--text);
-}
-
-/* Neon feature card */
+/* ================================
+   Neon Feature Card
+   ================================ */
 .neon-feature-card {
   background: var(--panel);
   border: 1.5px solid var(--neon);
   border-radius: 16px;
-  box-shadow: 0 0 8px var(--neon);
+  box-shadow: 0 0 12px var(--neon);
   padding: 1.5rem;
   transition: box-shadow .18s, transform .12s;
   cursor: pointer;
@@ -590,11 +556,9 @@ font-weight: 700; color: var(--neon);
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  align-items: flex-start;
-  justify-content: flex-start;
 }
 .neon-feature-card:hover {
-  box-shadow: 0 0 8px var(--neon);
+  box-shadow: 0 0 24px var(--neon);
   transform: scale(1.03);
 }
 .neon-feature-card-header {
@@ -604,337 +568,27 @@ font-weight: 700; color: var(--neon);
   margin-bottom: 0.5rem;
 }
 .neon-feature-card-title {
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--neon);
 }
 .neon-feature-card-text {
+  font-size: 1rem;
   color: var(--text);
   margin-bottom: 0.5rem;
 }
 .neon-feature-card-children {
   margin-top: 0.75rem;
-  width: 100%;
+
+
 }
 
-/* Dashboard card */
-.dashboard-card {
-  width: 100%;
-  max-width: 420px;
-  margin: 0 auto 2rem auto;
+/* ================================
+   Centered Content Utility
+   ================================ */
+.neon-center-content {
+  min-height: 100vh;
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
-}
-
-/* Dashboard grid */
-.dashboard-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2rem;
+  align-items: center;
   justify-content: center;
-  align-items: flex-start;
-  width: 100%;
-  margin-top: 2rem;
-}
-
-/* Dashboard links */
-.dashboard-links {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-/* Dashboard link */
-.dashboard-link {
-  color: var(--neon);
-  text-decoration: underline;
-  font-weight: 500;
-  transition: color .18s, text-shadow .18s;
-}
-.dashboard-link:hover {
-  color: var(--accent);
-  text-shadow: 0 0 8px var(--accent);
-}
-
-/* Manager dashboard cards */
-.manager-dashboard-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-/* ======== ADD BELOW (Sidebar + outline neon buttons) ======== */
-
-/* Optional outline variant (non-breaking) */
-.neon-outline {
-  --_neon: var(--neon);
-  background: transparent !important;
-  color: var(--text);
-  border: 2px solid var(--_neon);
-  box-shadow: none;
-  width: auto; height: auto; min-width: unset; min-height: unset; /* don't force 30px square */
-  padding: 10px 12px;
-  border-radius: var(--radius);
-  display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
-  transition: box-shadow .2s ease, transform .12s ease, border-color .2s ease;
-}
-.neon-outline svg { width: 18px; height: 20px; stroke-width: 2; }
-.neon-outline:hover {
-  box-shadow:
-    0 0 8px rgba(64, 224, 208, .6),
-    inset 0 0 8px rgba(64, 224, 208, .15);
-  transform: translateY(-1px);
-}
-.neon-outline:active { transform: translateY(0); }
-.neon-btn-accent.neon-outline { --_neon: var(--accent); }
-.neon-btn-close.neon-outline { --_neon: var(--danger); }
-
-/* =========================================
-   10) Neon Sidebar
-   ========================================= */
-
-.sidebar-overlay {
-  position: fixed;
-  top: 0; left: 0;
-  height: 100vh;
-  width: 120px; /* reduced from 280px for slimmer sidebar */
-  max-width: 70vw; /* reduced from 90vw for mobile */
-  background: rgba(236, 146, 13, 0.50);
-  box-shadow: 0 0 8px var(--neon), inset 0 0 20px rgba(64,224,208,.18);
-  border-right: 2px solid var(--neon);
-  transform: translateX(-100%);
-  transition: transform 0.25s cubic-bezier(.7,.3,.3,1);
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  padding: 1.2rem 0.75rem;
-  z-index: 1099;
-  color: var(--text);
-    backdrop-filter: blur(10px);  /* <- adds the blur */
-  -webkit-backdrop-filter: blur(10px); /* Safari support */
-}
-
-.sidebar-overlay.open {
-  transform: translateX(0);
-}
-
-/* Dim background behind sidebar */
-.sidebar-overlay::after {
-  content: "";
-  position: fixed;
-  top: 0; left: 160px; right: 0; bottom: 0; /* match sidebar width */
-  background: rgba(0,0,0,.45);
-  -webkit-backdrop-filter: blur(2px);
-  backdrop-filter: blur(2px);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .25s ease;
-}
-.sidebar-overlay.open::after {
-  opacity: 0.6;
-  pointer-events: auto;
-}
-
-/* Close button */
-.sidebar-close-btn {
-  background: var(--danger) !important;
-  border-radius: 50%;
-  width: 32px; height: 32px;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 0 8px var(--danger);
-  color: #fff; border: none; cursor: pointer;
-  transition: background 0.18s;
-  margin-left: auto;
-}
-.sidebar-close-btn svg {
-  width: 20px; height: 20px;
-  stroke: #fff; fill: none; stroke-width: 2px;
-}
-.sidebar-close-btn:hover { background: #ff5a5a !important; }
-
-/* Sidebar links */
-.sidebar-link {
-  display: flex;
-  align-items: center;
-  gap: .75rem;
-  color: var(--text);
-  font-weight: 600;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  text-decoration: none;
-  transition: background 0.18s, color 0.18s, transform .12s;
-}
-.sidebar-link:hover {
-  background: var(--accent);
-  color: #fff;
-  transform: translateX(2px);
-}
-
-.sidebar-icon svg {
-  width: 20px; height: 20px;
-}
-
-/* Mobile */
-@media (max-width: 600px) {
-  .sidebar-overlay {
-    width: 70vw;
-    padding: 1rem 0.5rem;
-  }
-  .sidebar-overlay::after { left: 70vw; }
-}
-
-/* =========================================
-   11) Neon Utility Button
-   ========================================= */
-.neon-utility-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: var(--neon);
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 0.5rem 1rem;
-  font-weight: 600;
-  box-shadow: 0 0 8px var(--neon);
-  cursor: pointer;
-  transition: background 0.18s, box-shadow 0.18s, transform 0.12s;
-}
-.neon-utility-btn svg {
-  width: 20px;
-  height: 20px;
-  stroke: #fff;
-  fill: none;
-  stroke-width: 2px;
-  vertical-align: middle;
-  display: inline-block;
-}
-.neon-utility-btn:hover {
-  background: var(--accent);
-  box-shadow: 0 0 8px var(--accent);
-  transform: translateY(-1px);
-}
-
-/* Neon signature pad styles */
-.neon-signature-pad {
-  background: #fff;
-  border: 2px solid var(--neon, #40E0D0);
-  border-radius: 8px;
-  box-shadow: 0 0 8px #40e0d066;
-  display: block;
-  margin: 0 auto;
-}
-
-/* --- Dialog centering hardening (put at file end) --- */
-body .ui-dialog-overlay {
-  display: grid !important;
-  align-items: center !important;
-  justify-items: center !important;
-}
-
-body .ui-dialog-content {
-  position: relative !important;     /* avoid fixed+transform variants */
-  transform: none !important;
-  margin: 0 !important;              /* neutralize my-8, etc. */
-  width: min(900px, calc(100vw - 32px)) !important;
-  max-width: 900px !important;
-  max-height: min(90vh, 720px) !important;
-  overflow: auto !important;
-  box-sizing: border-box;
-}
-/* put space between adjacent neon icon buttons anywhere */
-.neon-btn + .neon-btn {
-  margin-left: 0.75rem;
-}
-
-.user-view {
-  display: flex;
-  flex-direction: column;
-  gap: 24px; /* vertical spacing between sections */
-}
-/* Base orange avatar */
-.orange-avatar {
-  --size: 20px;
-  --orange-light: #ffad42;
-  --orange-base:  #f98a1b;
-  --orange-dark:  #d66a00;
-
-  position: relative;
-  width: var(--size);
-  height: var(--size);
-  border-radius: 50%;
-  overflow: hidden;
-  display: grid;
-  place-items: center;
-
-  /* Peel + shine + subtle pores */
-  background:
-    /* soft highlight */
-    radial-gradient(120% 120% at 30% 25%, rgba(255,255,255,0.45) 0 12%, rgba(255,255,255,0) 13%),
-    /* tiny pores (speckles) */
-    radial-gradient(rgba(255,255,255,0.18) 0 1px, transparent 2px),
-    /* main orange gradient */
-    radial-gradient(110% 110% at 50% 65%, var(--orange-light), var(--orange-base) 55%, var(--orange-dark) 100%);
-  background-size:
-    100% 100%,
-    10px 10px,
-    100% 100%;
-  background-position:
-    center,
-    center,
-    center;
-  background-repeat:
-    no-repeat,
-    repeat,
-    no-repeat;
-
-  /* shape depth */
-  box-shadow:
-    inset 0 -8px 14px rgba(0,0,0,0.18),
-    inset 0 6px 10px rgba(255,255,255,0.25),
-    0 6px 16px rgba(0,0,0,0.18);
-}
-
-/* Stem */
-.orange-avatar::before {
-  content: "";
-  position: absolute;
-  top: -4%;
-  right: 34%;
-  width: calc(var(--size) * 0.12);
-  height: calc(var(--size) * 0.22);
-  background: #6b4f1d;
-  border-radius: 999px;
-  transform: rotate(18deg);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
-}
-
-/* Leaf */
-.orange-avatar::after {
-  content: "";
-  position: absolute;
-  top: -2%;
-  right: 16%;
-  width: calc(var(--size) * 0.34);
-  height: calc(var(--size) * 0.28);
-  background:
-    radial-gradient(120% 100% at 70% 50%, rgba(255,255,255,0.35), rgba(255,255,255,0) 60%),
-    linear-gradient(135deg, #2f9e44, #217a33);
-  border-radius: 0 100% 100% 100% / 0 90% 100% 100%;
-  transform: rotate(-22deg);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
-}
-
-/* Optional initials centered inside */
-.orange-avatar__initials {
-  font-weight: 700;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial, sans-serif;
-  font-size: calc(var(--size) * 0.36);
-  line-height: 1;
-  color: #fff;
-  text-shadow:
-    0 1px 2px rgba(0,0,0,0.35),
-    0 0 18px rgba(255,255,255,0.25);
-  user-select: none;
-  pointer-events: none;
 }
