@@ -1,48 +1,43 @@
-import React from 'react';
+'use client';
 import NeonPanel from '@/components/NeonPanel';
 import { FiFileText } from 'react-icons/fi';
 import { supabase } from '@/lib/supabase-client';
 import { useParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function PolicyDetailPage() {
   const params = useParams();
-  const id = typeof params?.id === 'string' ? params.id : Array.isArray(params?.id) ? params.id[0] : '';
-  const [policy, setPolicy] = React.useState<{ title: string; description: string } | null>(null);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState('');
+  const { id } = params as { id: string };
+  const [policy, setPolicy] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  React.useEffect(() => {
-    async function fetchPolicy() {
-      if (!id) return;
-      const { data, error } = await supabase.from('policies').select('title, description').eq('id', id).single();
-      if (error || !data) {
-        setError('Policy not found.');
-        setPolicy(null);
-      } else {
-        setPolicy(data);
-      }
+  useEffect(() => {
+    const fetchPolicy = async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('policies')
+        .select('*')
+        .eq('id', id)
+        .single();
+      if (error) setError(error.message);
+      setPolicy(data);
       setLoading(false);
-    }
-    fetchPolicy();
+    };
+    if (id) fetchPolicy();
   }, [id]);
 
+  if (loading) return <NeonPanel><p>Loading...</p></NeonPanel>;
+  if (error) return <NeonPanel><p className="neon-error">{error}</p></NeonPanel>;
+  if (!policy) return <NeonPanel><p>No policy found.</p></NeonPanel>;
+
   return (
-    <NeonPanel className="policy-detail-panel">
-      <h1 className="policy-detail-title">
-        <FiFileText className="policy-detail-title-icon" />
+    <NeonPanel>
+      <h1 className="flex items-center gap-2 text-xl font-bold mb-4">
+        <FiFileText /> {policy.title}
       </h1>
-      <div className="policy-detail-content">
-        {loading ? (
-          <p className="neon-loading">Loading policy...</p>
-        ) : error ? (
-          <p className="neon-error">{error}</p>
-        ) : policy ? (
-          <>
-            <h2 className="policy-detail-heading">{policy.title}</h2>
-            <p className="policy-detail-info">{policy.description}</p>
-          </>
-        ) : null}
-      </div>
+      <p className="mb-2">{policy.description}</p>
+      {/* Add more policy details here as needed */}
     </NeonPanel>
   );
 }

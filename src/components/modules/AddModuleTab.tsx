@@ -1,3 +1,4 @@
+'use client';
 import React, { useState } from 'react'
 import NeonIconButton from '@/components/ui/NeonIconButton'
 import { FiPlus, FiX } from 'react-icons/fi'
