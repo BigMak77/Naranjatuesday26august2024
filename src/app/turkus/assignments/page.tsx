@@ -7,11 +7,38 @@ import NeonTable from '@/components/NeonTable'
 import MyTasksWidget from '@/components/task/MyTasksWidget'
 import { FiAlertCircle, FiClock } from 'react-icons/fi'
 
+// Type definitions
+interface TurkusTask {
+  id: string;
+  title: string;
+  area: string;
+  frequency: string;
+}
+
+interface User {
+  auth_id: string;
+  first_name: string;
+  last_name: string;
+  department_id: string;
+}
+
+interface Assignment {
+  id: string;
+  due_date: string;
+  task?: { title: string } | null;
+  user?: { first_name: string; last_name: string; department_id: string } | null;
+}
+
+interface Department {
+  id: string;
+  name: string;
+}
+
 export default function TurkusAssignmentsPage() {
-  const [assignments, setAssignments] = useState<[]>([])
-  const [tasks, setTasks] = useState<[]>([])
-  const [users, setUsers] = useState<[]>([])
-  const [departments, setDepartments] = useState<[]>([])
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [tasks, setTasks] = useState<TurkusTask[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true)
   const [selectedTask, setSelectedTask] = useState('')
   const [selectedUser, setSelectedUser] = useState('')
@@ -37,7 +64,20 @@ export default function TurkusAssignmentsPage() {
 
       setTasks(tasks || [])
       setUsers(users || [])
-      setAssignments(assignments || [])
+      // Normalize assignments from Supabase response
+      setAssignments(
+        (assignments || []).map((a: {
+          id: string;
+          due_date: string;
+          task: { title: string }[] | null;
+          user: { first_name: string; last_name: string; department_id: string }[] | null;
+        }) => ({
+          id: a.id,
+          due_date: a.due_date,
+          task: Array.isArray(a.task) ? a.task[0] || null : a.task ?? null,
+          user: Array.isArray(a.user) ? a.user[0] || null : a.user ?? null,
+        }))
+      )
       setDepartments(departments || [])
       setLoading(false)
     }
@@ -79,7 +119,19 @@ export default function TurkusAssignmentsPage() {
           user:users (first_name, last_name, department_id)
         `)
 
-      setAssignments(data || [])
+      setAssignments(
+        (data || []).map((a: {
+          id: string;
+          due_date: string;
+          task: { title: string }[] | null;
+          user: { first_name: string; last_name: string; department_id: string }[] | null;
+        }) => ({
+          id: a.id,
+          due_date: a.due_date,
+          task: Array.isArray(a.task) ? a.task[0] || null : a.task ?? null,
+          user: Array.isArray(a.user) ? a.user[0] || null : a.user ?? null,
+        }))
+      )
     }
   }
 
@@ -190,8 +242,8 @@ export default function TurkusAssignmentsPage() {
                   }
                   // Get department name from departments list
                   let departmentName = '-';
-                  if (a.user?.department_id) {
-                    const deptObj = departments.find(d => d.id === a.user.department_id);
+                  if (a.user && a.user.department_id) {
+                    const deptObj = departments.find(d => d.id === a.user?.department_id);
                     departmentName = deptObj?.name || a.user.department_id || '-';
                   }
                   return {

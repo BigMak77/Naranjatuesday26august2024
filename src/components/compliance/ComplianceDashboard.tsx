@@ -77,9 +77,7 @@ export default function ComplianceDashboard() {
 
   return (
     <>
-      <ContentHeader>
-        <h2>Compliance Dashboard</h2>
-      </ContentHeader>
+      <ContentHeader title="Compliance Dashboard" />
       <div className="neon-panel">
         <h2 className="neon-form-title">Compliance Dashboard</h2>
         {/* Filters */}

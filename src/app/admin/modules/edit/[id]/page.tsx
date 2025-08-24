@@ -94,7 +94,7 @@ export default function EditModulePage() {
       label: 'Name',
       type: 'text',
       value: name,
-      onChange: setName,
+      onChange: (value) => setName(String(value)),
       required: true,
     },
     {
@@ -102,14 +102,14 @@ export default function EditModulePage() {
       label: 'Description',
       type: 'text',
       value: description,
-      onChange: setDescription,
+      onChange: (value) => setDescription(String(value)),
     },
     {
       key: 'learningObjectives',
       label: 'Learning Objectives',
       type: 'textarea',
       value: learningObjectives,
-      onChange: setLearningObjectives,
+      onChange: (value) => setLearningObjectives(String(value)),
       rows: 2,
     },
     {
@@ -117,7 +117,7 @@ export default function EditModulePage() {
       label: 'Group ID',
       type: 'text',
       value: groupId,
-      onChange: setGroupId,
+      onChange: (value) => setGroupId(String(value)),
       required: true,
     },
     {
@@ -125,7 +125,7 @@ export default function EditModulePage() {
       label: 'Estimated Duration',
       type: 'text',
       value: estimatedDuration,
-      onChange: setEstimatedDuration,
+      onChange: (value) => setEstimatedDuration(String(value)),
       placeholder: 'Enter duration (e.g. 1h 30m)',
     },
     {
@@ -133,21 +133,21 @@ export default function EditModulePage() {
       label: 'Delivery Format',
       type: 'text',
       value: deliveryFormat,
-      onChange: setDeliveryFormat,
+      onChange: (value) => setDeliveryFormat(String(value)),
     },
     {
       key: 'targetAudience',
       label: 'Target Audience',
       type: 'text',
       value: targetAudience,
-      onChange: setTargetAudience,
+      onChange: (value) => setTargetAudience(String(value)),
     },
     {
       key: 'thumbnailUrl',
       label: 'Thumbnail URL',
       type: 'text',
       value: thumbnailUrl,
-      onChange: setThumbnailUrl,
+      onChange: (value) => setThumbnailUrl(String(value)),
     },
   ]
 

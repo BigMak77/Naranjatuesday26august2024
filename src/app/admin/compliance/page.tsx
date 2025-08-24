@@ -83,7 +83,7 @@ export default function CompliancePage() {
 
   return (
     <>
-      <ContentHeader>
+      <ContentHeader title="Compliance Dashboard">
         <h1>Compliance Dashboard</h1>
         <p>Completion Rate: <strong>{completionRate}%</strong></p>
       </ContentHeader>

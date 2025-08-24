@@ -83,7 +83,7 @@ export default function AssignedToTab() {
           assignment_id: r.id as string,
           audit_id: r.item_id as string,
           assigned_to_name: name,
-          department_name: (dep?.name as string) ?? '—',
+          department_name: typeof dep === 'object' && dep !== null && 'name' in dep ? (dep.name as string) : '—',
           scheduled_for: dueDisplay,
           scheduled_for_sort: isNaN(dueMs) ? 0 : dueMs,
           completed_at: r.completed_at as string | null,

@@ -12,7 +12,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       
       <Sidebar />
       <ProjectGlobalHeader />
-      <ContentHeader />
+      <ContentHeader title="User" />
       <main className="page">
         <div className="container">
           <section className="frame">{children}</section>

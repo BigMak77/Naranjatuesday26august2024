@@ -164,9 +164,7 @@ export default function RoleProfileEdit({
 
   return (
     <>
-      <ContentHeader>
-        Edit Role Profile
-      </ContentHeader>
+      <ContentHeader title="Edit Role Profile" />
       <div className="role-profile-edit-content">
         {step === 0 && (
           <>

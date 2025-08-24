@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import styles from "./Reporting.module.css";
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, BarChart, Bar } from "recharts";
 
-type ReportRow = { bucket_ts: string | number; value: number | string };
+export type ReportRow = { bucket_ts: string | number; value: number | string };
 
 export default function ReportViewer({ rows, chart="line" }: { rows: ReportRow[]; chart?: "line"|"bar"|"table" }) {
   const data = useMemo(()=> rows.map(r => ({ x: r.bucket_ts, y: Number(r.value) })), [rows]);

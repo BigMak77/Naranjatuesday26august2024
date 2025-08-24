@@ -58,12 +58,22 @@ export default function RecurringTaskList() {
         console.error(recurringError)
       } else {
         setRecurring(
-          (data || []).map((item: RecurringTask) => ({
-            ...item,
-            turkus_tasks: Array.isArray(item.turkus_tasks)
-              ? item.turkus_tasks[0] || null
-              : item.turkus_tasks ?? null,
-          }))
+          (data || []).map((item) => {
+            let turkusTask = null;
+            if (Array.isArray(item.turkus_tasks)) {
+              const t = item.turkus_tasks[0];
+              if (t && typeof t.id !== 'undefined' && typeof t.title !== 'undefined') {
+                turkusTask = { id: Number(t.id), title: String(t.title) };
+              }
+            }
+            return {
+              id: Number(item.id),
+              frequency: String(item.frequency),
+              interval_count: Number(item.interval_count),
+              next_due_at: item.next_due_at ? String(item.next_due_at) : null,
+              turkus_tasks: turkusTask,
+            };
+          })
         )
       }
 

@@ -156,9 +156,7 @@ export default function RoleProfileBuilderPage() {
 
   return (
     <>
-      <ContentHeader>
-        {profileId ? 'Edit Role Profile' : 'Create Role Profile'}
-      </ContentHeader>
+      <ContentHeader title={profileId ? 'Edit Role Profile' : 'Create Role Profile'} />
       <NeonPanel className="neon-panel-lg">
         {error && (
           <div className="neon-message neon-message-error mb-2 flex items-center gap-2">

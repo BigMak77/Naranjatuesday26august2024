@@ -144,7 +144,7 @@ export default function AuditManager() {
           {/* Render selected tab */}
           <div key={activeTab}>
             {activeTab === 'create'      && <CreateAuditTab />}
-            {activeTab === 'view'        && <ViewAuditTab setActiveTab={handleTabChange} />}
+            {activeTab === 'view'        && <ViewAuditTab />}
             {activeTab === 'assign'      && <AssignAuditTab />}
             {activeTab === 'submissions' && <SubmissionsTab />}
             {activeTab === 'questions'   && <QuestionTab />}

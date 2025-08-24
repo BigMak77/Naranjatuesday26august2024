@@ -11,6 +11,13 @@ type ModuleRow = { module_id: string; modules?: { name?: string | null } | null 
 type DocumentRow = { document_id: string; documents?: { name?: string | null; document_type?: string | null } | null }
 type BehaviourRow = { behaviour_id: string; behaviours?: { name?: string | null; description?: string | null; icon?: string | null } | null }
 
+// Document type for role profile documents
+interface RoleProfileDocument {
+  document_id: string;
+  title?: string | null;
+  document_type?: string | null;
+}
+
 export default function RoleProfileDetailPage() {
   const params = useParams()
   const router = useRouter()
@@ -19,7 +26,7 @@ export default function RoleProfileDetailPage() {
 
   const [profile, setProfile] = useState<Profile | null>(null)
   const [modules, setModules] = useState<Array<{ module_id: string; name?: string | null }>>([])
-  const [documents, setDocuments] = useState<Array<{ document_id: string; name?: string | null; document_type?: string | null }>>([])
+  const [documents, setDocuments] = useState<RoleProfileDocument[]>([])
   const [behaviours, setBehaviours] = useState<Array<{ behaviour_id: string; name?: string | null; description?: string | null; icon?: string | null }>>([])
   const [error, setError] = useState<string | null>(null)
   const [open, setOpen] = useState(true)

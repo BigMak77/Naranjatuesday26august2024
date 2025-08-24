@@ -227,7 +227,9 @@ export default function DepartmentIssuesWidget() {
                 icon={<FiCheck />}
                 title="Save"
                 disabled={assignLoading || (assignIssue.mode === 'assign' ? !assignIssue.issue.assigned_to : !assignIssue.issue.department?.id)}
-                onClick={() => assignIssue.mode === 'assign' ? handleAssignUser(assignIssue.issue.id, assignIssue.issue.assigned_to) : handleAssign(assignIssue.issue.id, assignIssue.issue.department.id)}
+                onClick={() => assignIssue.mode === 'assign'
+                  ? handleAssignUser(assignIssue.issue.id, assignIssue.issue.assigned_to || '')
+                  : handleAssign(assignIssue.issue.id, assignIssue.issue.department?.id || '')}
               >
                 {assignLoading ? 'Saving...' : 'Save'}
               </NeonIconButton>

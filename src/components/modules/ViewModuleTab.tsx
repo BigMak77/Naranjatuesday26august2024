@@ -16,6 +16,45 @@ const extractUuidFromPath = (path: string | null) => {
   return m ? m[0] : null;
 };
 
+export interface Module {
+  id: string;
+  name: string;
+  description?: string;
+  version?: number;
+  is_archived?: boolean;
+  group_id?: string;
+  learning_objectives?: string;
+  estimated_duration?: string;
+  delivery_format?: string;
+  target_audience?: string;
+  prerequisites?: string[];
+  tags?: string[];
+  thumbnail_url?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export function ViewModuleTab({ module }: { module: Module }) {
+  // Display module details in read-only mode
+  return (
+    <div className="view-module-tab">
+      <h2 className="view-module-title">{module.name}</h2>
+      <p className="view-module-description">{module.description}</p>
+      <div className="view-module-meta">Version: <span>{module.version}</span></div>
+      <div className="view-module-meta">Status: <span>{module.is_archived ? 'Archived' : 'Active'}</span></div>
+      <div className="view-module-meta">Group ID: <span>{module.group_id}</span></div>
+      <div className="view-module-meta">Learning Objectives: <span>{module.learning_objectives || '—'}</span></div>
+      <div className="view-module-meta">Estimated Duration: <span>{module.estimated_duration || '—'}</span></div>
+      <div className="view-module-meta">Delivery Format: <span>{module.delivery_format || '—'}</span></div>
+      <div className="view-module-meta">Target Audience: <span>{module.target_audience || '—'}</span></div>
+      <div className="view-module-meta">Prerequisites: <span>{(module.prerequisites && module.prerequisites.length > 0) ? module.prerequisites.join(', ') : '—'}</span></div>
+      <div className="view-module-meta">Tags: <span>{(module.tags && module.tags.length > 0) ? module.tags.join(', ') : '—'}</span></div>
+      <div className="view-module-meta">Created At: <span>{module.created_at ? new Date(module.created_at).toLocaleString() : '—'}</span></div>
+      <div className="view-module-meta">Updated At: <span>{module.updated_at ? new Date(module.updated_at).toLocaleString() : '—'}</span></div>
+    </div>
+  );
+}
+
 export default function EditModulePage() {
   const router = useRouter();
   const params = useParams<{ id?: string | string[] }>();
@@ -136,14 +175,14 @@ export default function EditModulePage() {
   if (error) return <p className="neon-error">{error}</p>;
 
   const fields: NeonModuleFormField[] = [
-    { key: 'name', label: 'Name', type: 'text', value: name, onChange: setName, required: true },
-    { key: 'description', label: 'Description', type: 'text', value: description, onChange: setDescription },
-    { key: 'learningObjectives', label: 'Learning Objectives', type: 'textarea', value: learningObjectives, onChange: setLearningObjectives, rows: 2 },
-    { key: 'groupId', label: 'Group ID', type: 'text', value: groupId, onChange: setGroupId, required: true },
-    { key: 'estimatedDuration', label: 'Estimated Duration', type: 'text', value: estimatedDuration, onChange: setEstimatedDuration, placeholder: 'Enter duration (e.g. 1h 30m)' },
-    { key: 'deliveryFormat', label: 'Delivery Format', type: 'text', value: deliveryFormat, onChange: setDeliveryFormat },
-    { key: 'targetAudience', label: 'Target Audience', type: 'text', value: targetAudience, onChange: setTargetAudience },
-    { key: 'thumbnailUrl', label: 'Thumbnail URL', type: 'text', value: thumbnailUrl, onChange: setThumbnailUrl },
+    { key: 'name', label: 'Name', type: 'text', value: name, onChange: (v) => setName(String(v)), required: true },
+    { key: 'description', label: 'Description', type: 'text', value: description, onChange: (v) => setDescription(String(v)) },
+    { key: 'learningObjectives', label: 'Learning Objectives', type: 'textarea', value: learningObjectives, onChange: (v) => setLearningObjectives(String(v)), rows: 2 },
+    { key: 'groupId', label: 'Group ID', type: 'text', value: groupId, onChange: (v) => setGroupId(String(v)), required: true },
+    { key: 'estimatedDuration', label: 'Estimated Duration', type: 'text', value: estimatedDuration, onChange: (v) => setEstimatedDuration(String(v)), placeholder: 'Enter duration (e.g. 1h 30m)' },
+    { key: 'deliveryFormat', label: 'Delivery Format', type: 'text', value: deliveryFormat, onChange: (v) => setDeliveryFormat(String(v)) },
+    { key: 'targetAudience', label: 'Target Audience', type: 'text', value: targetAudience, onChange: (v) => setTargetAudience(String(v)) },
+    { key: 'thumbnailUrl', label: 'Thumbnail URL', type: 'text', value: thumbnailUrl, onChange: (v) => setThumbnailUrl(String(v)) },
   ];
 
   return (

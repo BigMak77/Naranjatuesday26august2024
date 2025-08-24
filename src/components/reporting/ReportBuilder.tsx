@@ -8,7 +8,7 @@ const METRICS = [
   { key: "issues_open", label: "Open Issues" },
 ];
 
-interface ReportParams {
+export interface ReportParams {
   metric_key: string;
   grain: string;
   from: string;

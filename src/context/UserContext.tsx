@@ -11,7 +11,7 @@ type AppUser = {
   last_name?: string | null;
   avatar_url?: string | null;
   access_level?: string | null;
-  // add any other columns you actually need
+  auth_id?: string; // <-- add auth_id for compatibility
 };
 
 type Ctx = { user: AppUser | null; loading: boolean; error?: string | null };

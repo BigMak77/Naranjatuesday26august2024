@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase-client'
 import { toast } from 'react-hot-toast'
 
 type Module = { id: string; name: string };
-type Document = { id: string; title: string; name?: string };
+type Document = { id: string; title?: string; name?: string; document_type?: string };
 
 export default function DepartmentProfilePage() {
   const { id } = useParams()
@@ -33,7 +33,7 @@ export default function DepartmentProfilePage() {
       setDepartmentName(deptData?.name || '')
 
       // Modules
-      const { data: allModules } = await supabase.from('modules').select('id, title')
+      const { data: allModules } = await supabase.from('modules').select('id, name')
       const { data: assignedModules } = await supabase
         .from('department_modules')
         .select('module_id')
@@ -125,7 +125,7 @@ export default function DepartmentProfilePage() {
                             checked={selectedModuleIds.includes(mod.id)}
                             onChange={() => handleModuleToggle(mod.id)}
                           />
-                          {mod.title}
+                          {mod.name}
                         </label>
                       </li>
                     ))}
@@ -155,7 +155,7 @@ export default function DepartmentProfilePage() {
                             checked={selectedDocumentIds.includes(doc.id)}
                             onChange={() => handleDocumentToggle(doc.id)}
                           />
-                          {doc.title} <span className="department-profile-doc-type">({doc.document_type})</span>
+                          {doc.title || 'Untitled'} <span className="department-profile-doc-type">({doc.document_type || 'Unknown Type'})</span>
                         </label>
                       </li>
                     ))}

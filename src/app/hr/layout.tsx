@@ -9,7 +9,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <UserProvider>
       {/* Full-bleed header bands */}
       <ProjectGlobalHeader />
-      <ContentHeader />
+      <ContentHeader title="HR" />
 
       {/* Framed main applied globally */}
       <main className="page">

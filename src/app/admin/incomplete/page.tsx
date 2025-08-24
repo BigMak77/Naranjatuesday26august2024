@@ -18,10 +18,18 @@ interface IncompleteRecord {
 type Module = { id: string; name: string };
 type Document = { id: string; title?: string; name?: string };
 type IncompleteRow = {
-  users?: Record<string, unknown>;
-  item_type: string;
+  auth_id: string;
   item_id: string;
-  // add other fields as needed
+  item_type: string;
+  completed_at?: string;
+  users?: {
+    first_name?: string;
+    last_name?: string;
+    department_id?: string;
+    departments?: { name?: string }[];
+    role_id?: string;
+    role?: { title?: string }[];
+  };
 };
 
 export default function IncompleteTrainingPage() {
@@ -89,7 +97,8 @@ export default function IncompleteTrainingPage() {
         (modsRes.data ?? []).map((m: Module) => [m.id, m.name])
       );
       const docNameById = new Map<string, string>(
-        (docsRes.data ?? []).map((d: Document) => [d.id, d.title ?? d.name])
+        (docsRes.data ?? [])
+          .map((d: Document) => [d.id, typeof d.title === 'string' ? d.title : (typeof d.name === 'string' ? d.name : '')] as [string, string])
       );
 
       // 4) Normalize to UI rows
