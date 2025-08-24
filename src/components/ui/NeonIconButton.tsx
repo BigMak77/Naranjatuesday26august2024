@@ -49,9 +49,7 @@ export default function NeonIconButton(p: Props) {
 
   // <a> branch
   if (p.as === "a") {
-    // strip internal props so they don't end up on the DOM
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { as, variant, icon, className, title, children, ...domProps } = p as AnchorProps & BaseProps;
+    const { ...domProps } = p as AnchorProps & BaseProps;
     return (
       <a {...domProps} className={classes} title={title}>
         {IconEl}
@@ -62,7 +60,7 @@ export default function NeonIconButton(p: Props) {
 
   // Next <Link> branch
   if (p.as === "link") {
-    const { href, /* strip */ as, variant, icon, className, title, children, ...linkProps } = p as NextLinkOwn & BaseProps;
+    const { href, ...linkProps } = p as NextLinkOwn & BaseProps;
     return (
       <Link href={href} {...linkProps} className={classes} title={title}>
         {IconEl}
@@ -73,7 +71,7 @@ export default function NeonIconButton(p: Props) {
 
   // <button> branch (default)
   {
-    const { as, variant, icon, className, title, children, type, ...domProps } = p as ButtonProps & BaseProps;
+    const { type, ...domProps } = p as ButtonProps & BaseProps;
     return (
       <button
         {...domProps}

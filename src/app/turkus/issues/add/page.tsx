@@ -4,8 +4,6 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase-client'
 import { useRouter } from 'next/navigation'
 import { FiAlertCircle } from 'react-icons/fi'
-import NeonForm from '@/components/NeonForm'
-import NeonPanel from '@/components/NeonPanel'
 import Modal from '@/components/modal'
 
 export default function RaiseIssuePage() {
@@ -17,7 +15,6 @@ export default function RaiseIssuePage() {
   const [departments, setDepartments] = useState<{ id: string; name: string }[]>([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [modalOpen, setModalOpen] = useState(true)
   const router = useRouter()
 
   useEffect(() => {
@@ -70,7 +67,7 @@ export default function RaiseIssuePage() {
   }
 
   return (
-    <Modal open={modalOpen} onClose={() => router.push('/turkus/issues')}>
+    <Modal open={true} onClose={() => router.push('/turkus/issues')}>
       <form
         className="neon-panel"
         onSubmit={handleSubmit}

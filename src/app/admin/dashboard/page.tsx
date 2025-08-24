@@ -5,8 +5,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase-client'
 import {
   FiUsers,
-  FiFolder,
-  FiPlusCircle,
+  FiPlus,
   FiGrid,
   FiClipboard,
   FiPieChart,
@@ -19,11 +18,12 @@ import {
   FiHome,
   FiCheckCircle,
   FiBarChart2,
-  FiDatabase
+  FiDatabase,
+  FiLayers,
+  FiUserCheck,
+  FiClock
 } from 'react-icons/fi'
 import NeonFeatureCard from '@/components/NeonFeatureCard'
-import LogoHeader from '@/components/HeroHeader'
-
 
 interface DashboardLink {
   href: string
@@ -32,12 +32,11 @@ interface DashboardLink {
 }
 
 interface DashboardCard {
-  title: React.ReactNode // <-- FIXED: allow JSX
+  title: React.ReactNode
   links: DashboardLink[]
 }
 
 export default function DashboardPage() {
-  // Removed unused complianceData state
   const [avgCompliance, setAvgCompliance] = useState<number | null>(null)
   const [lowComplianceCount, setLowComplianceCount] = useState<number>(0)
 
@@ -45,7 +44,6 @@ export default function DashboardPage() {
     const fetchCompliance = async () => {
       const { data, error } = await supabase.from('user_compliance_dashboard').select('*')
       if (error) return
-      // Removed setComplianceData as complianceData is unused
 
       let total = 0, percent = 0, low = 0
       data?.forEach(row => {
@@ -62,59 +60,55 @@ export default function DashboardPage() {
     fetchCompliance()
   }, [])
 
-  const iconSize = 16
+  const iconSize = 18
 
-  // Dashboard cards config
   const cards: DashboardCard[] = [
     {
-      title: <><FiUsers size={20} /> People Management</>,
+      title: <><FiUsers size={20} /> People</>,
       links: [
-        { href: '/hr/people', label: <><FiUsers size={iconSize} /> View & Manage Users</> },
+        { href: '/hr/people', label: <><FiUsers size={iconSize} /> People</> },
       ],
     },
     {
-      title: <><FiFolder size={20} /> Module Management</>,
+      title: <><FiLayers size={20} /> Modules</>,
       links: [
-        { href: '/admin/modules', label: <><FiFolder size={iconSize} /> View Modules</> },
-        { href: '/admin/modules/add', label: <><FiPlusCircle size={iconSize} /> Add Module</> },
-        { href: '/admin/modules/assign', label: <><FiGrid size={iconSize} /> Assign to Roles</> },
+        { href: '/admin/modules', label: <><FiLayers size={iconSize} /> Modules</> },
+        { href: '/admin/modules/add', label: <><FiPlus size={iconSize} /> Add Module</> },
+        { href: '/admin/modules/assign', label: <><FiUserCheck size={iconSize} /> Assign Module</> },
       ],
     },
     {
-      title: <><FiPieChart size={20} /> Training Progress</>,
+      title: <><FiShield size={20} /> Compliance</>,
       links: [
-        { href: '/admin/compliance', label: <><FiPieChart size={iconSize} /> Compliance Dashboard</> },
-        {
-          href: '/admin/incomplete',
-          label: <><FiAlertTriangle size={iconSize} /> Incomplete Training</>,
-        },
+        { href: '/admin/compliance', label: <><FiShield size={iconSize} /> Compliance</> },
+        { href: '/admin/incomplete', label: <><FiAlertTriangle size={iconSize} /> Incomplete</> },
       ],
     },
     {
-      title: <><FiFileText size={20} /> Document Management</>,
+      title: <><FiFileText size={20} /> Documents</>,
       links: [
-        { href: '/admin/documents', label: <><FiFileText size={iconSize} /> View Documents</> },
-        { href: '/admin/documents/add', label: <><FiPlusCircle size={iconSize} /> Add Document</> },
-        { href: '/admin/documents/versions', label: <><FiClipboard size={iconSize} /> View Versions</> },
+        { href: '/admin/documents', label: <><FiFileText size={iconSize} /> Documents</> },
+        { href: '/admin/documents/add', label: <><FiPlus size={iconSize} /> Add Document</> },
+        { href: '/admin/documents/versions', label: <><FiClock size={iconSize} /> Versions</> },
       ],
     },
     {
-      title: <><FiGrid size={20} /> Organisation Structure</>,
+      title: <><FiUsers size={20} /> Org Chart</>,
       links: [
-        { href: '/admin/org-chart', label: <><FiGrid size={iconSize} /> Org Chart</> },
-        { href: '/admin/roles/add', label: <><FiPlusCircle size={iconSize} /> Add Role</> },
+        { href: '/admin/org-chart', label: <><FiUsers size={iconSize} /> Org Chart</> },
+        { href: '/admin/roles/add', label: <><FiPlus size={iconSize} /> Add Role</> },
       ],
     },
     {
-      title: <><FiBookOpen size={20} /> Role Profile Builder</>,
+      title: <><FiUserCheck size={20} /> Role Profiles</>,
       links: [
-        { href: '/admin/role-profiles', label: <><FiBookOpen size={iconSize} /> View Profiles</> },
-        { href: '/admin/role-profiles/add', label: <><FiPlusCircle size={iconSize} /> Create Profile</> },
-        { href: '/admin/role-profiles/manage', label: <><FiSettings size={iconSize} /> Manage Assignments</> },
+        { href: '/admin/role-profiles', label: <><FiUserCheck size={iconSize} /> Role Profiles</> },
+        { href: '/admin/role-profiles/add', label: <><FiPlus size={iconSize} /> Add Profile</> },
+        { href: '/admin/role-profiles/manage', label: <><FiSettings size={iconSize} /> Manage Profiles</> },
       ],
     },
     {
-      title: <><FiShield size={20} /> Health & Safety</>,
+      title: <><FiShield size={iconSize} /> Health & Safety</>,
       links: [
         { href: '/turkus/health-safety', label: <><FiShield size={iconSize} /> H&S Home</> },
         { href: '/turkus/health-safety/policies', label: <><FiFileText size={iconSize} /> Policies</> },
@@ -141,7 +135,6 @@ export default function DashboardPage() {
 
   return (
     <>
-      <LogoHeader title="Admin Dashboard" subtitle="Naranja Admin Portal" />
       <main className="dashboard-panel">
         <section className="dashboard-overview">
           <div className="overview-info">

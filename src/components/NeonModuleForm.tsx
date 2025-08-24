@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import NeonForm from './NeonForm';
 
@@ -6,8 +5,8 @@ export interface NeonModuleFormField {
   key: string;
   label: string;
   type: 'text' | 'textarea' | 'number' | 'select';
-  value: unknown;
-  onChange: (value: unknown) => void;
+  value: string | number;
+  onChange: (value: string | number) => void;
   required?: boolean;
   options?: string[]; // For select
   placeholder?: string;

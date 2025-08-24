@@ -3,7 +3,6 @@ import { supabase } from '@/lib/supabase-client'
 import NeonTable from '@/components/NeonTable'
 import NeonIconButton from '@/components/ui/NeonIconButton'
 import { FiSave, FiEdit, FiUserPlus, FiDownload, FiUpload, FiCheck, FiX } from 'react-icons/fi'
-import { FaFirstAid } from 'react-icons/fa'
 import { useUser } from '@/lib/useUser'
 
 interface User {
@@ -194,7 +193,6 @@ export default function UserManagementPanel() {
     // Use csv-parse for robust parsing
     let usersToImport: Record<string, unknown>[] = [];
     try {
-      // @ts-expect-error: dynamic import for csv-parse/sync in browser
       const csvParse = (await import('csv-parse/sync')).parse;
       usersToImport = csvParse(text, { columns: true, skip_empty_lines: true });
       // Convert booleans and clean up fields

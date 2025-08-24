@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import NeonForm from '@/components/NeonForm'
 
 export default function ContactPage() {
   return (

@@ -23,7 +23,7 @@ export default function MyTeamTraining() {
           .neq('status', 'completed');
         if (error) throw error;
         setTeamTraining(data || []);
-      } catch (err) {
+      } catch {
         setError('Failed to load team training.');
       } finally {
         setLoading(false);

@@ -5,8 +5,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabase-client';
 import NeonPanel from '@/components/NeonPanel';
 
-type TabKey = 'create' | 'view' | 'assign' | 'submissions' | 'questions' | 'assigned' | 'auditors';
-
 type TemplateRow = {
   id: string;
   title?: string | null;            // some schemas use 'title'
@@ -19,7 +17,7 @@ type TemplateRow = {
   created_at?: string | null;
 };
 
-export default function ViewAuditTab({ setActiveTab }: { setActiveTab: (tab: TabKey) => void }) {
+export default function ViewAuditTab() {
   const [templates, setTemplates] = useState<TemplateRow[]>([]);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [questionsMap, setQuestionsMap] = useState<Record<string, string[]>>({});

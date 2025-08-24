@@ -4,13 +4,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase-client';
 
-type SupabaseUserRole = { title: string } | null;
-type SupabaseUser = {
-  first_name: string;
-  last_name: string;
-  role: SupabaseUserRole | SupabaseUserRole[];
-};
-
 export default function AddAuditorWidget({ onAdded }: { onAdded?: () => void }) {
   const [authId, setAuthId] = useState('');
   const [error, setError] = useState('');

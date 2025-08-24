@@ -21,7 +21,7 @@ export default function TrainingLogPage() {
   useEffect(() => {
     // initial fetch
     load().catch(console.error);
-  }, []);
+  }, [load]);
 
   const handleArchived = (archived: Module) => {
     // Optimistically remove from local list

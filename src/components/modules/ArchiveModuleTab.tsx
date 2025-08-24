@@ -59,7 +59,7 @@ export default function ArchiveModuleTab({
     };
     document.addEventListener("keydown", onKey, true);
     return () => document.removeEventListener("keydown", onKey, true);
-  }, [dialogOpen, loading]);
+  }, [dialogOpen, closeDialog, loading]);
 
   const handleArchive = async () => {
     if (!module) return;

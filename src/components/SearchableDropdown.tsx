@@ -11,14 +11,12 @@ interface Option {
 interface Props {
   options: Option[]
   onSelect: (value: string) => void
-  selected: string
   placeholder?: string
 }
 
 export default function SearchableDropdown({
   options,
   onSelect,
-  selected,
   placeholder = 'Select an option...',
 }: Props) {
   const [query, setQuery] = useState('')
@@ -42,8 +40,6 @@ export default function SearchableDropdown({
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
-
-  const selectedLabel = options.find((opt) => opt.value === selected)?.label
 
   return (
     <div ref={containerRef} className="searchable-dropdown-container">

@@ -14,7 +14,7 @@ export async function assignTrainingForUser(auth_id: string) {
   }
 
   // 2. Get role → profile
-  const { data: role, error: roleErr } = await supabase
+  const { data: role } = await supabase
     .from('roles')
     .select('role_profile_id')
     .eq('id', user.role_id)

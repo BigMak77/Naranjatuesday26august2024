@@ -30,8 +30,6 @@ type GlobalHeaderProps = {
   logoPriority?: boolean;
   /** Override/extend the default quick links (shown when signed-in). */
   navLinks?: NavLink[];
-  /** Show the second row (e.g. breadcrumbs/tabs) under the main bar. */
-  secondRow?: React.ReactNode;
   /** Make header background full-bleed but keep content centered. */
   fullBleed?: boolean;
 };
@@ -39,7 +37,6 @@ type GlobalHeaderProps = {
 export default function GlobalHeader({
   logoPriority = false,
   navLinks,
-  secondRow,
   fullBleed = true,
 }: GlobalHeaderProps) {
   const { user, loading } = useUser();

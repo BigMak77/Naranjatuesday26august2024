@@ -7,11 +7,9 @@ import {
   FiLayers,
   FiAlertTriangle,
   FiPlayCircle,
-  FiMail,
   FiStar,
 } from "react-icons/fi";
 import Image from "next/image";
-import NeonIconButton from "@/components/ui/NeonIconButton";
 
 export default function HomePage() {
   return (
@@ -382,7 +380,7 @@ export default function HomePage() {
                 paddingLeft: "1rem",
               }}
             >
-              "We built Naranja to help food and drink businesses keep their people safe and deliver the highest quality products to consumers. By taking care of compliance, training, and audit readiness, we free you to focus on what matters most — running your operation and making great products."
+              &quot;We built Naranja to help food and drink businesses keep their people safe and deliver the highest quality products to consumers. By taking care of compliance, training, and audit readiness, we free you to focus on what matters most — running your operation and making great products.&quot;
             </blockquote>
           </div>
         </div>

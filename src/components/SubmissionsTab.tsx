@@ -215,7 +215,7 @@ export default function SubmissionsTab() {
         <select
           className="neon-input"
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as any)}
+          onChange={(e) => setStatusFilter(e.target.value as 'All' | 'submitted' | 'in_progress')}
         >
           {statusOptions.map(opt => (
             <option key={opt} value={opt}>{opt === 'All' ? 'All statuses' : opt}</option>

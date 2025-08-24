@@ -73,7 +73,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ user: data.user }, { status: 200 })
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('💥 Unexpected server error:', err)
     return NextResponse.json({ error: 'Unexpected server error' }, { status: 500 })
   }

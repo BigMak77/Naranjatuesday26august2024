@@ -1,5 +1,3 @@
-import React from "react";
-
 export type RoleProfileViewerProps = {
   name: string;
   description?: string;

@@ -41,7 +41,7 @@ export default function TaskAmendWidget() {
 
   useEffect(() => {
     if (user?.auth_id) fetchTasks()
-  }, [user])
+  }, [user, fetchTasks])
 
   const handleEdit = (taskId: string) => {
     const task = tasks.find(t => t.id === taskId)

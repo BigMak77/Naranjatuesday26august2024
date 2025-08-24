@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase-client'
 import { FiClipboard, FiEdit2, FiUserPlus } from 'react-icons/fi'
-import NeonFeatureCard from '@/components/NeonFeatureCard'
 import NeonForm from '@/components/NeonForm'
 import NeonTable from '@/components/NeonTable'
 import NeonPanel from '@/components/NeonPanel'
@@ -55,7 +54,6 @@ export default function RiskAssessmentManager() {
   const [controlMeasures, setControlMeasures] = useState('')
   const [personsAtRisk, setPersonsAtRisk] = useState('')
   const [injuryRisk, setInjuryRisk] = useState('')
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -65,11 +63,10 @@ export default function RiskAssessmentManager() {
       ])
       setRiskAssessments(risks || [])
       setDepartments(depts || [])
-      setLoading(false)
     }
 
     fetchData()
-  }, [])
+  }, [riskAssessments])
 
   useEffect(() => {
     if (mode === 'edit' && selectedId) {
