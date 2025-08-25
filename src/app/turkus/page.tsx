@@ -90,6 +90,11 @@ export default function TurkusHomePage() {
           />
         ))}
       </div>
+      <div className="flex justify-center mt-8">
+        <a href="/homepage/login" className="neon-btn neon-btn-primary px-6 py-3 text-lg font-semibold rounded shadow">
+          Log In
+        </a>
+      </div>
     </>
   );
 }
