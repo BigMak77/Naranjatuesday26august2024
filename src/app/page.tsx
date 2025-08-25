@@ -387,6 +387,15 @@ export default function HomePage() {
           </div>
         </div>
 
+        {/* Add Log In button below main content */}
+        <div style={{ display: "flex", justifyContent: "center", marginTop: "2.5rem" }}>
+          <Link href="/homepage/login" legacyBehavior>
+            <a className="neon-btn neon-btn-primary px-6 py-3 text-lg font-semibold rounded shadow">
+              Log In
+            </a>
+          </Link>
+        </div>
+
         {/* Global overrides */}
         <style jsx global>{`
           .homepage-cards-panel {
