@@ -1,9 +1,8 @@
-// filepath: /Users/bigmak/Documents/Naranja 4.2/postcss.config.mjs
-const config = {
+import postcssPresetEnv from 'postcss-preset-env';
+
+export default {
   plugins: {
-    tailwindcss: {},
+    'postcss-preset-env': {},
     autoprefixer: {},
   },
 };
-
-export default config;

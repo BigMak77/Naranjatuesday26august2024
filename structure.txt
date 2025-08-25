@@ -130,8 +130,6 @@
 │   │   └── shared
 │   ├── @rtsao
 │   │   └── scc
-│   ├── @rushstack
-│   │   └── eslint-patch
 │   ├── @schummar
 │   ├── @selderee
 │   │   └── plugin-htmlparser2
@@ -3157,6 +3155,8 @@
 │   │   ├── LICENSE
 │   │   ├── package.json
 │   │   ├── polyfill.js
+│   │   ├── README.md
+│   │   ├── shim.js
 │   │   ├── README.md
 │   │   ├── shim.js
 │   │   └── test

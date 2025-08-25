@@ -82,7 +82,7 @@ export default function SubmissionsTab() {
             .in("id", auditIds);
           (audits ?? []).forEach(
             (a: { id: string; name?: string; title?: string }) => {
-              titleMap.set(a.id, (a.title || a.name || a.id) as string);
+              titleMap.set(a.id, (a.title || a.name || a.id));
             },
           );
         } catch {

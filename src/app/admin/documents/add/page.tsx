@@ -39,7 +39,7 @@ export default function AddDocumentPage() {
   // Load Standards
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    void (async () => {
       const { data, error } = await supabase
         .from("document_standard")
         .select("id, name");
@@ -58,7 +58,7 @@ export default function AddDocumentPage() {
       return;
     }
     let cancelled = false;
-    (async () => {
+    void (async () => {
       const { data, error } = await supabase
         .from("standard_sections")
         .select("id, code, title")
@@ -142,7 +142,7 @@ export default function AddDocumentPage() {
         }
 
         // Create document
-        const { data: newDoc, error: docError } = await supabase
+        const insertResult = await supabase
           .from("documents")
           .insert({
             title,
@@ -157,6 +157,10 @@ export default function AddDocumentPage() {
           })
           .select()
           .single();
+        const newDoc = insertResult.data as
+          | { id: string }
+          | null;
+        const docError = insertResult.error;
 
         if (docError || !newDoc) {
           alert("Failed to create document.");
@@ -434,11 +438,13 @@ export default function AddDocumentPage() {
                               return alert("Enter a module name.");
                             if (!createdDocId)
                               return alert("Document not found.");
-                            const { data: module, error } = await supabase
+                            const moduleResult = await supabase
                               .from("modules")
                               .insert({ name: newModuleName })
                               .select()
                               .single();
+                            const module = moduleResult.data as Mod;
+                            const error = moduleResult.error;
                             if (error || !module) {
                               alert("Failed to create module.");
                               return;

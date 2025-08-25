@@ -26,7 +26,7 @@ function BodyPortal({ children }: { children: React.ReactNode }) {
       document.body.removeChild(el);
     };
   }, []);
-  return createPortal(children, elRef.current!);
+  return createPortal(children, elRef.current);
 }
 
 export default function ArchiveModuleTab({
@@ -87,7 +87,7 @@ export default function ArchiveModuleTab({
         archived = data as Module;
       }
 
-      onArchive?.(archived!);
+      onArchive?.(archived);
       setDialogOpen(false);
     } catch (e: unknown) {
       setError(

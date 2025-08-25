@@ -142,7 +142,7 @@ export default function AssignModuleWizard() {
   };
 
   const allVisibleAuthIds = useMemo(
-    () => filteredUsers.map((u) => u.auth_id!).filter(Boolean) as UUID[],
+    () => filteredUsers.map((u) => u.auth_id!).filter(Boolean),
     [filteredUsers],
   );
 

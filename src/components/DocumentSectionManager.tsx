@@ -11,7 +11,6 @@ import {
   FiBookOpen,
   FiClipboard,
   FiPlus,
-  FiEdit,
 } from "react-icons/fi";
 import { useUser } from "@/lib/useUser";
 import NeonIconButton from "@/components/ui/NeonIconButton";

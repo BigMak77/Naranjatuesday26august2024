@@ -27,33 +27,54 @@ export default function EditModulePage() {
   const [thumbnailUrl, setThumbnailUrl] = useState("");
 
   useEffect(() => {
+    type Module = {
+      id: string;
+      name: string;
+      description: string;
+      version: number;
+      group_id: string;
+      learning_objectives: string;
+      estimated_duration: string;
+      delivery_format: string;
+      target_audience: string;
+      prerequisites: string[];
+      thumbnail_url: string;
+      updated_at?: string;
+    };
+
     const fetchModule = async () => {
-      const { data, error } = await supabase
+      const response = await supabase
         .from("modules")
         .select("*")
         .eq("id", id)
         .single();
-      if (error || !data) {
+
+      const data = response.data as Module | null;
+      const error = response.error;
+      const moduleData = data;
+
+      if (error || !moduleData) {
         setError("Module not found");
         setLoading(false);
         return;
       }
-      setName(data.name || "");
-      setDescription(data.description || "");
-      setVersion(data.version || 1);
-      setGroupId(data.group_id || "");
-      setLearningObjectives(data.learning_objectives || "");
-      setEstimatedDuration(data.estimated_duration || "");
-      setDeliveryFormat(data.delivery_format || "");
-      setTargetAudience(data.target_audience || "");
-      setPrerequisites(data.prerequisites || []);
-      setThumbnailUrl(data.thumbnail_url || "");
+      setName(moduleData.name || "");
+      setDescription(moduleData.description || "");
+      setVersion(moduleData.version || 1);
+      setGroupId(moduleData.group_id || "");
+      setLearningObjectives(moduleData.learning_objectives || "");
+      setEstimatedDuration(moduleData.estimated_duration || "");
+      setDeliveryFormat(moduleData.delivery_format || "");
+      setTargetAudience(moduleData.target_audience || "");
+      setPrerequisites(moduleData.prerequisites || []);
+      setThumbnailUrl(moduleData.thumbnail_url || "");
       setLoading(false);
     };
-    if (id) fetchModule();
+    if (id) void fetchModule(); // optional: make intent explicit
   }, [id]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Not async: no awaits inside
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setShowVersionModal(true);
   };
@@ -88,7 +109,7 @@ export default function EditModulePage() {
       setSuccess(true);
       setTimeout(() => {
         setSuccess(false);
-        router.push("/admin/modules"); // Return to view tab after successful submit
+        router.push("/admin/modules");
       }, 1200);
     }
   };
@@ -96,69 +117,20 @@ export default function EditModulePage() {
   if (loading) return <p className="neon-loading">Loading module...</p>;
   if (error) return <p className="neon-error">{error}</p>;
 
-  // Prepare fields for NeonModuleForm
   const fields: NeonModuleFormField[] = [
-    {
-      key: "name",
-      label: "Name",
-      type: "text",
-      value: name,
-      onChange: (value) => setName(String(value)),
-      required: true,
-    },
-    {
-      key: "description",
-      label: "Description",
-      type: "text",
-      value: description,
-      onChange: (value) => setDescription(String(value)),
-    },
-    {
-      key: "learningObjectives",
-      label: "Learning Objectives",
-      type: "textarea",
-      value: learningObjectives,
-      onChange: (value) => setLearningObjectives(String(value)),
-      rows: 2,
-    },
-    {
-      key: "groupId",
-      label: "Group ID",
-      type: "text",
-      value: groupId,
-      onChange: (value) => setGroupId(String(value)),
-      required: true,
-    },
-    {
-      key: "estimatedDuration",
-      label: "Estimated Duration",
-      type: "text",
-      value: estimatedDuration,
-      onChange: (value) => setEstimatedDuration(String(value)),
-      placeholder: "Enter duration (e.g. 1h 30m)",
-    },
-    {
-      key: "deliveryFormat",
-      label: "Delivery Format",
-      type: "text",
-      value: deliveryFormat,
-      onChange: (value) => setDeliveryFormat(String(value)),
-    },
-    {
-      key: "targetAudience",
-      label: "Target Audience",
-      type: "text",
-      value: targetAudience,
-      onChange: (value) => setTargetAudience(String(value)),
-    },
-    {
-      key: "thumbnailUrl",
-      label: "Thumbnail URL",
-      type: "text",
-      value: thumbnailUrl,
-      onChange: (value) => setThumbnailUrl(String(value)),
-    },
+    { key: "name", label: "Name", type: "text", value: name, onChange: (v) => setName(String(v)), required: true },
+    { key: "description", label: "Description", type: "text", value: description, onChange: (v) => setDescription(String(v)) },
+    { key: "learningObjectives", label: "Learning Objectives", type: "textarea", value: learningObjectives, onChange: (v) => setLearningObjectives(String(v)), rows: 2 },
+    { key: "groupId", label: "Group ID", type: "text", value: groupId, onChange: (v) => setGroupId(String(v)), required: true },
+    { key: "estimatedDuration", label: "Estimated Duration", type: "text", value: estimatedDuration, onChange: (v) => setEstimatedDuration(String(v)), placeholder: "Enter duration (e.g. 1h 30m)" },
+    { key: "deliveryFormat", label: "Delivery Format", type: "text", value: deliveryFormat, onChange: (v) => setDeliveryFormat(String(v)) },
+    { key: "targetAudience", label: "Target Audience", type: "text", value: targetAudience, onChange: (v) => setTargetAudience(String(v)) },
+    { key: "thumbnailUrl", label: "Thumbnail URL", type: "text", value: thumbnailUrl, onChange: (v) => setThumbnailUrl(String(v)) },
   ];
+
+  // sync wrappers to satisfy no-misused-promises in JSX
+  const onConfirmNewVersion = () => { void handleVersionConfirm(true) };
+  const onConfirmKeepVersion = () => { void handleVersionConfirm(false) };
 
   return (
     <>
@@ -183,14 +155,14 @@ export default function EditModulePage() {
             <div className="flex gap-3 justify-end">
               <button
                 className="neon-utility-btn neon-btn-save"
-                onClick={() => handleVersionConfirm(true)}
+                onClick={onConfirmNewVersion}
                 style={{ minWidth: 120 }}
               >
                 Yes, new version
               </button>
               <button
                 className="neon-utility-btn neon-btn-edit"
-                onClick={() => handleVersionConfirm(false)}
+                onClick={onConfirmKeepVersion}
                 style={{ minWidth: 120 }}
               >
                 No, keep version

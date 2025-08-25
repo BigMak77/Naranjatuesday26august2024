@@ -1,16 +1,19 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
+// eslint.config.mjs
+import next from "eslint-config-next";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+export default [
+  // Next.js rules (includes TS/React configs)
+  ...next,
 
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
-
-const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
+  // Your project-specific tweaks
+  {
+    ignores: [
+      "**/node_modules/**",
+      ".next/**",
+      "postcss.config.*",
+      "next.config.*",
+      // "tailwind.config.*", // removed tailwind reference
+      "eslint.config.*" // avoid self-lint recursion
+    ],
+  },
 ];
-
-export default eslintConfig;

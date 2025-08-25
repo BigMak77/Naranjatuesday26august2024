@@ -8,7 +8,6 @@ import {
   FiChevronDown,
   FiChevronRight,
   FiEdit,
-  FiPlus,
   FiUsers,
   FiTool,
   FiUmbrella,

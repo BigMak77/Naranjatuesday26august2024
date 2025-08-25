@@ -16,8 +16,7 @@
   font-display: swap;
 }
 
-/* If you use Tailwind, import it AFTER fonts. Otherwise remove this line. */
-/* @import "tailwindcss"; */
+/* Tailwind removed. No import needed. */
 
 /* ================================
    1) Theme variables

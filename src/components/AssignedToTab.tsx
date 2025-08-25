@@ -210,8 +210,8 @@ export default function AssignedToTab() {
         const B = b.scheduled_for_sort;
         return sortDir === "asc" ? A - B : B - A;
       }
-      const A = (a[sortBy] || "") as string;
-      const B = (b[sortBy] || "") as string;
+      const A = (a[sortBy] || "");
+      const B = (b[sortBy] || "");
       return sortDir === "asc" ? A.localeCompare(B) : B.localeCompare(A);
     });
     return sorted;
@@ -229,7 +229,7 @@ export default function AssignedToTab() {
     () =>
       Array.from(new Set(rows.map((r) => r.department_name))).filter(
         Boolean,
-      ) as string[],
+      ),
     [rows],
   );
 

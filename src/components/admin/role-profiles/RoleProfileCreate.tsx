@@ -113,7 +113,7 @@ export default function RoleProfileCreate({
               target_id: string;
               label?: string;
             }) => ({
-              type: t.target_type as TargetType,
+              type: t.target_type,
               id: t.target_id,
               label: t.label ?? "",
             }),
