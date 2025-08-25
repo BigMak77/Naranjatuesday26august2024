@@ -57,6 +57,7 @@ export default function UserPermissionsPanel({ authId, currentUserPermissions = 
       if (allPermsError) console.error(allPermsError)
       if (userPermsError) console.error(userPermsError)
 
+      // FIXED: robust permission code extraction
       const codes = (userPerms ?? []).flatMap(up => toCodes(up.permission))
 
       setPermissions((allPerms as Permission[]) || [])
