@@ -41,3 +41,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 # NaranjaV1
 # Naranja2508251839
+
+```bash
+npx eslint .
+```
