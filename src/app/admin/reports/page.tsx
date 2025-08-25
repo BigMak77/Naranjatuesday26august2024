@@ -12,7 +12,10 @@ export default function ReportsPage() {
   const [rows, setRows] = useState<ReportRow[]>([]);
   const run = (params: ReportParams) => {
     async function fetchData() {
-      const res = await fetch("/api/reports/run", { method:"POST", body: JSON.stringify({ org_id: "YOUR_ORG_ID", ...params }) });
+      const res = await fetch("/api/reports/run", {
+        method: "POST",
+        body: JSON.stringify({ org_id: "YOUR_ORG_ID", ...params }),
+      });
       const json = await res.json();
       setRows(json.rows ?? []);
     }
@@ -21,8 +24,8 @@ export default function ReportsPage() {
   return (
     <main>
       <h1>Reports</h1>
-      <ReportBuilder onRun={run}/>
-      <ReportViewer rows={rows}/>
+      <ReportBuilder onRun={run} />
+      <ReportViewer rows={rows} />
     </main>
   );
 }

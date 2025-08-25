@@ -1,50 +1,50 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase-client'
-import { useRouter } from 'next/navigation'
-import TaskItem from '@/components/TaskItem'
-import '@/styles/task-list.css'
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase-client";
+import { useRouter } from "next/navigation";
+import TaskItem from "@/components/TaskItem";
+import "@/styles/task-list.css";
 
 type Task = {
-  id: string
-  title: string
-  area: string
-  frequency: string
-}
+  id: string;
+  title: string;
+  area: string;
+  frequency: string;
+};
 
 export default function AmendTaskPage() {
-  const [tasks, setTasks] = useState<Task[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const router = useRouter()
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchTasks = async () => {
-      setLoading(true)
+      setLoading(true);
       const { data, error } = await supabase
-        .from('turkus_tasks')
-        .select('id, title, area, frequency')
-        .order('title', { ascending: true })
+        .from("turkus_tasks")
+        .select("id, title, area, frequency")
+        .order("title", { ascending: true });
 
       if (error) {
-        console.error('Error fetching tasks:', error)
-        setError('Failed to load tasks.')
-        setTasks([])
+        console.error("Error fetching tasks:", error);
+        setError("Failed to load tasks.");
+        setTasks([]);
       } else {
-        setTasks(data || [])
-        setError(null)
+        setTasks(data || []);
+        setError(null);
       }
 
-      setLoading(false)
-    }
+      setLoading(false);
+    };
 
-    fetchTasks()
-  }, [])
+    fetchTasks();
+  }, []);
 
   const handleEditClick = (id: string) => {
-    router.push(`/turkus/tasks/amend/${id}`)
-  }
+    router.push(`/turkus/tasks/amend/${id}`);
+  };
 
   return (
     <main className="page-main">
@@ -64,5 +64,5 @@ export default function AmendTaskPage() {
         </ul>
       )}
     </main>
-  )
+  );
 }

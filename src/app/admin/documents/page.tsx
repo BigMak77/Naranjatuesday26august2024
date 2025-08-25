@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import DocumentManager from '@/components/DocumentSectionManager'
+import DocumentManager from "@/components/DocumentSectionManager";
 
 export default function AdminDocumentsPage() {
   return (
     <>
       <DocumentManager />
     </>
-  )
+  );
 }

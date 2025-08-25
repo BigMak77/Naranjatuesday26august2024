@@ -1,5 +1,5 @@
-import DepartmentIssuesWidget from '@/components/manager/DepartmentIssuesWidget'
-import DepartmentIssueAssignmentsWidget from '@/components/manager/DepartmentIssueAssignmentsWidget'
+import DepartmentIssuesWidget from "@/components/manager/DepartmentIssuesWidget";
+import DepartmentIssueAssignmentsWidget from "@/components/manager/DepartmentIssueAssignmentsWidget";
 
 export default function ManagerIssuesPage() {
   return (
@@ -13,5 +13,5 @@ export default function ManagerIssuesPage() {
         </div>
       </div>
     </main>
-  )
+  );
 }

@@ -1,10 +1,10 @@
 // components/SubmissionsTab.tsx
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
-import { supabase } from '@/lib/supabase-client';
-import NeonPanel from '@/components/NeonPanel';
-import { FiSearch } from 'react-icons/fi';
+import { useEffect, useMemo, useState } from "react";
+import { supabase } from "@/lib/supabase-client";
+import NeonPanel from "@/components/NeonPanel";
+import { FiSearch } from "react-icons/fi";
 
 type SubmissionRow = {
   id: string;
@@ -21,17 +21,19 @@ type EnrichedRow = {
   user_name: string;
   department: string;
   status: string;
-  submitted_at: string | null;         // ISO
-  submitted_at_display: string;        // pretty
-  due_at_display: string | null;       // pretty or null
+  submitted_at: string | null; // ISO
+  submitted_at_display: string; // pretty
+  due_at_display: string | null; // pretty or null
 };
 
 export default function SubmissionsTab() {
   const [rows, setRows] = useState<EnrichedRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
-  const [query, setQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'All' | 'submitted' | 'in_progress'>('All');
+  const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<
+    "All" | "submitted" | "in_progress"
+  >("All");
 
   useEffect(() => {
     let alive = true;
@@ -42,15 +44,17 @@ export default function SubmissionsTab() {
 
       // 1) Base submissions (latest first)
       const { data: subs, error } = await supabase
-        .from('audit_submissions')
-        .select('id, assignment_id, audit_id, submitted_by_auth_id, status, submitted_at')
-        .order('submitted_at', { ascending: false })
+        .from("audit_submissions")
+        .select(
+          "id, assignment_id, audit_id, submitted_by_auth_id, status, submitted_at",
+        )
+        .order("submitted_at", { ascending: false })
         .limit(200);
 
       if (!alive) return;
 
       if (error) {
-        console.error('Error loading submissions:', error.message);
+        console.error("Error loading submissions:", error.message);
         setErr(error.message);
         setRows([]);
         setLoading(false);
@@ -60,21 +64,27 @@ export default function SubmissionsTab() {
       const base: SubmissionRow[] = (subs ?? []) as SubmissionRow[];
 
       // 2) Collect IDs to enrich
-      const auditIds = Array.from(new Set(base.map(b => b.audit_id)));
-      const userIds  = Array.from(new Set(base.map(b => b.submitted_by_auth_id)));
-      const assignIds = Array.from(new Set(base.map(b => b.assignment_id).filter(Boolean))) as string[];
+      const auditIds = Array.from(new Set(base.map((b) => b.audit_id)));
+      const userIds = Array.from(
+        new Set(base.map((b) => b.submitted_by_auth_id)),
+      );
+      const assignIds = Array.from(
+        new Set(base.map((b) => b.assignment_id).filter(Boolean)),
+      ) as string[];
 
       // 3) Fetch audit titles (if table exists)
       const titleMap = new Map<string, string>();
       if (auditIds.length) {
         try {
           const { data: audits } = await supabase
-            .from('audits')
-            .select('id, name, title')
-            .in('id', auditIds);
-          (audits ?? []).forEach((a: { id: string; name?: string; title?: string }) => {
-            titleMap.set(a.id, (a.title || a.name || a.id) as string);
-          });
+            .from("audits")
+            .select("id, name, title")
+            .in("id", auditIds);
+          (audits ?? []).forEach(
+            (a: { id: string; name?: string; title?: string }) => {
+              titleMap.set(a.id, (a.title || a.name || a.id) as string);
+            },
+          );
         } catch {
           // audits table might not exist yet; fallback to id below
         }
@@ -83,24 +93,39 @@ export default function SubmissionsTab() {
       // 4) Fetch user names + departments
       const userMap = new Map<
         string,
-        { first_name?: string | null; last_name?: string | null; email?: string | null; department?: string }
+        {
+          first_name?: string | null;
+          last_name?: string | null;
+          email?: string | null;
+          department?: string;
+        }
       >();
       if (userIds.length) {
         const { data: users, error: uErr } = await supabase
-          .from('users')
-          .select('auth_id, first_name, last_name, email, departments(name)')
-          .in('auth_id', userIds);
+          .from("users")
+          .select("auth_id, first_name, last_name, email, departments(name)")
+          .in("auth_id", userIds);
 
         if (!uErr && users) {
-          users.forEach((u: { auth_id: string; first_name?: string | null; last_name?: string | null; email?: string | null; departments?: { name?: string }[] | { name?: string } }) => {
-            const dep = Array.isArray(u.departments) ? u.departments[0]?.name : u.departments?.name;
-            userMap.set(u.auth_id, {
-              first_name: u.first_name,
-              last_name: u.last_name,
-              email: u.email,
-              department: dep || '—',
-            });
-          });
+          users.forEach(
+            (u: {
+              auth_id: string;
+              first_name?: string | null;
+              last_name?: string | null;
+              email?: string | null;
+              departments?: { name?: string }[] | { name?: string };
+            }) => {
+              const dep = Array.isArray(u.departments)
+                ? u.departments[0]?.name
+                : u.departments?.name;
+              userMap.set(u.auth_id, {
+                first_name: u.first_name,
+                last_name: u.last_name,
+                email: u.email,
+                department: dep || "—",
+              });
+            },
+          );
         }
       }
 
@@ -109,12 +134,14 @@ export default function SubmissionsTab() {
       if (assignIds.length) {
         try {
           const { data: assigns } = await supabase
-            .from('user_assignments')
-            .select('id, due_at')
-            .in('id', assignIds);
-          (assigns ?? []).forEach((a: { id: string; due_at?: string | null }) => {
-            dueMap.set(a.id, a.due_at ?? null);
-          });
+            .from("user_assignments")
+            .select("id, due_at")
+            .in("id", assignIds);
+          (assigns ?? []).forEach(
+            (a: { id: string; due_at?: string | null }) => {
+              dueMap.set(a.id, a.due_at ?? null);
+            },
+          );
         } catch {
           // table or RLS might block; leave dueMap empty
         }
@@ -124,7 +151,7 @@ export default function SubmissionsTab() {
       const enriched: EnrichedRow[] = base.map((b) => {
         const user = userMap.get(b.submitted_by_auth_id) || {};
         const name =
-          `${(user.first_name || '').trim()} ${(user.last_name || '').trim()}`.trim() ||
+          `${(user.first_name || "").trim()} ${(user.last_name || "").trim()}`.trim() ||
           user.email ||
           b.submitted_by_auth_id;
 
@@ -132,14 +159,16 @@ export default function SubmissionsTab() {
 
         const prettySubmitted = b.submitted_at
           ? new Date(b.submitted_at).toLocaleString()
-          : 'Not submitted';
+          : "Not submitted";
 
-        const dueIso = b.assignment_id ? dueMap.get(b.assignment_id) ?? null : null;
+        const dueIso = b.assignment_id
+          ? (dueMap.get(b.assignment_id) ?? null)
+          : null;
         const prettyDue = dueIso
           ? new Date(dueIso).toLocaleString(undefined, {
-              year: 'numeric',
-              month: 'short',
-              day: '2-digit',
+              year: "numeric",
+              month: "short",
+              day: "2-digit",
             })
           : null;
 
@@ -147,8 +176,8 @@ export default function SubmissionsTab() {
           id: b.id,
           audit_title: auditTitle,
           user_name: name,
-          department: user.department || '—',
-          status: b.status || 'in_progress',
+          department: user.department || "—",
+          status: b.status || "in_progress",
           submitted_at: b.submitted_at,
           submitted_at_display: prettySubmitted,
           due_at_display: prettyDue,
@@ -168,15 +197,18 @@ export default function SubmissionsTab() {
   // Filters & search
   const filtered = useMemo(() => {
     let list = rows;
-    if (statusFilter !== 'All') {
-      list = list.filter(r => (r.status || '').toLowerCase() === statusFilter);
+    if (statusFilter !== "All") {
+      list = list.filter(
+        (r) => (r.status || "").toLowerCase() === statusFilter,
+      );
     }
     if (query.trim()) {
       const q = query.toLowerCase();
-      list = list.filter(r =>
-        r.user_name.toLowerCase().includes(q) ||
-        r.department.toLowerCase().includes(q) ||
-        r.audit_title.toLowerCase().includes(q)
+      list = list.filter(
+        (r) =>
+          r.user_name.toLowerCase().includes(q) ||
+          r.department.toLowerCase().includes(q) ||
+          r.audit_title.toLowerCase().includes(q),
       );
     }
     // recent first
@@ -190,13 +222,21 @@ export default function SubmissionsTab() {
   // Status options from data
   const statusOptions = useMemo(
     () =>
-      ['All', ...Array.from(new Set(rows.map(r => (r.status || '').toLowerCase()))).filter(Boolean)] as
-        ('All' | 'submitted' | 'in_progress')[],
-    [rows]
+      [
+        "All",
+        ...Array.from(
+          new Set(rows.map((r) => (r.status || "").toLowerCase())),
+        ).filter(Boolean),
+      ] as ("All" | "submitted" | "in_progress")[],
+    [rows],
   );
 
   return (
-    <NeonPanel bgColor="#012f34" glowColor="#40E0D0" className="submissions-tab-panel">
+    <NeonPanel
+      bgColor="#012f34"
+      glowColor="#40E0D0"
+      className="submissions-tab-panel"
+    >
       <h3 className="submissions-tab-title">Audit Submissions</h3>
 
       {/* Controls */}
@@ -215,16 +255,24 @@ export default function SubmissionsTab() {
         <select
           className="neon-input"
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as 'All' | 'submitted' | 'in_progress')}
+          onChange={(e) =>
+            setStatusFilter(
+              e.target.value as "All" | "submitted" | "in_progress",
+            )
+          }
         >
-          {statusOptions.map(opt => (
-            <option key={opt} value={opt}>{opt === 'All' ? 'All statuses' : opt}</option>
+          {statusOptions.map((opt) => (
+            <option key={opt} value={opt}>
+              {opt === "All" ? "All statuses" : opt}
+            </option>
           ))}
         </select>
       </div>
 
       {/* Body */}
-      {err && <p className="text-red-400 text-sm mb-2">Failed to load: {err}</p>}
+      {err && (
+        <p className="text-red-400 text-sm mb-2">Failed to load: {err}</p>
+      )}
 
       {loading ? (
         <p className="submissions-tab-loading-msg">Loading…</p>
@@ -235,13 +283,29 @@ export default function SubmissionsTab() {
           {filtered.map((s) => (
             <li key={s.id} className="submissions-tab-list-item">
               <div className="submissions-tab-list-item-content">
-                <p><strong>Submission ID:</strong> {s.id}</p>
-                <p><strong>Audit:</strong> {s.audit_title}</p>
-                <p><strong>User:</strong> {s.user_name}</p>
-                <p><strong>Department:</strong> {s.department}</p>
-                <p><strong>Status:</strong> {s.status || 'in_progress'}</p>
-                <p><strong>Submitted At:</strong> {s.submitted_at_display}</p>
-                {s.due_at_display && <p><strong>Due:</strong> {s.due_at_display}</p>}
+                <p>
+                  <strong>Submission ID:</strong> {s.id}
+                </p>
+                <p>
+                  <strong>Audit:</strong> {s.audit_title}
+                </p>
+                <p>
+                  <strong>User:</strong> {s.user_name}
+                </p>
+                <p>
+                  <strong>Department:</strong> {s.department}
+                </p>
+                <p>
+                  <strong>Status:</strong> {s.status || "in_progress"}
+                </p>
+                <p>
+                  <strong>Submitted At:</strong> {s.submitted_at_display}
+                </p>
+                {s.due_at_display && (
+                  <p>
+                    <strong>Due:</strong> {s.due_at_display}
+                  </p>
+                )}
               </div>
             </li>
           ))}

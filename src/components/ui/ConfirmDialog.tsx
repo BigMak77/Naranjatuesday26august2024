@@ -31,8 +31,16 @@ export default function ConfirmDialog({
   iconCancel = <FiX />,
 }: ConfirmDialogProps) {
   return (
-    <OverlayDialog open={open} onClose={() => !loading && onCancel()} ariaLabelledby="confirm-title">
-      <h2 id="confirm-title" className="neon-form-title" style={{ marginBottom: "1.25rem" }}>
+    <OverlayDialog
+      open={open}
+      onClose={() => !loading && onCancel()}
+      ariaLabelledby="confirm-title"
+    >
+      <h2
+        id="confirm-title"
+        className="neon-form-title"
+        style={{ marginBottom: "1.25rem" }}
+      >
         {title}
       </h2>
 
@@ -40,12 +48,26 @@ export default function ConfirmDialog({
 
       <div
         className="neon-panel-actions"
-        style={{ display: "flex", gap: "1rem", justifyContent: "flex-end", marginTop: "1rem" }}
+        style={{
+          display: "flex",
+          gap: "1rem",
+          justifyContent: "flex-end",
+          marginTop: "1rem",
+        }}
       >
-        <button className="btn-archive" onClick={onConfirm} disabled={loading} autoFocus>
+        <button
+          className="btn-archive"
+          onClick={onConfirm}
+          disabled={loading}
+          autoFocus
+        >
           {iconConfirm} {loading ? "Working…" : confirmLabel}
         </button>
-        <button className="neon-btn neon-btn-danger" onClick={onCancel} disabled={loading}>
+        <button
+          className="neon-btn neon-btn-danger"
+          onClick={onCancel}
+          disabled={loading}
+        >
           {iconCancel} {cancelLabel}
         </button>
       </div>

@@ -4,7 +4,8 @@ import NeonPanel from "@/components/NeonPanel";
 
 export default function MyProfile() {
   const { user } = useUser();
-  if (!user) return <NeonPanel className="my-profile-panel">Loading...</NeonPanel>;
+  if (!user)
+    return <NeonPanel className="my-profile-panel">Loading...</NeonPanel>;
 
   return (
     <NeonPanel className="my-profile-panel">
@@ -31,11 +32,19 @@ export default function MyProfile() {
         </div>
       </div>
       <div className="my-profile-info">
-        <h2 className="my-profile-name">{user.first_name} {user.last_name}</h2>
+        <h2 className="my-profile-name">
+          {user.first_name} {user.last_name}
+        </h2>
         <div className="my-profile-meta">
-          <div><strong>Auth ID:</strong> {user.auth_id}</div>
-          <div><strong>Access Level:</strong> {user.access_level}</div>
-          <div><strong>Department ID:</strong> {user.department_id}</div>
+          <div>
+            <strong>Auth ID:</strong> {user.auth_id}
+          </div>
+          <div>
+            <strong>Access Level:</strong> {user.access_level}
+          </div>
+          <div>
+            <strong>Department ID:</strong> {user.department_id}
+          </div>
         </div>
       </div>
     </NeonPanel>

@@ -1,96 +1,105 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase-client'
-import { useUser } from '@/lib/useUser'
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase-client";
+import { useUser } from "@/lib/useUser";
 
-interface TurkusTask { id: string; title: string; }
-interface User { auth_id: string; first_name: string; last_name: string; }
+interface TurkusTask {
+  id: string;
+  title: string;
+}
+interface User {
+  auth_id: string;
+  first_name: string;
+  last_name: string;
+}
 
 export default function AssignTask() {
-  const { user } = useUser()
-  const [tasks, setTasks] = useState<TurkusTask[]>([])
-  const [users, setUsers] = useState<User[]>([])
-  const [selectedTask, setSelectedTask] = useState('')
-  const [selectedUser, setSelectedUser] = useState('')
-  const [dueDate, setDueDate] = useState('')
-  const [recurrence, setRecurrence] = useState(false)
-  const [interval, setInterval] = useState('daily')
-  const [intervalCount, setIntervalCount] = useState(1)
-  const [loading, setLoading] = useState(false)
+  const { user } = useUser();
+  const [tasks, setTasks] = useState<TurkusTask[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [selectedTask, setSelectedTask] = useState("");
+  const [selectedUser, setSelectedUser] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [recurrence, setRecurrence] = useState(false);
+  const [interval, setInterval] = useState("daily");
+  const [intervalCount, setIntervalCount] = useState(1);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!user?.auth_id) return
+      if (!user?.auth_id) return;
 
       const { data: taskData } = await supabase
-        .from('turkus_tasks')
-        .select('id, title')
-      setTasks(taskData || [])
+        .from("turkus_tasks")
+        .select("id, title");
+      setTasks(taskData || []);
 
       const { data: manager } = await supabase
-        .from('users')
-        .select('department_id')
-        .eq('auth_id', user.auth_id)
-        .single()
+        .from("users")
+        .select("department_id")
+        .eq("auth_id", user.auth_id)
+        .single();
 
-      if (!manager?.department_id) return
+      if (!manager?.department_id) return;
 
       const { data: teamData } = await supabase
-        .from('users')
-        .select('auth_id, first_name, last_name')
-        .eq('department_id', manager.department_id)
-        .neq('auth_id', user.auth_id)
+        .from("users")
+        .select("auth_id, first_name, last_name")
+        .eq("department_id", manager.department_id)
+        .neq("auth_id", user.auth_id);
 
-      setUsers(teamData || [])
-    }
+      setUsers(teamData || []);
+    };
 
-    fetchData()
-  }, [user])
+    fetchData();
+  }, [user]);
 
   const handleAssign = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
 
     // Validation
     if (!selectedTask || !selectedUser || !dueDate) {
-      alert('Please fill in all fields.')
-      setLoading(false)
-      return
+      alert("Please fill in all fields.");
+      setLoading(false);
+      return;
     }
 
     if (!user?.auth_id) {
-      alert('User not found. Please log in again.')
-      setLoading(false)
-      return
+      alert("User not found. Please log in again.");
+      setLoading(false);
+      return;
     }
 
     // Assign the task
-    const { error: assignError } = await supabase.from('task_assignments').insert({
-      task_id: selectedTask,
-      assigned_to: selectedUser,
-      assigned_by: user.auth_id,
-      due_date: dueDate,
-    })
+    const { error: assignError } = await supabase
+      .from("task_assignments")
+      .insert({
+        task_id: selectedTask,
+        assigned_to: selectedUser,
+        assigned_by: user.auth_id,
+        due_date: dueDate,
+      });
 
     if (assignError) {
-      alert('Error assigning task.')
-      console.error(assignError)
-      setLoading(false)
-      return
+      alert("Error assigning task.");
+      console.error(assignError);
+      setLoading(false);
+      return;
     }
 
     // Add recurrence if needed
     if (recurrence) {
       const { data: managerMeta, error: metaError } = await supabase
-        .from('users')
-        .select('department_id')
-        .eq('auth_id', user.auth_id)
-        .single()
+        .from("users")
+        .select("department_id")
+        .eq("auth_id", user.auth_id)
+        .single();
 
       if (!metaError && managerMeta?.department_id) {
         const { error: recurrenceError } = await supabase
-          .from('recurring_assignments')
+          .from("recurring_assignments")
           .insert({
             task_id: selectedTask,
             assigned_by: user.auth_id,
@@ -98,22 +107,22 @@ export default function AssignTask() {
             frequency: interval,
             interval_count: intervalCount,
             next_due_at: dueDate,
-          })
+          });
 
         if (recurrenceError) {
-          console.error('Recurrence error:', recurrenceError)
-          alert('Task assigned, but failed to set recurrence.')
+          console.error("Recurrence error:", recurrenceError);
+          alert("Task assigned, but failed to set recurrence.");
         }
       }
     }
 
-    alert('✅ Task assigned successfully.')
-    setSelectedTask('')
-    setSelectedUser('')
-    setDueDate('')
-    setRecurrence(false)
-    setLoading(false)
-  }
+    alert("✅ Task assigned successfully.");
+    setSelectedTask("");
+    setSelectedUser("");
+    setDueDate("");
+    setRecurrence(false);
+    setLoading(false);
+  };
 
   return (
     <div className="after-hero">
@@ -164,7 +173,9 @@ export default function AssignTask() {
           {recurrence && (
             <div className="assign-task-recurrence-fields">
               <div>
-                <label className="assign-task-recurrence-label">Repeat Every</label>
+                <label className="assign-task-recurrence-label">
+                  Repeat Every
+                </label>
                 <input
                   type="number"
                   min={1}
@@ -192,10 +203,10 @@ export default function AssignTask() {
             className="assign-task-submit-btn"
             disabled={loading}
           >
-            {loading ? 'Assigning...' : 'Assign Task'}
+            {loading ? "Assigning..." : "Assign Task"}
           </button>
         </form>
       </div>
     </div>
-  )
+  );
 }

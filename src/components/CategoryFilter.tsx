@@ -1,25 +1,25 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
+import { useState } from "react";
 
 type Category = {
-  id: string
-  name: string
-}
+  id: string;
+  name: string;
+};
 
 type Props = {
-  categories: Category[]
-  onSelect: (categoryName: string) => void
-}
+  categories: Category[];
+  onSelect: (categoryName: string) => void;
+};
 
 export default function CategoryFilter({ categories, onSelect }: Props) {
-  const [selected, setSelected] = useState('All')
+  const [selected, setSelected] = useState("All");
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value
-    setSelected(value)
-    onSelect(value)
-  }
+    const value = e.target.value;
+    setSelected(value);
+    onSelect(value);
+  };
 
   return (
     <div className="category-filter-wrapper">
@@ -37,5 +37,5 @@ export default function CategoryFilter({ categories, onSelect }: Props) {
         ))}
       </select>
     </div>
-  )
+  );
 }

@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
+import Link from "next/link";
 
 export default function ContactPage() {
   return (
@@ -10,14 +10,16 @@ export default function ContactPage() {
         <form
           className="neon-form"
           onSubmit={(e) => {
-            e.preventDefault()
+            e.preventDefault();
             // handle form submit here
           }}
         >
           <h1 className="font-title accent-text center">Send us a message</h1>
           <div className="neon-form-grid neon-form-padding">
             <div>
-              <label className="neon-label" htmlFor="name">Name</label>
+              <label className="neon-label" htmlFor="name">
+                Name
+              </label>
               <input
                 id="name"
                 name="name"
@@ -27,7 +29,9 @@ export default function ContactPage() {
               />
             </div>
             <div>
-              <label className="neon-label" htmlFor="email">Email</label>
+              <label className="neon-label" htmlFor="email">
+                Email
+              </label>
               <input
                 id="email"
                 name="email"
@@ -37,7 +41,9 @@ export default function ContactPage() {
               />
             </div>
             <div className="md:col-span-2">
-              <label className="neon-label" htmlFor="message">Message</label>
+              <label className="neon-label" htmlFor="message">
+                Message
+              </label>
               <textarea
                 id="message"
                 name="message"
@@ -47,12 +53,23 @@ export default function ContactPage() {
               />
             </div>
           </div>
-          <button type="submit" className="neon-btn neon-btn-save" data-variant="save">Send Message</button>
+          <button
+            type="submit"
+            className="neon-btn neon-btn-save"
+            data-variant="save"
+          >
+            Send Message
+          </button>
         </form>
       </div>
       <div className="flex justify-center pb-10">
-        <Link href="/" className="text-[#40E0D0] underline text-lg font-semibold hover:text-orange-400 transition">← Back to Home</Link>
+        <Link
+          href="/"
+          className="text-[#40E0D0] underline text-lg font-semibold hover:text-orange-400 transition"
+        >
+          ← Back to Home
+        </Link>
       </div>
     </div>
-  )
+  );
 }

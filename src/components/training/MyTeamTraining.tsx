@@ -1,12 +1,20 @@
-import React, { useEffect, useState } from 'react';
-import NeonPanel from '@/components/NeonPanel';
-import NeonTable from '@/components/NeonTable';
-import { supabase } from '@/lib/supabase-client';
-import { useUser } from '@/lib/useUser';
+import React, { useEffect, useState } from "react";
+import NeonPanel from "@/components/NeonPanel";
+import NeonTable from "@/components/NeonTable";
+import { supabase } from "@/lib/supabase-client";
+import { useUser } from "@/lib/useUser";
 
 export default function MyTeamTraining() {
   const { user } = useUser();
-  const [teamTraining, setTeamTraining] = useState<Array<{ id: string; team_member: string; module: string; status: string; completed_at?: string }>>([]);
+  const [teamTraining, setTeamTraining] = useState<
+    Array<{
+      id: string;
+      team_member: string;
+      module: string;
+      status: string;
+      completed_at?: string;
+    }>
+  >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -17,14 +25,14 @@ export default function MyTeamTraining() {
       try {
         // Fetch all team members' training that is not completed
         const { data, error } = await supabase
-          .from('training')
-          .select('id, module, status, completed_at, team_member')
-          .eq('manager_id', user.auth_id)
-          .neq('status', 'completed');
+          .from("training")
+          .select("id, module, status, completed_at, team_member")
+          .eq("manager_id", user.auth_id)
+          .neq("status", "completed");
         if (error) throw error;
         setTeamTraining(data || []);
       } catch {
-        setError('Failed to load team training.');
+        setError("Failed to load team training.");
       } finally {
         setLoading(false);
       }
@@ -44,9 +52,9 @@ export default function MyTeamTraining() {
       ) : (
         <NeonTable
           columns={[
-            { header: 'Team Member', accessor: 'team_member' },
-            { header: 'Module', accessor: 'module' },
-            { header: 'Status', accessor: 'status' },
+            { header: "Team Member", accessor: "team_member" },
+            { header: "Module", accessor: "module" },
+            { header: "Status", accessor: "status" },
           ]}
           data={teamTraining}
         />

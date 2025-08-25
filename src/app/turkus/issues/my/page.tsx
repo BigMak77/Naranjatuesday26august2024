@@ -1,5 +1,5 @@
 "use client";
-import MyIssues from '@/app/turkus/issues/components/MyIssues';
+import MyIssues from "@/app/turkus/issues/components/MyIssues";
 
 export default function MyIssuesPage() {
   return (

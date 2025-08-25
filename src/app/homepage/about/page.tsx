@@ -1,8 +1,8 @@
-'use client'
+"use client";
 
-import React from 'react'
-import Link from 'next/link'
-import NeonFeatureCard from '@/components/NeonFeatureCard'
+import React from "react";
+import Link from "next/link";
+import NeonFeatureCard from "@/components/NeonFeatureCard";
 
 export default function AboutPage() {
   return (
@@ -28,16 +28,18 @@ export default function AboutPage() {
               <NeonFeatureCard
                 icon={<span className="about-feature-icon">👥</span>}
                 title="Our Team"
-                text={"Andy — Co-Founder & Content Creator\nPaul — Co-Founder & Delivery Expert"}
+                text={
+                  "Andy — Co-Founder & Content Creator\nPaul — Co-Founder & Delivery Expert"
+                }
                 href="#team"
               />
             </div>
             <div className="about-contact">
               <p className="about-contact-text">
-                Want to know more?{' '}
+                Want to know more?{" "}
                 <Link href="/contact-us" className="about-contact-link">
                   Get in touch
-                </Link>{' '}
+                </Link>{" "}
                 with us!
               </p>
             </div>
@@ -45,5 +47,5 @@ export default function AboutPage() {
         </main>
       </div>
     </div>
-  )
+  );
 }

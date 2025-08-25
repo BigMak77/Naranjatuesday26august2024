@@ -70,7 +70,9 @@ export default function ArchiveModuleTab({
       let archived: Module | null = null;
 
       if (useServerRoute) {
-        const res = await fetch(`/api/modules/${module.id}/archive`, { method: "POST" });
+        const res = await fetch(`/api/modules/${module.id}/archive`, {
+          method: "POST",
+        });
         const json = await res.json();
         if (!res.ok) throw new Error(json.error || "Failed to archive module");
         archived = json.module as Module;
@@ -88,7 +90,9 @@ export default function ArchiveModuleTab({
       onArchive?.(archived!);
       setDialogOpen(false);
     } catch (e: unknown) {
-      setError(`Failed to archive module: ${e instanceof Error ? e.message : "Unknown error"}`);
+      setError(
+        `Failed to archive module: ${e instanceof Error ? e.message : "Unknown error"}`,
+      );
     } finally {
       setLoading(false);
     }
@@ -97,7 +101,7 @@ export default function ArchiveModuleTab({
   return (
     <>
       <NeonPanel className="p-6">
-        {(!module || module.is_archived) ? (
+        {!module || module.is_archived ? (
           <div>No module selected.</div>
         ) : (
           <>
@@ -133,7 +137,11 @@ export default function ArchiveModuleTab({
               aria-labelledby="archive-title"
               style={{ zIndex: 60001 }}
             >
-              <div className="neon-form-title" id="archive-title" style={{ marginBottom: "1.25rem" }}>
+              <div
+                className="neon-form-title"
+                id="archive-title"
+                style={{ marginBottom: "1.25rem" }}
+              >
                 Archive Module
               </div>
 
@@ -144,14 +152,20 @@ export default function ArchiveModuleTab({
                     <span className="font-semibold">{module.name}</span>?
                   </p>
                   <div className="mb-4 text-sm opacity-80">
-                    Archiving marks this module as inactive and hides it from active lists. It does not delete data.
+                    Archiving marks this module as inactive and hides it from
+                    active lists. It does not delete data.
                   </div>
 
                   {error && <div className="neon-error mb-3">{error}</div>}
 
                   <div
                     className="neon-panel-actions"
-                    style={{ display: "flex", gap: "1rem", justifyContent: "flex-end", marginTop: "1.25rem" }}
+                    style={{
+                      display: "flex",
+                      gap: "1rem",
+                      justifyContent: "flex-end",
+                      marginTop: "1.25rem",
+                    }}
                   >
                     <button
                       className="btn-archive"

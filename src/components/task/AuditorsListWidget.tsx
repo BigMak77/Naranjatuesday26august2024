@@ -1,55 +1,59 @@
 // src/components/task/AuditorsListWidget.tsx
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase-client';
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase-client";
 
 interface SupabaseAuditorRow {
   id: number;
-  users?: {
-    first_name?: string;
-    last_name?: string;
-    role?: { title?: string } | { title?: string }[];
-  } | {
-    first_name?: string;
-    last_name?: string;
-    role?: { title?: string } | { title?: string }[];
-  }[];
+  users?:
+    | {
+        first_name?: string;
+        last_name?: string;
+        role?: { title?: string } | { title?: string }[];
+      }
+    | {
+        first_name?: string;
+        last_name?: string;
+        role?: { title?: string } | { title?: string }[];
+      }[];
 }
 
 export default function AuditorsListWidget() {
-  const [auditors, setAuditors] = useState<Array<{ id: number; firstName: string; lastName: string; role: string }>>([]);
+  const [auditors, setAuditors] = useState<
+    Array<{ id: number; firstName: string; lastName: string; role: string }>
+  >([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchAuditors = async () => {
       setLoading(true);
       const { data, error } = await supabase
-        .from('auditor_list')
-        .select('id, users(first_name, last_name, role(title))')
-        .order('created_at', { ascending: false });
+        .from("auditor_list")
+        .select("id, users(first_name, last_name, role(title))")
+        .order("created_at", { ascending: false });
       if (error || !data) {
-        setError('Failed to load auditors.');
+        setError("Failed to load auditors.");
         setAuditors([]);
       } else {
         setAuditors(
           data.map((row: SupabaseAuditorRow) => {
             const userObj = Array.isArray(row.users) ? row.users[0] : row.users;
-            let roleTitle = '';
+            let roleTitle = "";
             const role = userObj?.role;
             if (Array.isArray(role)) {
-              roleTitle = role[0]?.title || '';
-            } else if (role && typeof role === 'object' && 'title' in role) {
-              roleTitle = role.title || '';
+              roleTitle = role[0]?.title || "";
+            } else if (role && typeof role === "object" && "title" in role) {
+              roleTitle = role.title || "";
             }
             return {
               id: row.id,
-              firstName: userObj?.first_name || '',
-              lastName: userObj?.last_name || '',
+              firstName: userObj?.first_name || "",
+              lastName: userObj?.last_name || "",
               role: roleTitle,
             };
-          })
+          }),
         );
       }
       setLoading(false);
@@ -76,7 +80,7 @@ export default function AuditorsListWidget() {
             </tr>
           </thead>
           <tbody>
-            {auditors.map(auditor => (
+            {auditors.map((auditor) => (
               <tr key={auditor.id} className="neon-tr">
                 <td className="neon-td">{auditor.firstName}</td>
                 <td className="neon-td">{auditor.lastName}</td>

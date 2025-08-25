@@ -1,52 +1,54 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase-client'
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase-client";
 
 interface Department {
-  id: string
-  name: string
+  id: string;
+  name: string;
 }
 
 export default function AddRolePage() {
-  const [title, setTitle] = useState('')
-  const [departmentId, setDepartmentId] = useState('')
-  const [departments, setDepartments] = useState<Department[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const router = useRouter()
+  const [title, setTitle] = useState("");
+  const [departmentId, setDepartmentId] = useState("");
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
     const loadDepartments = async () => {
-      const { data, error } = await supabase.from('departments').select('id, name')
-      if (data) setDepartments(data)
-      if (error) console.error('Failed to load departments:', error.message)
-    }
+      const { data, error } = await supabase
+        .from("departments")
+        .select("id, name");
+      if (data) setDepartments(data);
+      if (error) console.error("Failed to load departments:", error.message);
+    };
 
-    loadDepartments()
-  }, [])
+    loadDepartments();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
+    e.preventDefault();
+    setLoading(true);
+    setError("");
 
-    const { error } = await supabase.from('roles').insert([
+    const { error } = await supabase.from("roles").insert([
       {
         title,
         department_id: departmentId,
       },
-    ])
+    ]);
 
     if (error) {
-      setError(error.message)
+      setError(error.message);
     } else {
-      router.push('/admin/org-chart')
+      router.push("/admin/org-chart");
     }
 
-    setLoading(false)
-  }
+    setLoading(false);
+  };
 
   return (
     <div className="after-hero">
@@ -59,7 +61,7 @@ export default function AddRolePage() {
             <input
               type="text"
               value={title}
-              onChange={e => setTitle(e.target.value)}
+              onChange={(e) => setTitle(e.target.value)}
               className="add-role-input"
               required
             />
@@ -69,13 +71,17 @@ export default function AddRolePage() {
             <span className="add-role-label-text">Assign to Department</span>
             <select
               value={departmentId}
-              onChange={e => setDepartmentId(e.target.value)}
+              onChange={(e) => setDepartmentId(e.target.value)}
               className="add-role-input"
               required
             >
-              <option value="" disabled>Select a department</option>
+              <option value="" disabled>
+                Select a department
+              </option>
               {departments.map((dept) => (
-                <option key={dept.id} value={dept.id}>{dept.name}</option>
+                <option key={dept.id} value={dept.id}>
+                  {dept.name}
+                </option>
               ))}
             </select>
           </label>
@@ -87,10 +93,10 @@ export default function AddRolePage() {
             disabled={loading}
             className="add-role-submit-btn"
           >
-            {loading ? 'Saving...' : 'Add Role'}
+            {loading ? "Saving..." : "Add Role"}
           </button>
         </form>
       </div>
     </div>
-  )
+  );
 }

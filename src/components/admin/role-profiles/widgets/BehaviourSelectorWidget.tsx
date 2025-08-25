@@ -1,11 +1,16 @@
 // components/role-profiles/widgets/BehaviourSelectorWidget.tsx
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase-client';
-import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@radix-ui/react-tooltip';
-import * as FiIcons from 'react-icons/fi';
-import NeonPanel from '@/components/NeonPanel';
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase-client";
+import {
+  TooltipProvider,
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@radix-ui/react-tooltip";
+import * as FiIcons from "react-icons/fi";
+import NeonPanel from "@/components/NeonPanel";
 
 interface Behaviour {
   id: string;
@@ -19,15 +24,20 @@ type Props = {
   onChange: (ids: string[]) => void;
 };
 
-export default function BehaviourSelectorWidget({ selectedBehaviours, onChange }: Props) {
+export default function BehaviourSelectorWidget({
+  selectedBehaviours,
+  onChange,
+}: Props) {
   const [behaviours, setBehaviours] = useState<Behaviour[]>([]);
   const [showBehaviours, setShowBehaviours] = useState(false);
 
   useEffect(() => {
     const fetchBehaviours = async () => {
-      const { data, error } = await supabase.from('behaviours').select('id, name, description, icon');
+      const { data, error } = await supabase
+        .from("behaviours")
+        .select("id, name, description, icon");
       if (error) {
-        console.error('Error fetching behaviours:', error);
+        console.error("Error fetching behaviours:", error);
         return;
       }
       if (data) setBehaviours(data);
@@ -37,7 +47,7 @@ export default function BehaviourSelectorWidget({ selectedBehaviours, onChange }
 
   const toggleBehaviour = (id: string) => {
     if (selectedBehaviours.includes(id)) {
-      onChange(selectedBehaviours.filter(bid => bid !== id));
+      onChange(selectedBehaviours.filter((bid) => bid !== id));
     } else if (selectedBehaviours.length < 5) {
       onChange([...selectedBehaviours, id]);
     }
@@ -48,16 +58,20 @@ export default function BehaviourSelectorWidget({ selectedBehaviours, onChange }
       <button
         type="button"
         className="neon-btn neon-section-toggle"
-        data-tooltip={showBehaviours ? 'Hide Behaviours' : 'Show Behaviours'}
-        onClick={() => setShowBehaviours(v => !v)}
-        aria-label={showBehaviours ? 'Hide Behaviours' : 'Show Behaviours'}
+        data-tooltip={showBehaviours ? "Hide Behaviours" : "Show Behaviours"}
+        onClick={() => setShowBehaviours((v) => !v)}
+        aria-label={showBehaviours ? "Hide Behaviours" : "Show Behaviours"}
       >
-        {showBehaviours ? <FiIcons.FiMinus className="neon-icon" /> : <FiIcons.FiPlus className="neon-icon" />}
+        {showBehaviours ? (
+          <FiIcons.FiMinus className="neon-icon" />
+        ) : (
+          <FiIcons.FiPlus className="neon-icon" />
+        )}
       </button>
       {showBehaviours && (
         <div className="neon-grid">
           <TooltipProvider>
-            {behaviours.map(b => {
+            {behaviours.map((b) => {
               const Icon = FiIcons[b.icon] || FiIcons.FiHelpCircle;
               const selected = selectedBehaviours.includes(b.id);
               return (
@@ -66,7 +80,7 @@ export default function BehaviourSelectorWidget({ selectedBehaviours, onChange }
                     <button
                       type="button"
                       onClick={() => toggleBehaviour(b.id)}
-                      className={`neon-btn neon-behaviour-btn${selected ? ' selected' : ''}`}
+                      className={`neon-btn neon-behaviour-btn${selected ? " selected" : ""}`}
                       data-tooltip={b.name}
                       aria-label={b.name}
                     >

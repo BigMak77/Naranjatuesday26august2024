@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, {
   useMemo,
@@ -38,13 +38,13 @@ export type UserRow = {
 };
 
 export type LogTrainingPayload = {
-  auth_id: string;           // use auth_id, not app user id
-  date: string;              // ISO yyyy-mm-dd
-  topic: string;             // module_id or human topic
+  auth_id: string; // use auth_id, not app user id
+  date: string; // ISO yyyy-mm-dd
+  topic: string; // module_id or human topic
   duration_hours: number;
   outcome: "completed" | "needs-followup";
   notes?: string | null;
-  signature: string;         // base64 PNG dataURL
+  signature: string; // base64 PNG dataURL
   assignment_id?: string | null;
 };
 
@@ -134,7 +134,7 @@ function trimCanvasLocal(src: HTMLCanvasElement): HTMLCanvasElement {
 // ==========================
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
 );
 
 // ==========================
@@ -158,7 +158,7 @@ const SignatureBox = React.memo(function SignatureBox({
       className:
         "w-[320px] h-[120px] border border-dashed rounded-lg bg-[var(--field,#012b2b)] shrink-0 touch-none block",
     }),
-    []
+    [],
   );
 
   const handleEnd = useCallback(() => {
@@ -236,7 +236,7 @@ export default function TrainerRecordingPage({
           email,
           department_id,
           departments ( name )
-        `
+        `,
         )
         .order("first_name", { ascending: true });
 
@@ -254,7 +254,10 @@ export default function TrainerRecordingPage({
         name?: string | null;
         email?: string | null;
         department_id?: string | null;
-        departments?: { name?: string | null }[] | { name?: string | null } | null;
+        departments?:
+          | { name?: string | null }[]
+          | { name?: string | null }
+          | null;
       };
 
       const mapped: UserRow[] = (users ?? [])
@@ -272,7 +275,8 @@ export default function TrainerRecordingPage({
             typeof u.departments === "object" &&
             "name" in u.departments
           ) {
-            departmentName = (u.departments as { name?: string | null }).name ?? "";
+            departmentName =
+              (u.departments as { name?: string | null }).name ?? "";
           }
           return {
             id: u.id,
@@ -307,8 +311,8 @@ export default function TrainerRecordingPage({
   // Assignment fetch for log modal (from user_assignments)
   // ==========================
   type TrainingAssignment = {
-    id: string;          // user_assignments.id
-    module_id: string;   // user_assignments.item_id
+    id: string; // user_assignments.id
+    module_id: string; // user_assignments.item_id
     module_name?: string | null;
   };
 
@@ -327,11 +331,10 @@ export default function TrainerRecordingPage({
 
       if (uaErr) throw uaErr;
 
-      let list: TrainingAssignment[] =
-        (ua ?? []).map((row) => ({
-          id: row.id,
-          module_id: row.item_id,
-        }));
+      let list: TrainingAssignment[] = (ua ?? []).map((row) => ({
+        id: row.id,
+        module_id: row.item_id,
+      }));
 
       // Fetch module names for nicer labels
       const ids = Array.from(new Set(list.map((a) => a.module_id)));
@@ -342,7 +345,10 @@ export default function TrainerRecordingPage({
           .in("id", ids);
         if (!mErr && mods?.length) {
           const nameById = new Map(mods.map((m) => [m.id, m.name]));
-          list = list.map((a) => ({ ...a, module_name: nameById.get(a.module_id) ?? null }));
+          list = list.map((a) => ({
+            ...a,
+            module_name: nameById.get(a.module_id) ?? null,
+          }));
         }
       }
 
@@ -428,21 +434,23 @@ export default function TrainerRecordingPage({
 
     setBusy(true);
     try {
-      const assignment = assignments.find((a) => a.module_id === selectedModuleId);
+      const assignment = assignments.find(
+        (a) => a.module_id === selectedModuleId,
+      );
 
       // 1) Insert into training_logs directly (client-side)
-      const { error: insertErr } = await supabase
-        .from("training_logs")
-        .insert([{
-          auth_id: openFor.auth_id,                              // 👈 use auth_id
+      const { error: insertErr } = await supabase.from("training_logs").insert([
+        {
+          auth_id: openFor.auth_id, // 👈 use auth_id
           date: form.date,
-          topic: selectedModuleId,                               // or assignment?.module_name
+          topic: selectedModuleId, // or assignment?.module_name
           duration_hours: Number(form.durationHours) || 1,
           outcome: form.outcome,
           notes: form.notes?.trim() || null,
           signature: form.signature,
           // assignment_id: assignment?.id ?? null,               // uncomment if column exists
-        }]);
+        },
+      ]);
 
       if (insertErr) {
         console.error("Insert training_logs failed:", insertErr);
@@ -544,7 +552,7 @@ export default function TrainerRecordingPage({
                 </button>
                 <button
                   className="neon-btn neon-btn-cert neon-btn-utility"
-                  style={{ background: '#a259ff' }}
+                  style={{ background: "#a259ff" }}
                   onClick={() => onOpenSection?.((row as UserRow).id, "certs")}
                   title="Certificates & status"
                   aria-label="Certs"
@@ -554,7 +562,7 @@ export default function TrainerRecordingPage({
                 </button>
                 <button
                   className="neon-btn neon-btn-danger neon-btn-utility"
-                  onClick={() => window.open('/raise-issue', '_blank')}
+                  onClick={() => window.open("/raise-issue", "_blank")}
                   title="Raise an issue"
                   aria-label="Raise an issue"
                   type="button"
@@ -633,7 +641,9 @@ export default function TrainerRecordingPage({
                   >
                     {assignments.map((a) => (
                       <option key={a.id} value={a.module_id}>
-                        {a.module_name ? a.module_name : `Module ID: ${a.module_id}`}
+                        {a.module_name
+                          ? a.module_name
+                          : `Module ID: ${a.module_id}`}
                       </option>
                     ))}
                   </select>
@@ -754,7 +764,7 @@ export default function TrainerRecordingPage({
               )}
               <button
                 className="neon-btn neon-btn-secondary mt-4"
-                style={{ marginTop: '1rem' }}
+                style={{ marginTop: "1rem" }}
                 onClick={() => setHistoryFor(null)}
               >
                 Close

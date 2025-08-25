@@ -31,7 +31,7 @@ export const DialogContent = React.forwardRef<
   }
 >(function DialogContent(
   { className, children, showCloseButton = true, ...props },
-  ref
+  ref,
 ) {
   return (
     <DialogPortal>
@@ -60,31 +60,33 @@ export const DialogContent = React.forwardRef<
   );
 });
 
-export const DialogHeader = React.forwardRef<HTMLDivElement, React.ComponentProps<"div">>(
-  function DialogHeader({ className, ...props }, ref) {
-    return (
-      <div
-        ref={ref}
-        data-slot="dialog-header"
-        className={cn("ui-dialog-header", className)}
-        {...props}
-      />
-    );
-  }
-);
+export const DialogHeader = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentProps<"div">
+>(function DialogHeader({ className, ...props }, ref) {
+  return (
+    <div
+      ref={ref}
+      data-slot="dialog-header"
+      className={cn("ui-dialog-header", className)}
+      {...props}
+    />
+  );
+});
 
-export const DialogFooter = React.forwardRef<HTMLDivElement, React.ComponentProps<"div">>(
-  function DialogFooter({ className, ...props }, ref) {
-    return (
-      <div
-        ref={ref}
-        data-slot="dialog-footer"
-        className={cn("ui-dialog-footer", className)}
-        {...props}
-      />
-    );
-  }
-);
+export const DialogFooter = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentProps<"div">
+>(function DialogFooter({ className, ...props }, ref) {
+  return (
+    <div
+      ref={ref}
+      data-slot="dialog-footer"
+      className={cn("ui-dialog-footer", className)}
+      {...props}
+    />
+  );
+});
 
 export const DialogTitle = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Title>,

@@ -3,7 +3,15 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase-client";
-import { FiUser, FiPhone, FiMail, FiShield, FiBell, FiLogIn, FiClock } from "react-icons/fi";
+import {
+  FiUser,
+  FiPhone,
+  FiMail,
+  FiShield,
+  FiBell,
+  FiLogIn,
+  FiClock,
+} from "react-icons/fi";
 
 interface UserProfileCardProps {
   authId: string;
@@ -86,33 +94,64 @@ export default function UserProfileCard({ authId }: UserProfileCardProps) {
     level === "Admin"
       ? "/admin/dashboard"
       : level === "Manager"
-      ? "/manager/dashboard"
-      : "/user/dashboard";
+        ? "/manager/dashboard"
+        : "/user/dashboard";
 
   return (
     <div className="user-profile-card">
-      <div className="row" style={{ display: "flex", alignItems: "center", gap: "2rem", flexWrap: "wrap" }}>
-        <span className="pair" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+      <div
+        className="row"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "2rem",
+          flexWrap: "wrap",
+        }}
+      >
+        <span
+          className="pair"
+          style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+        >
           <FiUser className="neon-icon" />
           <span className="label">Name:</span> {fullName}
         </span>
-        <span className="pair" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+        <span
+          className="pair"
+          style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+        >
           <FiPhone className="neon-icon" />
           <span className="label">Phone:</span> {phone}
         </span>
-        <span className="pair" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+        <span
+          className="pair"
+          style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+        >
           <FiMail className="neon-icon" />
           <span className="label">Email:</span> {email}
         </span>
-        <span className="pair" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+        <span
+          className="pair"
+          style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+        >
           <FiShield className="neon-icon" />
           <span className="label">Access Level:</span> {level}
         </span>
-        <span className="pair" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+        <span
+          className="pair"
+          style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+        >
           <FiClock className="neon-icon" />
           <span className="label">Shift:</span> {shift || "—"}
         </span>
-        <div className="actions" style={{ display: "flex", alignItems: "center", gap: "1rem", marginLeft: "auto" }}>
+        <div
+          className="actions"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "1rem",
+            marginLeft: "auto",
+          }}
+        >
           {/* Raise an Issue */}
           <Link
             href="/turkus/issues/add"

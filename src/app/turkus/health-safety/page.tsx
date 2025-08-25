@@ -1,14 +1,14 @@
 // This file was moved from /manager/health-safety/page.tsx
-'use client'
+"use client";
 
-import HealthSafetyManager from '@/components/turkus/HealthSafetyManager'
-import { useEffect } from 'react'
-import { supabase } from '@/lib/supabase-client'
+import HealthSafetyManager from "@/components/turkus/HealthSafetyManager";
+import { useEffect } from "react";
+import { supabase } from "@/lib/supabase-client";
 
 export default function HealthSafetyPage() {
   useEffect(() => {
-    supabase.auth.getUser()
-  }, [])
+    supabase.auth.getUser();
+  }, []);
 
   return (
     <main>
@@ -16,5 +16,5 @@ export default function HealthSafetyPage() {
         <HealthSafetyManager />
       </div>
     </main>
-  )
+  );
 }

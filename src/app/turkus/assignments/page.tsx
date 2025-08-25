@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase-client'
-import NeonForm from '@/components/NeonForm'
-import NeonTable from '@/components/NeonTable'
-import MyTasksWidget from '@/components/task/MyTasksWidget'
-import { FiAlertCircle, FiClock } from 'react-icons/fi'
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase-client";
+import NeonForm from "@/components/NeonForm";
+import NeonTable from "@/components/NeonTable";
+import MyTasksWidget from "@/components/task/MyTasksWidget";
+import { FiAlertCircle, FiClock } from "react-icons/fi";
 
 // Type definitions
 interface TurkusTask {
@@ -26,7 +26,11 @@ interface Assignment {
   id: string;
   due_date: string;
   task?: { title: string } | null;
-  user?: { first_name: string; last_name: string; department_id: string } | null;
+  user?: {
+    first_name: string;
+    last_name: string;
+    department_id: string;
+  } | null;
 }
 
 interface Department {
@@ -39,108 +43,131 @@ export default function TurkusAssignmentsPage() {
   const [tasks, setTasks] = useState<TurkusTask[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
-  const [loading, setLoading] = useState(true)
-  const [selectedTask, setSelectedTask] = useState('')
-  const [selectedUser, setSelectedUser] = useState('')
-  const [dueDate, setDueDate] = useState('')
+  const [loading, setLoading] = useState(true);
+  const [selectedTask, setSelectedTask] = useState("");
+  const [selectedUser, setSelectedUser] = useState("");
+  const [dueDate, setDueDate] = useState("");
 
   useEffect(() => {
     const fetchAll = async () => {
-      setLoading(true)
+      setLoading(true);
 
-      const [{ data: tasks }, { data: users }, { data: assignments }, { data: departments }] = await Promise.all([
-        supabase.from('turkus_tasks').select('id, title, area, frequency'),
-        supabase.from('users').select('auth_id, first_name, last_name, department_id'),
+      const [
+        { data: tasks },
+        { data: users },
+        { data: assignments },
+        { data: departments },
+      ] = await Promise.all([
+        supabase.from("turkus_tasks").select("id, title, area, frequency"),
         supabase
-          .from('turkus_assignments')
-          .select(`
+          .from("users")
+          .select("auth_id, first_name, last_name, department_id"),
+        supabase.from("turkus_assignments").select(`
             id,
             due_date,
             task:turkus_tasks (title),
             user:users (first_name, last_name, department_id)
           `),
-        supabase.from('departments').select('id, name'),
-      ])
+        supabase.from("departments").select("id, name"),
+      ]);
 
-      setTasks(tasks || [])
-      setUsers(users || [])
+      setTasks(tasks || []);
+      setUsers(users || []);
       // Normalize assignments from Supabase response
       setAssignments(
-        (assignments || []).map((a: {
-          id: string;
-          due_date: string;
-          task: { title: string }[] | null;
-          user: { first_name: string; last_name: string; department_id: string }[] | null;
-        }) => ({
-          id: a.id,
-          due_date: a.due_date,
-          task: Array.isArray(a.task) ? a.task[0] || null : a.task ?? null,
-          user: Array.isArray(a.user) ? a.user[0] || null : a.user ?? null,
-        }))
-      )
-      setDepartments(departments || [])
-      setLoading(false)
-    }
+        (assignments || []).map(
+          (a: {
+            id: string;
+            due_date: string;
+            task: { title: string }[] | null;
+            user:
+              | {
+                  first_name: string;
+                  last_name: string;
+                  department_id: string;
+                }[]
+              | null;
+          }) => ({
+            id: a.id,
+            due_date: a.due_date,
+            task: Array.isArray(a.task) ? a.task[0] || null : (a.task ?? null),
+            user: Array.isArray(a.user) ? a.user[0] || null : (a.user ?? null),
+          }),
+        ),
+      );
+      setDepartments(departments || []);
+      setLoading(false);
+    };
 
-    fetchAll()
-  }, [])
+    fetchAll();
+  }, []);
 
   const handleAssign = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!selectedTask || !selectedUser || !dueDate) {
-      alert('Please select task, user, and due date.')
-      return
+      alert("Please select task, user, and due date.");
+      return;
     }
 
-    const user = users.find((u) => u.auth_id === selectedUser)
+    const user = users.find((u) => u.auth_id === selectedUser);
 
-    const { error } = await supabase.from('turkus_assignments').insert({
+    const { error } = await supabase.from("turkus_assignments").insert({
       task_id: selectedTask,
       user_auth_id: selectedUser,
       department_id: user?.department_id || null,
       due_date: dueDate,
-    })
+    });
 
     if (error) {
-      alert('Failed to assign task.')
-      console.error(error)
+      alert("Failed to assign task.");
+      console.error(error);
     } else {
-      setSelectedTask('')
-      setSelectedUser('')
-      setDueDate('')
+      setSelectedTask("");
+      setSelectedUser("");
+      setDueDate("");
 
       // Refresh assignments
-      const { data } = await supabase
-        .from('turkus_assignments')
-        .select(`
+      const { data } = await supabase.from("turkus_assignments").select(`
           id,
           due_date,
           task:turkus_tasks (title),
           user:users (first_name, last_name, department_id)
-        `)
+        `);
 
       setAssignments(
-        (data || []).map((a: {
-          id: string;
-          due_date: string;
-          task: { title: string }[] | null;
-          user: { first_name: string; last_name: string; department_id: string }[] | null;
-        }) => ({
-          id: a.id,
-          due_date: a.due_date,
-          task: Array.isArray(a.task) ? a.task[0] || null : a.task ?? null,
-          user: Array.isArray(a.user) ? a.user[0] || null : a.user ?? null,
-        }))
-      )
+        (data || []).map(
+          (a: {
+            id: string;
+            due_date: string;
+            task: { title: string }[] | null;
+            user:
+              | {
+                  first_name: string;
+                  last_name: string;
+                  department_id: string;
+                }[]
+              | null;
+          }) => ({
+            id: a.id,
+            due_date: a.due_date,
+            task: Array.isArray(a.task) ? a.task[0] || null : (a.task ?? null),
+            user: Array.isArray(a.user) ? a.user[0] || null : (a.user ?? null),
+          }),
+        ),
+      );
     }
-  }
+  };
 
   return (
     <>
       <div className="centered-content">
         <div className="max-w-6xl w-full px-8 mt-10 overflow-visible">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-            <NeonForm title="Assign a Task" onSubmit={handleAssign} submitLabel="Assign Task">
+            <NeonForm
+              title="Assign a Task"
+              onSubmit={handleAssign}
+              submitLabel="Assign Task"
+            >
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div>
                   <label className="neon-form-title">Task</label>
@@ -196,18 +223,19 @@ export default function TurkusAssignmentsPage() {
             <div className="turkus-assignments-table-wrapper">
               <NeonTable
                 columns={[
-                  { header: 'Task', accessor: 'task' },
-                  { header: 'User', accessor: 'user' },
-                  { header: 'Department', accessor: 'department' },
-                  { header: 'Due Date', accessor: 'due_date' },
+                  { header: "Task", accessor: "task" },
+                  { header: "User", accessor: "user" },
+                  { header: "Department", accessor: "department" },
+                  { header: "Due Date", accessor: "due_date" },
                 ]}
                 data={assignments.map((a) => {
-                  let dueDateCell: React.ReactNode = '-';
+                  let dueDateCell: React.ReactNode = "-";
                   if (a.due_date) {
                     const due = new Date(a.due_date);
                     const today = new Date();
-                    today.setHours(0,0,0,0);
-                    const diff = (due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
+                    today.setHours(0, 0, 0, 0);
+                    const diff =
+                      (due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
                     if (diff < 0) {
                       // Overdue
                       dueDateCell = (
@@ -217,7 +245,8 @@ export default function TurkusAssignmentsPage() {
                         >
                           <FiAlertCircle className="inline" />
                           <span className="assignment-tooltip assignment-tooltip-error">
-                            Overdue: This assignment was due on {due.toLocaleDateString('en-GB')}
+                            Overdue: This assignment was due on{" "}
+                            {due.toLocaleDateString("en-GB")}
                           </span>
                         </span>
                       );
@@ -230,25 +259,32 @@ export default function TurkusAssignmentsPage() {
                         >
                           <FiClock className="inline" />
                           <span className="assignment-tooltip assignment-tooltip-warning">
-                            Due soon: {due.toLocaleDateString('en-GB')}
+                            Due soon: {due.toLocaleDateString("en-GB")}
                           </span>
                         </span>
                       );
                     } else {
                       dueDateCell = (
-                        <span className="neon-info flex items-center justify-center">{due.toLocaleDateString('en-GB')}</span>
+                        <span className="neon-info flex items-center justify-center">
+                          {due.toLocaleDateString("en-GB")}
+                        </span>
                       );
                     }
                   }
                   // Get department name from departments list
-                  let departmentName = '-';
+                  let departmentName = "-";
                   if (a.user && a.user.department_id) {
-                    const deptObj = departments.find(d => d.id === a.user?.department_id);
-                    departmentName = deptObj?.name || a.user.department_id || '-';
+                    const deptObj = departments.find(
+                      (d) => d.id === a.user?.department_id,
+                    );
+                    departmentName =
+                      deptObj?.name || a.user.department_id || "-";
                   }
                   return {
-                    task: a.task?.title || '-',
-                    user: a.user ? `${a.user.first_name} ${a.user.last_name}` : '-',
+                    task: a.task?.title || "-",
+                    user: a.user
+                      ? `${a.user.first_name} ${a.user.last_name}`
+                      : "-",
                     department: departmentName,
                     due_date: dueDateCell,
                   };
@@ -259,5 +295,5 @@ export default function TurkusAssignmentsPage() {
         </div>
       </div>
     </>
-  )
+  );
 }

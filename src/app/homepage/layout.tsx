@@ -9,7 +9,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
     <UserProvider>
       {/* This renders inside admin tree, but Sidebar should be under the global header */}
-      
+
       <Sidebar />
       <ProjectGlobalHeader />
       <ContentHeader title="Admin" />

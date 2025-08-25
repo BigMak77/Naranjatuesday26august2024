@@ -1,28 +1,28 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
+import { useState } from "react";
 
 export default function TriggerFakeUserButton() {
-  const [loading, setLoading] = useState(false)
-  const [results, setResults] = useState<Record<string, unknown> | null>(null)
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState<Record<string, unknown> | null>(null);
 
   const handleClick = async () => {
-    setLoading(true)
-    setResults(null)
+    setLoading(true);
+    setResults(null);
 
     try {
-      const res = await fetch('/api/register-fake-users', {
-        method: 'POST'
-      })
+      const res = await fetch("/api/register-fake-users", {
+        method: "POST",
+      });
 
-      const data = await res.json()
-      setResults(data)
+      const data = await res.json();
+      setResults(data);
     } catch {
-      setResults({ error: 'Something went wrong' })
+      setResults({ error: "Something went wrong" });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="trigger-fake-user-root">
@@ -31,7 +31,7 @@ export default function TriggerFakeUserButton() {
         disabled={loading}
         className="trigger-fake-user-btn"
       >
-        {loading ? 'Creating Fake Users...' : 'Register Fake Users'}
+        {loading ? "Creating Fake Users..." : "Register Fake Users"}
       </button>
 
       {results && (
@@ -40,5 +40,5 @@ export default function TriggerFakeUserButton() {
         </pre>
       )}
     </div>
-  )
+  );
 }

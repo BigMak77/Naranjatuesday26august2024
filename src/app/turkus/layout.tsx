@@ -2,7 +2,7 @@ import "../globals.css";
 import type { ReactNode } from "react";
 import ProjectGlobalHeader from "@/components/ui/ProjectGlobalHeader";
 import ContentHeader from "@/components/headersandfooters/ContentHeader";
-import { UserProvider } from '@/context/UserContext';
+import { UserProvider } from "@/context/UserContext";
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
@@ -14,9 +14,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       {/* Framed main applied globally */}
       <main className="page">
         <div className="container">
-          <section className="frame">
-            {children}
-          </section>
+          <section className="frame">{children}</section>
         </div>
       </main>
 

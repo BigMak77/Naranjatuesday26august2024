@@ -84,6 +84,6 @@ export default function OverlayDialog({
         {children}
       </div>
     </div>,
-    mountRef.current
+    mountRef.current,
   );
 }

@@ -1,15 +1,15 @@
-'use client'
+"use client";
 
-import NeonIconButton from '@/components/ui/NeonIconButton'
+import NeonIconButton from "@/components/ui/NeonIconButton";
 
 interface TaskItemProps {
   task: {
-    id: string
-    title: string
-    area: string
-    frequency: string
-  }
-  onEdit: (id: string) => void
+    id: string;
+    title: string;
+    area: string;
+    frequency: string;
+  };
+  onEdit: (id: string) => void;
 }
 
 export default function TaskItem({ task, onEdit }: TaskItemProps) {
@@ -28,5 +28,5 @@ export default function TaskItem({ task, onEdit }: TaskItemProps) {
         className="task-list-item-action"
       />
     </li>
-  )
+  );
 }

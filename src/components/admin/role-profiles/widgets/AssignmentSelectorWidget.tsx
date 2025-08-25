@@ -1,88 +1,105 @@
 // components/role-profiles/widgets/AssignmentSelectorWidget.tsx
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase-client'
-import NeonPanel from '@/components/NeonPanel'
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase-client";
+import NeonPanel from "@/components/NeonPanel";
 
-type Assignment = { type: 'user' | 'role' | 'department'; id: string; label: string }
-type UserAssignment = Assignment & { role_id: string; department_id: string }
+type Assignment = {
+  type: "user" | "role" | "department";
+  id: string;
+  label: string;
+};
+type UserAssignment = Assignment & { role_id: string; department_id: string };
 
 type Props = {
-  selectedAssignments: Assignment[]
-  onChange: (assignments: Assignment[]) => void
-}
+  selectedAssignments: Assignment[];
+  onChange: (assignments: Assignment[]) => void;
+};
 
-export default function AssignmentSelectorWidget({ selectedAssignments, onChange }: Props) {
-  const [users, setUsers] = useState<UserAssignment[]>([])
-  const [roles, setRoles] = useState<Assignment[]>([])
-  const [departments, setDepartments] = useState<Assignment[]>([])
-  const [search, setSearch] = useState('')
-  const [roleFilter, setRoleFilter] = useState('')
-  const [deptFilter, setDeptFilter] = useState('')
+export default function AssignmentSelectorWidget({
+  selectedAssignments,
+  onChange,
+}: Props) {
+  const [users, setUsers] = useState<UserAssignment[]>([]);
+  const [roles, setRoles] = useState<Assignment[]>([]);
+  const [departments, setDepartments] = useState<Assignment[]>([]);
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
+  const [deptFilter, setDeptFilter] = useState("");
 
-  const [showDepts, setShowDepts] = useState(false)
-  const [showRoles, setShowRoles] = useState(false)
-  const [showUsers, setShowUsers] = useState(false)
+  const [showDepts, setShowDepts] = useState(false);
+  const [showRoles, setShowRoles] = useState(false);
+  const [showUsers, setShowUsers] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
       const [u, r, d] = await Promise.all([
-        supabase.from('users').select('auth_id, first_name, last_name, role_id, department_id'),
-        supabase.from('roles').select('id, title'),
-        supabase.from('departments').select('id, name'),
-      ])
+        supabase
+          .from("users")
+          .select("auth_id, first_name, last_name, role_id, department_id"),
+        supabase.from("roles").select("id, title"),
+        supabase.from("departments").select("id, name"),
+      ]);
 
       setUsers(
         u.data?.map((u) => ({
-          type: 'user',
+          type: "user",
           id: u.auth_id,
           label: `${u.first_name} ${u.last_name}`,
           role_id: u.role_id,
           department_id: u.department_id,
-        })) || []
-      )
+        })) || [],
+      );
 
       setRoles(
         r.data?.map((r) => ({
-          type: 'role',
+          type: "role",
           id: r.id,
           label: r.title,
-        })) || []
-      )
+        })) || [],
+      );
 
       setDepartments(
         d.data?.map((d) => ({
-          type: 'department',
+          type: "department",
           id: d.id,
           label: d.name,
-        })) || []
-      )
-    }
+        })) || [],
+      );
+    };
 
-    loadData()
-  }, [])
+    loadData();
+  }, []);
 
   const isSelected = (a: Assignment) =>
-    selectedAssignments.some((sa) => sa.id === a.id && sa.type === a.type)
+    selectedAssignments.some((sa) => sa.id === a.id && sa.type === a.type);
 
   const toggle = (assignment: Assignment) => {
     if (isSelected(assignment)) {
-      onChange(selectedAssignments.filter((a) => !(a.id === assignment.id && a.type === assignment.type)))
+      onChange(
+        selectedAssignments.filter(
+          (a) => !(a.id === assignment.id && a.type === assignment.type),
+        ),
+      );
     } else {
-      onChange([...selectedAssignments, assignment])
+      onChange([...selectedAssignments, assignment]);
     }
-  }
+  };
 
   const filteredUsers = users.filter((u) => {
-    const matchesSearch = u.label.toLowerCase().includes(search.toLowerCase())
-    const matchesRole = !roleFilter || u.role_id === roleFilter
-    const matchesDept = !deptFilter || u.department_id === deptFilter
-    return matchesSearch && matchesRole && matchesDept
-  })
+    const matchesSearch = u.label.toLowerCase().includes(search.toLowerCase());
+    const matchesRole = !roleFilter || u.role_id === roleFilter;
+    const matchesDept = !deptFilter || u.department_id === deptFilter;
+    return matchesSearch && matchesRole && matchesDept;
+  });
 
-  const filteredRoles = roles.filter((r) => r.label.toLowerCase().includes(search.toLowerCase()))
-  const filteredDepts = departments.filter((d) => d.label.toLowerCase().includes(search.toLowerCase()))
+  const filteredRoles = roles.filter((r) =>
+    r.label.toLowerCase().includes(search.toLowerCase()),
+  );
+  const filteredDepts = departments.filter((d) =>
+    d.label.toLowerCase().includes(search.toLowerCase()),
+  );
 
   return (
     <NeonPanel className="neon-panel mt-6">
@@ -97,7 +114,11 @@ export default function AssignmentSelectorWidget({ selectedAssignments, onChange
       />
 
       <div className="neon-row">
-        <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} className="neon-input">
+        <select
+          value={roleFilter}
+          onChange={(e) => setRoleFilter(e.target.value)}
+          className="neon-input"
+        >
           <option value="">All Roles</option>
           {roles.map((r) => (
             <option key={r.id} value={r.id}>
@@ -105,7 +126,11 @@ export default function AssignmentSelectorWidget({ selectedAssignments, onChange
             </option>
           ))}
         </select>
-        <select value={deptFilter} onChange={(e) => setDeptFilter(e.target.value)} className="neon-input">
+        <select
+          value={deptFilter}
+          onChange={(e) => setDeptFilter(e.target.value)}
+          className="neon-input"
+        >
           <option value="">All Departments</option>
           {departments.map((d) => (
             <option key={d.id} value={d.id}>
@@ -120,10 +145,14 @@ export default function AssignmentSelectorWidget({ selectedAssignments, onChange
         <button
           type="button"
           className="neon-btn neon-section-toggle"
-          aria-label={showDepts ? 'Hide Departments' : 'Show Departments'}
+          aria-label={showDepts ? "Hide Departments" : "Show Departments"}
           onClick={() => setShowDepts((v) => !v)}
         >
-          {showDepts ? <span className="neon-btn-label">➖</span> : <span className="neon-btn-label">➕</span>}
+          {showDepts ? (
+            <span className="neon-btn-label">➖</span>
+          ) : (
+            <span className="neon-btn-label">➕</span>
+          )}
         </button>
         {showDepts && (
           <div className="neon-grid">
@@ -147,10 +176,14 @@ export default function AssignmentSelectorWidget({ selectedAssignments, onChange
         <button
           type="button"
           className="neon-btn neon-section-toggle"
-          aria-label={showRoles ? 'Hide Roles' : 'Show Roles'}
+          aria-label={showRoles ? "Hide Roles" : "Show Roles"}
           onClick={() => setShowRoles((v) => !v)}
         >
-          {showRoles ? <span className="neon-btn-label">➖</span> : <span className="neon-btn-label">➕</span>}
+          {showRoles ? (
+            <span className="neon-btn-label">➖</span>
+          ) : (
+            <span className="neon-btn-label">➕</span>
+          )}
         </button>
         {showRoles && (
           <div className="neon-grid">
@@ -174,10 +207,14 @@ export default function AssignmentSelectorWidget({ selectedAssignments, onChange
         <button
           type="button"
           className="neon-btn neon-section-toggle"
-          aria-label={showUsers ? 'Hide Users' : 'Show Users'}
+          aria-label={showUsers ? "Hide Users" : "Show Users"}
           onClick={() => setShowUsers((v) => !v)}
         >
-          {showUsers ? <span className="neon-btn-label">➖</span> : <span className="neon-btn-label">➕</span>}
+          {showUsers ? (
+            <span className="neon-btn-label">➖</span>
+          ) : (
+            <span className="neon-btn-label">➕</span>
+          )}
         </button>
         {showUsers && (
           <div className="neon-grid">
@@ -196,5 +233,5 @@ export default function AssignmentSelectorWidget({ selectedAssignments, onChange
         )}
       </div>
     </NeonPanel>
-  )
+  );
 }

@@ -1,5 +1,5 @@
-import * as React from 'react'
-import * as Tooltip from '@radix-ui/react-tooltip'
+import * as React from "react";
+import * as Tooltip from "@radix-ui/react-tooltip";
 
 import {
   FiTarget,
@@ -24,7 +24,7 @@ import {
   FiTag,
   FiClipboard,
   FiTruck,
-} from 'react-icons/fi'
+} from "react-icons/fi";
 
 import {
   GiBroom,
@@ -36,7 +36,7 @@ import {
   GiChemicalDrop,
   GiWrench,
   GiFactory,
-} from 'react-icons/gi'
+} from "react-icons/gi";
 
 // Map icon string to actual React icon components
 const iconMap: Record<string, React.ReactElement> = {
@@ -71,23 +71,30 @@ const iconMap: Record<string, React.ReactElement> = {
   GiChemicalDrop: <GiChemicalDrop />,
   GiWrench: <GiWrench />,
   GiFactory: <GiFactory />,
-}
+};
 
 export interface Behaviour {
-  id: string
-  name: string
-  icon: string
+  id: string;
+  name: string;
+  icon: string;
 }
 
 interface BehaviourIconProps {
-  behaviour: Behaviour
-  selected?: boolean
-  onClick?: (id: string) => void
-  className?: string  // <-- optional className added
+  behaviour: Behaviour;
+  selected?: boolean;
+  onClick?: (id: string) => void;
+  className?: string; // <-- optional className added
 }
 
-export default function BehaviourIcon({ behaviour, selected, onClick, className = '' }: BehaviourIconProps) {
-  const colorClass = selected ? 'behaviour-icon-selected' : 'behaviour-icon-default'
+export default function BehaviourIcon({
+  behaviour,
+  selected,
+  onClick,
+  className = "",
+}: BehaviourIconProps) {
+  const colorClass = selected
+    ? "behaviour-icon-selected"
+    : "behaviour-icon-default";
 
   return (
     <Tooltip.Provider delayDuration={200}>
@@ -112,5 +119,5 @@ export default function BehaviourIcon({ behaviour, selected, onClick, className 
         </Tooltip.Content>
       </Tooltip.Root>
     </Tooltip.Provider>
-  )
+  );
 }

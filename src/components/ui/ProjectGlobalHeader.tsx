@@ -44,7 +44,8 @@ export default function GlobalHeader({
   const [profileModalOpen, setProfileModalOpen] = useState(false);
 
   const dashboardHref = useMemo(() => {
-    if (!user || typeof user.access_level !== "string") return "/user/dashboard";
+    if (!user || typeof user.access_level !== "string")
+      return "/user/dashboard";
     switch (user.access_level.toLowerCase()) {
       case "admin":
         return "/admin/dashboard";
@@ -66,13 +67,13 @@ export default function GlobalHeader({
         { href: "/compliance", label: "Compliance", icon: <FiShield /> },
         { href: "/settings", label: "Settings", icon: <FiSettings /> },
       ],
-    [navLinks, dashboardHref]
+    [navLinks, dashboardHref],
   );
 
   const initials = useMemo(() => {
-    const name =
-      ((user?.first_name ? user.first_name + " " : "") +
-        (user?.last_name ?? "")).trim();
+    const name = (
+      (user?.first_name ? user.first_name + " " : "") + (user?.last_name ?? "")
+    ).trim();
     if (!name) return "U";
     const parts = name.split(/\s+/);
     const first = parts[0]?.[0] ?? "";
@@ -88,10 +89,16 @@ export default function GlobalHeader({
 
   return (
     <>
-      <header className={`${styles.header} ${fullBleed ? styles.fullBleed : ""}`}>
+      <header
+        className={`${styles.header} ${fullBleed ? styles.fullBleed : ""}`}
+      >
         <div className={styles.row}>
           {/* Left: Logo */}
-          <Link href="/" aria-label="Go to homepage" className={styles.logoLink}>
+          <Link
+            href="/"
+            aria-label="Go to homepage"
+            className={styles.logoLink}
+          >
             <Image
               src="/logo2.png"
               alt="Naranja"
@@ -100,7 +107,7 @@ export default function GlobalHeader({
               sizes="(max-width: 768px) 130px, 220px"
               priority={logoPriority}
               className={styles.logoImg}
-              style={{ objectFit: 'contain', height: '96px', width: '220px' }} // Ensure logo fits within header height
+              style={{ objectFit: "contain", height: "96px", width: "220px" }} // Ensure logo fits within header height
             />
           </Link>
 
@@ -108,7 +115,12 @@ export default function GlobalHeader({
           {!loading && user && (
             <nav className={styles.nav} aria-label="Primary">
               {links.map((l) => (
-                <Link key={l.href} href={l.href} className={styles.navItem} prefetch>
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  className={styles.navItem}
+                  prefetch
+                >
                   <span className={styles.navIcon} aria-hidden="true">
                     {l.icon}
                   </span>
@@ -127,7 +139,12 @@ export default function GlobalHeader({
             )}
 
             {!loading && !user && (
-              <Link href="/login" className={styles.loginBtn} aria-label="Log in" prefetch>
+              <Link
+                href="/login"
+                className={styles.loginBtn}
+                aria-label="Log in"
+                prefetch
+              >
                 <FiLogIn aria-hidden="true" />
                 <span className={styles.hideSm}>Log In</span>
               </Link>
@@ -150,9 +167,15 @@ export default function GlobalHeader({
                     </span>
                     <span
                       className={styles.userName}
-                      title={((user?.first_name ? user.first_name + " " : "") + (user?.last_name ?? "")).trim()}
+                      title={(
+                        (user?.first_name ? user.first_name + " " : "") +
+                        (user?.last_name ?? "")
+                      ).trim()}
                     >
-                      {((user?.first_name ? user.first_name + " " : "") + (user?.last_name ?? "")).trim()}
+                      {(
+                        (user?.first_name ? user.first_name + " " : "") +
+                        (user?.last_name ?? "")
+                      ).trim()}
                     </span>
                   </span>
                   <FiChevronDown className={styles.chev} aria-hidden="true" />
@@ -160,7 +183,11 @@ export default function GlobalHeader({
 
                 {/* User menu */}
                 {menuOpen && (
-                  <div className={styles.menu} role="menu" aria-label="User menu">
+                  <div
+                    className={styles.menu}
+                    role="menu"
+                    aria-label="User menu"
+                  >
                     <button
                       type="button"
                       role="menuitem"
@@ -172,13 +199,28 @@ export default function GlobalHeader({
                     >
                       Profile
                     </button>
-                    <Link href="/account/security" role="menuitem" className={styles.menuItem} onClick={() => setMenuOpen(false)}>
+                    <Link
+                      href="/account/security"
+                      role="menuitem"
+                      className={styles.menuItem}
+                      onClick={() => setMenuOpen(false)}
+                    >
                       Security
                     </Link>
-                    <Link href="/billing" role="menuitem" className={styles.menuItem} onClick={() => setMenuOpen(false)}>
+                    <Link
+                      href="/billing"
+                      role="menuitem"
+                      className={styles.menuItem}
+                      onClick={() => setMenuOpen(false)}
+                    >
                       Billing
                     </Link>
-                    <button type="button" role="menuitem" className={styles.menuItemDanger} onClick={handleSignOut}>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className={styles.menuItemDanger}
+                      onClick={handleSignOut}
+                    >
                       <FiLogOut aria-hidden="true" />
                       Sign out
                     </button>
@@ -187,25 +229,29 @@ export default function GlobalHeader({
               </div>
             )}
 
-
             {/* Siren button */}
             <Link
               href="/turkus/issues/add"
               className="neon-btn neon-btn-danger"
               title="Raise an issue"
               aria-label="Raise an issue"
-              style={{ marginLeft: '0.75rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+              style={{
+                marginLeft: "0.75rem",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
             >
               <FiAlertOctagon />
             </Link>
           </div>
         </div>
-
-       
-        
       </header>
       <Modal open={profileModalOpen} onClose={() => setProfileModalOpen(false)}>
-        <MyProfileModal open={profileModalOpen} onClose={() => setProfileModalOpen(false)} />
+        <MyProfileModal
+          open={profileModalOpen}
+          onClose={() => setProfileModalOpen(false)}
+        />
       </Modal>
     </>
   );

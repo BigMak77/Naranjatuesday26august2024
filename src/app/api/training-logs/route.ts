@@ -8,17 +8,19 @@ export const runtime = "nodejs";
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!; // server-only
 
-const admin = createClient(url, serviceRoleKey, { auth: { persistSession: false } });
+const admin = createClient(url, serviceRoleKey, {
+  auth: { persistSession: false },
+});
 
 type Outcome = "completed" | "needs-followup";
 type Payload = {
   auth_id?: string;
-  date?: string;            // "YYYY-MM-DD"
+  date?: string; // "YYYY-MM-DD"
   topic?: string;
-  duration_hours?: number;  // number
+  duration_hours?: number; // number
   outcome?: Outcome;
   notes?: string | null;
-  signature?: string;       // base64 data URL (text)
+  signature?: string; // base64 data URL (text)
 };
 
 function isValidDateYYYYMMDD(s: string) {
@@ -34,17 +36,34 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body: Payload = await req.json();
-    const { auth_id, date, topic, duration_hours, outcome, notes, signature } = body || {};
+    const { auth_id, date, topic, duration_hours, outcome, notes, signature } =
+      body || {};
 
     // Validate required fields
-    if (!auth_id || !date || !topic || duration_hours == null || !outcome || !signature) {
-      return NextResponse.json({ error: "Missing required fields", body }, { status: 400 });
+    if (
+      !auth_id ||
+      !date ||
+      !topic ||
+      duration_hours == null ||
+      !outcome ||
+      !signature
+    ) {
+      return NextResponse.json(
+        { error: "Missing required fields", body },
+        { status: 400 },
+      );
     }
     if (!isValidDateYYYYMMDD(date)) {
-      return NextResponse.json({ error: "Invalid date format. Expected YYYY-MM-DD." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid date format. Expected YYYY-MM-DD." },
+        { status: 400 },
+      );
     }
     if (outcome !== "completed" && outcome !== "needs-followup") {
-      return NextResponse.json({ error: "Invalid outcome value." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid outcome value." },
+        { status: 400 },
+      );
     }
 
     // Optional: ensure auth_id exists in your users table (comment out if not needed)
@@ -56,8 +75,11 @@ export async function POST(req: NextRequest) {
 
     if (lookupErr || !u) {
       return NextResponse.json(
-        { error: "No user found for supplied auth_id.", details: lookupErr?.message },
-        { status: 400 }
+        {
+          error: "No user found for supplied auth_id.",
+          details: lookupErr?.message,
+        },
+        { status: 400 },
       );
     }
 
@@ -65,7 +87,7 @@ export async function POST(req: NextRequest) {
       .from("training_logs")
       .insert([
         {
-          auth_id,           // ← store auth_id, not user_id
+          auth_id, // ← store auth_id, not user_id
           date,
           topic,
           duration_hours,
@@ -79,13 +101,21 @@ export async function POST(req: NextRequest) {
 
     if (error) {
       return NextResponse.json(
-        { error: error.message, code: error.code, details: error.details, hint: (error as { hint?: string })?.hint },
-        { status: 400 }
+        {
+          error: error.message,
+          code: error.code,
+          details: error.details,
+          hint: (error as { hint?: string })?.hint,
+        },
+        { status: 400 },
       );
     }
 
     return NextResponse.json({ data }, { status: 201 });
   } catch (e: unknown) {
-    return NextResponse.json({ error: (e as Error)?.message || "Unexpected server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: (e as Error)?.message || "Unexpected server error" },
+      { status: 500 },
+    );
   }
 }

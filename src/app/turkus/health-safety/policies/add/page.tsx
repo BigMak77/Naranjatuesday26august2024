@@ -1,21 +1,21 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import NeonPanel from '@/components/NeonPanel';
-import NeonIconButton from '@/components/ui/NeonIconButton';
-import { FiFileText, FiCheck } from 'react-icons/fi';
+import React, { useState } from "react";
+import NeonPanel from "@/components/NeonPanel";
+import NeonIconButton from "@/components/ui/NeonIconButton";
+import { FiFileText, FiCheck } from "react-icons/fi";
 
 export default function AddPolicyPage() {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    setError('');
+    setError("");
     // TODO: Add supabase upload logic here
     setTimeout(() => {
       setSaving(false);
@@ -32,23 +32,44 @@ export default function AddPolicyPage() {
       <form onSubmit={handleSubmit} className="add-policy-form">
         <div className="add-policy-field">
           <label className="add-policy-label">Policy Title</label>
-          <input type="text" value={title} onChange={e => setTitle(e.target.value)} className="add-policy-input" required />
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="add-policy-input"
+            required
+          />
         </div>
         <div className="add-policy-field">
           <label className="add-policy-label">Description</label>
-          <textarea value={description} onChange={e => setDescription(e.target.value)} className="add-policy-input" rows={3} required />
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="add-policy-input"
+            rows={3}
+            required
+          />
         </div>
         <div className="add-policy-field">
           <label className="add-policy-label">Upload File</label>
-          <input type="file" accept=".pdf,.doc,.docx,.txt" className="add-policy-input" required />
+          <input
+            type="file"
+            accept=".pdf,.doc,.docx,.txt"
+            className="add-policy-input"
+            required
+          />
         </div>
         {error && <p className="add-policy-error">{error}</p>}
-        {success && <p className="add-policy-success"><FiCheck /> Policy uploaded!</p>}
+        {success && (
+          <p className="add-policy-success">
+            <FiCheck /> Policy uploaded!
+          </p>
+        )}
         <div className="add-policy-actions">
           <NeonIconButton
             variant="submit"
             icon={<FiCheck />}
-            title={saving ? 'Uploading...' : 'Upload Policy'}
+            title={saving ? "Uploading..." : "Upload Policy"}
             type="submit"
             disabled={saving}
           />

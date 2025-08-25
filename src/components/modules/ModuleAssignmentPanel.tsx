@@ -1,114 +1,128 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase-client'
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase-client";
 
 interface Role {
-  id: string
-  title: string
-  department_id: string
+  id: string;
+  title: string;
+  department_id: string;
 }
 
 interface Department {
-  id: string
-  name: string
+  id: string;
+  name: string;
 }
 
 interface AssignmentCheckbox {
-  role_id: string
-  department_id: string
+  role_id: string;
+  department_id: string;
 }
 
 interface Props {
-  moduleId: string
+  moduleId: string;
 }
 
 export default function ModuleAssignmentPanel({ moduleId }: Props) {
-  const router = useRouter()
-  const [departments, setDepartments] = useState<Department[]>([])
-  const [roles, setRoles] = useState<Role[]>([])
-  const [assigned, setAssigned] = useState<AssignmentCheckbox[]>([])
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
+  const router = useRouter();
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [assigned, setAssigned] = useState<AssignmentCheckbox[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const load = async () => {
-      const [{ data: d, error: dErr }, { data: r, error: rErr }, { data: current, error: cErr }] =
-        await Promise.all([
-          supabase.from('departments').select('id, name'),
-          supabase.from('roles').select('id, title, department_id'),
-          supabase.from('module_roles')
-            .select('role_id, department_id')
-            .eq('module_id', moduleId),
-        ])
+      const [
+        { data: d, error: dErr },
+        { data: r, error: rErr },
+        { data: current, error: cErr },
+      ] = await Promise.all([
+        supabase.from("departments").select("id, name"),
+        supabase.from("roles").select("id, title, department_id"),
+        supabase
+          .from("module_roles")
+          .select("role_id, department_id")
+          .eq("module_id", moduleId),
+      ]);
 
       if (dErr || rErr || cErr) {
-        console.error('Failed to load data:', dErr, rErr, cErr)
+        console.error("Failed to load data:", dErr, rErr, cErr);
       }
 
-      setDepartments(d || [])
-      setRoles(r || [])
-      setAssigned(current || [])
-      setLoading(false)
-    }
+      setDepartments(d || []);
+      setRoles(r || []);
+      setAssigned(current || []);
+      setLoading(false);
+    };
 
-    if (moduleId) load()
-  }, [moduleId])
+    if (moduleId) load();
+  }, [moduleId]);
 
   const isChecked = (role_id: string, department_id: string) =>
-    assigned.some((a) => a.role_id === role_id && a.department_id === department_id)
+    assigned.some(
+      (a) => a.role_id === role_id && a.department_id === department_id,
+    );
 
   const toggle = (role_id: string, department_id: string) => {
     setAssigned((prev) => {
       const exists = prev.find(
-        (a) => a.role_id === role_id && a.department_id === department_id
-      )
+        (a) => a.role_id === role_id && a.department_id === department_id,
+      );
       return exists
         ? prev.filter(
-            (a) => !(a.role_id === role_id && a.department_id === department_id)
+            (a) =>
+              !(a.role_id === role_id && a.department_id === department_id),
           )
-        : [...prev, { role_id, department_id }]
-    })
-  }
+        : [...prev, { role_id, department_id }];
+    });
+  };
 
   const handleSave = async () => {
-    setSaving(true)
+    setSaving(true);
 
     const { error: deleteError } = await supabase
-      .from('module_roles')
+      .from("module_roles")
       .delete()
-      .eq('module_id', moduleId)
+      .eq("module_id", moduleId);
 
     if (deleteError) {
-      console.error('Delete error:', deleteError)
-      setSaving(false)
-      return
+      console.error("Delete error:", deleteError);
+      setSaving(false);
+      return;
     }
 
     if (assigned.length > 0) {
-      const { error: insertError } = await supabase.from('module_roles').insert(
+      const { error: insertError } = await supabase.from("module_roles").insert(
         assigned.map((a) => ({
           module_id: moduleId,
           role_id: a.role_id,
           department_id: a.department_id,
-        }))
-      )
+        })),
+      );
 
       if (insertError) {
-        console.error('Insert error:', insertError)
+        console.error("Insert error:", insertError);
       }
     }
 
-    setSaving(false)
-  }
+    setSaving(false);
+  };
 
-  if (loading) return <p className="neon-loading">Loading assignments...</p>
+  if (loading) return <p className="neon-loading">Loading assignments...</p>;
 
   return (
     <div className="module-assignment-panel">
       <h3 className="module-assignment-title">
-        <span className="module-assignment-title-icon" aria-label="Assign Roles and Departments" role="img">🎯</span> Assign Roles & Departments
+        <span
+          className="module-assignment-title-icon"
+          aria-label="Assign Roles and Departments"
+          role="img"
+        >
+          🎯
+        </span>{" "}
+        Assign Roles & Departments
       </h3>
 
       {departments.map((dep) => (
@@ -118,10 +132,7 @@ export default function ModuleAssignmentPanel({ moduleId }: Props) {
             {roles
               .filter((r) => r.department_id === dep.id)
               .map((role) => (
-                <label
-                  key={role.id}
-                  className="module-assignment-role-label"
-                >
+                <label key={role.id} className="module-assignment-role-label">
                   <input
                     type="checkbox"
                     checked={isChecked(role.id, dep.id)}
@@ -143,13 +154,43 @@ export default function ModuleAssignmentPanel({ moduleId }: Props) {
         >
           {saving ? (
             <>
-              <span style={{marginRight: '0.5em'}}>Saving...</span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-save"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+              <span style={{ marginRight: "0.5em" }}>Saving...</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="feather feather-save"
+              >
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
             </>
           ) : (
             <>
-              <span style={{marginRight: '0.5em'}}>Save Assignments</span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-save"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+              <span style={{ marginRight: "0.5em" }}>Save Assignments</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="feather feather-save"
+              >
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
             </>
           )}
         </button>
@@ -159,8 +200,22 @@ export default function ModuleAssignmentPanel({ moduleId }: Props) {
           data-variant="edit"
           onClick={() => router.push(`/admin/modules/edit/${moduleId}`)}
         >
-          <span style={{marginRight: '0.5em'}}>Edit Module</span>
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-edit"><path d="M11 4h2a2 2 0 0 1 2 2v2"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L7 20.5 2.5 16 18.5 2.5z"></path></svg>
+          <span style={{ marginRight: "0.5em" }}>Edit Module</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="feather feather-edit"
+          >
+            <path d="M11 4h2a2 2 0 0 1 2 2v2"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L7 20.5 2.5 16 18.5 2.5z"></path>
+          </svg>
         </button>
         <button
           type="button"
@@ -168,10 +223,24 @@ export default function ModuleAssignmentPanel({ moduleId }: Props) {
           data-variant="view"
           onClick={() => router.push(`/admin/modules/${moduleId}`)}
         >
-          <span style={{marginRight: '0.5em'}}>View Module</span>
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-eye"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          <span style={{ marginRight: "0.5em" }}>View Module</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="feather feather-eye"
+          >
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
         </button>
       </div>
     </div>
-  )
+  );
 }

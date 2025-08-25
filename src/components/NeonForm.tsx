@@ -1,25 +1,25 @@
-'use client'
+"use client";
 
-import React from 'react'
-import NeonIconButton from './ui/NeonIconButton'
+import React from "react";
+import NeonIconButton from "./ui/NeonIconButton";
 
 // NOTE: All styling for NeonForm is provided by global neon design system classes in globals.css
 // No local styles are used here. All class names below should be defined in globals.css for consistency.
 
 type NeonFormProps = {
-  title: string
-  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void
-  children: React.ReactNode
-  submitLabel?: string
-  onCancel?: () => void
-}
+  title: string;
+  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  children: React.ReactNode;
+  submitLabel?: string;
+  onCancel?: () => void;
+};
 
 export default function NeonForm({
   title,
   onSubmit,
   children,
-  submitLabel = 'Submit',
-  onCancel
+  submitLabel = "Submit",
+  onCancel,
 }: NeonFormProps) {
   return (
     <form className="neon-form" onSubmit={onSubmit}>
@@ -41,5 +41,5 @@ export default function NeonForm({
         />
       </div>
     </form>
-  )
+  );
 }

@@ -113,8 +113,6 @@ export default function HomePage() {
         </div>
       </div>
 
-    
-
       {/* Full-bleed wrapper to escape any parent max-width */}
       <div
         className="cards-bleed-wrapper"
@@ -380,12 +378,14 @@ export default function HomePage() {
                 paddingLeft: "1rem",
               }}
             >
-              &quot;We built Naranja to help food and drink businesses keep their people safe and deliver the highest quality products to consumers. By taking care of compliance, training, and audit readiness, we free you to focus on what matters most — running your operation and making great products.&quot;
+              &quot;We built Naranja to help food and drink businesses keep
+              their people safe and deliver the highest quality products to
+              consumers. By taking care of compliance, training, and audit
+              readiness, we free you to focus on what matters most — running
+              your operation and making great products.&quot;
             </blockquote>
           </div>
         </div>
-
-        
 
         {/* Global overrides */}
         <style jsx global>{`
@@ -403,20 +403,24 @@ export default function HomePage() {
           }
           .homepage-cards-panel .homepage-card-large ul {
             margin: 0 !important;
-            padding-left: 1.rem !important;
+            padding-left: 1rem !important;
           }
           .homepage-feature-card {
-            transition: box-shadow 0.3s, filter 0.3s;
+            transition:
+              box-shadow 0.3s,
+              filter 0.3s;
           }
           .homepage-feature-card::after,
           .homepage-feature-card::before,
           .homepage-feature-card-right {
             pointer-events: none;
             z-index: 2;
-            transition: box-shadow 0.3s, filter 0.3s;
+            transition:
+              box-shadow 0.3s,
+              filter 0.3s;
           }
           .homepage-feature-card::after {
-            content: '';
+            content: "";
             position: absolute;
             left: 0;
             right: 0;
@@ -426,7 +430,7 @@ export default function HomePage() {
             border-bottom-right-radius: 14px;
           }
           .homepage-feature-card::before {
-            content: '';
+            content: "";
             position: absolute;
             left: 0;
             right: 0;
@@ -436,7 +440,7 @@ export default function HomePage() {
             border-top-right-radius: 14px;
           }
           .homepage-feature-card-right {
-            content: '';
+            content: "";
             position: absolute;
             top: 0;
             right: 0;
@@ -449,31 +453,71 @@ export default function HomePage() {
           }
           .homepage-feature-card-0::after,
           .homepage-feature-card-0::before {
-            background: linear-gradient(90deg, #159ca3 0%, #159ca3 5%, #ffb347 100%);
+            background: linear-gradient(
+              90deg,
+              #159ca3 0%,
+              #159ca3 5%,
+              #ffb347 100%
+            );
           }
           .homepage-feature-card-1::after,
           .homepage-feature-card-1::before {
-            background: linear-gradient(90deg, #159ca3 0%, #159ca3 5%, #19e6d9 100%);
+            background: linear-gradient(
+              90deg,
+              #159ca3 0%,
+              #159ca3 5%,
+              #19e6d9 100%
+            );
           }
           .homepage-feature-card-2::after,
           .homepage-feature-card-2::before {
-            background: linear-gradient(90deg, #159ca3 0%, #159ca3 5%, #4f8cff 100%);
+            background: linear-gradient(
+              90deg,
+              #159ca3 0%,
+              #159ca3 5%,
+              #4f8cff 100%
+            );
           }
           .homepage-feature-card-3::after,
           .homepage-feature-card-3::before {
-            background: linear-gradient(90deg, #159ca3 0%, #159ca3 5%, #ff5ad1 100%);
+            background: linear-gradient(
+              90deg,
+              #159ca3 0%,
+              #159ca3 5%,
+              #ff5ad1 100%
+            );
           }
           .homepage-feature-card-0 .homepage-feature-card-right {
-            background: linear-gradient(180deg, #159ca3 0%, #159ca3 5%, #ffb347 100%);
+            background: linear-gradient(
+              180deg,
+              #159ca3 0%,
+              #159ca3 5%,
+              #ffb347 100%
+            );
           }
           .homepage-feature-card-1 .homepage-feature-card-right {
-            background: linear-gradient(180deg, #159ca3 0%, #159ca3 5%, #19e6d9 100%);
+            background: linear-gradient(
+              180deg,
+              #159ca3 0%,
+              #159ca3 5%,
+              #19e6d9 100%
+            );
           }
           .homepage-feature-card-2 .homepage-feature-card-right {
-            background: linear-gradient(180deg, #159ca3 0%, #159ca3 5%, #4f8cff 100%);
+            background: linear-gradient(
+              180deg,
+              #159ca3 0%,
+              #159ca3 5%,
+              #4f8cff 100%
+            );
           }
           .homepage-feature-card-3 .homepage-feature-card-right {
-            background: linear-gradient(180deg, #159ca3 0%, #159ca3 5%, #ff5ad1 100%);
+            background: linear-gradient(
+              180deg,
+              #159ca3 0%,
+              #159ca3 5%,
+              #ff5ad1 100%
+            );
           }
           /* Subtle glow and pulse on hover - use border neon color for each card */
           .homepage-feature-card-0:hover {
@@ -521,20 +565,36 @@ export default function HomePage() {
             filter: brightness(1.07);
           }
           @keyframes homepage-feature-card-pulse-0 {
-            0% { box-shadow: 0 0 8px 2px #ffb347; }
-            100% { box-shadow: 0 0 8px 4px #ffb347; }
+            0% {
+              box-shadow: 0 0 8px 2px #ffb347;
+            }
+            100% {
+              box-shadow: 0 0 8px 4px #ffb347;
+            }
           }
           @keyframes homepage-feature-card-pulse-1 {
-            0% { box-shadow: 0 0 8px 2px #19e6d9; }
-            100% { box-shadow: 0 0 8px 4px #19e6d9; }
+            0% {
+              box-shadow: 0 0 8px 2px #19e6d9;
+            }
+            100% {
+              box-shadow: 0 0 8px 4px #19e6d9;
+            }
           }
           @keyframes homepage-feature-card-pulse-2 {
-            0% { box-shadow: 0 0 8px 2px #4f8cff; }
-            100% { box-shadow: 0 0 8px 4px #4f8cff; }
+            0% {
+              box-shadow: 0 0 8px 2px #4f8cff;
+            }
+            100% {
+              box-shadow: 0 0 8px 4px #4f8cff;
+            }
           }
           @keyframes homepage-feature-card-pulse-3 {
-            0% { box-shadow: 0 0 8px 2px #ff5ad1; }
-            100% { box-shadow: 0 0 8px 4px #ff5ad1; }
+            0% {
+              box-shadow: 0 0 8px 2px #ff5ad1;
+            }
+            100% {
+              box-shadow: 0 0 8px 4px #ff5ad1;
+            }
           }
         `}</style>
       </div>

@@ -1,8 +1,8 @@
-"use client"
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase-client'
-import NeonTable from '@/components/NeonTable'
-import { FiFileText, FiClipboard, FiBookOpen } from 'react-icons/fi'
+"use client";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase-client";
+import NeonTable from "@/components/NeonTable";
+import { FiFileText, FiClipboard, FiBookOpen } from "react-icons/fi";
 
 type ArchivedDocument = {
   id: string;
@@ -16,30 +16,34 @@ type ArchivedDocument = {
 };
 
 export default function ArchivedDocumentsPage() {
-  const [archivedDocs, setArchivedDocs] = useState<ArchivedDocument[]>([])
-  const [loading, setLoading] = useState(true)
+  const [archivedDocs, setArchivedDocs] = useState<ArchivedDocument[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchArchived = async () => {
       const { data, error } = await supabase
-        .from('document_archive')
-        .select('id, document_id, title, archived_version, file_url, document_type, change_date, archived_by_auth_id')
-        .order('change_date', { ascending: false })
+        .from("document_archive")
+        .select(
+          "id, document_id, title, archived_version, file_url, document_type, change_date, archived_by_auth_id",
+        )
+        .order("change_date", { ascending: false });
       if (error) {
-        setArchivedDocs([])
+        setArchivedDocs([]);
       } else {
-        setArchivedDocs(data || [])
+        setArchivedDocs(data || []);
       }
-      setLoading(false)
-    }
-    fetchArchived()
-  }, [])
+      setLoading(false);
+    };
+    fetchArchived();
+  }, []);
 
   return (
     <main className="archived-documents-main">
       <div className="archived-documents-header">
         <h1 className="archived-documents-title">Archived Documents</h1>
-        <p className="archived-documents-subtitle">View all archived document versions</p>
+        <p className="archived-documents-subtitle">
+          View all archived document versions
+        </p>
       </div>
       <div className="archived-documents-header-spacer" />
       <div className="archived-documents-content">
@@ -56,32 +60,47 @@ export default function ArchivedDocumentsPage() {
         ) : (
           <NeonTable
             columns={[
-              { header: 'Title', accessor: 'title' },
-              { header: 'Type', accessor: 'document_type' },
-              { header: 'Version', accessor: 'archived_version' },
-              { header: 'Date Archived', accessor: 'change_date' },
-              { header: 'Archived By', accessor: 'archived_by_auth_id' },
-              { header: 'File', accessor: 'file_url' },
+              { header: "Title", accessor: "title" },
+              { header: "Type", accessor: "document_type" },
+              { header: "Version", accessor: "archived_version" },
+              { header: "Date Archived", accessor: "change_date" },
+              { header: "Archived By", accessor: "archived_by_auth_id" },
+              { header: "File", accessor: "file_url" },
             ]}
-            data={archivedDocs.map(doc => {
-              let typeIcon = null
-              if (doc.document_type === 'policy') typeIcon = <FiFileText title="Policy" size={18} />
-              else if (doc.document_type === 'ssow') typeIcon = <FiClipboard title="SSOW" size={18} />
-              else if (doc.document_type === 'work_instruction') typeIcon = <FiBookOpen title="Work Instruction" size={18} />
+            data={archivedDocs.map((doc) => {
+              let typeIcon = null;
+              if (doc.document_type === "policy")
+                typeIcon = <FiFileText title="Policy" size={18} />;
+              else if (doc.document_type === "ssow")
+                typeIcon = <FiClipboard title="SSOW" size={18} />;
+              else if (doc.document_type === "work_instruction")
+                typeIcon = <FiBookOpen title="Work Instruction" size={18} />;
               return {
                 title: doc.title,
-                document_type: <div className="archived-documents-type-cell">{typeIcon}</div>,
+                document_type: (
+                  <div className="archived-documents-type-cell">{typeIcon}</div>
+                ),
                 archived_version: doc.archived_version,
-                change_date: doc.change_date ? new Date(doc.change_date).toLocaleString('en-GB') : '—',
-                archived_by_auth_id: doc.archived_by_auth_id || '—',
+                change_date: doc.change_date
+                  ? new Date(doc.change_date).toLocaleString("en-GB")
+                  : "—",
+                archived_by_auth_id: doc.archived_by_auth_id || "—",
                 file_url: doc.file_url ? (
-                  <a href={doc.file_url} rel="noopener noreferrer" className="archived-documents-file-link">View PDF</a>
-                ) : '—',
-              }
+                  <a
+                    href={doc.file_url}
+                    rel="noopener noreferrer"
+                    className="archived-documents-file-link"
+                  >
+                    View PDF
+                  </a>
+                ) : (
+                  "—"
+                ),
+              };
             })}
           />
         )}
       </div>
     </main>
-  )
+  );
 }

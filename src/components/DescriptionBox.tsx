@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import React from "react"
+import React from "react";
 
 export default function DescriptionBox() {
   return (
@@ -15,10 +15,10 @@ export default function DescriptionBox() {
       <div className="description-box-content">
         <h1 className="description-box-title">Welcome to NARANJA</h1>
         <p className="description-box-text">
-          Your trusted partner in food manufacturing training.
-          Explore our work instructions, instructional media, and get in touch with us.
+          Your trusted partner in food manufacturing training. Explore our work
+          instructions, instructional media, and get in touch with us.
         </p>
       </div>
     </div>
-  )
+  );
 }

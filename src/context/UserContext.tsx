@@ -1,7 +1,14 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useEffect, useMemo, useState, ReactNode } from 'react';
-import { supabase } from '@/lib/supabase-client';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  ReactNode,
+} from "react";
+import { supabase } from "@/lib/supabase-client";
 
 type AppUser = {
   id: string;
@@ -21,14 +28,17 @@ const UserContext = createContext<Ctx>({ user: null, loading: true });
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError]   = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   async function loadUser() {
     try {
       setLoading(true);
       setError(null);
 
-      const { data: { user: authUser }, error: authErr } = await supabase.auth.getUser();
+      const {
+        data: { user: authUser },
+        error: authErr,
+      } = await supabase.auth.getUser();
       if (authErr) throw authErr;
 
       if (!authUser) {
@@ -37,9 +47,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
       }
 
       const { data, error: profileErr } = await supabase
-        .from('users')
-        .select('id,email,department_id,first_name,last_name,avatar_url,access_level') // select only what you need
-        .eq('auth_id', authUser.id)
+        .from("users")
+        .select(
+          "id,email,department_id,first_name,last_name,avatar_url,access_level",
+        ) // select only what you need
+        .eq("auth_id", authUser.id)
         .single();
 
       if (profileErr) throw profileErr;
@@ -50,7 +62,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       if (e instanceof Error) {
         setError(e.message);
       } else {
-        setError('Failed to load user');
+        setError("Failed to load user");
       }
       setUser(null);
     } finally {
@@ -72,7 +84,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const value = useMemo(() => ({ user, loading, error }), [user, loading, error]);
+  const value = useMemo(
+    () => ({ user, loading, error }),
+    [user, loading, error],
+  );
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 }

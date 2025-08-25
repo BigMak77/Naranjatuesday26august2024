@@ -3,8 +3,22 @@
 import Link, { LinkProps } from "next/link";
 import React, { ComponentProps, ReactElement } from "react";
 import {
-  FiLogIn, FiInfo, FiPlus, FiEye, FiTrash2, FiChevronRight, FiChevronLeft,
-  FiArchive, FiCheck, FiSave, FiX, FiEdit, FiDownload, FiUpload, FiSearch, FiRefreshCw
+  FiLogIn,
+  FiInfo,
+  FiPlus,
+  FiEye,
+  FiTrash2,
+  FiChevronRight,
+  FiChevronLeft,
+  FiArchive,
+  FiCheck,
+  FiSave,
+  FiX,
+  FiEdit,
+  FiDownload,
+  FiUpload,
+  FiSearch,
+  FiRefreshCw,
 } from "react-icons/fi";
 
 const ICONS = {
@@ -30,15 +44,23 @@ type Variant = keyof typeof ICONS;
 
 type BaseProps = {
   variant: Variant;
-  icon?: ReactElement;        // optional override
-  title: string;              // tooltip + aria-label
+  icon?: ReactElement; // optional override
+  title: string; // tooltip + aria-label
   className?: string;
   children?: React.ReactNode;
 };
 
-type ButtonProps = BaseProps & { as?: "button" } & Omit<ComponentProps<"button">, "className" | "title">;
-type AnchorProps = BaseProps & { as: "a" } & Omit<ComponentProps<"a">, "className" | "title">;
-type NextLinkOwn = BaseProps & { as: "link" } & Omit<LinkProps, "href"> & { href: LinkProps["href"] };
+type ButtonProps = BaseProps & { as?: "button" } & Omit<
+    ComponentProps<"button">,
+    "className" | "title"
+  >;
+type AnchorProps = BaseProps & { as: "a" } & Omit<
+    ComponentProps<"a">,
+    "className" | "title"
+  >;
+type NextLinkOwn = BaseProps & { as: "link" } & Omit<LinkProps, "href"> & {
+    href: LinkProps["href"];
+  };
 
 type Props = ButtonProps | AnchorProps | NextLinkOwn;
 

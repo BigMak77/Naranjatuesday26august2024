@@ -1,7 +1,9 @@
 // filepath: /Users/bigmak/Documents/Naranja 4.2/postcss.config.mjs
-export default {
+const config = {
   plugins: {
-    '@tailwindcss/postcss': {},
+    tailwindcss: {},
     autoprefixer: {},
   },
 };
+
+export default config;

@@ -1,7 +1,10 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import ModuleSelect, { fetchActiveModules, Module } from "@/components/ModuleSelect";
+import ModuleSelect, {
+  fetchActiveModules,
+  Module,
+} from "@/components/ModuleSelect";
 import ArchiveModuleTab from "@/components/modules/ArchiveModuleTab";
 
 export default function TrainingLogPage() {

@@ -1,18 +1,24 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
-import { useRouter, useParams, usePathname } from 'next/navigation';
-import { supabase } from '@/lib/supabase-client';
-import NeonModuleForm, { NeonModuleFormField } from '@/components/NeonModuleForm';
+import { useEffect, useMemo, useState } from "react";
+import { useRouter, useParams, usePathname } from "next/navigation";
+import { supabase } from "@/lib/supabase-client";
+import NeonModuleForm, {
+  NeonModuleFormField,
+} from "@/components/NeonModuleForm";
 
 // --- helpers ---
 const isUuid = (v: unknown): v is string =>
-  typeof v === 'string' &&
-  /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/.test(v);
+  typeof v === "string" &&
+  /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/.test(
+    v,
+  );
 
 const extractUuidFromPath = (path: string | null) => {
   if (!path) return null;
-  const m = path.match(/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}/);
+  const m = path.match(
+    /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}/,
+  );
   return m ? m[0] : null;
 };
 
@@ -40,17 +46,57 @@ export function ViewModuleTab({ module }: { module: Module }) {
     <div className="view-module-tab">
       <h2 className="view-module-title">{module.name}</h2>
       <p className="view-module-description">{module.description}</p>
-      <div className="view-module-meta">Version: <span>{module.version}</span></div>
-      <div className="view-module-meta">Status: <span>{module.is_archived ? 'Archived' : 'Active'}</span></div>
-      <div className="view-module-meta">Group ID: <span>{module.group_id}</span></div>
-      <div className="view-module-meta">Learning Objectives: <span>{module.learning_objectives || '—'}</span></div>
-      <div className="view-module-meta">Estimated Duration: <span>{module.estimated_duration || '—'}</span></div>
-      <div className="view-module-meta">Delivery Format: <span>{module.delivery_format || '—'}</span></div>
-      <div className="view-module-meta">Target Audience: <span>{module.target_audience || '—'}</span></div>
-      <div className="view-module-meta">Prerequisites: <span>{(module.prerequisites && module.prerequisites.length > 0) ? module.prerequisites.join(', ') : '—'}</span></div>
-      <div className="view-module-meta">Tags: <span>{(module.tags && module.tags.length > 0) ? module.tags.join(', ') : '—'}</span></div>
-      <div className="view-module-meta">Created At: <span>{module.created_at ? new Date(module.created_at).toLocaleString() : '—'}</span></div>
-      <div className="view-module-meta">Updated At: <span>{module.updated_at ? new Date(module.updated_at).toLocaleString() : '—'}</span></div>
+      <div className="view-module-meta">
+        Version: <span>{module.version}</span>
+      </div>
+      <div className="view-module-meta">
+        Status: <span>{module.is_archived ? "Archived" : "Active"}</span>
+      </div>
+      <div className="view-module-meta">
+        Group ID: <span>{module.group_id}</span>
+      </div>
+      <div className="view-module-meta">
+        Learning Objectives: <span>{module.learning_objectives || "—"}</span>
+      </div>
+      <div className="view-module-meta">
+        Estimated Duration: <span>{module.estimated_duration || "—"}</span>
+      </div>
+      <div className="view-module-meta">
+        Delivery Format: <span>{module.delivery_format || "—"}</span>
+      </div>
+      <div className="view-module-meta">
+        Target Audience: <span>{module.target_audience || "—"}</span>
+      </div>
+      <div className="view-module-meta">
+        Prerequisites:{" "}
+        <span>
+          {module.prerequisites && module.prerequisites.length > 0
+            ? module.prerequisites.join(", ")
+            : "—"}
+        </span>
+      </div>
+      <div className="view-module-meta">
+        Tags:{" "}
+        <span>
+          {module.tags && module.tags.length > 0 ? module.tags.join(", ") : "—"}
+        </span>
+      </div>
+      <div className="view-module-meta">
+        Created At:{" "}
+        <span>
+          {module.created_at
+            ? new Date(module.created_at).toLocaleString()
+            : "—"}
+        </span>
+      </div>
+      <div className="view-module-meta">
+        Updated At:{" "}
+        <span>
+          {module.updated_at
+            ? new Date(module.updated_at).toLocaleString()
+            : "—"}
+        </span>
+      </div>
     </div>
   );
 }
@@ -75,48 +121,54 @@ export default function EditModulePage() {
   const [showVersionModal, setShowVersionModal] = useState(false);
 
   // form state
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const [version, setVersion] = useState<number>(1);
-  const [groupId, setGroupId] = useState('');
-  const [learningObjectives, setLearningObjectives] = useState('');
-  const [estimatedDuration, setEstimatedDuration] = useState('');
-  const [deliveryFormat, setDeliveryFormat] = useState('');
-  const [targetAudience, setTargetAudience] = useState('');
+  const [groupId, setGroupId] = useState("");
+  const [learningObjectives, setLearningObjectives] = useState("");
+  const [estimatedDuration, setEstimatedDuration] = useState("");
+  const [deliveryFormat, setDeliveryFormat] = useState("");
+  const [targetAudience, setTargetAudience] = useState("");
   const [prerequisites, setPrerequisites] = useState<string[]>([]);
-  const [thumbnailUrl, setThumbnailUrl] = useState('');
+  const [thumbnailUrl, setThumbnailUrl] = useState("");
 
   // fetch module
   useEffect(() => {
     const run = async () => {
       if (!derivedId) {
-        setError('Invalid or missing module ID in URL.');
+        setError("Invalid or missing module ID in URL.");
         setLoading(false);
         return;
       }
       const { data, error } = await supabase
-        .from('modules')
-        .select('*')
-        .eq('id', derivedId)
-        .eq('is_archived', false) // Only fetch non-archived modules
+        .from("modules")
+        .select("*")
+        .eq("id", derivedId)
+        .eq("is_archived", false) // Only fetch non-archived modules
         .single();
 
       if (error || !data) {
-        setError('Module not found');
+        setError("Module not found");
         setLoading(false);
         return;
       }
 
-      setName(data.name || '');
-      setDescription(data.description || '');
-      setVersion(typeof data.version === 'number' ? data.version : Number(data.version ?? 1) || 1);
-      setGroupId(data.group_id || '');
-      setLearningObjectives(data.learning_objectives || '');
-      setEstimatedDuration(data.estimated_duration || '');
-      setDeliveryFormat(data.delivery_format || '');
-      setTargetAudience(data.target_audience || '');
-      setPrerequisites(Array.isArray(data.prerequisites) ? data.prerequisites : []);
-      setThumbnailUrl(data.thumbnail_url || '');
+      setName(data.name || "");
+      setDescription(data.description || "");
+      setVersion(
+        typeof data.version === "number"
+          ? data.version
+          : Number(data.version ?? 1) || 1,
+      );
+      setGroupId(data.group_id || "");
+      setLearningObjectives(data.learning_objectives || "");
+      setEstimatedDuration(data.estimated_duration || "");
+      setDeliveryFormat(data.delivery_format || "");
+      setTargetAudience(data.target_audience || "");
+      setPrerequisites(
+        Array.isArray(data.prerequisites) ? data.prerequisites : [],
+      );
+      setThumbnailUrl(data.thumbnail_url || "");
       setLoading(false);
     };
 
@@ -133,7 +185,7 @@ export default function EditModulePage() {
     setError(null);
 
     if (!derivedId) {
-      setError('Invalid module ID.');
+      setError("Invalid module ID.");
       return;
     }
 
@@ -144,7 +196,7 @@ export default function EditModulePage() {
     }
 
     const { error } = await supabase
-      .from('modules')
+      .from("modules")
       .update({
         name,
         description,
@@ -158,15 +210,15 @@ export default function EditModulePage() {
         thumbnail_url: thumbnailUrl,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', derivedId);
+      .eq("id", derivedId);
 
     if (error) {
-      setError('Failed to update module');
+      setError("Failed to update module");
     } else {
       setSuccess(true);
       setTimeout(() => {
         setSuccess(false);
-        router.push('/admin/modules'); // back to modules list
+        router.push("/admin/modules"); // back to modules list
       }, 1200);
     }
   };
@@ -175,14 +227,66 @@ export default function EditModulePage() {
   if (error) return <p className="neon-error">{error}</p>;
 
   const fields: NeonModuleFormField[] = [
-    { key: 'name', label: 'Name', type: 'text', value: name, onChange: (v) => setName(String(v)), required: true },
-    { key: 'description', label: 'Description', type: 'text', value: description, onChange: (v) => setDescription(String(v)) },
-    { key: 'learningObjectives', label: 'Learning Objectives', type: 'textarea', value: learningObjectives, onChange: (v) => setLearningObjectives(String(v)), rows: 2 },
-    { key: 'groupId', label: 'Group ID', type: 'text', value: groupId, onChange: (v) => setGroupId(String(v)), required: true },
-    { key: 'estimatedDuration', label: 'Estimated Duration', type: 'text', value: estimatedDuration, onChange: (v) => setEstimatedDuration(String(v)), placeholder: 'Enter duration (e.g. 1h 30m)' },
-    { key: 'deliveryFormat', label: 'Delivery Format', type: 'text', value: deliveryFormat, onChange: (v) => setDeliveryFormat(String(v)) },
-    { key: 'targetAudience', label: 'Target Audience', type: 'text', value: targetAudience, onChange: (v) => setTargetAudience(String(v)) },
-    { key: 'thumbnailUrl', label: 'Thumbnail URL', type: 'text', value: thumbnailUrl, onChange: (v) => setThumbnailUrl(String(v)) },
+    {
+      key: "name",
+      label: "Name",
+      type: "text",
+      value: name,
+      onChange: (v) => setName(String(v)),
+      required: true,
+    },
+    {
+      key: "description",
+      label: "Description",
+      type: "text",
+      value: description,
+      onChange: (v) => setDescription(String(v)),
+    },
+    {
+      key: "learningObjectives",
+      label: "Learning Objectives",
+      type: "textarea",
+      value: learningObjectives,
+      onChange: (v) => setLearningObjectives(String(v)),
+      rows: 2,
+    },
+    {
+      key: "groupId",
+      label: "Group ID",
+      type: "text",
+      value: groupId,
+      onChange: (v) => setGroupId(String(v)),
+      required: true,
+    },
+    {
+      key: "estimatedDuration",
+      label: "Estimated Duration",
+      type: "text",
+      value: estimatedDuration,
+      onChange: (v) => setEstimatedDuration(String(v)),
+      placeholder: "Enter duration (e.g. 1h 30m)",
+    },
+    {
+      key: "deliveryFormat",
+      label: "Delivery Format",
+      type: "text",
+      value: deliveryFormat,
+      onChange: (v) => setDeliveryFormat(String(v)),
+    },
+    {
+      key: "targetAudience",
+      label: "Target Audience",
+      type: "text",
+      value: targetAudience,
+      onChange: (v) => setTargetAudience(String(v)),
+    },
+    {
+      key: "thumbnailUrl",
+      label: "Thumbnail URL",
+      type: "text",
+      value: thumbnailUrl,
+      onChange: (v) => setThumbnailUrl(String(v)),
+    },
   ];
 
   return (

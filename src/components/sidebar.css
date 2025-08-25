@@ -10,12 +10,15 @@
   top: var(--sidebar-top, 120px);
   width: 160px; /* use a moderate width for usability */
   height: calc(100vh - var(--sidebar-top, 120px));
-  background: var(--neon, rgba(236, 146, 13, 0.98)); /* use neon system variable, fallback to orange */
+  background: var(
+    --neon,
+    rgba(236, 146, 13, 0.98)
+  ); /* use neon system variable, fallback to orange */
   box-shadow: 0 0 8px var(--neon, rgba(236, 146, 13, 0.98));
   border-right: 1px solid var(--neon, rgba(236, 146, 13, 0.98));
   z-index: 1000;
   transform: translateX(-100%);
-  transition: transform 0.25s cubic-bezier(.7,.3,.3,1);
+  transition: transform 0.25s cubic-bezier(0.7, 0.3, 0.3, 1);
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -42,7 +45,6 @@
   border: none;
   cursor: pointer;
   transition: background 0.18s;
-
 }
 .sidebar-close-btn svg {
   width: 20px;
@@ -64,7 +66,9 @@
   padding: 0.75rem 1rem;
   border-radius: 8px;
   text-decoration: none;
-  transition: background 0.18s, color 0.18s;
+  transition:
+    background 0.18s,
+    color 0.18s;
   font-family: var(--font-family, inherit);
 }
 .sidebar-link:hover {

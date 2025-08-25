@@ -2,12 +2,31 @@
 "use client";
 import { useMemo, useState } from "react";
 import styles from "./Reporting.module.css";
-import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, BarChart, Bar } from "recharts";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+} from "recharts";
 
 export type ReportRow = { bucket_ts: string | number; value: number | string };
 
-export default function ReportViewer({ rows, chart="line" }: { rows: ReportRow[]; chart?: "line"|"bar"|"table" }) {
-  const data = useMemo(()=> rows.map(r => ({ x: r.bucket_ts, y: Number(r.value) })), [rows]);
+export default function ReportViewer({
+  rows,
+  chart = "line",
+}: {
+  rows: ReportRow[];
+  chart?: "line" | "bar" | "table";
+}) {
+  const data = useMemo(
+    () => rows.map((r) => ({ x: r.bucket_ts, y: Number(r.value) })),
+    [rows],
+  );
   const [mode, setMode] = useState(chart);
 
   if (!rows?.length) return <div className={styles.panel}>No data</div>;
@@ -15,9 +34,15 @@ export default function ReportViewer({ rows, chart="line" }: { rows: ReportRow[]
   return (
     <div className={styles.panel}>
       <div className={styles.toolbar}>
-        <button className={styles.btn} onClick={()=>setMode("line")}>Line</button>
-        <button className={styles.btn} onClick={()=>setMode("bar")}>Bar</button>
-        <button className={styles.btn} onClick={()=>setMode("table")}>Table</button>
+        <button className={styles.btn} onClick={() => setMode("line")}>
+          Line
+        </button>
+        <button className={styles.btn} onClick={() => setMode("bar")}>
+          Bar
+        </button>
+        <button className={styles.btn} onClick={() => setMode("table")}>
+          Table
+        </button>
       </div>
 
       {mode !== "table" && (
@@ -46,8 +71,20 @@ export default function ReportViewer({ rows, chart="line" }: { rows: ReportRow[]
 
       {mode === "table" && (
         <table className={styles.table}>
-          <thead><tr><th>Time</th><th>Value</th></tr></thead>
-          <tbody>{rows.map((r,i)=>(<tr key={i}><td>{r.bucket_ts}</td><td>{r.value}</td></tr>))}</tbody>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r, i) => (
+              <tr key={i}>
+                <td>{r.bucket_ts}</td>
+                <td>{r.value}</td>
+              </tr>
+            ))}
+          </tbody>
         </table>
       )}
     </div>

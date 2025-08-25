@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import React from 'react'
-import MyTasks from '@/components/task/MyTasksWidget'
+import React from "react";
+import MyTasks from "@/components/task/MyTasksWidget";
 
 export default function TurkusTasksPage() {
   return (
@@ -10,5 +10,5 @@ export default function TurkusTasksPage() {
         <MyTasks />
       </main>
     </div>
-  )
+  );
 }

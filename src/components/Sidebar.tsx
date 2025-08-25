@@ -4,7 +4,9 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { FiTool, FiX } from "react-icons/fi";
 
-const sidebarLinks = [{ href: "/admin/utility/shift", label: "Utility", icon: <FiTool /> }];
+const sidebarLinks = [
+  { href: "/admin/utility/shift", label: "Utility", icon: <FiTool /> },
+];
 
 export default function Sidebar() {
   const [open, setOpen] = useState(false);
@@ -18,7 +20,13 @@ export default function Sidebar() {
         onClick={() => setOpen(true)}
         aria-label="Open sidebar"
       >
-        <span style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <span
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
           <FiTool />
         </span>
       </button>
@@ -29,7 +37,13 @@ export default function Sidebar() {
           onClick={() => setOpen(false)}
           aria-label="Close sidebar"
         >
-          <span style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <span
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <FiX />
           </span>
         </button>
@@ -38,7 +52,12 @@ export default function Sidebar() {
             <Link key={link.href} href={link.href} className="sidebar-link">
               <span
                 className="sidebar-icon"
-                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", marginRight: "0.5em" }}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginRight: "0.5em",
+                }}
               >
                 {link.icon}
               </span>

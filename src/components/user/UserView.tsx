@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { useUser } from '@/lib/useUser';
-import UserProfileCardSection from '@/components/UserProfileCardSection';
-import UserTrainingDashboard from '@/components/training/UserTrainingDashboard';
-import UserTrainingRequest from '@/components/user/UserTrainingRequest';
+import React from "react";
+import { useUser } from "@/lib/useUser";
+import UserProfileCardSection from "@/components/UserProfileCardSection";
+import UserTrainingDashboard from "@/components/training/UserTrainingDashboard";
+import UserTrainingRequest from "@/components/user/UserTrainingRequest";
 
 export default function UserView() {
   const { user, profile } = useUser() as {
-    user?: { id?: string } | null;            // Supabase Auth user (auth.uid)
+    user?: { id?: string } | null; // Supabase Auth user (auth.uid)
     profile?: { id?: string; auth_id?: string } | null; // Your app users row
   };
 

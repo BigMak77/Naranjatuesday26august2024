@@ -1,7 +1,7 @@
 "use client";
 
-import UserManagementPanel from '@/components/user/UserManagementPanel'
+import UserManagementPanel from "@/components/user/UserManagementPanel";
 
 export default function PeopleManagementPage() {
-  return <UserManagementPanel />
+  return <UserManagementPanel />;
 }

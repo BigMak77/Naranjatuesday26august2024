@@ -1,6 +1,6 @@
 // middleware.ts (temporary)
-import { NextResponse } from 'next/server'
+import { NextResponse } from "next/server";
 export function middleware() {
-  return NextResponse.next()
+  return NextResponse.next();
 }
-export const config = { matcher: [] }
+export const config = { matcher: [] };

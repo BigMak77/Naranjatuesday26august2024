@@ -1,6 +1,6 @@
-import Link from 'next/link';
-import { FaLinkedin, FaEnvelope } from 'react-icons/fa';
-import { FiX } from 'react-icons/fi';
+import Link from "next/link";
+import { FaLinkedin, FaEnvelope } from "react-icons/fa";
+import { FiX } from "react-icons/fi";
 // Removed CSS module import; using global styles only
 
 export default function GlobalFooter() {

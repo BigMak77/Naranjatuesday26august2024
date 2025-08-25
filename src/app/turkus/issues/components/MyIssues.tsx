@@ -1,7 +1,7 @@
 "use client";
-import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase-client';
-import { FiAlertCircle } from 'react-icons/fi'; // Add Fi icon import
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase-client";
+import { FiAlertCircle } from "react-icons/fi"; // Add Fi icon import
 
 interface Department {
   name: string;
@@ -24,7 +24,7 @@ export default function MyIssues() {
   useEffect(() => {
     const fetch = async () => {
       // TODO: Replace with your actual auth logic
-      const authData = { user: { user_metadata: { department_id: '' } } };
+      const authData = { user: { user_metadata: { department_id: "" } } };
       if (!authData?.user) {
         setIssues([]);
         setLoading(false);
@@ -32,18 +32,22 @@ export default function MyIssues() {
       }
       // Fetch issues for user's department
       const { data } = await supabase
-        .from('issues')
-        .select('id, title, priority, status, created_at, departments (name)')
-        .eq('department_id', authData.user.user_metadata?.department_id || '');
-      setIssues((data || []).map((issue) => ({
-        id: Number(issue.id),
-        title: issue.title ?? '',
-        priority: issue.priority ?? '',
-        status: issue.status ?? '',
-        created_at: issue.created_at ?? '',
-        departments: issue.departments ?? null,
-        department: Array.isArray(issue?.departments) ? issue.departments[0] : issue?.departments ?? null
-      })));
+        .from("issues")
+        .select("id, title, priority, status, created_at, departments (name)")
+        .eq("department_id", authData.user.user_metadata?.department_id || "");
+      setIssues(
+        (data || []).map((issue) => ({
+          id: Number(issue.id),
+          title: issue.title ?? "",
+          priority: issue.priority ?? "",
+          status: issue.status ?? "",
+          created_at: issue.created_at ?? "",
+          departments: issue.departments ?? null,
+          department: Array.isArray(issue?.departments)
+            ? issue.departments[0]
+            : (issue?.departments ?? null),
+        })),
+      );
       setLoading(false);
     };
     fetch();
@@ -64,11 +68,17 @@ export default function MyIssues() {
             <li key={issue.id} className="my-issues-list-item">
               <div>
                 <div className="my-issues-title">{issue.title}</div>
-                <div className="my-issues-meta">Priority: {issue.priority} · Status: {issue.status} · {new Date(issue.created_at).toLocaleDateString()} · Department: {issue.department?.name || 'N/A'}</div>
+                <div className="my-issues-meta">
+                  Priority: {issue.priority} · Status: {issue.status} ·{" "}
+                  {new Date(issue.created_at).toLocaleDateString()} ·
+                  Department: {issue.department?.name || "N/A"}
+                </div>
               </div>
               <button
                 className="my-issues-view-btn"
-                onClick={() => window.location.href = `/turkus/issues/${issue.id}`}
+                onClick={() =>
+                  (window.location.href = `/turkus/issues/${issue.id}`)
+                }
               >
                 View Issue
               </button>

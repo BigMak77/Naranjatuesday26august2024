@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useCallback } from 'react';
-import { supabase } from '@/lib/supabase-client';
-import CertificateTemplate from '@/components/training/CertificateTemplate';
-import NeonPanel from '@/components/NeonPanel';
-import NeonTable from '@/components/NeonTable';
-import NeonIconButton from '../ui/NeonIconButton';
-import { FiX, FiDownload, FiCheck } from 'react-icons/fi';
+import { useEffect, useState, useCallback } from "react";
+import { supabase } from "@/lib/supabase-client";
+import CertificateTemplate from "@/components/training/CertificateTemplate";
+import NeonPanel from "@/components/NeonPanel";
+import NeonTable from "@/components/NeonTable";
+import NeonIconButton from "../ui/NeonIconButton";
+import { FiX, FiDownload, FiCheck } from "react-icons/fi";
 
-type ItemType = 'module' | 'document' | 'behaviour';
-type Status = 'assigned' | 'opened' | 'completed';
-type ViewMode = 'all' | 'grouped';
+type ItemType = "module" | "document" | "behaviour";
+type Status = "assigned" | "opened" | "completed";
+type ViewMode = "all" | "grouped";
 
 type RpcRow = {
   item_id: string;
@@ -35,29 +35,45 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [showCert, setShowCert] = useState<{ name: string; training: string; date: string } | null>(null);
-  const [userFullName, setUserFullName] = useState('User');
+  const [showCert, setShowCert] = useState<{
+    name: string;
+    training: string;
+    date: string;
+  } | null>(null);
+  const [userFullName, setUserFullName] = useState("User");
 
-  const [viewingModule, setViewingModule] = useState<{ id: string; name: string } | null>(null);
-  const [viewingDocument, setViewingDocument] = useState<{ id: string; name: string } | null>(null);
+  const [viewingModule, setViewingModule] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [viewingDocument, setViewingDocument] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const [moduleContent, setModuleContent] = useState<string | null>(null);
   const [documentContent, setDocumentContent] = useState<string | null>(null);
 
-  const [viewMode, setViewMode] = useState<ViewMode>('all');
+  const [viewMode, setViewMode] = useState<ViewMode>("all");
 
   // prevent double-click spam while a completion is saving
   const [completing, setCompleting] = useState<Set<string>>(new Set());
   const rowKey = (a: Assignment) => `${a.type}:${a.id}`;
 
   const fmt = (iso?: string | null) =>
-    iso ? new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: '2-digit' }) : '';
+    iso
+      ? new Date(iso).toLocaleDateString(undefined, {
+          year: "numeric",
+          month: "short",
+          day: "2-digit",
+        })
+      : "";
 
   const whenOf = (a: Assignment) =>
-    a.status === 'completed'
+    a.status === "completed"
       ? fmt(a.completed_at)
-      : a.status === 'opened'
-      ? `Opened on ${fmt(a.opened_at)}`
-      : '—';
+      : a.status === "opened"
+        ? `Opened on ${fmt(a.opened_at)}`
+        : "—";
 
   const fetchAll = useCallback(async () => {
     if (!authId) return;
@@ -66,15 +82,20 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
     try {
       // tolerant lookup: works if your 'users' table keys by auth_id or id
       const { data: user, error: userErr } = await supabase
-        .from('users')
-        .select('first_name, last_name')
+        .from("users")
+        .select("first_name, last_name")
         .or(`auth_id.eq.${authId},id.eq.${authId}`)
         .limit(1)
         .single();
-      if (userErr && userErr.code !== 'PGRST116') throw userErr;
-      setUserFullName(`${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || 'User');
+      if (userErr && userErr.code !== "PGRST116") throw userErr;
+      setUserFullName(
+        `${user?.first_name ?? ""} ${user?.last_name ?? ""}`.trim() || "User",
+      );
 
-      const { data: rpcData, error: rpcErr } = await supabase.rpc('api_get_my_training', { _auth_id: authId });
+      const { data: rpcData, error: rpcErr } = await supabase.rpc(
+        "api_get_my_training",
+        { _auth_id: authId },
+      );
       if (rpcErr) throw rpcErr;
 
       const rows = (rpcData as RpcRow[]) ?? [];
@@ -82,17 +103,19 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
         .map((r) => ({
           id: r.item_id,
           type: r.item_type,
-          name: r.name ?? '(untitled)',
+          name: r.name ?? "(untitled)",
           status: r.status,
           opened_at: r.opened_at,
           completed_at: r.completed_at,
         }))
-        .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+        .sort((a, b) =>
+          a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+        );
 
       setAssignments(normalized);
     } catch (e: unknown) {
       console.error(e);
-      setError(e instanceof Error ? e.message : 'Something went wrong.');
+      setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
       setLoading(false);
     }
@@ -105,7 +128,7 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
   // --- Actions: write directly to user_assignments ---------------------------
 
   const handleComplete = async (a: Assignment) => {
-    if (a.status === 'completed') return;
+    if (a.status === "completed") return;
 
     const k = rowKey(a);
     const now = new Date().toISOString();
@@ -118,19 +141,24 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
     setAssignments((prev) =>
       prev.map((x) =>
         x.id === a.id && x.type === a.type
-          ? { ...x, status: 'completed', completed_at: now, opened_at: x.opened_at ?? now }
-          : x
-      )
+          ? {
+              ...x,
+              status: "completed",
+              completed_at: now,
+              opened_at: x.opened_at ?? now,
+            }
+          : x,
+      ),
     );
 
     try {
       const openedAt = a.opened_at ?? now;
       const { error } = await supabase
-        .from('user_assignments')
+        .from("user_assignments")
         .update({ opened_at: openedAt, completed_at: now })
-        .eq('auth_id', authId)
-        .eq('item_id', a.id)
-        .eq('item_type', a.type)
+        .eq("auth_id", authId)
+        .eq("item_id", a.id)
+        .eq("item_type", a.type)
         .select(); // forces error surface + allows checking affected rows if needed
       if (error) throw error;
 
@@ -138,10 +166,12 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
       fetchAll();
     } catch (e: unknown) {
       console.error(e);
-      setError(e instanceof Error ? e.message : 'Failed to mark complete.');
+      setError(e instanceof Error ? e.message : "Failed to mark complete.");
       // rollback
       setAssignments((prev) =>
-        prev.map((x) => (x.id === snapshot.id && x.type === snapshot.type ? snapshot : x))
+        prev.map((x) =>
+          x.id === snapshot.id && x.type === snapshot.type ? snapshot : x,
+        ),
       );
     } finally {
       setCompleting((prev) => {
@@ -159,35 +189,39 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
     // optimistic open state
     setAssignments((prev) =>
       prev.map((a) =>
-        a.id === mod.id && a.type === 'module'
+        a.id === mod.id && a.type === "module"
           ? {
               ...a,
               opened_at: a.opened_at ?? now,
-              status: a.status === 'assigned' ? 'opened' : a.status,
+              status: a.status === "assigned" ? "opened" : a.status,
             }
-          : a
-      )
+          : a,
+      ),
     );
 
     // persist open in union table
     try {
       const { error } = await supabase
-        .from('user_assignments')
+        .from("user_assignments")
         .update({ opened_at: now })
-        .eq('auth_id', authId)
-        .eq('item_id', mod.id)
-        .eq('item_type', 'module')
-        .is('opened_at', null) // only set if it was null (first open)
+        .eq("auth_id", authId)
+        .eq("item_id", mod.id)
+        .eq("item_type", "module")
+        .is("opened_at", null) // only set if it was null (first open)
         .select();
       if (error) throw error;
     } catch (e) {
       // ignore — optimistic UI already applied
-      console.warn('open update failed (module):', e);
+      console.warn("open update failed (module):", e);
     }
 
     // load content
-    const { data } = await supabase.from('modules').select('content').eq('id', mod.id).single();
-    setModuleContent(data?.content || 'No content available.');
+    const { data } = await supabase
+      .from("modules")
+      .select("content")
+      .eq("id", mod.id)
+      .single();
+    setModuleContent(data?.content || "No content available.");
   };
 
   const handleViewDocument = async (doc: { id: string; name: string }) => {
@@ -197,39 +231,47 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
     // optimistic open state
     setAssignments((prev) =>
       prev.map((a) =>
-        a.id === doc.id && a.type === 'document'
+        a.id === doc.id && a.type === "document"
           ? {
               ...a,
               opened_at: a.opened_at ?? now,
-              status: a.status === 'assigned' ? 'opened' : a.status,
+              status: a.status === "assigned" ? "opened" : a.status,
             }
-          : a
-      )
+          : a,
+      ),
     );
 
     // persist open in union table
     try {
       const { error } = await supabase
-        .from('user_assignments')
+        .from("user_assignments")
         .update({ opened_at: now })
-        .eq('auth_id', authId)
-        .eq('item_id', doc.id)
-        .eq('item_type', 'document')
-        .is('opened_at', null)
+        .eq("auth_id", authId)
+        .eq("item_id", doc.id)
+        .eq("item_type", "document")
+        .is("opened_at", null)
         .select();
       if (error) throw error;
     } catch (e) {
-      console.warn('open update failed (document):', e);
+      console.warn("open update failed (document):", e);
     }
 
     // load link
-    const { data } = await supabase.from('documents').select('file_url').eq('id', doc.id).single();
+    const { data } = await supabase
+      .from("documents")
+      .select("file_url")
+      .eq("id", doc.id)
+      .single();
     setDocumentContent(data?.file_url || null);
   };
 
   const handleShowCertificate = (a: Assignment) => {
-    if (a.status !== 'completed' || !a.completed_at) return;
-    setShowCert({ name: userFullName, training: a.name, date: fmt(a.completed_at) });
+    if (a.status !== "completed" || !a.completed_at) return;
+    setShowCert({
+      name: userFullName,
+      training: a.name,
+      date: fmt(a.completed_at),
+    });
   };
 
   if (!authId) return null;
@@ -239,24 +281,29 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
   const allRows = assignments.map((a) => ({
     name: a.name,
     type: a.type,
-    status: a.status === 'completed' ? 'Completed' : a.status === 'opened' ? 'Opened' : 'Incomplete',
+    status:
+      a.status === "completed"
+        ? "Completed"
+        : a.status === "opened"
+          ? "Opened"
+          : "Incomplete",
     when: whenOf(a),
     actions: (
       <div className="flex gap-2">
-        {a.type !== 'behaviour' && (
+        {a.type !== "behaviour" && (
           <NeonIconButton
             as="button"
             variant="view"
             icon={<FiDownload />}
-            title={`View ${a.type === 'module' ? 'Module' : 'Document'}`}
+            title={`View ${a.type === "module" ? "Module" : "Document"}`}
             onClick={() =>
-              a.type === 'module'
+              a.type === "module"
                 ? handleViewModule({ id: a.id, name: a.name })
                 : handleViewDocument({ id: a.id, name: a.name })
             }
           />
         )}
-        {a.status !== 'completed' && (
+        {a.status !== "completed" && (
           <NeonIconButton
             as="button"
             variant="save"
@@ -266,7 +313,7 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
             disabled={completing.has(rowKey(a))}
           />
         )}
-        {a.status === 'completed' && a.completed_at && (
+        {a.status === "completed" && a.completed_at && (
           <NeonIconButton
             as="button"
             variant="download"
@@ -279,10 +326,16 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
     ),
   }));
 
-  const modules = assignments.filter((a) => a.type === 'module' && a.status !== 'completed');
-  const documents = assignments.filter((a) => a.type === 'document' && a.status !== 'completed');
-  const behaviours = assignments.filter((a) => a.type === 'behaviour' && a.status !== 'completed');
-  const completed = assignments.filter((a) => a.status === 'completed');
+  const modules = assignments.filter(
+    (a) => a.type === "module" && a.status !== "completed",
+  );
+  const documents = assignments.filter(
+    (a) => a.type === "document" && a.status !== "completed",
+  );
+  const behaviours = assignments.filter(
+    (a) => a.type === "behaviour" && a.status !== "completed",
+  );
+  const completed = assignments.filter((a) => a.status === "completed");
 
   return (
     <NeonPanel className="w-full">
@@ -299,28 +352,28 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
             <h3 className="neon-form-title mt-2">Training</h3>
             <div className="flex gap-2">
               <button
-                className={`px-3 py-1 rounded ${viewMode === 'all' ? 'bg-[var(--neon)] text-black' : 'bg-[var(--field)]'}`}
-                onClick={() => setViewMode('all')}
+                className={`px-3 py-1 rounded ${viewMode === "all" ? "bg-[var(--neon)] text-black" : "bg-[var(--field)]"}`}
+                onClick={() => setViewMode("all")}
               >
                 All (union)
               </button>
               <button
-                className={`px-3 py-1 rounded ${viewMode === 'grouped' ? 'bg-[var(--neon)] text-black' : 'bg-[var(--field)]'}`}
-                onClick={() => setViewMode('grouped')}
+                className={`px-3 py-1 rounded ${viewMode === "grouped" ? "bg-[var(--neon)] text-black" : "bg-[var(--field)]"}`}
+                onClick={() => setViewMode("grouped")}
               >
                 Grouped
               </button>
             </div>
           </div>
 
-          {viewMode === 'all' ? (
+          {viewMode === "all" ? (
             <NeonTable
               columns={[
-                { header: 'Name', accessor: 'name' },
-                { header: 'Type', accessor: 'type' },
-                { header: 'Status', accessor: 'status' },
-                { header: 'When', accessor: 'when' },
-                { header: 'Actions', accessor: 'actions' },
+                { header: "Name", accessor: "name" },
+                { header: "Type", accessor: "type" },
+                { header: "Status", accessor: "status" },
+                { header: "When", accessor: "when" },
+                { header: "Actions", accessor: "actions" },
               ]}
               data={allRows}
             />
@@ -333,14 +386,19 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
               ) : (
                 <NeonTable
                   columns={[
-                    { header: 'Name', accessor: 'name' },
-                    { header: 'Status', accessor: 'status' },
-                    { header: 'When', accessor: 'when' },
-                    { header: 'Action', accessor: 'action' },
+                    { header: "Name", accessor: "name" },
+                    { header: "Status", accessor: "status" },
+                    { header: "When", accessor: "when" },
+                    { header: "Action", accessor: "action" },
                   ]}
                   data={modules.map((a) => ({
                     name: a.name,
-                    status: a.status === 'completed' ? 'Completed' : a.status === 'opened' ? 'Opened' : 'Incomplete',
+                    status:
+                      a.status === "completed"
+                        ? "Completed"
+                        : a.status === "opened"
+                          ? "Opened"
+                          : "Incomplete",
                     when: whenOf(a),
                     action: (
                       <div className="flex gap-2">
@@ -349,7 +407,9 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
                           variant="view"
                           icon={<FiDownload />}
                           title="View Module"
-                          onClick={() => handleViewModule({ id: a.id, name: a.name })}
+                          onClick={() =>
+                            handleViewModule({ id: a.id, name: a.name })
+                          }
                         />
                         <NeonIconButton
                           as="button"
@@ -372,14 +432,19 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
               ) : (
                 <NeonTable
                   columns={[
-                    { header: 'Name', accessor: 'name' },
-                    { header: 'Status', accessor: 'status' },
-                    { header: 'When', accessor: 'when' },
-                    { header: 'Action', accessor: 'action' },
+                    { header: "Name", accessor: "name" },
+                    { header: "Status", accessor: "status" },
+                    { header: "When", accessor: "when" },
+                    { header: "Action", accessor: "action" },
                   ]}
                   data={documents.map((a) => ({
                     name: a.name,
-                    status: a.status === 'completed' ? 'Completed' : a.status === 'opened' ? 'Opened' : 'Incomplete',
+                    status:
+                      a.status === "completed"
+                        ? "Completed"
+                        : a.status === "opened"
+                          ? "Opened"
+                          : "Incomplete",
                     when: whenOf(a),
                     action: (
                       <div className="flex gap-2">
@@ -388,7 +453,9 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
                           variant="view"
                           icon={<FiDownload />}
                           title="View Document"
-                          onClick={() => handleViewDocument({ id: a.id, name: a.name })}
+                          onClick={() =>
+                            handleViewDocument({ id: a.id, name: a.name })
+                          }
                         />
                         <NeonIconButton
                           as="button"
@@ -411,14 +478,19 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
               ) : (
                 <NeonTable
                   columns={[
-                    { header: 'Name', accessor: 'name' },
-                    { header: 'Status', accessor: 'status' },
-                    { header: 'When', accessor: 'when' },
-                    { header: 'Action', accessor: 'action' },
+                    { header: "Name", accessor: "name" },
+                    { header: "Status", accessor: "status" },
+                    { header: "When", accessor: "when" },
+                    { header: "Action", accessor: "action" },
                   ]}
                   data={behaviours.map((a) => ({
                     name: a.name,
-                    status: a.status === 'completed' ? 'Completed' : a.status === 'opened' ? 'Opened' : 'Incomplete',
+                    status:
+                      a.status === "completed"
+                        ? "Completed"
+                        : a.status === "opened"
+                          ? "Opened"
+                          : "Incomplete",
                     when: whenOf(a),
                     action: (
                       <NeonIconButton
@@ -435,16 +507,18 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
               )}
 
               {/* Completed */}
-              <h4 className="neon-form-title mt-8 mb-2 neon-info">Completed Training</h4>
+              <h4 className="neon-form-title mt-8 mb-2 neon-info">
+                Completed Training
+              </h4>
               {completed.length === 0 ? (
                 <p className="neon-info">No completed training yet.</p>
               ) : (
                 <NeonTable
                   columns={[
-                    { header: 'Name', accessor: 'name' },
-                    { header: 'Type', accessor: 'type' },
-                    { header: 'Completed At', accessor: 'completed_at' },
-                    { header: 'Certificate', accessor: 'certificate' },
+                    { header: "Name", accessor: "name" },
+                    { header: "Type", accessor: "type" },
+                    { header: "Completed At", accessor: "completed_at" },
+                    { header: "Certificate", accessor: "certificate" },
                   ]}
                   data={completed.map((a) => ({
                     name: a.name,
@@ -457,7 +531,7 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
                         icon={<FiDownload />}
                         title="Certificate"
                         onClick={() => handleShowCertificate(a)}
-                        disabled={a.status !== 'completed' || !a.completed_at}
+                        disabled={a.status !== "completed" || !a.completed_at}
                       />
                     ),
                   }))}
@@ -507,8 +581,12 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
                   }}
                   className="neon-modal-close-btn"
                 />
-                <h2 className="neon-modal-title">Module: {viewingModule.name}</h2>
-                <div className="neon-modal-content">{moduleContent || 'Loading...'}</div>
+                <h2 className="neon-modal-title">
+                  Module: {viewingModule.name}
+                </h2>
+                <div className="neon-modal-content">
+                  {moduleContent || "Loading..."}
+                </div>
               </div>
             </div>
           )}
@@ -525,7 +603,9 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
                   }}
                   className="neon-modal-close-btn"
                 />
-                <h2 className="neon-modal-title">Document: {viewingDocument.name}</h2>
+                <h2 className="neon-modal-title">
+                  Document: {viewingDocument.name}
+                </h2>
                 {documentContent ? (
                   <a
                     href={documentContent}

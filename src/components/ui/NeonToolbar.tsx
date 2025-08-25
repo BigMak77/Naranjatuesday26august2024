@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface NeonToolbarProps {
   children: React.ReactNode;
@@ -13,9 +13,14 @@ interface NeonToolbarProps {
  *   ...other controls...
  * </NeonToolbar>
  */
-const NeonToolbar: React.FC<NeonToolbarProps> = ({ children, className = '' }) => {
+const NeonToolbar: React.FC<NeonToolbarProps> = ({
+  children,
+  className = "",
+}) => {
   return (
-    <div className={`neon-toolbar px-2 py-2 rounded center ${className}`.trim()}>
+    <div
+      className={`neon-toolbar px-2 py-2 rounded center ${className}`.trim()}
+    >
       {children}
     </div>
   );

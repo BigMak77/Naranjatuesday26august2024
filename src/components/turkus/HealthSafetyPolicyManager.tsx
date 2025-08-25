@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { FiFileText, FiEdit, FiCheck } from 'react-icons/fi';
-import NeonPanel from '@/components/NeonPanel';
-import NeonIconButton from '@/components/ui/NeonIconButton';
-import Link from 'next/link';
-import { supabase } from '@/lib/supabase-client';
+import React, { useState, useEffect } from "react";
+import { FiFileText, FiEdit, FiCheck } from "react-icons/fi";
+import NeonPanel from "@/components/NeonPanel";
+import NeonIconButton from "@/components/ui/NeonIconButton";
+import Link from "next/link";
+import { supabase } from "@/lib/supabase-client";
 
 interface Policy {
   id: string;
@@ -16,13 +16,15 @@ interface Policy {
 export default function HealthSafetyPolicyManager() {
   const [policies, setPolicies] = useState<Policy[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState({ title: '', description: '' });
+  const [form, setForm] = useState({ title: "", description: "" });
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     async function fetchPolicies() {
-      const { data, error } = await supabase.from('policies').select('id, title, description');
+      const { data, error } = await supabase
+        .from("policies")
+        .select("id, title, description");
       if (error) {
         setPolicies([]);
       } else {
@@ -37,7 +39,9 @@ export default function HealthSafetyPolicyManager() {
     setForm({ title: policy.title, description: policy.description });
   };
 
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleFormChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
@@ -46,15 +50,17 @@ export default function HealthSafetyPolicyManager() {
     setSaving(true);
     setTimeout(() => {
       if (editingId) {
-        setPolicies(policies => policies.map(p => p.id === editingId ? { ...p, ...form } : p));
+        setPolicies((policies) =>
+          policies.map((p) => (p.id === editingId ? { ...p, ...form } : p)),
+        );
       } else {
-        setPolicies(policies => [
+        setPolicies((policies) => [
           ...policies,
-          { id: String(Date.now()), ...form }
+          { id: String(Date.now()), ...form },
         ]);
       }
       setEditingId(null);
-      setForm({ title: '', description: '' });
+      setForm({ title: "", description: "" });
       setSaving(false);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 1200);
@@ -69,7 +75,11 @@ export default function HealthSafetyPolicyManager() {
             <h2 className="neon-form-title">
               <FiFileText /> Health & Safety Policies
             </h2>
-            <form onSubmit={handleSave} className="add-policy-form" style={{ marginBottom: '2rem' }}>
+            <form
+              onSubmit={handleSave}
+              className="add-policy-form"
+              style={{ marginBottom: "2rem" }}
+            >
               <div className="add-policy-field">
                 <label className="add-policy-label">Policy Title</label>
                 <input
@@ -96,20 +106,33 @@ export default function HealthSafetyPolicyManager() {
                 <NeonIconButton
                   variant="submit"
                   icon={<FiCheck />}
-                  title={saving ? 'Saving...' : editingId ? 'Update Policy' : 'Add Policy'}
+                  title={
+                    saving
+                      ? "Saving..."
+                      : editingId
+                        ? "Update Policy"
+                        : "Add Policy"
+                  }
                   type="submit"
                   disabled={saving}
                 />
               </div>
-              {success && <p className="add-policy-success"><FiCheck /> Policy saved!</p>}
+              {success && (
+                <p className="add-policy-success">
+                  <FiCheck /> Policy saved!
+                </p>
+              )}
             </form>
             <ul className="neon-policy-list">
               {policies.length === 0 ? (
                 <li className="neon-muted">No policies found.</li>
               ) : (
-                policies.map(policy => (
+                policies.map((policy) => (
                   <li key={policy.id} className="neon-policy-item">
-                    <Link href={`/health-safety/policies/${policy.id}`} className="neon-policy-link">
+                    <Link
+                      href={`/health-safety/policies/${policy.id}`}
+                      className="neon-policy-link"
+                    >
                       <strong>{policy.title}</strong>
                     </Link>
                     <div className="neon-policy-desc">{policy.description}</div>

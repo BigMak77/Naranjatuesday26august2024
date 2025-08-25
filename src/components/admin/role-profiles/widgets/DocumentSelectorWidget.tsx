@@ -1,77 +1,92 @@
 // components/role-profiles/widgets/DocumentSelectorWidget.tsx
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase-client'
-import NeonPanel from '@/components/NeonPanel'
-import React from 'react'
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase-client";
+import NeonPanel from "@/components/NeonPanel";
+import React from "react";
 
 type Document = {
-  id: string
-  name: string
-  document_type: string
-}
+  id: string;
+  name: string;
+  document_type: string;
+};
 
 type Props = {
-  selectedDocuments: string[]
-  onChange: (ids: string[]) => void
-}
+  selectedDocuments: string[];
+  onChange: (ids: string[]) => void;
+};
 
-type DocumentType = 'all' | 'policy' | 'ssow' | 'work_instruction'
+type DocumentType = "all" | "policy" | "ssow" | "work_instruction";
 
-export default function DocumentSelectorWidget({ selectedDocuments, onChange }: Props) {
-  const [documents, setDocuments] = useState<Document[]>([])
-  const [search, setSearch] = useState('')
-  const [typeFilter, setTypeFilter] = useState<DocumentType>('all')
-  const [showDocuments, setShowDocuments] = useState(true)
-  const [selectedAvailable, setSelectedAvailable] = useState<string[]>([])
-  const [selectedAttached, setSelectedAttached] = useState<string[]>([])
+export default function DocumentSelectorWidget({
+  selectedDocuments,
+  onChange,
+}: Props) {
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState<DocumentType>("all");
+  const [showDocuments, setShowDocuments] = useState(true);
+  const [selectedAvailable, setSelectedAvailable] = useState<string[]>([]);
+  const [selectedAttached, setSelectedAttached] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchDocuments = async () => {
-      const { data, error } = await supabase.from('documents').select('id, name, document_type')
-      if (error) console.error('Error fetching documents:', error)
-      else setDocuments(data)
-    }
-    fetchDocuments()
-  }, [])
+      const { data, error } = await supabase
+        .from("documents")
+        .select("id, name, document_type");
+      if (error) console.error("Error fetching documents:", error);
+      else setDocuments(data);
+    };
+    fetchDocuments();
+  }, []);
 
   // Split documents into available and attached
-  const availableDocs = documents.filter(doc => !selectedDocuments.includes(doc.id))
-  const attachedDocs = documents.filter(doc => selectedDocuments.includes(doc.id))
+  const availableDocs = documents.filter(
+    (doc) => !selectedDocuments.includes(doc.id),
+  );
+  const attachedDocs = documents.filter((doc) =>
+    selectedDocuments.includes(doc.id),
+  );
 
   // Filter available docs by search and type
-  const filteredAvailable = availableDocs.filter(doc => {
-    const matchesSearch = doc.name.toLowerCase().includes(search.toLowerCase())
-    const matchesType = typeFilter === 'all' || doc.document_type === typeFilter
-    return matchesSearch && matchesType
-  })
+  const filteredAvailable = availableDocs.filter((doc) => {
+    const matchesSearch = doc.name.toLowerCase().includes(search.toLowerCase());
+    const matchesType =
+      typeFilter === "all" || doc.document_type === typeFilter;
+    return matchesSearch && matchesType;
+  });
 
   // Add selected available docs to attached
   const handleAdd = () => {
-    onChange([...selectedDocuments, ...selectedAvailable])
-    setSelectedAvailable([])
-  }
+    onChange([...selectedDocuments, ...selectedAvailable]);
+    setSelectedAvailable([]);
+  };
 
   // Remove selected attached docs
   const handleRemove = () => {
-    onChange(selectedDocuments.filter(id => !selectedAttached.includes(id)))
-    setSelectedAttached([])
-  }
+    onChange(selectedDocuments.filter((id) => !selectedAttached.includes(id)));
+    setSelectedAttached([]);
+  };
 
   return (
     <NeonPanel>
       <button
         type="button"
         className="neon-btn neon-section-toggle"
-        data-tooltip={showDocuments ? 'Hide Documents' : 'Show Documents'}
-        onClick={() => setShowDocuments(v => !v)}
-        aria-label={showDocuments ? 'Hide Documents' : 'Show Documents'}
+        data-tooltip={showDocuments ? "Hide Documents" : "Show Documents"}
+        onClick={() => setShowDocuments((v) => !v)}
+        aria-label={showDocuments ? "Hide Documents" : "Show Documents"}
       >
-        {showDocuments
-          ? <svg className="neon-icon" viewBox="0 0 24 24"><path d="M19 13H5v-2h14v2z"/></svg>
-          : <svg className="neon-icon" viewBox="0 0 24 24"><path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z"/></svg>
-        }
+        {showDocuments ? (
+          <svg className="neon-icon" viewBox="0 0 24 24">
+            <path d="M19 13H5v-2h14v2z" />
+          </svg>
+        ) : (
+          <svg className="neon-icon" viewBox="0 0 24 24">
+            <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
+          </svg>
+        )}
       </button>
       {showDocuments && (
         <div className="neon-flex-col gap-4">
@@ -102,12 +117,14 @@ export default function DocumentSelectorWidget({ selectedDocuments, onChange }: 
                 multiple
                 className="neon-input h-48 w-full"
                 value={selectedAvailable}
-                onChange={e => {
-                  const options = Array.from(e.target.selectedOptions).map(o => o.value)
-                  setSelectedAvailable(options)
+                onChange={(e) => {
+                  const options = Array.from(e.target.selectedOptions).map(
+                    (o) => o.value,
+                  );
+                  setSelectedAvailable(options);
                 }}
               >
-                {filteredAvailable.map(doc => (
+                {filteredAvailable.map((doc) => (
                   <option key={doc.id} value={doc.id}>
                     {doc.name} ({doc.document_type})
                   </option>
@@ -142,12 +159,14 @@ export default function DocumentSelectorWidget({ selectedDocuments, onChange }: 
                 multiple
                 className="neon-input h-48 w-full"
                 value={selectedAttached}
-                onChange={e => {
-                  const options = Array.from(e.target.selectedOptions).map(o => o.value)
-                  setSelectedAttached(options)
+                onChange={(e) => {
+                  const options = Array.from(e.target.selectedOptions).map(
+                    (o) => o.value,
+                  );
+                  setSelectedAttached(options);
                 }}
               >
-                {attachedDocs.map(doc => (
+                {attachedDocs.map((doc) => (
                   <option key={doc.id} value={doc.id}>
                     {doc.name} ({doc.document_type})
                   </option>
@@ -158,5 +177,5 @@ export default function DocumentSelectorWidget({ selectedDocuments, onChange }: 
         </div>
       )}
     </NeonPanel>
-  )
+  );
 }

@@ -1,47 +1,47 @@
-'use client'
+"use client";
 
-import React from 'react'
-import TaskListWidget from '@/components/task/TaskListWidget'
-import TaskAssignmentWidget from '@/components/task/TaskAssignmentWidget'
-import TaskCreateWidget from '@/components/task/TaskCreateWidget'
-import TaskAmendWidget from '@/components/task/TaskAmendWidget'
-import MyTasksWidget from '@/components/task/MyTasksWidget'
+import React from "react";
+import TaskListWidget from "@/components/task/TaskListWidget";
+import TaskAssignmentWidget from "@/components/task/TaskAssignmentWidget";
+import TaskCreateWidget from "@/components/task/TaskCreateWidget";
+import TaskAmendWidget from "@/components/task/TaskAmendWidget";
+import MyTasksWidget from "@/components/task/MyTasksWidget";
 import {
   FiList,
   FiUserPlus,
   FiEdit,
   FiTool,
   FiClipboard,
-} from 'react-icons/fi'
-import { UserProvider } from '@/context/UserContext'
+} from "react-icons/fi";
+import { UserProvider } from "@/context/UserContext";
 
 const widgetSections = [
   {
-    title: 'All Tasks',
+    title: "All Tasks",
     icon: <FiList />,
     Component: TaskListWidget,
   },
   {
-    title: 'Assign Tasks',
+    title: "Assign Tasks",
     icon: <FiUserPlus />,
     Component: TaskAssignmentWidget,
   },
   {
-    title: 'Create Task',
+    title: "Create Task",
     icon: <FiEdit />,
     Component: TaskCreateWidget,
   },
   {
-    title: 'Amend Tasks',
+    title: "Amend Tasks",
     icon: <FiTool />,
     Component: TaskAmendWidget,
   },
   {
-    title: 'My Tasks',
+    title: "My Tasks",
     icon: <FiClipboard />,
     Component: MyTasksWidget,
   },
-]
+];
 
 export default function TaskManager() {
   return (
@@ -57,5 +57,5 @@ export default function TaskManager() {
         ))}
       </div>
     </UserProvider>
-  )
+  );
 }

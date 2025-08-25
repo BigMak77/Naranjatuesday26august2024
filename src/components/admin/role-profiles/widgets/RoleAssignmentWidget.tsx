@@ -1,48 +1,51 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase-client'
-import NeonPanel from '@/components/NeonPanel'
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase-client";
+import NeonPanel from "@/components/NeonPanel";
 
 type Props = {
-  selectedRoles: string[]
-  onChange: (roles: string[]) => void
-}
+  selectedRoles: string[];
+  onChange: (roles: string[]) => void;
+};
 
 type Role = {
-  id: string
-  title: string
-}
+  id: string;
+  title: string;
+};
 
-export default function RoleAssignmentWidget({ selectedRoles, onChange }: Props) {
-  const [roles, setRoles] = useState<Role[]>([])
-  const [search, setSearch] = useState('')
-  const [showRoles, setShowRoles] = useState(true)
+export default function RoleAssignmentWidget({
+  selectedRoles,
+  onChange,
+}: Props) {
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [search, setSearch] = useState("");
+  const [showRoles, setShowRoles] = useState(true);
 
   useEffect(() => {
     const loadRoles = async () => {
-      const { data, error } = await supabase.from('roles').select('id, title')
+      const { data, error } = await supabase.from("roles").select("id, title");
       if (error) {
-        console.error('Error loading roles:', error)
-        return
+        console.error("Error loading roles:", error);
+        return;
       }
-      setRoles(data || [])
-    }
+      setRoles(data || []);
+    };
 
-    loadRoles()
-  }, [])
+    loadRoles();
+  }, []);
 
   const toggleRole = (id: string) => {
     if (selectedRoles.includes(id)) {
-      onChange(selectedRoles.filter((r) => r !== id))
+      onChange(selectedRoles.filter((r) => r !== id));
     } else {
-      onChange([...selectedRoles, id])
+      onChange([...selectedRoles, id]);
     }
-  }
+  };
 
   const filteredRoles = roles.filter((r) =>
-    r.title.toLowerCase().includes(search.toLowerCase())
-  )
+    r.title.toLowerCase().includes(search.toLowerCase()),
+  );
 
   return (
     <NeonPanel className="mt-6">
@@ -59,7 +62,7 @@ export default function RoleAssignmentWidget({ selectedRoles, onChange }: Props)
       <button
         type="button"
         className="neon-btn neon-section-toggle mb-2"
-        data-tooltip={showRoles ? 'Hide Roles' : 'Show Roles'}
+        data-tooltip={showRoles ? "Hide Roles" : "Show Roles"}
         onClick={() => setShowRoles((prev) => !prev)}
       >
         {showRoles ? (
@@ -85,5 +88,5 @@ export default function RoleAssignmentWidget({ selectedRoles, onChange }: Props)
         </div>
       )}
     </NeonPanel>
-  )
+  );
 }

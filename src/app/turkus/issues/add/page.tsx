@@ -1,52 +1,56 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase-client'
-import { useRouter } from 'next/navigation'
-import { FiAlertCircle } from 'react-icons/fi'
-import Modal from '@/components/modal'
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase-client";
+import { useRouter } from "next/navigation";
+import { FiAlertCircle } from "react-icons/fi";
+import Modal from "@/components/modal";
 
 export default function RaiseIssuePage() {
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [priority, setPriority] = useState('Medium')
-  const [category] = useState('')
-  const [departmentId, setDepartmentId] = useState('')
-  const [departments, setDepartments] = useState<{ id: string; name: string }[]>([])
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-  const router = useRouter()
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [priority, setPriority] = useState("Medium");
+  const [category] = useState("");
+  const [departmentId, setDepartmentId] = useState("");
+  const [departments, setDepartments] = useState<
+    { id: string; name: string }[]
+  >([]);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchDepartments = async () => {
-      const { data, error } = await supabase.from('departments').select('id, name')
+      const { data, error } = await supabase
+        .from("departments")
+        .select("id, name");
       if (error) {
-        console.error('Error fetching departments:', error)
+        console.error("Error fetching departments:", error);
       } else {
-        setDepartments(data || [])
+        setDepartments(data || []);
       }
-    }
+    };
 
-    fetchDepartments()
-  }, [])
+    fetchDepartments();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
+    e.preventDefault();
+    setLoading(true);
+    setError("");
 
     const {
       data: { user },
       error: userError,
-    } = await supabase.auth.getUser()
+    } = await supabase.auth.getUser();
 
     if (userError || !user) {
-      setError('Authentication error. Please log in again.')
-      setLoading(false)
-      return
+      setError("Authentication error. Please log in again.");
+      setLoading(false);
+      return;
     }
 
-    const { error: insertError } = await supabase.from('issues').insert([
+    const { error: insertError } = await supabase.from("issues").insert([
       {
         title,
         description,
@@ -55,23 +59,20 @@ export default function RaiseIssuePage() {
         department_id: departmentId,
         reported_by: user.id,
       },
-    ])
+    ]);
 
-    setLoading(false)
+    setLoading(false);
 
     if (insertError) {
-      setError(insertError.message)
+      setError(insertError.message);
     } else {
-      router.push('/turkus/issues')
+      router.push("/turkus/issues");
     }
-  }
+  };
 
   return (
-    <Modal open={true} onClose={() => router.push('/turkus/issues')}>
-      <form
-        className="neon-panel"
-        onSubmit={handleSubmit}
-      >
+    <Modal open={true} onClose={() => router.push("/turkus/issues")}>
+      <form className="neon-panel" onSubmit={handleSubmit}>
         <h1 className="font-title accent-text">New Issue</h1>
         <input
           className="neon-input"
@@ -116,10 +117,12 @@ export default function RaiseIssuePage() {
           </p>
         )}
         <button type="submit" className="neon-btn" disabled={loading}>
-          <FiAlertCircle style={{ display: loading ? 'none' : 'inline-block' }} />
+          <FiAlertCircle
+            style={{ display: loading ? "none" : "inline-block" }}
+          />
           {loading ? <span>Submitting...</span> : <span>Submit Issue</span>}
         </button>
       </form>
     </Modal>
-  )
+  );
 }

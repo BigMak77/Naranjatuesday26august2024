@@ -1,4 +1,4 @@
-import AuditManager from '@/components/AuditManager';
+import AuditManager from "@/components/AuditManager";
 
 export default function AuditPage() {
   return (

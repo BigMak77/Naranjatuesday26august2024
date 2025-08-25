@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase-client';
-import { useUser } from '@/context/UserContext'; // Adjust this to your actual context
-import { FiUserPlus } from 'react-icons/fi';
-import NeonForm from '@/components/NeonForm';
-import NeonIconButton from '@/components/ui/NeonIconButton';
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase-client";
+import { useUser } from "@/context/UserContext"; // Adjust this to your actual context
+import { FiUserPlus } from "react-icons/fi";
+import NeonForm from "@/components/NeonForm";
+import NeonIconButton from "@/components/ui/NeonIconButton";
 
 export default function TaskAssignmentWidget() {
   const { user, loading: userLoading } = useUser();
@@ -21,9 +21,9 @@ export default function TaskAssignmentWidget() {
     last_name: string;
   };
   const [users, setUsers] = useState<User[]>([]);
-  const [selectedTask, setSelectedTask] = useState('');
-  const [selectedUser, setSelectedUser] = useState('');
-  const [dueDate, setDueDate] = useState('');
+  const [selectedTask, setSelectedTask] = useState("");
+  const [selectedUser, setSelectedUser] = useState("");
+  const [dueDate, setDueDate] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -34,16 +34,16 @@ export default function TaskAssignmentWidget() {
     const fetchData = async () => {
       // Fetch only tasks assigned to the user's department
       const { data: taskData } = await supabase
-        .from('tasks')
-        .select('id, title, department_id')
-        .eq('department_id', user.department_id);
+        .from("tasks")
+        .select("id, title, department_id")
+        .eq("department_id", user.department_id);
 
       setTasks(taskData || []);
 
       const { data: userData } = await supabase
-        .from('users')
-        .select('auth_id, first_name, last_name')
-        .eq('department_id', user.department_id); // Removed .neq('auth_id', user.auth_id)
+        .from("users")
+        .select("auth_id, first_name, last_name")
+        .eq("department_id", user.department_id); // Removed .neq('auth_id', user.auth_id)
 
       setUsers(userData || []);
     };
@@ -58,19 +58,19 @@ export default function TaskAssignmentWidget() {
     setSuccess(false);
 
     if (!selectedTask || !selectedUser || !dueDate || !user?.auth_id) {
-      setError('Please select all fields.');
+      setError("Please select all fields.");
       setLoading(false);
       return;
     }
 
-    const { error } = await supabase.from('task_assignments').insert({
+    const { error } = await supabase.from("task_assignments").insert({
       task_id: selectedTask,
       assigned_to: selectedUser,
       assigned_by: user.auth_id,
       due_date: dueDate,
     });
 
-    if (error) setError('Failed to assign task.');
+    if (error) setError("Failed to assign task.");
     else setSuccess(true);
     setLoading(false);
   };
@@ -118,7 +118,7 @@ export default function TaskAssignmentWidget() {
             type="submit"
             variant="add"
             icon={<FiUserPlus />}
-            title={loading ? 'Assigning...' : 'Assign Task'}
+            title={loading ? "Assigning..." : "Assign Task"}
             disabled={loading}
           />
         </div>

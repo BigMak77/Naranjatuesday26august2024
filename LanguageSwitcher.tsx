@@ -1,28 +1,28 @@
-'use client'
+"use client";
 
-import { useRouter, usePathname } from 'next/navigation'
-import { useTransition } from 'react'
+import { useRouter, usePathname } from "next/navigation";
+import { useTransition } from "react";
 
 const locales = [
-  { code: 'en', label: 'English' },
-  { code: 'pl', label: 'Polski' }
-]
+  { code: "en", label: "English" },
+  { code: "pl", label: "Polski" },
+];
 
 export default function LanguageSwitcher() {
-  const router = useRouter()
-  const pathname = usePathname()
-  const [isPending, startTransition] = useTransition()
+  const router = useRouter();
+  const pathname = usePathname();
+  const [isPending, startTransition] = useTransition();
 
-  const currentLocale = pathname.split('/')[1] // 'en' or 'pl'
+  const currentLocale = pathname.split("/")[1]; // 'en' or 'pl'
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newLocale = e.target.value
-    const newPath = `/${newLocale}${pathname.replace(/^\/(en|pl)/, '')}`
+    const newLocale = e.target.value;
+    const newPath = `/${newLocale}${pathname.replace(/^\/(en|pl)/, "")}`;
 
     startTransition(() => {
-      router.push(newPath)
-    })
-  }
+      router.push(newPath);
+    });
+  };
 
   return (
     <select
@@ -37,5 +37,5 @@ export default function LanguageSwitcher() {
         </option>
       ))}
     </select>
-  )
+  );
 }

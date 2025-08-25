@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface NeonPanelProps {
   children: React.ReactNode;
@@ -7,7 +7,12 @@ interface NeonPanelProps {
   className?: string;
 }
 
-export default function NeonPanel({ children, bgColor = '#012f34', glowColor = '#40E0D0', className = '' }: NeonPanelProps) {
+export default function NeonPanel({
+  children,
+  bgColor = "#012f34",
+  glowColor = "#40E0D0",
+  className = "",
+}: NeonPanelProps) {
   return (
     <div
       className={`p-6 rounded-xl ${className}`}

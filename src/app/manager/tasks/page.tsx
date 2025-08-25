@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import TaskManager from '@/components/task/TaskManager'
-import { UserProvider } from '@/context/UserContext'
+import TaskManager from "@/components/task/TaskManager";
+import { UserProvider } from "@/context/UserContext";
 
 export default function ManagerTasksPage() {
   return (
@@ -10,5 +10,5 @@ export default function ManagerTasksPage() {
         <TaskManager />
       </UserProvider>
     </main>
-  )
+  );
 }

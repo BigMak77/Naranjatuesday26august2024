@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase-client';
-import { FiList } from 'react-icons/fi';
-import { useUser } from '@/context/UserContext'; // ← use your context
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase-client";
+import { FiList } from "react-icons/fi";
+import { useUser } from "@/context/UserContext"; // ← use your context
 
 type Task = {
   id: number;
@@ -27,12 +27,12 @@ export default function TaskListWidget() {
     const fetchTasks = async () => {
       setLoading(true);
       const { data, error } = await supabase
-        .from('tasks')
-        .select('id, title, area, frequency, instructions')
-        .eq('department_id', departmentId) // 🔑 only tasks for user's dept
-        .order('title', { ascending: true });
+        .from("tasks")
+        .select("id, title, area, frequency, instructions")
+        .eq("department_id", departmentId) // 🔑 only tasks for user's dept
+        .order("title", { ascending: true });
 
-      if (error) setError('Failed to load tasks.');
+      if (error) setError("Failed to load tasks.");
       setTasks(data || []);
       setLoading(false);
     };
@@ -58,8 +58,10 @@ export default function TaskListWidget() {
           {tasks.map((task) => (
             <li key={task.id} className="neon-list-item">
               <h3 className="neon-list-title">{task.title}</h3>
-              <p className="neon-list-meta">{(task.area ?? '') + ' · ' + (task.frequency ?? '')}</p>
-              <p className="neon-list-desc">{task.instructions ?? ''}</p>
+              <p className="neon-list-meta">
+                {(task.area ?? "") + " · " + (task.frequency ?? "")}
+              </p>
+              <p className="neon-list-desc">{task.instructions ?? ""}</p>
             </li>
           ))}
         </ul>
