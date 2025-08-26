@@ -41,7 +41,7 @@
 html,
 body {
   font-family: "Geist", system-ui, sans-serif;
-  font-size: 16px;
+  font-size: 12px;
   line-height: 1.5;
   color: var(--text);
   background-color: var(--bg);
@@ -150,7 +150,7 @@ form,
 
 button,
 .neon-btn {
-  display: inline-flex;
+  display: inline-block;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
@@ -167,6 +167,12 @@ button,
     box-shadow 0.2s,
     transform 0.06s;
   cursor: pointer;
+  min-width: 44px;
+  min-height: 44px;
+  max-width: 44px;
+  max-height: 44px;
+  width: 44px;
+  height: 44px;
 }
 button:hover,
 .neon-btn:hover {
@@ -177,6 +183,41 @@ button:hover,
 button:active,
 .neon-btn:active {
   transform: translateY(1px);
+}
+
+/* Ensure all .neon-btn-square buttons are 30px and override any local inline or module styles */
+.neon-btn,
+button {
+  min-width: unset !important;
+  min-height: unset !important;
+  max-width: unset !important;
+  max-height: unset !important;
+  width: unset !important;
+  height: unset !important;
+}
+.neon-btn-square {
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+  min-height: 30px !important;
+  max-width: 30px !important;
+  max-height: 30px !important;
+  display: inline-block !important;
+  border-radius: 8px !important;
+  border: none !important;
+  padding: 0 !important;
+  box-shadow: 0 0 12px var(--neon);
+  background: var(--panel);
+  align-items: unset !important;
+  justify-content: unset !important;
+  flex: unset !important;
+}
+.neon-btn-square svg {
+  width: 20px !important;
+  height: 20px !important;
+  color: #fff !important;
+  margin: 0 auto !important;
+  display: block !important;
 }
 
 /* ================================
@@ -386,23 +427,28 @@ button:active,
    Neon Square Action Buttons
    ================================ */
 .neon-btn-square {
-  width: 30px;
-  height: 30px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  transition:
-    background 0.2s,
-    box-shadow 0.2s,
-    transform 0.06s;
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+  min-height: 30px !important;
+  max-width: 30px !important;
+  max-height: 30px !important;
+  display: inline-block !important;
+  border-radius: 8px !important;
+  border: none !important;
+  padding: 0 !important;
+  box-shadow: 0 0 12px var(--neon);
+  background: var(--panel);
+  align-items: unset !important;
+  justify-content: unset !important;
+  flex: unset !important;
 }
 .neon-btn-square svg {
-  width: 20px;
-  height: 20px;
-  color: #fff; /* always white */
+  width: 20px !important;
+  height: 20px !important;
+  color: #fff !important;
+  margin: 0 auto !important;
+  display: block !important;
 }
 .neon-btn-square:hover {
   transform: translateY(-1px);
