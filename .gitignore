@@ -42,3 +42,5 @@ next-env.d.ts
 
 # .gitignore
 .eslintcache
+# Local Netlify folder
+.netlify
