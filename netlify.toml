@@ -1,0 +1,16 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[dev]
+  command = "npm run dev"
+
+# Environment variables should be set in the Netlify dashboard for security.
+# Example:
+# [context.production.environment]
+#   SUPABASE_URL = "your_supabase_url"
+#   SUPABASE_ANON_KEY = "your_supabase_anon_key"
+#   RESEND_API_KEY = "your_resend_api_key"
