@@ -133,7 +133,6 @@ export default function HomePage() {
             margin: "2rem auto",
             background: "#0d3c47", // deep blue/dark turquoise
             borderRadius: "18px",
-            border: "2.5px solid #ffb347", // orange border
             boxShadow: "0 4px 24px rgba(0,0,0,0.07)",
             padding: "1rem",
             boxSizing: "border-box",
@@ -323,7 +322,6 @@ export default function HomePage() {
             color: "#fff",
             position: "relative",
             overflow: "hidden",
-            border: "2.5px solid #ffb347", // orange border for emphasis
           }}
         >
           <div

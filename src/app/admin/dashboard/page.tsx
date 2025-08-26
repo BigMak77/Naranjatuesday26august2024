@@ -23,7 +23,6 @@ import {
   FiUserCheck,
   FiClock,
 } from "react-icons/fi";
-import NeonFeatureCard from "@/components/NeonFeatureCard";
 
 interface DashboardLink {
   href: string;
@@ -366,74 +365,55 @@ export default function DashboardPage() {
   ];
 
   return (
-    <>
-      <main className="dashboard-panel">
-        <section className="dashboard-overview">
-          <div className="overview-info">
-            <p className="overview-title">
-              <FiPieChart size={iconSize} /> Compliance Overview
-            </p>
-            <p className="overview-desc">Live summary of completion status</p>
-          </div>
-          <div className="overview-stats">
-            <p className="overview-stat">
-              <FiCheckCircle size={iconSize} /> <strong>Avg Compliance:</strong>{" "}
-              {avgCompliance ?? "Loading..."}%
-            </p>
-            <p className="overview-stat">
-              <FiAlertTriangle size={iconSize} className="icon-warning" />{" "}
-              <strong>Users &lt; 70%:</strong> {lowComplianceCount}
-            </p>
-            <Link href="/admin/compliance" className="dashboard-btn">
-              <FiPieChart size={iconSize} /> View Full →
-            </Link>
-          </div>
-        </section>
+    <main className="dashboard-panel">
+      <section className="dashboard-overview">
+        <div className="overview-info">
+          <p className="overview-title">
+            <FiPieChart size={iconSize} /> Compliance Overview
+          </p>
+          <p className="overview-desc">Live summary of completion status</p>
+        </div>
+        <div className="overview-stats">
+          <p className="overview-stat">
+            <FiCheckCircle size={iconSize} /> <strong>Avg Compliance:</strong> {avgCompliance ?? "Loading..."}%
+          </p>
+          <p className="overview-stat">
+            <FiAlertTriangle size={iconSize} className="icon-warning" /> <strong>Users &lt; 70%:</strong> {lowComplianceCount}
+          </p>
+          <Link href="/admin/compliance" className="dashboard-btn">
+            <FiPieChart size={iconSize} /> View Full →
+          </Link>
+        </div>
+      </section>
 
-        <section className="dashboard-grid">
-          {cards.map((card, idx) => {
-            let icon = <FiActivity />;
-            let title = "Feature";
-            if (React.isValidElement(card.title)) {
-              const element = card.title as React.ReactElement<{
-                children?: React.ReactNode;
-              }>;
-              const children = element.props?.children;
-              if (Array.isArray(children)) {
-                icon = children[0] || <FiActivity />;
-                title =
-                  typeof children[1] === "string" ? children[1] : "Feature";
-              } else {
-                title = typeof children === "string" ? children : "Feature";
-              }
-            } else if (typeof card.title === "string") {
-              title = card.title;
+      <section className="dashboard-grid">
+        {cards.map((card, idx) => {
+          // Main action: first link only
+          const mainLink = card.links[0];
+          let icon = <FiActivity />;
+          let title = "Feature";
+          if (React.isValidElement(card.title)) {
+            const element = card.title as React.ReactElement<{ children?: React.ReactNode }>;
+            const children = element.props?.children;
+            if (Array.isArray(children)) {
+              icon = children[0] || <FiActivity />;
+              title = typeof children[1] === "string" ? children[1] : "Feature";
+            } else {
+              title = typeof children === "string" ? children : "Feature";
             }
-            const firstLabel =
-              typeof card.links[0]?.label === "string"
-                ? card.links[0].label
-                : "";
-            return (
-              <div key={idx} className="dashboard-card">
-                <NeonFeatureCard
-                  icon={icon}
-                  title={title}
-                  text={firstLabel}
-                  href={card.links[0]?.href || "#"}
-                >
-                  <div className="dashboard-links">
-                    {card.links.map((link, i) => (
-                      <Link key={i} href={link.href} className="dashboard-link">
-                        {link.label}
-                      </Link>
-                    ))}
-                  </div>
-                </NeonFeatureCard>
+          } else if (typeof card.title === "string") {
+            title = card.title;
+          }
+          return (
+            <Link key={idx} href={mainLink.href} className="dashboard-card neon-feature-card">
+              <div className="dashboard-card-content">
+                <span className="dashboard-card-icon">{icon}</span>
+                <span className="dashboard-card-title">{title}</span>
               </div>
-            );
-          })}
-        </section>
-      </main>
-    </>
+            </Link>
+          );
+        })}
+      </section>
+    </main>
   );
 }

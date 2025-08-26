@@ -170,7 +170,7 @@ function Modal({
       {/* Panel */}
       <div
         ref={contentRef}
-        className="relative w-full max-w-4xl mx-4 rounded-2xl bg-white shadow-2xl border border-black/5 p-6"
+        className="relative w-full max-w-4xl mx-4 rounded-2xl bg-white shadow-2xl p-6 neon-panel"
         role="document"
       >
         {children}

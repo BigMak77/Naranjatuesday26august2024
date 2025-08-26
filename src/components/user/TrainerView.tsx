@@ -156,7 +156,7 @@ const SignatureBox = React.memo(function SignatureBox({
       width: 320,
       height: 120,
       className:
-        "w-[320px] h-[120px] border border-dashed rounded-lg bg-[var(--field,#012b2b)] shrink-0 touch-none block",
+        "w-[320px] h-[120px] rounded-lg bg-[var(--field,#012b2b)] shrink-0 touch-none block neon-panel",
     }),
     [],
   );
@@ -490,7 +490,7 @@ export default function TrainerRecordingPage({
 
       {/* Controls */}
       <div className="grid gap-3 md:grid-cols-2 mb-4">
-        <label className="flex items-center gap-2 rounded-xl border border-[var(--border,#40E0D0)]/30 bg-[var(--field,#012b2b)] px-3 py-2">
+        <label className="flex items-center gap-2 rounded-xl bg-[var(--field,#012b2b)] px-3 py-2 neon-panel">
           <FiFilter aria-hidden />
           <select
             aria-label="Filter by department"

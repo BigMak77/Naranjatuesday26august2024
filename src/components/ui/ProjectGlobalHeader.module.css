@@ -1,47 +1,54 @@
-/* Container */
+/* ==========================
+   Header (FULL BLEED, NO OUTER SPACING)
+   ========================== */
 .header {
   position: relative;
   width: 100%;
+  margin: 0;              /* no outer margin */
+  padding: 0;             /* no outer padding */
+  border: 0;              /* no borders */
   background: linear-gradient(
     118deg in oklab,
     #05363a 0%,
     #0a706a 48%,
     #16cbcf 100%
   );
-  border-bottom: 15px solid #fa7a20; /* orange border, thicker for emphasis */
   z-index: 40;
-}
-.fullBleed .row,
-.secondRow {
-  max-width: 1200px;
-  margin-inline: auto;
-  padding-inline: 16px;
+  border-bottom: 12px solid #ffa500;
 }
 
-/* Top row */
+/* Contained rows (content gutters only, header itself stays flush) */
+.fullBleed .row,
+.secondRow {
+  margin-inline: auto;
+  padding-inline: 0;
+}
+
+/* ==========================
+   Top row
+   ========================== */
 .row {
   display: flex;
   align-items: center;
-  min-height: 84px; /* Increased from 72px to 84px for a slightly taller header */
+  min-height: 84px;
   gap: 16px;
+  padding-left: 24px;
+  padding-right: 24px;
 }
 
 /* Logo */
-.logoLink {
-  display: inline-flex;
-  align-items: center;
-}
+.logoLink { display: inline-flex; align-items: center; }
 .logoImg {
   display: block;
   height: 44px;
-  padding-top: 0;
-  padding-bottom: 0;
-  margin-top: 0;
-  margin-bottom: 0;
+  margin: 0;
+  padding: 0;
   object-fit: contain;
 }
 
-/* Primary nav (desktop) */
+/* ==========================
+   Primary nav (desktop)
+   ========================== */
 .nav {
   margin-left: 32px;
   display: flex;
@@ -54,40 +61,34 @@
   font-size: 16px;
   gap: 8px;
   height: 30px;
-  padding: 0 12px;
+  padding: 0;
   border-radius: 8px;
   text-decoration: none;
   color: #ffffff;
-  border: 1px solid transparent;
 }
-.navItem:hover {
-  background: rgb(0, 206, 209);
-}
-.navItem:focus-visible {
-  outline: 2px solid #0ea5e9;
-  outline-offset: 2px;
-}
-.navIcon {
-  display: inline-flex;
-}
+.navItem:hover { background: rgb(0, 206, 209); }
+.navItem:focus-visible { outline: 2px solid #0ea5e9; outline-offset: 2px; }
+.navIcon { display: inline-flex; }
 
-/* Right cluster */
+/* ==========================
+   Right cluster
+   ========================== */
 .right {
   margin-left: auto;
   display: inline-flex;
   align-items: center;
   gap: 10px;
 }
-.status {
-  color: #6c757d;
-}
+.status { color: #6c757d; }
 
-/* Login */
+/* ==========================
+   Login
+   ========================== */
 .loginBtn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 0 14px;
+  padding: 0;
   height: 40px;
   border-radius: 8px;
   border: 1px solid #fa7a20;
@@ -96,37 +97,28 @@
   font-weight: 600;
   text-decoration: none;
 }
-.hideSm {
-  white-space: nowrap;
-}
+.hideSm { white-space: nowrap; }
 
 /* ==========================
-   User area (updated)
+   User area
    ========================== */
-.userBlock {
-  position: relative;
-}
+.userBlock { position: relative; }
+
 .userPill {
   position: relative;
   display: inline-flex;
   align-items: center;
   gap: 10px;
   height: 44px;
-  padding: 0 12px 0 6px;
+  padding: 0;
   border-radius: 999px;
   background: #fa7a20;
   border: 2px solid #ffffff;
   cursor: pointer;
-
-  /* control avatar size here */
   --avatar-size: 30px;
 }
-.userPill:focus-visible {
-  outline: 2px solid #0ea5e9;
-  outline-offset: 2px;
-}
+.userPill:focus-visible { outline: 2px solid #0ea5e9; outline-offset: 2px; }
 
-/* shared sizing */
 .avatarImg,
 .avatarFallback {
   width: var(--avatar-size);
@@ -134,29 +126,24 @@
   border-radius: 999px;
 }
 
-/* photo avatar */
 .avatarImg {
   display: block;
   object-fit: cover;
   background: #e9ecef;
 }
 
-/* orange avatar fallback */
+/* Orange avatar fallback (peel/shine) */
 .avatarFallback {
   position: relative;
   overflow: hidden;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
-  /* optional initials text */
   font-weight: 700;
   color: #ffffff;
   text-shadow:
     0 1px 2px rgba(0, 0, 0, 0.35),
     0 0 12px rgba(255, 255, 255, 0.2);
-
-  /* peel + shine + pores */
   background:
     radial-gradient(
       120% 120% at 30% 25%,
@@ -165,20 +152,13 @@
     ),
     radial-gradient(rgba(255, 255, 255, 0.18) 0 1px, transparent 2px),
     radial-gradient(110% 110% at 50% 65%, #ffad42, #f98a1b 55%, #d66a00 100%);
-  background-size:
-    100% 100%,
-    10px 10px,
-    100% 100%;
+  background-size: 100% 100%, 10px 10px, 100% 100%;
   background-repeat: no-repeat, repeat, no-repeat;
-
-  /* depth */
   box-shadow:
     inset 0 -3px 5px rgba(0, 0, 0, 0.18),
     inset 0 2px 4px rgba(255, 255, 255, 0.25),
     0 1px 2px rgba(0, 0, 0, 0.15);
 }
-
-/* stem */
 .avatarFallback::before {
   content: "";
   position: absolute;
@@ -191,8 +171,6 @@
   transform: rotate(18deg);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
-
-/* leaf */
 .avatarFallback::after {
   content: "";
   position: absolute;
@@ -201,11 +179,7 @@
   width: 34%;
   height: 28%;
   background:
-    radial-gradient(
-      120% 100% at 70% 50%,
-      rgba(255, 255, 255, 0.35),
-      rgba(255, 255, 255, 0) 60%
-    ),
+    radial-gradient(120% 100% at 70% 50%, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 60%),
     linear-gradient(135deg, #2f9e44, #217a33);
   border-radius: 0 100% 100% 100% / 0 90% 100% 100%;
   transform: rotate(-22deg);
@@ -227,17 +201,17 @@
   text-overflow: ellipsis;
 }
 .userSub {
-  color: #6b7280;
+  color: #d1d5db;
   max-width: 220px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.chev {
-  opacity: 0.7;
-}
+.chev { opacity: 0.7; }
 
-/* User menu (popover) */
+/* ==========================
+   User menu (popover)
+   ========================== */
 .menu {
   position: absolute;
   right: 0;
@@ -255,7 +229,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 12px;
+  padding: 0;
   border-radius: 8px;
   background: transparent;
   border: none;
@@ -264,22 +238,16 @@
   cursor: pointer;
   font: inherit;
 }
-.menuItem:hover {
-  background: #f8f9fa;
-}
-.menuItemDanger {
-  color: #b42318;
-}
-.menuItemDanger:hover {
-  background: #fff1f0;
+.menuItem:hover { background: #f8f9fa; }
+.menuItemDanger { color: #b42318; }
+.menuItemDanger:hover { background: #fff1f0; }
+
+header.header > .row,
+header.header > .secondRow {
+  /* support iOS notches too */
+  padding-left: max(var(--header-gutter), env(safe-area-inset-left));
+  padding-right: max(var(--header-gutter), env(safe-area-inset-right));
 }
 
-/* Second row */
-.secondRow {
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border-top: 1px solid #e9ecef;
-  background: #fcfcfc;
-}
+/* If you keep .fullBleed, make sure it doesn't zero padding */
+.fullBleed .row { padding-inline: var(--header-gutter) !important; }

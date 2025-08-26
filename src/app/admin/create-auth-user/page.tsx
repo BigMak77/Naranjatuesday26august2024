@@ -33,7 +33,7 @@ export default function CreateAuthUserPage() {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-12 p-6 border rounded shadow">
+    <div className="max-w-md mx-auto mt-12 p-6 rounded shadow neon-panel">
       <h1 className="text-2xl font-bold mb-4">Create Auth User</h1>
       <NeonForm
         title="Create Auth User"

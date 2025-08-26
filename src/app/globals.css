@@ -1,684 +1,188 @@
-/* ================================
-   0) Font faces (load FIRST)
-   ================================ */
+/* ================== Fonts ================== */
 @font-face {
   font-family: "Geist";
   src: url("/fonts/Geist.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
+  font-weight: 400; font-style: normal; font-display: swap;
 }
 @font-face {
   font-family: "Geist";
   src: url("/fonts/Geist-Bold.woff2") format("woff2");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
+  font-weight: 700; font-style: normal; font-display: swap;
 }
 
-/* Tailwind removed. No import needed. */
-
-/* ================================
-   1) Theme variables
-   ================================ */
-:root {
-  --neon: #40e0d0;
-  --neon-2: #2edbd0;
-  --bg: #013b3b;
-  --panel: #012b2f;
-  --field: #012b2b;
-  --text: #ffffff;
-  --ink: #011f24;
-  --accent: #ffa500;
-  --muted: #014d4d;
-  --border: #40e0d0;
-  --radius: 12px;
+/* ================== Theme ================== */
+:root{
+  --neon:#40e0d0; --neon-2:#2edbd0; --bg:#16cbcf; --panel:#053639; --field:#012b2b;
+  --text:#fff; --ink:#011f24; --accent:#ffa500; --muted:#014d4d; --border:#40e0d0; --radius:12px;
+  --gutter:clamp(12px,2.5vw,32px);  /* side padding */
+  --page-max:none;                  /* no container cap by default */
+  --header-gutter: clamp(16px, 3vw, 32px);
 }
 
-/* ================================
-   2) Base
-   ================================ */
-html,
-body {
-  font-family: "Geist", system-ui, sans-serif;
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--text);
-  background-color: var(--bg);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* ================== Base ================== */
+*,*::before,*::after{ box-sizing:border-box; }
+html,body{
+  background:var(--bg); color:var(--text);
+  font: 12px/1.5 "Geist",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+  margin:0; overflow-x:clip;
 }
+img,svg,video{ max-width:100%; height:auto; display:block; }
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
+/* Remove the “mystery gap” under header on first element */
+main > :first-child{ margin-top:0; }
+h1,h2,h3,h4,h5,h6{ margin-top:0; }
 
-/* Make sure all form UI uses Geist (no global appearance reset) */
-input,
-select,
-textarea,
-button,
-label,
-option {
-  font-family: inherit;
-}
+/* Native controls use app font */
+input,select,textarea,button,label,option{ font-family:inherit; }
 
-/* Utility */
-.shadow-glow {
-  box-shadow: 0 0 12px var(--neon);
+/* ================== App shell (4 sections) ================== */
+.app-shell{
+  display:grid; grid-template-rows:auto auto 1fr auto; min-height:100vh;
 }
-.no-shadow-glow {
-  box-shadow: none !important;
+header.header{ grid-row:1; width:100%; margin:0; padding:0; border:0; box-shadow:none; position:sticky; top:0; z-index:50; }
+.section-toolbar{ grid-row:2; width:100%; margin:0; background:var(--panel); position:sticky; top:0; z-index:49; }
+.section-toolbar .inner,
+main.content,
+footer.site-footer .inner{
+  max-width:var(--page-max);
+  margin-inline:auto;
+  padding-inline:var(--gutter);
+  box-sizing:border-box;
 }
-
-/* ================================
-   3) Form controls (single source)
-   ================================ */
-input[type="text"],
-input[type="search"],
-input[type="date"],
-input[type="number"],
-select,
-textarea {
+main.content {
+  grid-row: 3;
   width: 100%;
-  background-color: var(--field);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 0.75rem 1rem;
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
-    background-color 0.2s ease;
-  margin-bottom: 1rem;
-}
-
-/* Focus glow */
-input:focus,
-select:focus,
-textarea:focus {
-  outline: none;
-  border-color: var(--neon);
-  box-shadow: 0 0 0 2px var(--neon);
-}
-
-/* Search sizing helper */
-input[type="search"] {
-  max-width: 20rem;
-}
-
-/* Labels */
-label {
-  display: block;
-  font-weight: 600;
-  color: var(--neon);
-  margin-bottom: 0.5rem;
-}
-
-/* ================================
-   4) Select: force non‑native look only here
-   ================================ */
-select,
-.geist-select {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  padding-right: 2.25rem; /* room for arrow */
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2340E0D0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
-  background-repeat: no-repeat;
-  background-position: right 0.6rem center;
-  background-size: 1rem;
-}
-.geist-select option,
-.geist-select optgroup {
-  font-family: inherit;
-}
-
-/* ================================
-   5) Forms / panels / buttons
-   ================================ */
-form,
-.neon-form {
-  background: var(--panel);
-  border: 1px solid var(--neon);
+  max-width: 1400px;
+  margin-inline: auto;
+  background: #0a706a;
+  padding-inline: var(--gutter);
+  padding-top: 2.5rem;
+  padding-bottom: 2.5rem;
+  box-sizing: border-box;
+  margin-top: 2.5rem; /* Add gap between toolbar and main section */
+  border: 2px solid #053639;
   border-radius: var(--radius);
-  box-shadow: 0 0 12px var(--neon);
-  padding: 2rem;
+  box-shadow: 0 0 16px var(--neon);
+}
+footer.site-footer{ grid-row:4; width:100%; background:#062b2b; border-top:1px solid rgba(64,224,208,.18); }
+
+/* ================== Header (example gradient, no borders) ================== */
+.header{
+  background:linear-gradient(118deg in oklab,#05363a 0%,#0a706a 48%,#16cbcf 100%);
 }
 
-button,
-.neon-btn {
-  display: inline-block;
+/* ================== Forms ================== */
+input[type="text"],input[type="search"],input[type="date"],input[type="number"],select,textarea{
+  width:100%; background:var(--field); color:var(--text);
+  border:1px solid var(--border); border-radius:6px; padding:.75rem 1rem; margin-bottom:1rem;
+  transition:border-color .2s, box-shadow .2s, background-color .2s;
+}
+input:focus,select:focus,textarea:focus{ outline:none; border-color:var(--neon); box-shadow:0 0 0 2px var(--neon); }
+input[type="search"]{ max-width:20rem; }
+label{ display:block; font-weight:600; color:var(--neon); margin-bottom:.5rem; }
+
+/* Custom select arrow (keeps native a11y) */
+select{
+  appearance:none; padding-right:2.25rem;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2340E0D0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat:no-repeat; background-position:right .6rem center; background-size:1rem;
+}
+
+/* ================== Panels / Buttons ================== */
+.neon-form{
+  background:var(--panel); border:1px solid var(--neon); border-radius:var(--radius);
+  box-shadow:0 0 12px var(--neon); padding:2rem;
+}
+
+.neon-btn,
+.neon-btn-square {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  max-width: 40px;
+  max-height: 40px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  background: linear-gradient(90deg, var(--neon) 0%, var(--neon-2) 100%);
-  color: var(--ink);
-  font-weight: 700;
-  border: none;
+  padding: 0;
   border-radius: 8px;
-  padding: 0.75rem 1.5rem;
-  box-shadow: 0 2px 8px 0 var(--neon);
-  transition:
-    background 0.2s,
-    color 0.2s,
-    box-shadow 0.2s,
-    transform 0.06s;
+  background: var(--panel);
+  box-shadow: 0 0 12px var(--neon);
+  border: 0;
   cursor: pointer;
-  min-width: 44px;
-  min-height: 44px;
-  max-width: 44px;
-  max-height: 44px;
-  width: 44px;
-  height: 44px;
+  transition: background .2s, color .2s, box-shadow .2s, transform .06s;
 }
-button:hover,
-.neon-btn:hover {
-  background: linear-gradient(90deg, var(--neon-2) 0%, var(--neon) 100%);
+.neon-btn svg,
+.neon-btn-square svg {
+  width: 24px;
+  height: 24px;
   color: #fff;
+  stroke: #fff;
+  fill: none;
+  stroke-width: 2px;
+  vertical-align: middle;
+  display: inline-block;
+}
+.neon-btn:hover,
+.neon-btn-square:hover {
+  background: var(--neon);
   box-shadow: 0 4px 16px 0 var(--neon);
 }
-button:active,
-.neon-btn:active {
-  transform: translateY(1px);
-}
-
-/* Ensure all .neon-btn-square buttons are 30px and override any local inline or module styles */
-.neon-btn,
-button {
-  min-width: unset !important;
-  min-height: unset !important;
-  max-width: unset !important;
-  max-height: unset !important;
-  width: unset !important;
-  height: unset !important;
-}
-.neon-btn-square {
-  width: 30px !important;
-  height: 30px !important;
-  min-width: 30px !important;
-  min-height: 30px !important;
-  max-width: 30px !important;
-  max-height: 30px !important;
-  display: inline-block !important;
-  border-radius: 8px !important;
-  border: none !important;
-  padding: 0 !important;
-  box-shadow: 0 0 12px var(--neon);
-  background: var(--panel);
-  align-items: unset !important;
-  justify-content: unset !important;
-  flex: unset !important;
-}
-.neon-btn-square svg {
-  width: 20px !important;
-  height: 20px !important;
-  color: #fff !important;
-  margin: 0 auto !important;
-  display: block !important;
-}
-
-/* ================================
-   6) Tables (neon)
-   ================================ */
-.table-default,
-.neon-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 1rem;
-  color: var(--text);
-  background: var(--field);
-  border: 1px solid var(--neon);
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 0 8px var(--neon);
-}
-.table-default thead,
-.neon-table thead {
-  background: var(--neon);
-  color: var(--ink);
-  text-align: left;
-}
-.table-default th,
-.table-default td,
-.neon-table th,
-.neon-table td {
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--neon);
-}
-.table-default tbody tr:hover,
-.neon-table tbody tr:hover {
-  background: var(--muted);
-}
-.table-default th:first-child,
-.table-default td:first-child,
-.neon-table th:first-child,
-.neon-table td:first-child {
-  padding-left: 1.25rem;
-}
-.table-default th:last-child,
-.table-default td:last-child,
-.neon-table th:last-child,
-.neon-table td:last-child {
-  padding-right: 1.25rem;
-}
-
-/* ================================
-   7) Hero header
-   ================================ */
-.hero-header-neon {
-  width: 100vw;
-  max-width: 100vw;
-  margin: 0 0 1.5rem 0 !important;
-  border-radius: 0 !important;
-  position: relative;
-  left: 50%;
-  right: 50%;
-  transform: translateX(-50%);
-  padding: 1rem 0;
-  background: linear-gradient(90deg, #013b3b 0%, #011f24 50%, #014f4f 100%);
-  border-bottom: 3px solid var(--accent);
-  color: var(--neon);
-}
-.hero-header-neon h1 {
-  font-size: 2rem;
-  font-weight: 800;
-  color: var(--accent);
-  text-align: center;
-}
-.hero-header-neon p {
-  font-size: 1.125rem;
-  color: var(--neon);
-  text-align: center;
-}
-
-/* ================================
-   8) Cards (optional)
-   ================================ */
-.card {
-  background: #fff;
-  color: #000;
-  border: 1px solid #5eead4;
-  border-radius: 12px;
-  box-shadow:
-    0 1px 3px rgba(16, 185, 129, 0.1),
-    0 1px 2px rgba(16, 185, 129, 0.06);
-}
-.card-header {
-  background: #14b8a6;
-  color: #fff;
-  font-weight: 600;
-  padding: 1rem 1.5rem;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-.card-note {
-  font-size: 0.875rem;
-  color: #4b5563;
-  margin-top: 0.25rem;
-}
-
-/* ================================
-   9) File/folder UI (neon)
-   ================================ */
-.folder-container {
-  background: #111;
-  border-radius: 10px;
-  padding: 20px;
-  color: var(--neon);
-  box-shadow: 0 0 10px #0ff4;
-}
-.folder-tabs {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-  border-bottom: 2px solid #0ff5;
-}
-.folder-tab {
-  padding: 10px 16px;
-  cursor: pointer;
-  background: #222;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
-  transition: all 0.3s ease;
-  color: var(--neon);
-  box-shadow: 0 0 4px #0ff5;
-}
-.folder-tab:hover {
-  background: #0ff1;
-}
-.folder-tab.active {
-  background: #0ff2;
-  color: #fff;
-  box-shadow: 0 0 8px #0ff;
-}
-.folder-content {
-  padding-top: 10px;
-}
-.folder-file-box {
-  background: #1a1a1a;
-  border: 1px solid #0ff3;
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 12px;
-  box-shadow: 0 0 6px #0ff2;
-}
-.file-meta {
-  font-size: 0.85rem;
-  color: #aaa;
-}
-
-/* UserProfileCard (neon) */
-.user-profile-card {
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  padding: 0.75rem 2vw;
-  background: none;
-  border-radius: 0;
-  color: var(--text);
-  margin: 0 !important;
-  border: none !important;
-  width: 100vw;
-  max-width: 100vw;
-  position: relative;
-  left: 50%;
-  right: 50%;
-  transform: translateX(-50%);
-  box-sizing: border-box;
-}
-
-.user-profile-card .brand {
-  flex-shrink: 0;
-  /* Remove drop-shadow from logo */
-  filter: none !important;
-}
-
-.user-profile-card .row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 14px 24px;
-  width: 100%;
-}
-
-.user-profile-card .pair {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 1rem;
-}
-
-.user-profile-card .label {
-  color: var(--neon);
-  font-weight: 700;
-}
-
-.user-profile-card .actions {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-}
-
-/* ================================
-   Neon Square Action Buttons
-   ================================ */
-.neon-btn-square {
-  width: 30px !important;
-  height: 30px !important;
-  min-width: 30px !important;
-  min-height: 30px !important;
-  max-width: 30px !important;
-  max-height: 30px !important;
-  display: inline-block !important;
-  border-radius: 8px !important;
-  border: none !important;
-  padding: 0 !important;
-  box-shadow: 0 0 12px var(--neon);
-  background: var(--panel);
-  align-items: unset !important;
-  justify-content: unset !important;
-  flex: unset !important;
-}
-.neon-btn-square svg {
-  width: 20px !important;
-  height: 20px !important;
-  color: #fff !important;
-  margin: 0 auto !important;
-  display: block !important;
-}
-.neon-btn-square:hover {
-  transform: translateY(-1px);
-}
+.neon-btn:active,
 .neon-btn-square:active {
   transform: translateY(1px);
 }
 
-/* ADD */
-.neon-btn-add {
-  background-color: #0f766e;
-  box-shadow: 0 0 2px #0f766e;
-}
-.neon-btn-add:hover {
-  background-color: #134e4a;
-  box-shadow: 0 0 6px #0f766e;
-}
+/* Variant shortcut (set bg with a class or inline) */
+.btn-green { --btn-bg:#16a34a; --btn-color:#012b2b; }
+.btn-blue  { --btn-bg:#2563eb; --btn-color:#fff; }
+.btn-red   { --btn-bg:#ea1c1c; --btn-color:#fff; }
 
-/* VIEW */
-.neon-btn-view {
-  background-color: #2563eb;
-  box-shadow: 0 0 2px #2563eb;
+/* ================== Tables ================== */
+.neon-table{
+  width:100%; border-collapse:collapse; font-size:1rem; color:var(--text);
+  background:var(--field); border:1px solid var(--neon); border-radius:12px; overflow:hidden;
+  box-shadow:0 0 8px var(--neon);
 }
-.neon-btn-view:hover {
-  background-color: #1d4ed8;
-  box-shadow: 0 0 6px #2563eb;
-}
+.neon-table thead{ background:var(--neon); color:var(--ink); text-align:left; }
+.neon-table th,.neon-table td{ padding:.75rem 1rem; border-bottom:1px solid var(--neon); }
+.neon-table tbody tr:hover{ background:var(--muted); }
 
-/* DELETE */
-.neon-btn-delete {
-  background-color: #ea1c1c;
-  box-shadow: 0 0 2px #ea1c1c;
+/* ================== User Profile (safe; no 100vw) ================== */
+.user-profile-card{
+  display:flex; align-items:center; gap:1rem; width:100%; padding:0; margin:0; border:0; background:none; box-sizing:border-box;
 }
-.neon-btn-delete:hover {
-  background-color: #b91c1c;
-  box-shadow: 0 0 6px #ea1c1c;
-}
+.user-profile-card .row{ display:flex; flex-wrap:wrap; align-items:center; gap:14px 24px; width:100%; }
+.user-profile-card .label{ color:var(--neon); font-weight:700; }
 
-/* NEXT */
-.neon-btn-next {
-  background-color: var(--neon);
-  box-shadow: 0 0 2px var(--neon);
-}
-.neon-btn-next:hover {
-  background-color: var(--neon-2);
-  box-shadow: 0 0 6px var(--neon);
-}
+/* ================== Utilities ================== */
+.shadow-glow{ box-shadow:0 0 12px var(--neon); }
+.no-shadow-glow{ box-shadow:none !important; }
 
-/* BACK */
-.neon-btn-back {
-  background-color: #475569;
-  box-shadow: 0 0 2px #475569;
-}
-.neon-btn-back:hover {
-  background-color: #334155;
-  box-shadow: 0 0 6px #475569;
-}
-
-/* ARCHIVE */
-.neon-btn-archive {
-  background-color: var(--neon);
-  box-shadow: 0 0 2px var(--neon);
-}
-.neon-btn-archive:hover {
-  background-color: var(--neon-2);
-  box-shadow: 0 0 6px var(--neon);
-}
-
-/* SUBMIT */
-.neon-btn-submit {
-  background-color: var(--neon);
-  color: #012b2b;
-  font-weight: bold;
-  box-shadow: 0 0 2px var(--neon);
-}
-.neon-btn-submit:hover {
-  background-color: var(--neon-2);
-  box-shadow: 0 0 6px var(--neon);
-}
-
-/* EDIT */
-.neon-btn-edit {
-  background-color: #1b640e;
-  box-shadow: 0 0 4px #39ff14;
-}
-.neon-btn-edit:hover {
-  background-color: #00e600;
-  box-shadow: 0 0 6px #39ff14;
-}
-
-/* DOWNLOAD */
-.neon-btn-download {
-  background-color: #0284c7;
-  box-shadow: 0 0 2px #0284c7;
-}
-.neon-btn-download:hover {
-  background-color: #0369a1;
-  box-shadow: 0 0 6px #0284c7;
-}
-
-/* UPLOAD */
-.neon-btn-upload {
-  background-color: #16a34a;
-  box-shadow: 0 0 2px #16a34a;
-}
-.neon-btn-upload:hover {
-  background-color: #15803d;
-  box-shadow: 0 0 6px #16a34a;
-}
-
-/* SEARCH */
-.neon-btn-search {
-  background-color: #f59e0b;
-  box-shadow: 0 0 2px #f59e0b;
-}
-.neon-btn-search:hover {
-  background-color: #d97706;
-  box-shadow: 0 0 6px #f59e0b;
-}
-
-/* REFRESH */
-.neon-btn-refresh {
-  background-color: #14b8a6;
-  box-shadow: 0 0 2px #14b8a6;
-}
-.neon-btn-refresh:hover {
-  background-color: #0d9488;
-  box-shadow: 0 0 6px #14b8a6;
-}
-
-/* SAVE */
-.neon-btn-save {
-  background-color: #39ff14;
-  color: #012b2b;
-  font-weight: bold;
-  box-shadow: 0 0 2px #39ff14;
-}
-.neon-btn-save:hover {
-  background-color: #00e600;
-  color: #fff;
-  box-shadow: 0 0 6px #39ff14;
-}
-
-/* CANCEL */
-.neon-btn-cancel {
-  background-color: #ea1c1c;
-  color: #fff;
-  font-weight: bold;
-  box-shadow: 0 0 2px #ea1c1c;
-}
-.neon-btn-cancel:hover {
-  background-color: #b91c1c;
-  color: #fff;
-  box-shadow: 0 0 6px #ea1c1c;
-}
-
-/* ================================
-   Neon Form Title and Actions
-   ================================ */
-.neon-form-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--neon);
-  margin-bottom: 1.25rem;
-  text-align: left;
-}
-
-.neon-form-actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-  margin-top: 2rem;
-}
-
-/* ================================
-   Neon Input and Messages
-   ================================ */
-.neon-input {
-  width: 100%;
-  background-color: var(--field);
-  color: var(--text);
-  border: 1.5px solid var(--neon);
-  border-radius: 6px;
-  padding: 0.75rem 1rem;
-  font-size: 1rem;
-  transition:
-    border-color 0.2s,
-    box-shadow 0.2s,
-    background-color 0.2s;
-}
-.neon-input:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accent);
-}
-
-.neon-error {
-  color: #ff4d4f;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-}
-
-.neon-success {
-  color: #2fffd2;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-}
-
-/* ================================
-   Neon Feature Card
-   ================================ */
+/* ================== Neon Feature Card ================== */
 .neon-feature-card {
   background: var(--panel);
   border: 1.5px solid var(--neon);
   border-radius: 16px;
-  box-shadow: 0 0 12px var(--neon);
-  padding: 1.5rem;
-  transition:
-    box-shadow 0.18s,
-    transform 0.12s;
-  cursor: pointer;
-  width: 100%;
-  color: var(--text);
+  box-shadow: 0 0 16px var(--neon);
+  padding: 1.5rem 1.25rem;
+  min-height: 140px;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  color: var(--text);
+  transition: box-shadow 0.18s, transform 0.12s;
+  cursor: pointer;
 }
-.neon-feature-card:hover {
-  box-shadow: 0 0 24px var(--neon);
+.neon-feature-card:hover,
+.neon-feature-card:focus {
+  box-shadow: 0 0 32px var(--neon);
   transform: scale(1.03);
+  outline: none;
 }
 .neon-feature-card-header {
   display: flex;
@@ -698,14 +202,5 @@ button {
 }
 .neon-feature-card-children {
   margin-top: 0.75rem;
-}
-
-/* ================================
-   Centered Content Utility
-   ================================ */
-.neon-center-content {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 100%;
 }

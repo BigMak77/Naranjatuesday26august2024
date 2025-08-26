@@ -184,7 +184,7 @@ export default function ViewAuditTab() {
               </div>
 
               {expanded === tpl.id && (
-                <div className="mt-4 border-t border-[#40E0D0] pt-4 text-sm text-[#b2f1ec] space-y-2">
+                <div className="mt-4 pt-4 text-sm text-[#b2f1ec] space-y-2 neon-panel">
                   {templates.find((t) => t.id === tpl.id)?.description && (
                     <p>
                       <strong>Description:</strong>{" "}

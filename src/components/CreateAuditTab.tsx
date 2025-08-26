@@ -194,7 +194,7 @@ export default function CreateAuditTab() {
             {availableQuestions.map((q) => (
               <label
                 key={q.id}
-                className="flex items-center gap-2 p-2 rounded bg-white shadow-sm border border-gray-200"
+                className="flex items-center gap-2 p-2 rounded bg-white shadow-sm neon-panel"
               >
                 <input
                   type="checkbox"

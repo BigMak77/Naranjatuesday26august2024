@@ -104,25 +104,25 @@ export default function UserPermissionsPanel({
   };
 
   return (
-    <div className="mt-8">
-      <h3 className="text-lg font-semibold mb-4 text-orange-600">
+    <div className="neon-panel neon-permissions-panel">
+      <h3 className="neon-heading neon-heading-section">
         Additional Permissions
       </h3>
 
-      <div className="space-y-3">
+      <div className="neon-listbox">
         {permissions.map((perm) => (
-          <label key={perm.code} className="flex items-start gap-2 text-sm">
+          <label key={perm.code} className="neon-listbox-item">
             <input
               type="checkbox"
-              className="mt-1"
+              className="neon-checkbox"
               checked={userPermissionCodes.includes(perm.code)}
               disabled={!canEdit || saving}
               onChange={(e) => handleToggle(perm.code, e.target.checked)}
             />
             <span>
-              <span className="font-medium text-teal-800">{perm.label}</span>
+              <span className="neon-label">{perm.label}</span>
               <br />
-              <span className="text-gray-600">{perm.description}</span>
+              <span className="neon-description">{perm.description}</span>
             </span>
           </label>
         ))}

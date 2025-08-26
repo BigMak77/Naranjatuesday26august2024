@@ -34,7 +34,8 @@ export default function NeonFeatureCard({
     <div
       className={["neon-feature-card", className].filter(Boolean).join(" ")}
       tabIndex={0}
-      role="button"
+      role="link"
+      aria-label={title}
       onClick={handleClick}
       onKeyDown={(e) => {
         if ((e.key === "Enter" || e.key === " ") && href) {
@@ -53,7 +54,7 @@ export default function NeonFeatureCard({
         </span>
         <span className="neon-feature-card-title">{title}</span>
       </div>
-      <div className="neon-feature-card-text">{text}</div>
+      {text && <div className="neon-feature-card-text">{text}</div>}
       {children && <div className="neon-feature-card-children">{children}</div>}
     </div>
   );

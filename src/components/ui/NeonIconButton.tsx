@@ -65,13 +65,13 @@ type NextLinkOwn = BaseProps & { as: "link" } & Omit<LinkProps, "href"> & {
 type Props = ButtonProps | AnchorProps | NextLinkOwn;
 
 export default function NeonIconButton(p: Props) {
-  const { variant, icon, title, className = "", children } = p;
+  const { variant, icon, title, className = "" } = p;
   const classes = `neon-btn neon-btn-${variant} ${className}`.trim();
   const IconEl = icon ?? ICONS[variant] ?? <FiChevronRight />;
 
   // <a> branch
   if (p.as === "a") {
-    const { ...domProps } = p as AnchorProps & BaseProps;
+    const { children, ...domProps } = p as AnchorProps & BaseProps;
     return (
       <a {...domProps} className={classes} title={title}>
         {IconEl}
@@ -82,7 +82,7 @@ export default function NeonIconButton(p: Props) {
 
   // Next <Link> branch
   if (p.as === "link") {
-    const { href, ...linkProps } = p as NextLinkOwn & BaseProps;
+    const { children, href, ...linkProps } = p as NextLinkOwn & BaseProps;
     return (
       <Link href={href} {...linkProps} className={classes} title={title}>
         {IconEl}
@@ -93,7 +93,7 @@ export default function NeonIconButton(p: Props) {
 
   // <button> branch (default)
   {
-    const { type, ...domProps } = p as ButtonProps & BaseProps;
+    const { children, type, ...domProps } = p as ButtonProps & BaseProps;
     return (
       <button
         {...domProps}
@@ -102,7 +102,6 @@ export default function NeonIconButton(p: Props) {
         title={title}
       >
         {IconEl}
-        {children}
       </button>
     );
   }
