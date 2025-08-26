@@ -18,7 +18,7 @@ import { ViewModuleTab } from "@/components/modules/ViewModuleTab";
 import AssignModuleTab from "@/components/modules/AssignModuleTab";
 import NeonIconButton from "@/components/ui/NeonIconButton";
 
-import "./folder-tabs-equal-width.css";
+import "@/components/folder-tabs-equal-width.css";
 
 // Define Module type inline
 interface Module {

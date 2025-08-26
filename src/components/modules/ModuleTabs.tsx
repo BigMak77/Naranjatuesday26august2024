@@ -239,7 +239,6 @@ export default function ModuleTabs({
                 icon={<FiEdit color="white" />}
                 title="Edit Module"
                 onClick={onEdit}
-                className="mt-6"
               />
             )}
             {onCancel && (
@@ -248,7 +247,6 @@ export default function ModuleTabs({
                 icon={<FiEye color="white" />}
                 title="Cancel"
                 onClick={onCancel}
-                className="mt-2 ml-4"
               />
             )}
           </>

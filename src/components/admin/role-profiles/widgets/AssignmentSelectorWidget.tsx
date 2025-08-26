@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import NeonPanel from "@/components/NeonPanel";
+import { FiPlus, FiMinus } from "react-icons/fi";
 
 type Assignment = {
   type: "user" | "role" | "department";
@@ -149,9 +150,13 @@ export default function AssignmentSelectorWidget({
           onClick={() => setShowDepts((v) => !v)}
         >
           {showDepts ? (
-            <span className="neon-btn-label">➖</span>
+            <span>
+              <FiMinus />
+            </span>
           ) : (
-            <span className="neon-btn-label">➕</span>
+            <span>
+              <FiPlus />
+            </span>
           )}
         </button>
         {showDepts && (
@@ -180,9 +185,13 @@ export default function AssignmentSelectorWidget({
           onClick={() => setShowRoles((v) => !v)}
         >
           {showRoles ? (
-            <span className="neon-btn-label">➖</span>
+            <span>
+              <FiMinus />
+            </span>
           ) : (
-            <span className="neon-btn-label">➕</span>
+            <span>
+              <FiPlus />
+            </span>
           )}
         </button>
         {showRoles && (
@@ -211,9 +220,13 @@ export default function AssignmentSelectorWidget({
           onClick={() => setShowUsers((v) => !v)}
         >
           {showUsers ? (
-            <span className="neon-btn-label">➖</span>
+            <span>
+              <FiMinus />
+            </span>
           ) : (
-            <span className="neon-btn-label">➕</span>
+            <span>
+              <FiPlus />
+            </span>
           )}
         </button>
         {showUsers && (

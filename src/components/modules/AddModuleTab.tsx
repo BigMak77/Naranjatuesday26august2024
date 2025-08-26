@@ -153,8 +153,8 @@ export default function AddModuleTab({
               variant="add"
               icon={<FiPlus color="white" />}
               title="Added"
-            />{" "}
-            Module added!
+            />
+            {/* Icon only, no label */}
           </p>
         )}
         <div className="add-module-tab-actions"></div>

@@ -484,10 +484,7 @@ If this persists, check Row Level Security policies on "user_assignments".`);
       )}
 
       {feedback && (
-        <div
-          className="neon-info"
-          style={{ marginTop: 6, whiteSpace: "pre-line" }}
-        >
+        <div className="neon-info" style={{ whiteSpace: "pre-line" }}>
           {feedback}
         </div>
       )}

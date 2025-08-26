@@ -198,7 +198,6 @@ export default function DepartmentProfilePage() {
                   disabled={loading}
                   type="button"
                 >
-                  <span className="neon-btn-label">Save Changes</span>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="20"

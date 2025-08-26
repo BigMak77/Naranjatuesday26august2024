@@ -117,10 +117,25 @@ export default function RaiseIssuePage() {
           </p>
         )}
         <button type="submit" className="neon-btn" disabled={loading}>
-          <FiAlertCircle
-            style={{ display: loading ? "none" : "inline-block" }}
-          />
-          {loading ? <span>Submitting...</span> : <span>Submit Issue</span>}
+          <FiAlertCircle style={{ display: loading ? "none" : "inline-block" }} />
+          {/* Icon only, no label */}
+          {loading && (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="feather feather-loader neon-icon"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+          )}
         </button>
       </form>
     </Modal>

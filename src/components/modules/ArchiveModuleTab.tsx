@@ -110,11 +110,12 @@ export default function ArchiveModuleTab({
               Selected: <span className="font-semibold">{module.name}</span>
             </p>
             <button
-              className="btn-archive neon-outline"
+              className="btn-archive neon-btn neon-btn-archive"
               data-tooltip="Archive Module"
               onClick={openDialog}
             >
-              <FiArchive /> Archive
+              <FiArchive />
+              {/* Icon only, no label */}
             </button>
           </>
         )}
@@ -168,19 +169,20 @@ export default function ArchiveModuleTab({
                     }}
                   >
                     <button
-                      className="btn-archive"
+                      className="btn-archive neon-btn neon-btn-archive"
                       onClick={handleArchive}
                       disabled={loading}
                       autoFocus
                     >
-                      <FiArchive /> {loading ? "Archiving…" : "Confirm"}
+                      <FiArchive />
+                      {/* Icon only, no label */}
                     </button>
                     <button
                       className="neon-btn neon-btn-danger"
                       onClick={closeDialog}
                       disabled={loading}
                     >
-                      Cancel
+                      {/* Icon only, no label */}
                     </button>
                   </div>
                 </>

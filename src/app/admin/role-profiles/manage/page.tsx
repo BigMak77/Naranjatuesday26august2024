@@ -61,7 +61,6 @@ const ManageRoleProfilesPage = () => {
                       aria-label="View Role Profile"
                     >
                       <FiEye />
-                      <span className="neon-btn-label">View</span>
                     </a>
                     <a
                       href={`/admin/role-profiles/${profile.id}/edit`}
@@ -70,7 +69,6 @@ const ManageRoleProfilesPage = () => {
                       aria-label="Edit Role Profile"
                     >
                       <FiEdit />
-                      <span className="neon-btn-label">Edit</span>
                     </a>
                   </td>
                 </tr>

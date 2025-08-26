@@ -323,18 +323,20 @@ export default function EditModulePage() {
             </p>
             <div className="flex gap-3 justify-end">
               <button
-                className="neon-utility-btn neon-btn-save"
+                className="neon-btn neon-btn-save"
                 onClick={() => handleVersionConfirm(true)}
-                style={{ minWidth: 140 }}
+                style={{ minWidth: 40, minHeight: 40 }}
+                aria-label="Confirm new version"
               >
-                Yes, new version
+                {/* Icon only, no label */}
               </button>
               <button
-                className="neon-utility-btn neon-btn-edit"
+                className="neon-btn neon-btn-edit"
                 onClick={() => handleVersionConfirm(false)}
-                style={{ minWidth: 140 }}
+                style={{ minWidth: 40, minHeight: 40 }}
+                aria-label="Keep current version"
               >
-                No, keep version
+                {/* Icon only, no label */}
               </button>
             </div>
           </div>

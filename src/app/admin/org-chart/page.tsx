@@ -288,7 +288,6 @@ export default function OrgChartPage() {
                         className="neon-btn neon-btn-save neon-btn-square org-chart-btn"
                         data-variant="save"
                       >
-                        <span className="neon-btn-label">Save</span>
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           width="20"
@@ -316,7 +315,6 @@ export default function OrgChartPage() {
                         className="neon-btn neon-btn-danger org-chart-btn"
                         data-variant="close"
                       >
-                        <span style={{ marginRight: "0.5em" }}>Cancel</span>
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           width="20"
@@ -424,13 +422,42 @@ export default function OrgChartPage() {
                     }}
                     className="neon-btn neon-btn-submit"
                   >
-                    Save
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="feather feather-save"
+                    >
+                      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                      <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                      <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
                   </button>
                   <button
                     onClick={() => setShowModalFor(null)}
                     className="neon-btn neon-btn-back"
                   >
-                    Cancel
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="feather feather-x"
+                    >
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
                   </button>
                 </div>
               </NeonPanel>
@@ -457,7 +484,6 @@ export default function OrgChartPage() {
                   className="neon-btn neon-btn-save"
                   data-variant="save"
                 >
-                  <span style={{ marginRight: "0.5em" }}>Save</span>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="20"
@@ -480,7 +506,6 @@ export default function OrgChartPage() {
                   className="neon-btn neon-btn-danger"
                   data-variant="close"
                 >
-                  <span style={{ marginRight: "0.5em" }}>Cancel</span>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="20"
@@ -503,9 +528,6 @@ export default function OrgChartPage() {
                     className="neon-btn neon-btn-archive"
                     data-variant="archive"
                   >
-                    <span style={{ marginRight: "0.5em" }}>
-                      Archive Department
-                    </span>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="20"

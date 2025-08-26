@@ -62,7 +62,6 @@ export default function RoleProfilesPage() {
                           aria-label="View Role Profile"
                         >
                           <FiEye />
-                          <span className="neon-btn-label">View</span>
                         </Link>
                         <Link
                           href={`/admin/role-profiles/${row.id}/edit`}
@@ -71,7 +70,6 @@ export default function RoleProfilesPage() {
                           aria-label="Edit Role Profile"
                         >
                           <FiEdit />
-                          <span className="neon-btn-label">Edit</span>
                         </Link>
                       </div>
                     ),
