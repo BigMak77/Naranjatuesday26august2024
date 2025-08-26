@@ -68,7 +68,7 @@ export default function NeonDualListbox({
         </div>
         <div className={styles["neon-dual-listbox-actions"]}>
           <button
-            className="neon-btn neon-btn-edit"
+            className="neon-btn neon-btn-edit neon-btn-square"
             onClick={moveRight}
             disabled={highlightedLeft.length === 0}
             aria-label="Add selected"
@@ -77,7 +77,7 @@ export default function NeonDualListbox({
             <FiChevronRight />
           </button>
           <button
-            className="neon-btn neon-btn-danger"
+            className="neon-btn neon-btn-danger neon-btn-square"
             onClick={moveLeft}
             disabled={highlightedRight.length === 0}
             aria-label="Remove selected"

@@ -154,16 +154,16 @@ export default function EditModulePage() {
             </p>
             <div className="flex gap-3 justify-end">
               <button
-                className="neon-utility-btn neon-btn-save"
+                className="neon-btn neon-btn-save neon-btn-square"
                 onClick={onConfirmNewVersion}
-                style={{ minWidth: 120 }}
+                type="button"
               >
                 Yes, new version
               </button>
               <button
-                className="neon-utility-btn neon-btn-edit"
+                className="neon-btn neon-btn-edit neon-btn-square"
                 onClick={onConfirmKeepVersion}
-                style={{ minWidth: 120 }}
+                type="button"
               >
                 No, keep version
               </button>

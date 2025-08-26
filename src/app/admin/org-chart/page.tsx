@@ -285,10 +285,10 @@ export default function OrgChartPage() {
                       </select>
                       <button
                         type="submit"
-                        className="neon-btn neon-btn-save org-chart-btn"
+                        className="neon-btn neon-btn-save neon-btn-square org-chart-btn"
                         data-variant="save"
                       >
-                        <span style={{ marginRight: "0.5em" }}>Save</span>
+                        <span className="neon-btn-label">Save</span>
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           width="20"
@@ -299,7 +299,7 @@ export default function OrgChartPage() {
                           strokeWidth="2"
                           strokeLinecap="round"
                           strokeLinejoin="round"
-                          className="feather feather-save"
+                          className="feather feather-save neon-icon"
                         >
                           <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
                           <polyline points="17 21 17 13 7 13 7 21"></polyline>

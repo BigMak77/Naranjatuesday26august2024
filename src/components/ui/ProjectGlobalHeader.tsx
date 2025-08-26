@@ -230,20 +230,12 @@ export default function GlobalHeader({
             )}
 
             {/* Siren button */}
-            <Link
+            <a
+              className="neon-btn neon-btn-danger neon-btn-square"
               href="/turkus/issues/add"
-              className="neon-btn neon-btn-danger"
-              title="Raise an issue"
-              aria-label="Raise an issue"
-              style={{
-                marginLeft: "0.75rem",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
             >
               <FiAlertOctagon />
-            </Link>
+            </a>
           </div>
         </div>
       </header>

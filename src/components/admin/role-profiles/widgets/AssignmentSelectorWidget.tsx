@@ -206,7 +206,7 @@ export default function AssignmentSelectorWidget({
       <div>
         <button
           type="button"
-          className="neon-btn neon-section-toggle"
+          className="neon-btn neon-section-toggle neon-btn-square"
           aria-label={showUsers ? "Hide Users" : "Show Users"}
           onClick={() => setShowUsers((v) => !v)}
         >

@@ -76,7 +76,7 @@ export default function UserProfileCard({ authId }: UserProfileCardProps) {
       <div className="user-profile-card">
         <p>{err ? `Error: ${err}` : "User not found."}</p>
         <div className="actions">
-          <Link href="/login" className="neon-btn-sm" aria-label="Log in">
+          <Link href="/login" className="neon-btn neon-btn-square" aria-label="Log in">
             <FiLogIn className="neon-icon" />
           </Link>
         </div>
@@ -155,7 +155,7 @@ export default function UserProfileCard({ authId }: UserProfileCardProps) {
           {/* Raise an Issue */}
           <Link
             href="/turkus/issues/add"
-            className="neon-btn-sm neon-btn-orange"
+            className="neon-btn neon-btn-square"
             aria-label="Raise an Issue"
           >
             <FiBell className="neon-icon" />
@@ -164,7 +164,7 @@ export default function UserProfileCard({ authId }: UserProfileCardProps) {
           {/* Dashboard */}
           <Link
             href={dashHref}
-            className="neon-btn-sm"
+            className="neon-btn neon-btn-square"
             aria-label="Return to dashboard"
           >
             <FiUser className="neon-icon" />

@@ -149,12 +149,12 @@ export default function ModuleAssignmentPanel({ moduleId }: Props) {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="neon-btn neon-btn-save module-assignment-save-btn"
+          className="neon-btn neon-btn-square neon-btn-save module-assignment-save-btn"
           data-variant="save"
         >
           {saving ? (
             <>
-              <span style={{ marginRight: "0.5em" }}>Saving...</span>
+              <span className="neon-btn-label">Saving...</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="20"
@@ -165,32 +165,15 @@ export default function ModuleAssignmentPanel({ moduleId }: Props) {
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="feather feather-save"
+                className="feather feather-save neon-icon"
               >
                 <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
                 <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                <polyline points="7 3 7 8 15 8"></polyline>
               </svg>
             </>
           ) : (
             <>
-              <span style={{ marginRight: "0.5em" }}>Save Assignments</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="feather feather-save"
-              >
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                <polyline points="7 3 7 8 15 8"></polyline>
-              </svg>
+              <span className="neon-btn-label">Save Assignments</span>
             </>
           )}
         </button>
@@ -200,7 +183,7 @@ export default function ModuleAssignmentPanel({ moduleId }: Props) {
           data-variant="edit"
           onClick={() => router.push(`/admin/modules/edit/${moduleId}`)}
         >
-          <span style={{ marginRight: "0.5em" }}>Edit Module</span>
+          <span className="neon-btn-label">Edit Module</span>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="20"
@@ -211,7 +194,7 @@ export default function ModuleAssignmentPanel({ moduleId }: Props) {
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="feather feather-edit"
+            className="feather feather-edit neon-icon"
           >
             <path d="M11 4h2a2 2 0 0 1 2 2v2"></path>
             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L7 20.5 2.5 16 18.5 2.5z"></path>
@@ -223,7 +206,7 @@ export default function ModuleAssignmentPanel({ moduleId }: Props) {
           data-variant="view"
           onClick={() => router.push(`/admin/modules/${moduleId}`)}
         >
-          <span style={{ marginRight: "0.5em" }}>View Module</span>
+          <span className="neon-btn-label">View Module</span>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="20"
@@ -234,7 +217,7 @@ export default function ModuleAssignmentPanel({ moduleId }: Props) {
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="feather feather-eye"
+            className="feather feather-eye neon-icon"
           >
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
             <circle cx="12" cy="12" r="3"></circle>

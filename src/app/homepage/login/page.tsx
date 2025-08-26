@@ -148,24 +148,13 @@ export default function LoginPage() {
             </div>
             <button
               type="submit"
-              className="neon-btn neon-btn-login login-submit-btn"
+              className="neon-btn neon-btn-login neon-btn-square login-submit-btn"
               data-variant="login"
-              style={{
-                width: "100%",
-                padding: ".85rem 0",
-                borderRadius: "var(--r-md)",
-                fontWeight: 700,
-                fontSize: "1.08rem",
-                marginTop: "1rem",
-                cursor: loading ? "not-allowed" : "pointer",
-                transition:
-                  "background .18s,color .18s, box-shadow .18s, transform .08s",
-              }}
               disabled={loading}
             >
               {loading ? (
                 <>
-                  <span style={{ marginRight: "0.5em" }}>Logging in...</span>
+                  <span className="neon-btn-label">Logging in...</span>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="20"
@@ -176,7 +165,7 @@ export default function LoginPage() {
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="feather feather-log-in"
+                    className="feather feather-log-in neon-icon"
                   >
                     <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
                     <polyline points="10 17 15 12 10 7"></polyline>
@@ -185,7 +174,7 @@ export default function LoginPage() {
                 </>
               ) : (
                 <>
-                  <span style={{ marginRight: "0.5em" }}>Log In</span>
+                  <span className="neon-btn-label">Log In</span>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="20"
@@ -196,7 +185,7 @@ export default function LoginPage() {
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="feather feather-log-in"
+                    className="feather feather-log-in neon-icon"
                   >
                     <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
                     <polyline points="10 17 15 12 10 7"></polyline>

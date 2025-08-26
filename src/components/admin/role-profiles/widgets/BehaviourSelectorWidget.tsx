@@ -57,7 +57,7 @@ export default function BehaviourSelectorWidget({
     <NeonPanel className="space-y-4">
       <button
         type="button"
-        className="neon-btn neon-section-toggle"
+        className="neon-btn neon-btn-square neon-section-toggle"
         data-tooltip={showBehaviours ? "Hide Behaviours" : "Show Behaviours"}
         onClick={() => setShowBehaviours((v) => !v)}
         aria-label={showBehaviours ? "Hide Behaviours" : "Show Behaviours"}
@@ -80,7 +80,7 @@ export default function BehaviourSelectorWidget({
                     <button
                       type="button"
                       onClick={() => toggleBehaviour(b.id)}
-                      className={`neon-btn neon-behaviour-btn${selected ? " selected" : ""}`}
+                      className={`neon-btn neon-btn-square neon-behaviour-btn${selected ? " selected" : ""}`}
                       data-tooltip={b.name}
                       aria-label={b.name}
                     >

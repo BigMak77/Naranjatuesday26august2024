@@ -115,21 +115,21 @@ export default function ModuleViewPage() {
         </div>
         <button
           onClick={() => router.push(`/admin/modules/edit/${module.id}`)}
-          className="neon-btn neon-btn-edit"
+          className="neon-btn neon-btn-edit neon-btn-square"
           data-variant="edit"
         >
           Edit Module
         </button>
         <button
           onClick={() => router.push("/admin/modules")}
-          className="neon-btn neon-btn-cancel ml-4"
+          className="neon-btn neon-btn-cancel neon-btn-square"
           data-variant="cancel"
         >
           Cancel
         </button>
         <button
           onClick={() => router.push(`/admin/modules/archive/${module.id}`)}
-          className="neon-btn neon-btn-archive ml-4"
+          className="neon-btn neon-btn-archive neon-btn-square"
           data-variant="archive"
         >
           Archive

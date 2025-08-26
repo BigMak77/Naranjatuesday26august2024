@@ -551,8 +551,7 @@ export default function TrainerRecordingPage({
                   <FiClock />
                 </button>
                 <button
-                  className="neon-btn neon-btn-cert neon-btn-utility"
-                  style={{ background: "#a259ff" }}
+                  className="neon-btn neon-btn-cert neon-btn-square neon-btn-utility"
                   onClick={() => onOpenSection?.((row as UserRow).id, "certs")}
                   title="Certificates & status"
                   aria-label="Certs"

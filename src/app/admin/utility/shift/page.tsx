@@ -193,7 +193,7 @@ export default function AdminShiftPage() {
               <div className="neon-form-group">
                 <p className="mb-4">Add this shift to a department?</p>
                 <button
-                  className="neon-btn neon-btn-primary mr-4"
+                  className="neon-btn neon-btn-primary neon-btn-square"
                   onClick={async () => {
                     await handleFetchDepartments();
                     setStage(21);
@@ -202,7 +202,7 @@ export default function AdminShiftPage() {
                   Yes
                 </button>
                 <button
-                  className="neon-btn neon-btn-secondary"
+                  className="neon-btn neon-btn-secondary neon-btn-square"
                   onClick={() => setStage(3)}
                 >
                   No
@@ -225,13 +225,13 @@ export default function AdminShiftPage() {
                   ))}
                 </select>
                 <button
-                  className="neon-btn neon-btn-primary mr-4"
+                  className="neon-btn neon-btn-primary neon-btn-square"
                   onClick={() => setStage(3)}
                 >
                   Next
                 </button>
                 <button
-                  className="neon-btn neon-btn-secondary"
+                  className="neon-btn neon-btn-secondary neon-btn-square"
                   onClick={() => {
                     setSelectedDept("");
                     setStage(3);
@@ -245,7 +245,7 @@ export default function AdminShiftPage() {
               <div className="neon-form-group">
                 <p className="mb-4">Select users for this shift?</p>
                 <button
-                  className="neon-btn neon-btn-primary mr-4"
+                  className="neon-btn neon-btn-primary neon-btn-square"
                   onClick={async () => {
                     await handleFetchUsers();
                     setStage(31);
@@ -254,7 +254,7 @@ export default function AdminShiftPage() {
                   Yes
                 </button>
                 <button
-                  className="neon-btn neon-btn-secondary"
+                  className="neon-btn neon-btn-secondary neon-btn-square"
                   onClick={handleFinalSave}
                 >
                   No, Save
@@ -297,13 +297,13 @@ export default function AdminShiftPage() {
                     ))}
                 </div>
                 <button
-                  className="neon-btn neon-btn-primary mr-4"
+                  className="neon-btn neon-btn-primary neon-btn-square"
                   onClick={handleFinalSave}
                 >
                   Save
                 </button>
                 <button
-                  className="neon-btn neon-btn-secondary"
+                  className="neon-btn neon-btn-secondary neon-btn-square"
                   onClick={handleFinalSave}
                 >
                   Skip & Save

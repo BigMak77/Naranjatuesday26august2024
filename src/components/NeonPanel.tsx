@@ -9,16 +9,17 @@ interface NeonPanelProps {
 
 export default function NeonPanel({
   children,
-  bgColor = "#012f34",
-  glowColor = "#40E0D0",
+  bgColor = undefined,
+  glowColor = undefined,
   className = "",
 }: NeonPanelProps) {
+  // Use global neon classes for panel styling
   return (
     <div
-      className={`p-6 rounded-xl ${className}`}
+      className={`neon-form neon-panel ${className}`.trim()}
       style={{
-        backgroundColor: bgColor,
-        boxShadow: `0 0 12px ${glowColor}`,
+        backgroundColor: bgColor || undefined,
+        boxShadow: glowColor ? `0 0 12px ${glowColor}` : undefined,
       }}
     >
       {children}

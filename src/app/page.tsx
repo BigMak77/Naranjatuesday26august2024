@@ -390,10 +390,20 @@ export default function HomePage() {
         {/* Add Log In button below main content */}
         <div style={{ display: "flex", justifyContent: "center", marginTop: "2.5rem" }}>
           <Link href="/homepage/login" legacyBehavior>
-            <a className="neon-btn neon-btn-primary px-6 py-3 text-lg font-semibold rounded shadow">
+            <a className="neon-btn neon-btn-primary neon-btn-square">
               Log In
             </a>
           </Link>
+        </div>
+
+        {/* Add Raise an Issue button */}
+        <div style={{ display: "flex", justifyContent: "center", marginTop: "1.5rem" }}>
+          <a
+            className="neon-btn neon-btn-primary neon-btn-square"
+            href="/raise-issue"
+          >
+            Raise an issue
+          </a>
         </div>
 
         {/* Global overrides */}

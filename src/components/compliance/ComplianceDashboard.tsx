@@ -134,7 +134,7 @@ export default function ComplianceDashboard() {
           </div>
         </div>
         <div className="neon-form-actions neon-flex-wrap">
-          <button type="button" onClick={handleCSVExport} className="neon-btn">
+          <button type="button" onClick={handleCSVExport} className="neon-btn neon-btn-square">
             Export CSV
           </button>
           <button
@@ -167,7 +167,7 @@ export default function ComplianceDashboard() {
               document.body.removeChild(a);
               URL.revokeObjectURL(url);
             }}
-            className="neon-btn neon-btn-orange"
+            className="neon-btn neon-btn-square"
           >
             Download CSV Template
           </button>

@@ -43,37 +43,32 @@ interface User {
   role_profile_name?: string;
 }
 
+// Improved error handling, validation, and UI/UX for User Management Panel
 export default function UserManagementPanel() {
   useUser();
   const [users, setUsers] = useState<User[]>([]);
-  const [departments, setDepartments] = useState<
-    { id: string; name: string }[]
-  >([]);
-  const [roles, setRoles] = useState<
-    { id: string; title: string; department_id: string }[]
-  >([]);
+  const [departments, setDepartments] = useState<{ id: string; name: string }[]>([]);
+  const [roles, setRoles] = useState<{ id: string; title: string; department_id: string }[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isAddMode, setIsAddMode] = useState(false);
-  const [shiftPatterns, setShiftPatterns] = useState<
-    { id: string; name: string }[]
-  >([]);
+  const [shiftPatterns, setShiftPatterns] = useState<{ id: string; name: string }[]>([]);
+  const [errorMsg, setErrorMsg] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setLoading(true);
     const load = async () => {
       try {
-        // Fetch users and join shift_patterns for shift name
         const [
-          { data: u },
-          { data: d },
-          { data: r },
-          { data: s },
-          { data: rp },
+          { data: u, error: userErr },
+          { data: d, error: deptErr },
+          { data: r, error: roleErr },
+          { data: s, error: shiftErr },
+          { data: rp, error: rpErr },
         ] = await Promise.all([
           supabase.from("users").select("*, shift_id, role_profile_id"),
           supabase.from("departments").select("id, name"),
@@ -81,20 +76,22 @@ export default function UserManagementPanel() {
           supabase.from("shift_patterns").select("id, name"),
           supabase.from("role_profiles").select("id, name"),
         ]);
-        // Map shift name and role profile name into user object
+        if (userErr || deptErr || roleErr || shiftErr || rpErr) {
+          setErrorMsg("Failed to load data. Please check your connection and try again.");
+          return;
+        }
         const usersWithNames = (u || []).map((user) => ({
           ...user,
           shift_name: s?.find((sp) => sp.id === user.shift_id)?.name || "",
           shift_id: user.shift_id || "",
-          role_profile_name:
-            rp?.find((rp) => rp.id === user.role_profile_id)?.name || "",
+          role_profile_name: rp?.find((rp) => rp.id === user.role_profile_id)?.name || "",
         }));
         setUsers(usersWithNames);
         setDepartments(d || []);
         setRoles(r || []);
         setShiftPatterns(s || []);
-      } catch {
-        // Optionally set error state here
+      } catch (err) {
+        setErrorMsg("Unexpected error loading users.");
       } finally {
         setLoading(false);
       }
@@ -106,6 +103,7 @@ export default function UserManagementPanel() {
     setDialogOpen(false);
     setSelectedUser(null);
     setIsAddMode(false);
+    setErrorMsg("");
   };
 
   const allowedAccessLevels = ["User", "Manager", "Admin"];
@@ -120,66 +118,75 @@ export default function UserManagementPanel() {
       : "User",
   });
 
+  const validateUser = (user: User) => {
+    if (!user.email || !user.first_name || !user.last_name) {
+      setErrorMsg("Email, First Name, and Last Name are required.");
+      return false;
+    }
+    setErrorMsg("");
+    return true;
+  };
+
   const handleSave = async () => {
     if (!selectedUser) return;
+    if (!validateUser(selectedUser)) return;
     setSaving(true);
     const cleanedUser = cleanUserFields(selectedUser);
-    if (isAddMode) {
-      // Add new user
-      const { error: userErr, data: newUser } = await supabase
-        .from("users")
-        .insert({
-          first_name: cleanedUser.first_name,
-          last_name: cleanedUser.last_name,
-          email: cleanedUser.email,
-          department_id: cleanedUser.department_id,
-          role_id: cleanedUser.role_id,
-          access_level: cleanedUser.access_level,
-          phone: cleanedUser.phone,
-          shift_id: cleanedUser.shift_id,
-          role_profile_id: cleanedUser.role_profile_id,
-        })
-        .select()
-        .single();
-      if (userErr) {
-        console.error("Failed to add user:", userErr);
-        setSaving(false);
-        return;
+    try {
+      if (isAddMode) {
+        const { error: userErr, data: newUser } = await supabase
+          .from("users")
+          .insert({
+            first_name: cleanedUser.first_name,
+            last_name: cleanedUser.last_name,
+            email: cleanedUser.email,
+            department_id: cleanedUser.department_id,
+            role_id: cleanedUser.role_id,
+            access_level: cleanedUser.access_level,
+            phone: cleanedUser.phone,
+            shift_id: cleanedUser.shift_id,
+            role_profile_id: cleanedUser.role_profile_id,
+          })
+          .select()
+          .single();
+        if (userErr) {
+          setErrorMsg("Failed to add user: " + userErr.message);
+          setSaving(false);
+          return;
+        }
+        setUsers([...users, newUser]);
+      } else {
+        const { error: userErr } = await supabase
+          .from("users")
+          .update({
+            first_name: cleanedUser.first_name,
+            last_name: cleanedUser.last_name,
+            email: cleanedUser.email,
+            department_id: cleanedUser.department_id,
+            role_id: cleanedUser.role_id,
+            access_level: cleanedUser.access_level,
+            phone: cleanedUser.phone,
+            shift_id: cleanedUser.shift_id,
+            role_profile_id: cleanedUser.role_profile_id,
+          })
+          .eq("id", cleanedUser.id);
+        if (userErr) {
+          setErrorMsg("Failed to update user: " + userErr.message);
+          setSaving(false);
+          return;
+        }
+        setUsers(users.map((u) => (u.id === cleanedUser.id ? { ...u, ...cleanedUser } : u)));
       }
-      setUsers([...users, newUser]);
-    } else {
-      // Edit existing user
-      const { error: userErr } = await supabase
-        .from("users")
-        .update({
-          first_name: cleanedUser.first_name,
-          last_name: cleanedUser.last_name,
-          email: cleanedUser.email,
-          department_id: cleanedUser.department_id,
-          role_id: cleanedUser.role_id,
-          access_level: cleanedUser.access_level,
-          phone: cleanedUser.phone,
-          shift_id: cleanedUser.shift_id,
-          role_profile_id: cleanedUser.role_profile_id,
-        })
-        .eq("id", cleanedUser.id);
-      if (userErr) {
-        console.error("Failed to update user:", userErr);
-        setSaving(false);
-        return;
-      }
-      setUsers(
-        users.map((u) =>
-          u.id === cleanedUser.id ? { ...u, ...cleanedUser } : u,
-        ),
-      );
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+        handleCloseDialog();
+      }, 1000);
+    } catch (err) {
+      setErrorMsg("Unexpected error saving user.");
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
-    setShowSuccess(true);
-    setTimeout(() => {
-      setShowSuccess(false);
-      handleCloseDialog();
-    }, 1000);
   };
 
   // CSV Export handler
@@ -194,9 +201,13 @@ export default function UserManagementPanel() {
       role_id: u.role_id || "",
       access_level: u.access_level || "",
       phone: u.phone || "",
+      nationality: u.nationality || "",
+      is_first_aid: u.is_first_aid ? "true" : "false",
+      is_trainer: u.is_trainer ? "true" : "false",
+      start_date: u.start_date || "",
     }));
     const csv = [
-      "id,email,first_name,last_name,department_id,role_id,access_level,phone",
+      "id,email,first_name,last_name,department_id,role_id,access_level,phone,nationality,is_first_aid,is_trainer,start_date",
       ...csvRows.map((row) =>
         Object.values(row)
           .map((val) => `"${String(val).replace(/"/g, '""')}"`)
@@ -219,24 +230,28 @@ export default function UserManagementPanel() {
     const file = e.target.files?.[0];
     if (!file) return;
     const text = await file.text();
-    // Use csv-parse for robust parsing
     let usersToImport: Record<string, unknown>[] = [];
     try {
       const csvParse = (await import("csv-parse/sync")).parse;
       usersToImport = csvParse(text, { columns: true, skip_empty_lines: true });
-      // Convert booleans and clean up fields
       usersToImport = usersToImport.map((u) => ({
         ...u,
         is_first_aid: u.is_first_aid === "true" || u.is_first_aid === true,
         is_trainer: u.is_trainer === "true" || u.is_trainer === true,
       }));
     } catch (err) {
-      console.error("CSV parse error:", err);
+      setErrorMsg("CSV parse error. Please check your file format.");
       return;
     }
-    await supabase.from("users").upsert(usersToImport, { onConflict: "id" });
-    const { data: u } = await supabase.from("users").select("*");
-    setUsers(u || []);
+    try {
+      await supabase.from("users").upsert(usersToImport, { onConflict: "id" });
+      const { data: u } = await supabase.from("users").select("*");
+      setUsers(u || []);
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 1000);
+    } catch (err: any) {
+      setErrorMsg("Failed to import users. " + (err.message || ""));
+    }
   };
 
   const userTableColumns = [
@@ -252,7 +267,8 @@ export default function UserManagementPanel() {
     { header: "Trainer", accessor: "is_trainer" },
   ];
 
-  if (loading) return <p className="neon-loading">Loading users...</p>;
+  if (loading) return <div className="neon-loading" style={{ textAlign: "center", margin: "2rem" }}>Loading users...</div>;
+  if (errorMsg && !dialogOpen) return <div className="neon-error" style={{ color: "#ea1c1c", textAlign: "center", margin: "2rem" }}>{errorMsg}</div>;
 
   return (
     <>
@@ -268,25 +284,27 @@ export default function UserManagementPanel() {
               return {
                 id: user.id,
                 name: (
-                  <button
-                    className="neon-link neon-btn-reset"
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "var(--neon)",
-                      cursor: "pointer",
-                      padding: 0,
-                      font: "inherit",
-                    }}
+                  <span
+                    className="neon-link neon-user-name-selectable"
+                    tabIndex={0}
+                    role="button"
+                    style={{ cursor: "pointer", color: "var(--neon)" }}
                     onClick={() => {
                       setSelectedUser(user);
                       setIsAddMode(false);
                       setDialogOpen(true);
                     }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        setSelectedUser(user);
+                        setIsAddMode(false);
+                        setDialogOpen(true);
+                      }
+                    }}
+                    aria-label={`Edit user: ${user.first_name || ""} ${user.last_name || ""}`}
                   >
-                    {`${user.first_name || ""} ${user.last_name || ""}`.trim() ||
-                      "—"}
-                  </button>
+                    {`${user.first_name || ""} ${user.last_name || ""}`.trim() || "—"}
+                  </span>
                 ),
                 department_name: department ? department.name : "—",
                 role_title: role ? role.title : "—",
@@ -336,6 +354,10 @@ export default function UserManagementPanel() {
                       role_id: "",
                       access_level: "User",
                       phone: "",
+                      nationality: "",
+                      is_first_aid: false,
+                      is_trainer: false,
+                      start_date: "",
                     });
                     setIsAddMode(true);
                     setDialogOpen(true);
@@ -370,14 +392,12 @@ export default function UserManagementPanel() {
       </div>
       {/* Dialog overlays on top of all content by rendering directly in the tree */}
       {dialogOpen && (
-        <div className="ui-dialog-overlay">
+        <div className="ui-dialog-overlay" tabIndex={-1} role="dialog" aria-modal="true" style={{ outline: "none" }}>
           <div className="ui-dialog-content max-w-4xl">
-            <div
-              className="neon-form-title"
-              style={{ marginBottom: "1.25rem" }}
-            >
+            <div className="neon-form-title" style={{ marginBottom: "1.25rem" }}>
               {isAddMode ? "Add User" : "Edit User"}
             </div>
+            {errorMsg && <div className="neon-error" style={{ color: "#ea1c1c", marginBottom: "1rem" }}>{errorMsg}</div>}
             {selectedUser && (
               <div
                 className="neon-form-grid neon-form-padding"
@@ -625,7 +645,7 @@ export default function UserManagementPanel() {
             >
               <NeonIconButton
                 variant="save"
-                icon={<FiSave />}
+                icon={saving ? <span className="neon-spinner" style={{ marginRight: 8 }} /> : <FiSave />}
                 title={saving ? "Saving..." : "Save Changes"}
                 onClick={handleSave}
                 disabled={saving}
