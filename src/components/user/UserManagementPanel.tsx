@@ -289,13 +289,16 @@ export default function UserManagementPanel() {
                     tabIndex={0}
                     role="button"
                     style={{ cursor: "pointer", color: "var(--neon)" }}
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setSelectedUser(user);
                       setIsAddMode(false);
                       setDialogOpen(true);
                     }}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        e.stopPropagation();
                         setSelectedUser(user);
                         setIsAddMode(false);
                         setDialogOpen(true);
