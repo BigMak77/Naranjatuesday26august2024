@@ -1,4 +1,7 @@
+"use client";
+
 import { useEffect, useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "@/lib/supabase-client";
 import NeonTable from "@/components/NeonTable";
 import NeonIconButton from "@/components/ui/NeonIconButton";
@@ -31,7 +34,6 @@ interface User {
   role_profile_id?: string;
   is_archived?: boolean;
   last_updated_at?: string;
-
   is_anonymous?: boolean;
   auth_id?: string;
   start_date?: string;
@@ -43,7 +45,145 @@ interface User {
   role_profile_name?: string;
 }
 
-// Improved error handling, validation, and UI/UX for User Management Panel
+// ---------- Small, dependency-free Modal with portal + focus trap ----------
+function Modal({
+  open,
+  title,
+  onClose,
+  children,
+  labelledById,
+  describedById,
+  initialFocusRef,
+}: {
+  open: boolean;
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+  labelledById: string;
+  describedById?: string;
+  initialFocusRef?: React.RefObject<HTMLElement>;
+}) {
+  const contentRef = useRef<HTMLDivElement | null>(null);
+  const lastActiveRef = useRef<HTMLElement | null>(null);
+
+  // Lock background scroll
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
+  // Save/restore last focused element
+  useEffect(() => {
+    if (open) {
+      lastActiveRef.current = document.activeElement as HTMLElement | null;
+    } else {
+      lastActiveRef.current?.focus?.();
+    }
+  }, [open]);
+
+  // Move focus into modal
+  useEffect(() => {
+    if (!open) return;
+    const focusTarget =
+      initialFocusRef?.current ||
+      (contentRef.current?.querySelector(
+        "input,select,textarea,button,[tabindex]:not([tabindex='-1'])",
+      ) as HTMLElement | null);
+    focusTarget?.focus?.();
+  }, [open, initialFocusRef]);
+
+  // Focus trap + esc + backdrop click
+  useEffect(() => {
+    if (!open) return;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+        return;
+      }
+      if (e.key === "Tab") {
+        const root = contentRef.current;
+        if (!root) return;
+        const focusables = Array.from(
+          root.querySelectorAll<HTMLElement>(
+            "a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex='-1'])",
+          ),
+        ).filter((el) => !el.hasAttribute("disabled") && !el.getAttribute("aria-hidden"));
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        const current = document.activeElement as HTMLElement | null;
+
+        if (e.shiftKey) {
+          if (current === first || !root.contains(current)) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (current === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
+    };
+
+    const onMouseDown = (e: MouseEvent) => {
+      const panel = contentRef.current;
+      if (!panel) return;
+      if (!panel.contains(e.target as Node)) {
+        onClose();
+      }
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    // use mousedown on the overlay element only
+    const overlay = document.getElementById("app-dialog-overlay");
+    overlay?.addEventListener("mousedown", onMouseDown);
+
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      overlay?.removeEventListener("mousedown", onMouseDown);
+    };
+  }, [open, onClose]);
+
+  if (!open) return null;
+
+  const dialog = (
+    <div
+      id="app-dialog-overlay"
+      tabIndex={-1}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={labelledById}
+      aria-describedby={describedById}
+      className="fixed inset-0 z-[999] flex items-center justify-center"
+    >
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]" />
+
+      {/* Panel */}
+      <div
+        ref={contentRef}
+        className="relative w-full max-w-4xl mx-4 rounded-2xl bg-white shadow-2xl border border-black/5 p-6"
+        role="document"
+      >
+        {children}
+      </div>
+    </div>
+  );
+
+  // SSR guard for createPortal
+  if (typeof window === "undefined") return dialog;
+  return createPortal(dialog, document.body);
+}
+
+// ---------------------- Main component (your logic kept) ----------------------
 export default function UserManagementPanel() {
   useUser();
   const [users, setUsers] = useState<User[]>([]);
@@ -58,6 +198,10 @@ export default function UserManagementPanel() {
   const [shiftPatterns, setShiftPatterns] = useState<{ id: string; name: string }[]>([]);
   const [errorMsg, setErrorMsg] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // store the element that opened the dialog (e.g. clicked name) to restore focus
+  const openerRef = useRef<HTMLElement | null>(null);
+  const firstNameRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -84,13 +228,13 @@ export default function UserManagementPanel() {
           ...user,
           shift_name: s?.find((sp) => sp.id === user.shift_id)?.name || "",
           shift_id: user.shift_id || "",
-          role_profile_name: rp?.find((rp) => rp.id === user.role_profile_id)?.name || "",
+          role_profile_name: rp?.find((x) => x.id === user.role_profile_id)?.name || "",
         }));
         setUsers(usersWithNames);
         setDepartments(d || []);
         setRoles(r || []);
         setShiftPatterns(s || []);
-      } catch (err) {
+      } catch {
         setErrorMsg("Unexpected error loading users.");
       } finally {
         setLoading(false);
@@ -99,11 +243,19 @@ export default function UserManagementPanel() {
     load();
   }, []);
 
+  const handleOpenDialog = (user: User, addMode = false, opener?: HTMLElement | null) => {
+    openerRef.current = opener || null;
+    setSelectedUser(user);
+    setIsAddMode(addMode);
+    setDialogOpen(true);
+  };
+
   const handleCloseDialog = () => {
     setDialogOpen(false);
     setSelectedUser(null);
     setIsAddMode(false);
     setErrorMsg("");
+    // focus restore handled by Modal
   };
 
   const allowedAccessLevels = ["User", "Manager", "Admin"];
@@ -119,7 +271,7 @@ export default function UserManagementPanel() {
   });
 
   const validateUser = (user: User) => {
-    if (!user.email || !user.first_name || !user.last_name) {
+    if (!user.email?.trim() || !user.first_name?.trim() || !user.last_name?.trim()) {
       setErrorMsg("Email, First Name, and Last Name are required.");
       return false;
     }
@@ -129,7 +281,11 @@ export default function UserManagementPanel() {
 
   const handleSave = async () => {
     if (!selectedUser) return;
-    if (!validateUser(selectedUser)) return;
+    if (!validateUser(selectedUser)) {
+      // move focus to first missing
+      if (!selectedUser.first_name?.trim()) firstNameRef.current?.focus();
+      return;
+    }
     setSaving(true);
     const cleanedUser = cleanUserFields(selectedUser);
     try {
@@ -146,6 +302,10 @@ export default function UserManagementPanel() {
             phone: cleanedUser.phone,
             shift_id: cleanedUser.shift_id,
             role_profile_id: cleanedUser.role_profile_id,
+            nationality: cleanedUser.nationality,
+            is_first_aid: cleanedUser.is_first_aid ?? false,
+            is_trainer: cleanedUser.is_trainer ?? false,
+            start_date: cleanedUser.start_date,
           })
           .select()
           .single();
@@ -154,7 +314,7 @@ export default function UserManagementPanel() {
           setSaving(false);
           return;
         }
-        setUsers([...users, newUser]);
+        setUsers([...users, newUser as User]);
       } else {
         const { error: userErr } = await supabase
           .from("users")
@@ -168,6 +328,10 @@ export default function UserManagementPanel() {
             phone: cleanedUser.phone,
             shift_id: cleanedUser.shift_id,
             role_profile_id: cleanedUser.role_profile_id,
+            nationality: cleanedUser.nationality,
+            is_first_aid: cleanedUser.is_first_aid ?? false,
+            is_trainer: cleanedUser.is_trainer ?? false,
+            start_date: cleanedUser.start_date,
           })
           .eq("id", cleanedUser.id);
         if (userErr) {
@@ -181,15 +345,15 @@ export default function UserManagementPanel() {
       setTimeout(() => {
         setShowSuccess(false);
         handleCloseDialog();
-      }, 1000);
-    } catch (err) {
-      setErrorMsg("Unexpected error saving user.");
+      }, 800);
+    } catch (err: any) {
+      setErrorMsg("Unexpected error saving user." + (err?.message ? ` ${err.message}` : ""));
     } finally {
       setSaving(false);
     }
   };
 
-  // CSV Export handler
+  // CSV Export handler (unchanged)
   const handleExportUsers = () => {
     if (!users.length) return;
     const csvRows = users.map((u) => ({
@@ -225,12 +389,12 @@ export default function UserManagementPanel() {
     URL.revokeObjectURL(url);
   };
 
-  // CSV Upload handler
+  // CSV Upload handler (unchanged)
   const handleImportUsers = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const text = await file.text();
-    let usersToImport: Record<string, unknown>[] = [];
+    let usersToImport: Record<string, any>[] = [];
     try {
       const csvParse = (await import("csv-parse/sync")).parse;
       usersToImport = csvParse(text, { columns: true, skip_empty_lines: true });
@@ -239,7 +403,7 @@ export default function UserManagementPanel() {
         is_first_aid: u.is_first_aid === "true" || u.is_first_aid === true,
         is_trainer: u.is_trainer === "true" || u.is_trainer === true,
       }));
-    } catch (err) {
+    } catch {
       setErrorMsg("CSV parse error. Please check your file format.");
       return;
     }
@@ -267,8 +431,18 @@ export default function UserManagementPanel() {
     { header: "Trainer", accessor: "is_trainer" },
   ];
 
-  if (loading) return <div className="neon-loading" style={{ textAlign: "center", margin: "2rem" }}>Loading users...</div>;
-  if (errorMsg && !dialogOpen) return <div className="neon-error" style={{ color: "#ea1c1c", textAlign: "center", margin: "2rem" }}>{errorMsg}</div>;
+  if (loading)
+    return (
+      <div className="neon-loading" style={{ textAlign: "center", margin: "2rem" }}>
+        Loading users...
+      </div>
+    );
+  if (errorMsg && !dialogOpen)
+    return (
+      <div className="neon-error" style={{ color: "#ea1c1c", textAlign: "center", margin: "2rem" }}>
+        {errorMsg}
+      </div>
+    );
 
   return (
     <>
@@ -277,9 +451,7 @@ export default function UserManagementPanel() {
           <NeonTable
             columns={userTableColumns}
             data={users.map((user) => {
-              const department = departments.find(
-                (d) => d.id === user.department_id,
-              );
+              const department = departments.find((d) => d.id === user.department_id);
               const role = roles.find((r) => r.id === user.role_id);
               return {
                 id: user.id,
@@ -291,17 +463,13 @@ export default function UserManagementPanel() {
                     style={{ cursor: "pointer", color: "var(--neon)" }}
                     onClick={(e) => {
                       e.stopPropagation();
-                      setSelectedUser(user);
-                      setIsAddMode(false);
-                      setDialogOpen(true);
+                      handleOpenDialog(user, false, e.currentTarget as HTMLElement);
                     }}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
                         e.stopPropagation();
-                        setSelectedUser(user);
-                        setIsAddMode(false);
-                        setDialogOpen(true);
+                        handleOpenDialog(user, false, e.currentTarget as HTMLElement);
                       }
                     }}
                     aria-label={`Edit user: ${user.first_name || ""} ${user.last_name || ""}`}
@@ -317,25 +485,15 @@ export default function UserManagementPanel() {
                 shift_name: user.shift_name || "—",
                 email: user.email,
                 start_date: user.start_date || "—",
-                is_first_aid: user.is_first_aid ? (
-                  <FiCheck color="#39ff14" />
-                ) : (
-                  <FiX color="#ea1c1c" />
-                ),
-                is_trainer: user.is_trainer ? (
-                  <FiCheck color="#39ff14" />
-                ) : (
-                  <FiX color="#ea1c1c" />
-                ),
+                is_first_aid: user.is_first_aid ? <FiCheck color="#39ff14" /> : <FiX color="#ea1c1c" />,
+                is_trainer: user.is_trainer ? <FiCheck color="#39ff14" /> : <FiX color="#ea1c1c" />,
                 actions: (
                   <NeonIconButton
                     icon={<FiEdit />}
                     title="Edit User"
                     variant="edit"
-                    onClick={() => {
-                      setSelectedUser(user);
-                      setIsAddMode(false);
-                      setDialogOpen(true);
+                    onClick={(e: any) => {
+                      handleOpenDialog(user, false, (e?.currentTarget as HTMLElement) ?? null);
                     }}
                   />
                 ),
@@ -347,23 +505,25 @@ export default function UserManagementPanel() {
                   icon={<FiUserPlus />}
                   title="Add User"
                   variant="add"
-                  onClick={() => {
-                    setSelectedUser({
-                      id: "",
-                      email: "",
-                      first_name: "",
-                      last_name: "",
-                      department_id: "",
-                      role_id: "",
-                      access_level: "User",
-                      phone: "",
-                      nationality: "",
-                      is_first_aid: false,
-                      is_trainer: false,
-                      start_date: "",
-                    });
-                    setIsAddMode(true);
-                    setDialogOpen(true);
+                  onClick={(e: any) => {
+                    handleOpenDialog(
+                      {
+                        id: "",
+                        email: "",
+                        first_name: "",
+                        last_name: "",
+                        department_id: "",
+                        role_id: "",
+                        access_level: "User",
+                        phone: "",
+                        nationality: "",
+                        is_first_aid: false,
+                        is_trainer: false,
+                        start_date: "",
+                      },
+                      true,
+                      (e?.currentTarget as HTMLElement) ?? null,
+                    );
                   }}
                 />
                 <NeonIconButton
@@ -393,276 +553,319 @@ export default function UserManagementPanel() {
           />
         </div>
       </div>
-      {/* Dialog overlays on top of all content by rendering directly in the tree */}
-      {dialogOpen && (
-        <div className="ui-dialog-overlay" tabIndex={-1} role="dialog" aria-modal="true" style={{ outline: "none" }}>
-          <div className="ui-dialog-content max-w-4xl">
-            <div className="neon-form-title" style={{ marginBottom: "1.25rem" }}>
-              {isAddMode ? "Add User" : "Edit User"}
+
+      {/* Overlaid dialog rendered via portal */}
+      <Modal
+        open={dialogOpen}
+        onClose={handleCloseDialog}
+        title={isAddMode ? "Add User" : "Edit User"}
+        labelledById="user-editor-title"
+        describedById={errorMsg ? "user-editor-error" : undefined}
+        initialFocusRef={firstNameRef as React.RefObject<HTMLElement>}
+      >
+        <div className="neon-form-title" id="user-editor-title" style={{ marginBottom: "1.25rem" }}>
+          {isAddMode ? "Add User" : "Edit User"}
+        </div>
+
+        {errorMsg && (
+          <div id="user-editor-error" className="neon-error" style={{ color: "#ea1c1c", marginBottom: "1rem" }}>
+            {errorMsg}
+          </div>
+        )}
+
+        {selectedUser && (
+          <div
+            className="neon-form-grid neon-form-padding"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+              gap: "1.5rem",
+              rowGap: "2rem",
+              alignItems: "start",
+            }}
+          >
+            {/* first_name */}
+            <div>
+              <label className="neon-label" htmlFor="first-name-input">
+                First Name
+              </label>
+              <input
+                id="first-name-input"
+                ref={firstNameRef}
+                className="neon-input"
+                value={selectedUser.first_name || ""}
+                onChange={(e) =>
+                  setSelectedUser({
+                    ...selectedUser,
+                    first_name: e.target.value,
+                  })
+                }
+                placeholder="First Name"
+              />
             </div>
-            {errorMsg && <div className="neon-error" style={{ color: "#ea1c1c", marginBottom: "1rem" }}>{errorMsg}</div>}
-            {selectedUser && (
-              <div
-                className="neon-form-grid neon-form-padding"
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                  gap: "1.5rem",
-                  rowGap: "2rem",
-                  alignItems: "start",
+            {/* last_name */}
+            <div>
+              <label className="neon-label" htmlFor="last-name-input">
+                Last Name
+              </label>
+              <input
+                id="last-name-input"
+                className="neon-input"
+                value={selectedUser.last_name || ""}
+                onChange={(e) =>
+                  setSelectedUser({
+                    ...selectedUser,
+                    last_name: e.target.value,
+                  })
+                }
+                placeholder="Last Name"
+              />
+            </div>
+            {/* email */}
+            <div>
+              <label className="neon-label" htmlFor="email-input">
+                Email
+              </label>
+              <input
+                id="email-input"
+                className="neon-input"
+                value={selectedUser.email || ""}
+                onChange={(e) =>
+                  setSelectedUser({
+                    ...selectedUser,
+                    email: e.target.value,
+                  })
+                }
+                placeholder="Email"
+                inputMode="email"
+                autoComplete="email"
+              />
+            </div>
+            {/* department_id */}
+            <div>
+              <label className="neon-label" htmlFor="dept-select">
+                Department
+              </label>
+              <select
+                id="dept-select"
+                className="neon-input"
+                value={selectedUser.department_id || ""}
+                onChange={(e) =>
+                  setSelectedUser({
+                    ...selectedUser,
+                    department_id: e.target.value,
+                    role_id: "",
+                  })
+                }
+              >
+                <option value="">Select Department</option>
+                {departments.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {/* role_id */}
+            <div>
+              <label className="neon-label" htmlFor="role-select">
+                Role
+              </label>
+              <select
+                id="role-select"
+                className="neon-input"
+                value={selectedUser.role_id || ""}
+                onChange={(e) =>
+                  setSelectedUser({
+                    ...selectedUser,
+                    role_id: e.target.value,
+                  })
+                }
+              >
+                <option value="">Select Role</option>
+                {roles
+                  .filter((r) => r.department_id === selectedUser.department_id)
+                  .map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.title}
+                    </option>
+                  ))}
+              </select>
+            </div>
+            {/* access_level */}
+            <div>
+              <label className="neon-label" htmlFor="access-select">
+                Access Level
+              </label>
+              <select
+                id="access-select"
+                className="neon-input"
+                value={selectedUser.access_level || "User"}
+                onChange={(e) =>
+                  setSelectedUser({
+                    ...selectedUser,
+                    access_level: e.target.value,
+                  })
+                }
+              >
+                <option value="User">User</option>
+                <option value="Manager">Manager</option>
+                <option value="Admin">Admin</option>
+              </select>
+            </div>
+            {/* phone */}
+            <div>
+              <label className="neon-label" htmlFor="phone-input">
+                Phone
+              </label>
+              <input
+                id="phone-input"
+                className="neon-input"
+                value={selectedUser.phone || ""}
+                onChange={(e) =>
+                  setSelectedUser({
+                    ...selectedUser,
+                    phone: e.target.value,
+                  })
+                }
+                placeholder="Phone"
+                inputMode="tel"
+                autoComplete="tel"
+              />
+            </div>
+            {/* nationality */}
+            <div>
+              <label className="neon-label" htmlFor="nationality-input">
+                Nationality
+              </label>
+              <input
+                id="nationality-input"
+                className="neon-input"
+                value={selectedUser.nationality || ""}
+                onChange={(e) =>
+                  setSelectedUser({
+                    ...selectedUser,
+                    nationality: e.target.value,
+                  })
+                }
+                placeholder="Nationality"
+              />
+            </div>
+            {/* is_first_aid */}
+            <div>
+              <label className="neon-label" htmlFor="firstaid-select">
+                First Aid
+              </label>
+              <select
+                id="firstaid-select"
+                className="neon-input"
+                value={selectedUser.is_first_aid ? "true" : "false"}
+                onChange={(e) =>
+                  setSelectedUser({
+                    ...selectedUser,
+                    is_first_aid: e.target.value === "true",
+                  })
+                }
+              >
+                <option value="false">No</option>
+                <option value="true">Yes</option>
+              </select>
+            </div>
+            {/* is_trainer */}
+            <div>
+              <label className="neon-label" htmlFor="trainer-select">
+                Trainer
+              </label>
+              <select
+                id="trainer-select"
+                className="neon-input"
+                value={selectedUser.is_trainer ? "true" : "false"}
+                onChange={(e) =>
+                  setSelectedUser({
+                    ...selectedUser,
+                    is_trainer: e.target.value === "true",
+                  })
+                }
+              >
+                <option value="false">No</option>
+                <option value="true">Yes</option>
+              </select>
+            </div>
+            {/* shift_id */}
+            <div>
+              <label className="neon-label" htmlFor="shift-select">
+                Shift
+              </label>
+              <select
+                id="shift-select"
+                className="neon-input"
+                value={selectedUser.shift_id || ""}
+                onChange={(e) => {
+                  const selectedPattern = shiftPatterns?.find((s) => s.id === e.target.value);
+                  setSelectedUser({
+                    ...selectedUser,
+                    shift_id: e.target.value,
+                    shift_name: selectedPattern ? selectedPattern.name : "",
+                  });
                 }}
               >
-                {/* first_name */}
-                <div>
-                  <label className="neon-label">First Name</label>
-                  <input
-                    className="neon-input"
-                    value={selectedUser.first_name || ""}
-                    onChange={(e) =>
-                      setSelectedUser({
-                        ...selectedUser,
-                        first_name: e.target.value,
-                      })
-                    }
-                    placeholder="First Name"
-                  />
-                </div>
-                {/* last_name */}
-                <div>
-                  <label className="neon-label">Last Name</label>
-                  <input
-                    className="neon-input"
-                    value={selectedUser.last_name || ""}
-                    onChange={(e) =>
-                      setSelectedUser({
-                        ...selectedUser,
-                        last_name: e.target.value,
-                      })
-                    }
-                    placeholder="Last Name"
-                  />
-                </div>
-                {/* email */}
-                <div>
-                  <label className="neon-label">Email</label>
-                  <input
-                    className="neon-input"
-                    value={selectedUser.email || ""}
-                    onChange={(e) =>
-                      setSelectedUser({
-                        ...selectedUser,
-                        email: e.target.value,
-                      })
-                    }
-                    placeholder="Email"
-                  />
-                </div>
-                {/* department_id */}
-                <div>
-                  <label className="neon-label">Department</label>
-                  <select
-                    className="neon-input"
-                    value={selectedUser.department_id || ""}
-                    onChange={(e) =>
-                      setSelectedUser({
-                        ...selectedUser,
-                        department_id: e.target.value,
-                        role_id: "",
-                      })
-                    }
-                  >
-                    <option value="">Select Department</option>
-                    {departments.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                {/* role_id */}
-                <div>
-                  <label className="neon-label">Role</label>
-                  <select
-                    className="neon-input"
-                    value={selectedUser.role_id || ""}
-                    onChange={(e) =>
-                      setSelectedUser({
-                        ...selectedUser,
-                        role_id: e.target.value,
-                      })
-                    }
-                  >
-                    <option value="">Select Role</option>
-                    {roles
-                      .filter(
-                        (r) => r.department_id === selectedUser.department_id,
-                      )
-                      .map((r) => (
-                        <option key={r.id} value={r.id}>
-                          {r.title}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-                {/* access_level */}
-                <div>
-                  <label className="neon-label">Access Level</label>
-                  <select
-                    className="neon-input"
-                    value={selectedUser.access_level || ""}
-                    onChange={(e) =>
-                      setSelectedUser({
-                        ...selectedUser,
-                        access_level: e.target.value,
-                      })
-                    }
-                  >
-                    <option value="User">User</option>
-                    <option value="Manager">Manager</option>
-                    <option value="Admin">Admin</option>
-                  </select>
-                </div>
-                {/* phone */}
-                <div>
-                  <label className="neon-label">Phone</label>
-                  <input
-                    className="neon-input"
-                    value={selectedUser.phone || ""}
-                    onChange={(e) =>
-                      setSelectedUser({
-                        ...selectedUser,
-                        phone: e.target.value,
-                      })
-                    }
-                    placeholder="Phone"
-                  />
-                </div>
-                {/* nationality */}
-                <div>
-                  <label className="neon-label">Nationality</label>
-                  <input
-                    className="neon-input"
-                    value={selectedUser.nationality || ""}
-                    onChange={(e) =>
-                      setSelectedUser({
-                        ...selectedUser,
-                        nationality: e.target.value,
-                      })
-                    }
-                    placeholder="Nationality"
-                  />
-                </div>
-                {/* is_first_aid */}
-                <div>
-                  <label className="neon-label">First Aid</label>
-                  <select
-                    className="neon-input"
-                    value={selectedUser.is_first_aid ? "true" : "false"}
-                    onChange={(e) =>
-                      setSelectedUser({
-                        ...selectedUser,
-                        is_first_aid: e.target.value === "true",
-                      })
-                    }
-                  >
-                    <option value="false">No</option>
-                    <option value="true">Yes</option>
-                  </select>
-                </div>
-                {/* is_trainer */}
-                <div>
-                  <label className="neon-label">Trainer</label>
-                  <select
-                    className="neon-input"
-                    value={selectedUser.is_trainer ? "true" : "false"}
-                    onChange={(e) =>
-                      setSelectedUser({
-                        ...selectedUser,
-                        is_trainer: e.target.value === "true",
-                      })
-                    }
-                  >
-                    <option value="false">No</option>
-                    <option value="true">Yes</option>
-                  </select>
-                </div>
-                {/* shift_id */}
-                <div>
-                  <label className="neon-label">Shift</label>
-                  <select
-                    className="neon-input"
-                    value={selectedUser.shift_id || ""}
-                    onChange={(e) => {
-                      const selectedPattern = shiftPatterns?.find(
-                        (s) => s.id === e.target.value,
-                      );
-                      setSelectedUser({
-                        ...selectedUser,
-                        shift_id: e.target.value,
-                        shift_name: selectedPattern ? selectedPattern.name : "",
-                      });
-                    }}
-                  >
-                    <option value="">Select Shift</option>
-                    {shiftPatterns?.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                {/* start_date */}
-                <div>
-                  <label className="neon-label">Start Date</label>
-                  <input
-                    className="neon-input"
-                    type="date"
-                    value={selectedUser.start_date || ""}
-                    onChange={(e) =>
-                      setSelectedUser({
-                        ...selectedUser,
-                        start_date: e.target.value,
-                      })
-                    }
-                    placeholder="Start Date"
-                  />
-                </div>
-                {showSuccess && (
-                  <div
-                    className="md:col-span-3 lg:col-span-3"
-                    style={{ gridColumn: "span 3", marginTop: "0.5rem" }}
-                  >
-                    <p className="neon-success">✅ User saved successfully!</p>
-                  </div>
-                )}
+                <option value="">Select Shift</option>
+                {shiftPatterns?.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {/* start_date */}
+            <div>
+              <label className="neon-label" htmlFor="startdate-input">
+                Start Date
+              </label>
+              <input
+                id="startdate-input"
+                className="neon-input"
+                type="date"
+                value={selectedUser.start_date || ""}
+                onChange={(e) =>
+                  setSelectedUser({
+                    ...selectedUser,
+                    start_date: e.target.value,
+                  })
+                }
+                placeholder="Start Date"
+              />
+            </div>
+
+            {showSuccess && (
+              <div className="md:col-span-3 lg:col-span-3" style={{ gridColumn: "span 3", marginTop: "0.5rem" }}>
+                <p className="neon-success">✅ User saved successfully!</p>
               </div>
             )}
-            <div
-              className="neon-panel-actions"
-              style={{
-                display: "flex",
-                gap: "1rem",
-                justifyContent: "flex-end",
-                marginTop: "2rem",
-              }}
-            >
-              <NeonIconButton
-                variant="save"
-                icon={saving ? <span className="neon-spinner" style={{ marginRight: 8 }} /> : <FiSave />}
-                title={saving ? "Saving..." : "Save Changes"}
-                onClick={handleSave}
-                disabled={saving}
-              />
-              <button
-                className="neon-btn neon-btn-danger"
-                onClick={handleCloseDialog}
-              >
-                Close
-              </button>
-            </div>
           </div>
+        )}
+
+        <div
+          className="neon-panel-actions"
+          style={{
+            display: "flex",
+            gap: "1rem",
+            justifyContent: "flex-end",
+            marginTop: "2rem",
+          }}
+        >
+          <NeonIconButton
+            variant="save"
+            icon={saving ? <span className="neon-spinner" style={{ marginRight: 8 }} /> : <FiSave />}
+            title={saving ? "Saving..." : "Save Changes"}
+            onClick={handleSave}
+            disabled={saving}
+          />
+          <button className="neon-btn neon-btn-danger" onClick={handleCloseDialog}>
+            Close
+          </button>
         </div>
-      )}
+      </Modal>
     </>
   );
 }
