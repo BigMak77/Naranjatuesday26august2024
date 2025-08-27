@@ -387,6 +387,12 @@ export default function DashboardPage() {
       </section>
 
       <section className="dashboard-grid">
+        <Link href="/admin/create-auth-user" className="dashboard-card neon-feature-card" aria-label="Create Auth User">
+          <div className="dashboard-card-content">
+            <span className="dashboard-card-icon"><FiPlus size={iconSize} /></span>
+            <span className="dashboard-card-title">Create Auth User</span>
+          </div>
+        </Link>
         {cards.map((card, idx) => {
           // Main action: first link only
           const mainLink = card.links[0];
