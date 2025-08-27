@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-client";
-import { FiPlus } from "react-icons/fi";
+import { FiPlus, FiCheck } from "react-icons/fi";
 import NeonIconButton from "@/components/ui/NeonIconButton";
 
 interface Department {
@@ -46,7 +46,13 @@ export default function AddRolePage() {
     if (error) {
       setError(error.message);
     } else {
-      router.push("/admin/org-chart");
+      if (typeof window !== "undefined") {
+        window.alert("Role added successfully!");
+      }
+      setTitle("");
+      setDepartmentId("");
+      setLoading(false);
+      // Do not redirect, just reset form for next entry
     }
 
     setLoading(false);
@@ -94,6 +100,15 @@ export default function AddRolePage() {
             variant="add"
             icon={<FiPlus />}
             title="Add Role"
+            type="submit"
+            disabled={loading}
+          />
+          <NeonIconButton
+            variant="save"
+            icon={<FiCheck />}
+            title="Save Role"
+            type="submit"
+            disabled={loading}
           />
         </form>
       </div>
