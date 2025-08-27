@@ -74,12 +74,13 @@ export default function DashboardPage() {
       ),
       links: [
         {
-          href: "/hr/people",
+          href: "/admin/roles",
           label: (
             <>
-              <FiUsers size={iconSize} /> People
+              <FiUserCheck size={iconSize} /> Roles
             </>
           ),
+          className: "neon-btn neon-btn-roles"
         },
       ],
     },
@@ -386,7 +387,7 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      <section className="dashboard-grid">
+      <section className="dashboard-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem' }}>
         <Link href="/admin/create-auth-user" className="dashboard-card neon-feature-card" aria-label="Create Auth User">
           <div className="dashboard-card-content">
             <span className="dashboard-card-icon"><FiPlus size={iconSize} /></span>
@@ -410,13 +411,50 @@ export default function DashboardPage() {
           } else if (typeof card.title === "string") {
             title = card.title;
           }
-          return (
-            <Link key={idx} href={mainLink.href} className="dashboard-card neon-feature-card">
-              <div className="dashboard-card-content">
-                <span className="dashboard-card-icon">{icon}</span>
-                <span className="dashboard-card-title">{title}</span>
+          // Special rendering for People card (idx === 0)
+          if (idx === 0) {
+            return (
+              <div key={idx} className="dashboard-card neon-feature-card" style={{ minWidth: 260, flex: '1 1 260px', display: 'inline-flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div className="dashboard-card-content">
+                  <span className="dashboard-card-icon">{icon}</span>
+                  <span className="dashboard-card-title">{title}</span>
+                </div>
+                <div className="dashboard-card-actions">
+                  {card.links.map((link, lidx) => (
+                    <Link
+                      key={lidx}
+                      href={link.href}
+                      className={link.className || "dashboard-btn neon-btn"}
+                      aria-label={typeof link.label === "string" ? link.label : undefined}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
               </div>
-            </Link>
+            );
+          }
+          return (
+            <div key={idx} className="dashboard-card neon-feature-card" style={{ minWidth: 260, flex: '1 1 260px', display: 'inline-flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <Link href={mainLink.href} style={{ textDecoration: 'none', color: 'inherit', flex: 1 }}>
+                <div className="dashboard-card-content">
+                  <span className="dashboard-card-icon">{icon}</span>
+                  <span className="dashboard-card-title">{title}</span>
+                </div>
+              </Link>
+              <div className="dashboard-card-actions">
+                {card.links.slice(1).map((link, lidx) => (
+                  <Link
+                    key={lidx}
+                    href={link.href}
+                    className={link.className || "dashboard-btn neon-btn"}
+                    aria-label={typeof link.label === "string" ? link.label : undefined}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
           );
         })}
       </section>

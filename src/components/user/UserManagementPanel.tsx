@@ -61,6 +61,18 @@ export default function UserManagementPanel() {
   const [shiftPatterns, setShiftPatterns] = useState<{ id: string; name: string }[]>([]);
   const [errorMsg, setErrorMsg] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
+
+  const [bulkAssignOpen, setBulkAssignOpen] = useState(false);
+  const [bulkAssignStep, setBulkAssignStep] = useState(0); // 0: type, 1: config, 2: users, 3: confirm
+  const [bulkAssignType, setBulkAssignType] = useState(""); // "role", "shift", "first_aid", "trainer"
+  const [bulkDeptId, setBulkDeptId] = useState("");
+  const [bulkRoleId, setBulkRoleId] = useState("");
+  const [bulkShiftId, setBulkShiftId] = useState("");
+  const [bulkFirstAid, setBulkFirstAid] = useState(false);
+  const [bulkTrainer, setBulkTrainer] = useState(false);
+  const [bulkAssignLoading, setBulkAssignLoading] = useState(false);
+  const [bulkSelectedUserIds, setBulkSelectedUserIds] = useState<string[]>([]);
 
   // store the element that opened the dialog (e.g. clicked name) to restore focus
   const openerRef = useRef<HTMLElement | null>(null);
@@ -87,12 +99,16 @@ export default function UserManagementPanel() {
           setErrorMsg("Failed to load data. Please check your connection and try again.");
           return;
         }
-        const usersWithNames = (u || []).map((user) => ({
-          ...user,
-          shift_name: s?.find((sp) => sp.id === user.shift_id)?.name || "",
-          shift_id: user.shift_id || "",
-          role_profile_name: rp?.find((x) => x.id === user.role_profile_id)?.name || "",
-        }));
+        const usersWithNames = (u || []).map((user) => {
+          const role = r?.find((role) => role.id === user.role_id);
+          return {
+            ...user,
+            shift_name: s?.find((sp) => sp.id === user.shift_id)?.name || "",
+            shift_id: user.shift_id || "",
+            role_profile_name: rp?.find((x) => x.id === user.role_profile_id)?.name || "",
+            role_title: role ? role.title : "—",
+          };
+        });
         setUsers(usersWithNames);
         setDepartments(d || []);
         setRoles(r || []);
@@ -119,6 +135,83 @@ export default function UserManagementPanel() {
     setIsAddMode(false);
     setErrorMsg("");
     // focus restore handled by Modal
+  };
+
+  const handleBulkAssignStart = () => {
+    setBulkAssignStep(0);
+    setBulkAssignType("");
+    setBulkDeptId("");
+    setBulkRoleId("");
+    setBulkShiftId("");
+    setBulkFirstAid(false);
+    setBulkTrainer(false);
+    setBulkSelectedUserIds([]);
+    setBulkAssignOpen(true);
+  };
+
+  const handleBulkAssignNext = () => {
+    setBulkAssignStep((step) => step + 1);
+  };
+  const handleBulkAssignBack = () => {
+    setBulkAssignStep((step) => step - 1);
+  };
+  const handleBulkAssignCancel = () => {
+    setBulkAssignOpen(false);
+  };
+
+  const handleBulkAssignConfirm = async () => {
+    if (bulkSelectedUserIds.length === 0) return;
+    setBulkAssignLoading(true);
+    let updateObj: any = {};
+    if (bulkAssignType === "role") {
+      if (!bulkDeptId || !bulkRoleId) return;
+      updateObj = { department_id: bulkDeptId, role_id: bulkRoleId };
+    } else if (bulkAssignType === "shift") {
+      if (!bulkShiftId) return;
+      updateObj = { shift_id: bulkShiftId };
+    } else if (bulkAssignType === "first_aid") {
+      updateObj = { is_first_aid: bulkFirstAid };
+    } else if (bulkAssignType === "trainer") {
+      updateObj = { is_trainer: bulkTrainer };
+    }
+    await supabase.from("users").update(updateObj).in("id", bulkSelectedUserIds);
+    // Refresh users
+    const { data: u } = await supabase.from("users").select("*, shift_id, role_profile_id");
+    setUsers(u || []);
+    setBulkAssignOpen(false);
+    setBulkAssignLoading(false);
+    setBulkSelectedUserIds([]);
+  };
+
+  const handleBulkAssignApply = async () => {
+    if (bulkSelectedUserIds.length === 0) return;
+    setBulkAssignLoading(true);
+    let updateFields: Record<string, any> = {};
+    if (bulkAssignType === "role") {
+      if (!bulkDeptId || !bulkRoleId) return;
+      updateFields = { department_id: bulkDeptId, role_id: bulkRoleId };
+    } else if (bulkAssignType === "shift") {
+      if (!bulkShiftId) return;
+      updateFields = { shift_id: bulkShiftId };
+    } else if (bulkAssignType === "first_aid") {
+      updateFields = { is_first_aid: bulkFirstAid };
+    } else if (bulkAssignType === "trainer") {
+      updateFields = { is_trainer: bulkTrainer };
+    }
+    await supabase.from("users").update(updateFields).in("id", bulkSelectedUserIds);
+    // Refresh users
+    const { data: u } = await supabase.from("users").select("*, shift_id, role_profile_id");
+    setUsers(u || []);
+    setBulkAssignOpen(false);
+    setBulkAssignLoading(false);
+    setBulkAssignStep(0);
+    setBulkAssignType("");
+    setBulkDeptId("");
+    setBulkRoleId("");
+    setBulkShiftId("");
+    setBulkFirstAid(false);
+    setBulkTrainer(false);
+    setBulkSelectedUserIds([]);
   };
 
   const allowedAccessLevels = ["User", "Manager", "Admin"];
@@ -282,6 +375,24 @@ export default function UserManagementPanel() {
   };
 
   const userTableColumns = [
+    {
+      header: "Select",
+      accessor: "select",
+      render: (_: any, row: any) => (
+        <input
+          type="checkbox"
+          checked={selectedUserIds.includes(row.id)}
+          onChange={(e) => {
+            if (e.target.checked) {
+              setSelectedUserIds((prev) => [...prev, row.id]);
+            } else {
+              setSelectedUserIds((prev) => prev.filter((id) => id !== row.id));
+            }
+          }}
+          aria-label={`Select user ${row.name}`}
+        />
+      ),
+    },
     { header: "Name", accessor: "name" },
     { header: "Department", accessor: "department_name" },
     { header: "Role", accessor: "role_title" },
@@ -310,6 +421,20 @@ export default function UserManagementPanel() {
   return (
     <>
       <div className="neon-table-panel">
+        <div style={{ marginBottom: '1rem' }}>
+          <input
+            type="checkbox"
+            checked={selectedUserIds.length === users.length && users.length > 0}
+            onChange={(e) => {
+              if (e.target.checked) {
+                setSelectedUserIds(users.map((u) => u.id));
+              } else {
+                setSelectedUserIds([]);
+              }
+            }}
+            aria-label="Select all users"
+          /> Select All
+        </div>
         <div className="neon-table-scroll">
           <NeonTable
             columns={userTableColumns}
@@ -411,6 +536,22 @@ export default function UserManagementPanel() {
                     onChange={handleImportUsers}
                   />
                 </label>
+                <NeonIconButton
+                  icon={<FiEdit />}
+                  title="Bulk Assign"
+                  variant="edit"
+                  onClick={() => {
+                    setBulkAssignOpen(true);
+                    setBulkAssignStep(1); // Start at user selection step
+                    setBulkAssignType("");
+                    setBulkDeptId("");
+                    setBulkRoleId("");
+                    setBulkShiftId("");
+                    setBulkFirstAid(false);
+                    setBulkTrainer(false);
+                    setBulkSelectedUserIds(selectedUserIds); // Use currently selected users
+                  }}
+                />
               </>
             }
           />
@@ -510,13 +651,13 @@ export default function UserManagementPanel() {
                 id="dept-select"
                 className="neon-input"
                 value={selectedUser.department_id || ""}
-                onChange={(e) =>
+                onChange={(e) => {
                   setSelectedUser({
                     ...selectedUser,
                     department_id: e.target.value,
-                    role_id: "",
-                  })
-                }
+                    role_id: "", // Reset role when department changes
+                  });
+                }}
               >
                 <option value="">Select Department</option>
                 {departments.map((d) => (
@@ -541,6 +682,7 @@ export default function UserManagementPanel() {
                     role_id: e.target.value,
                   })
                 }
+                disabled={!selectedUser.department_id}
               >
                 <option value="">Select Role</option>
                 {roles
@@ -726,6 +868,187 @@ export default function UserManagementPanel() {
           </button>
         </div>
       </OverlayDialog>
+
+      {/* Staged Bulk Assign Overlay */}
+      {bulkAssignOpen && (
+        <OverlayDialog open={bulkAssignOpen} onClose={handleBulkAssignCancel} ariaLabelledby="bulk-assign-title">
+          <div className="neon-form-title" id="bulk-assign-title" style={{ marginBottom: "1.25rem" }}>
+            Bulk Assign
+          </div>
+          {/* Step 1: Select users */}
+          {bulkAssignStep === 1 && (
+            <div style={{ marginBottom: "2rem" }}>
+              <div className="neon-label" style={{ marginBottom: "1rem" }}>
+                Select users to assign:
+              </div>
+              <div style={{ maxHeight: 300, overflowY: "auto", border: "1px solid #222", borderRadius: 8, padding: 8 }}>
+                {users.map((u) => (
+                  <div key={u.id} style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: 4 }}>
+                    <input
+                      type="checkbox"
+                      checked={bulkSelectedUserIds.includes(u.id)}
+                      onChange={e => {
+                        if (e.target.checked) {
+                          setBulkSelectedUserIds((prev) => [...prev, u.id]);
+                        } else {
+                          setBulkSelectedUserIds((prev) => prev.filter((id) => id !== u.id));
+                        }
+                      }}
+                      aria-label={`Select user ${u.first_name || ""} ${u.last_name || ""}`}
+                    />
+                    <span>{`${u.first_name || ""} ${u.last_name || ""}`.trim() || u.email}</span>
+                    <span style={{ color: "#888", fontSize: 12 }}>{u.email}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="neon-panel-actions" style={{ display: "flex", gap: "1rem", justifyContent: "flex-end", marginTop: "2rem" }}>
+                <button className="neon-btn" onClick={handleBulkAssignCancel}>Cancel</button>
+                <button className="neon-btn neon-btn-primary" onClick={() => setBulkAssignStep(2)} disabled={bulkSelectedUserIds.length === 0}>Next</button>
+              </div>
+            </div>
+          )}
+          {/* Step 2: Configure assignment */}
+          {bulkAssignStep === 2 && (
+            <div style={{ marginBottom: "2rem" }}>
+              <div className="neon-label" style={{ marginBottom: "1rem" }}>What would you like to bulk assign?</div>
+              <div style={{ display: "flex", gap: "1rem" }}>
+                <button className="neon-btn" onClick={() => { setBulkAssignType("role"); setBulkAssignStep(3); }}>Department/Role</button>
+                <button className="neon-btn" onClick={() => { setBulkAssignType("shift"); setBulkAssignStep(3); }}>Shift</button>
+                <button className="neon-btn" onClick={() => { setBulkAssignType("first_aid"); setBulkAssignStep(3); }}>First Aid</button>
+                <button className="neon-btn" onClick={() => { setBulkAssignType("trainer"); setBulkAssignStep(3); }}>Trainer</button>
+              </div>
+              <div className="neon-panel-actions" style={{ display: "flex", gap: "1rem", justifyContent: "flex-end", marginTop: "2rem" }}>
+                <button className="neon-btn" onClick={() => setBulkAssignStep(1)}>Back</button>
+              </div>
+            </div>
+          )}
+          {/* Step 3: Assignment config */}
+          {bulkAssignStep === 3 && (
+            <div style={{ marginBottom: "2rem" }}>
+              <div className="neon-label" style={{ marginBottom: "1rem" }}>
+                {bulkAssignType === "role" && "You are bulk assigning to Department/Role."}
+                {bulkAssignType === "shift" && "You are bulk assigning to Shift."}
+                {bulkAssignType === "first_aid" && "You are bulk assigning First Aid status."}
+                {bulkAssignType === "trainer" && "You are bulk assigning Trainer status."}
+              </div>
+              {bulkAssignType === "role" && (
+                <div className="neon-form-grid neon-form-padding" style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "1.5rem" }}>
+                  <div>
+                    <label className="neon-label" htmlFor="bulk-dept-select">Department</label>
+                    <select
+                      id="bulk-dept-select"
+                      className="neon-input"
+                      value={bulkDeptId}
+                      onChange={e => { setBulkDeptId(e.target.value); setBulkRoleId(""); }}
+                    >
+                      <option value="">Select Department</option>
+                      {departments.map((d) => (
+                        <option key={d.id} value={d.id}>{d.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="neon-label" htmlFor="bulk-role-select">Role</label>
+                    <select
+                      id="bulk-role-select"
+                      className="neon-input"
+                      value={bulkRoleId}
+                      onChange={e => setBulkRoleId(e.target.value)}
+                      disabled={!bulkDeptId}
+                    >
+                      <option value="">Select Role</option>
+                      {roles.filter(r => r.department_id === bulkDeptId).map(r => (
+                        <option key={r.id} value={r.id}>{r.title}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              )}
+              {bulkAssignType === "shift" && (
+                <div>
+                  <label className="neon-label" htmlFor="bulk-shift-select">Shift</label>
+                  <select
+                    id="bulk-shift-select"
+                    className="neon-input"
+                    value={bulkShiftId}
+                    onChange={e => setBulkShiftId(e.target.value)}
+                  >
+                    <option value="">Select Shift</option>
+                    {shiftPatterns.map((s) => (
+                      <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              {bulkAssignType === "first_aid" && (
+                <div>
+                  <label className="neon-label" htmlFor="bulk-firstaid-select">First Aid</label>
+                  <select
+                    id="bulk-firstaid-select"
+                    className="neon-input"
+                    value={bulkFirstAid ? "true" : "false"}
+                    onChange={e => setBulkFirstAid(e.target.value === "true")}
+                  >
+                    <option value="false">No</option>
+                    <option value="true">Yes</option>
+                  </select>
+                </div>
+              )}
+              {bulkAssignType === "trainer" && (
+                <div>
+                  <label className="neon-label" htmlFor="bulk-trainer-select">Trainer</label>
+                  <select
+                    id="bulk-trainer-select"
+                    className="neon-input"
+                    value={bulkTrainer ? "true" : "false"}
+                    onChange={e => setBulkTrainer(e.target.value === "true")}
+                  >
+                    <option value="false">No</option>
+                    <option value="true">Yes</option>
+                  </select>
+                </div>
+              )}
+              <div className="neon-panel-actions" style={{ display: "flex", gap: "1rem", justifyContent: "flex-end", marginTop: "2rem" }}>
+                <button className="neon-btn" onClick={() => setBulkAssignStep(2)}>Back</button>
+                <button className="neon-btn neon-btn-primary" onClick={() => setBulkAssignStep(4)} disabled={
+                  (bulkAssignType === "role" && (!bulkDeptId || !bulkRoleId)) ||
+                  (bulkAssignType === "shift" && !bulkShiftId)
+                }>Next</button>
+              </div>
+            </div>
+          )}
+          {/* Step 4: Confirm bulk assignment */}
+          {bulkAssignStep === 4 && (
+            <div style={{ marginBottom: "2rem" }}>
+              <div className="neon-label" style={{ marginBottom: "1rem" }}>
+                Confirm bulk assignment:
+              </div>
+              <div style={{ marginBottom: "1rem" }}>
+                <strong>Assignment:</strong> {bulkAssignType === "role" && `Department: ${departments.find(d => d.id === bulkDeptId)?.name || ""}, Role: ${roles.find(r => r.id === bulkRoleId)?.title || ""}`}
+                {bulkAssignType === "shift" && `Shift: ${shiftPatterns.find(s => s.id === bulkShiftId)?.name || ""}`}
+                {bulkAssignType === "first_aid" && `First Aid: ${bulkFirstAid ? "Yes" : "No"}`}
+                {bulkAssignType === "trainer" && `Trainer: ${bulkTrainer ? "Yes" : "No"}`}
+              </div>
+              <div style={{ marginBottom: "1rem" }}>
+                <strong>Users:</strong> {bulkSelectedUserIds.length}
+              </div>
+              <div className="neon-panel-actions" style={{ display: "flex", gap: "1rem", justifyContent: "flex-end", marginTop: "2rem" }}>
+                <button className="neon-btn" onClick={() => setBulkAssignStep(3)}>Back</button>
+                <NeonIconButton
+                  variant="save"
+                  icon={bulkAssignLoading ? <span className="neon-spinner" style={{ marginRight: 8 }} /> : <FiSave />}
+                  title={bulkAssignLoading ? "Assigning..." : "Confirm & Assign"}
+                  onClick={handleBulkAssignConfirm}
+                  disabled={bulkAssignLoading}
+                />
+                <button className="neon-btn neon-btn-danger" onClick={handleBulkAssignCancel}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </OverlayDialog>
+      )}
     </>
   );
 }

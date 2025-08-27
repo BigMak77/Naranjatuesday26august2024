@@ -73,7 +73,11 @@ export default function AdminUserListPage() {
     <>
       <div className="admin-users-page-wrapper">
         <h1 className="admin-users-title">👥 Manage Users</h1>
-
+        <div className="admin-users-dashboard-links" style={{ marginBottom: '1.5rem' }}>
+          <Link href="/admin/roles" className="neon-btn neon-btn-orgchart" title="View Roles" aria-label="View Roles">
+            View Roles
+          </Link>
+        </div>
         {/* Filters */}
         <div className="admin-users-filters">
           <div className="admin-users-filters-row">

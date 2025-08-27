@@ -1,26 +1,25 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import {
   FiArchive,
-  FiChevronDown,
-  FiChevronRight,
   FiEdit,
   FiUsers,
   FiTool,
   FiUmbrella,
+  FiGrid,
 } from "react-icons/fi";
 import Link from "next/link";
-import NeonPanel from "@/components/NeonPanel";
 import NeonIconButton from "@/components/ui/NeonIconButton";
+import NeonDualListbox from "@/components/ui/NeonDualListbox";
 
 interface Department {
   id: string;
   name: string;
   parent_id: string | null;
   is_archived?: boolean;
+  level: number;
 }
 
 interface Role {
@@ -52,13 +51,10 @@ export default function OrgChartPage() {
   useEffect(() => {
     const fetchData = async () => {
       const [{ data: deptData }, { data: roleData }] = await Promise.all([
-        supabase.from("departments").select("id, name, parent_id, is_archived"),
+        supabase.from("departments").select("id, name, parent_id, is_archived, level"),
         supabase.from("roles").select("id, title, department_id"),
       ]);
-
-      console.log("Fetched departments:", deptData);
       if (deptData) setDepartments(deptData);
-
       const grouped: RolesByDept = {};
       for (const role of roleData || []) {
         if (!grouped[role.department_id]) grouped[role.department_id] = [];
@@ -66,9 +62,7 @@ export default function OrgChartPage() {
       }
       setRolesByDept(grouped);
     };
-
     fetchData();
-    // Remove console.log for production
   }, []);
 
   const toggleExpand = (deptId: string) => {
@@ -87,31 +81,6 @@ export default function OrgChartPage() {
     setExpanded(expandedMap);
   };
 
-  const buildTree = (items: Department[]) => {
-    const tree: Record<string, Department[]> = {};
-    for (const dept of items) {
-      const parentKey = dept.parent_id === null ? "root" : dept.parent_id;
-      if (!tree[parentKey]) tree[parentKey] = [];
-      tree[parentKey].push(dept);
-    }
-    return tree;
-  };
-
-  const getDescendants = (
-    deptId: string,
-    tree: Record<string, Department[]>,
-    visited = new Set<string>(),
-  ) => {
-    const children = tree[deptId] || [];
-    for (const child of children) {
-      if (!visited.has(child.id)) {
-        visited.add(child.id);
-        getDescendants(child.id, tree, visited);
-      }
-    }
-    return visited;
-  };
-
   const handleDeptEditSave = async (deptId: string) => {
     const { error } = await supabase
       .from("departments")
@@ -123,7 +92,7 @@ export default function OrgChartPage() {
       setDeptEditArchived(false);
       const { data } = await supabase
         .from("departments")
-        .select("id, name, parent_id, is_archived");
+        .select("id, name, parent_id, is_archived, level");
       if (data) setDepartments(data);
     }
   };
@@ -142,456 +111,226 @@ export default function OrgChartPage() {
     }
   };
 
-  const tree = buildTree(departments);
-  console.log("Org chart tree keys:", Object.keys(tree));
-  console.log("Org chart tree:", tree);
+  // Helper: build tree from departments
+  function buildTree(departments: Department[]) {
+    const map: Record<string, Department[]> = {};
+    departments.forEach((dept) => {
+      const parent = dept.parent_id ?? 'root';
+      if (!map[parent]) map[parent] = [];
+      map[parent].push(dept);
+    });
+    return map;
+  }
 
-  const renderBranch = (parentId: string, level = 0, path: string[] = []) => {
+  // Helper: find department by id
+  function findDept(id: string, departments: Department[]) {
+    return departments.find((d) => d.id === id);
+  }
+
+  // Render tree recursively with joining lines
+  function renderTree(parentId: string = 'root', level: number = 0) {
+    const tree = buildTree(departments);
     const children = tree[parentId] || [];
-    if (children.length === 0) {
-      return (
-        <div className="text-gray-500 text-xs ml-4">
-          No departments found for key: {parentId}. Available keys:{" "}
-          {Object.keys(tree).join(", ")}
-        </div>
-      );
-    }
-    return children.map((dept) => (
-      <DeptNode key={dept.id} dept={dept} level={level} path={path} />
-    ));
-  };
-
-  const DeptNode = ({
-    dept,
-    level,
-    path,
-  }: {
-    dept: Department;
-    level: number;
-    path: string[];
-  }) => {
-    const cardRef = useRef<HTMLDivElement>(null);
-    const currentPath = [...path, dept.name];
-    const descendants = getDescendants(dept.id, tree);
-
-    const handleExpand = () => {
-      // Optionally, you can keep the logic for future use, but currently expandDirection is not used.
-      setActiveAndExpand(dept.id, currentPath);
-    };
     return (
-      <NeonPanel
-        className={[
-          "org-chart-panel",
-          activeDeptId === dept.id ? "neon-glow z-50" : "z-10",
-          dept.is_archived ? "opacity-50 grayscale" : "",
-        ]
-          .filter(Boolean)
-          .join(" ")}
-      >
-        <div ref={cardRef} className="org-chart-header" onClick={handleExpand}>
-          <div className="org-chart-header-main">
-            {expanded[dept.id] ? (
-              <FiChevronDown className="org-chart-chevron" />
-            ) : (
-              <FiChevronRight className="org-chart-chevron" />
-            )}
-            <h2 className="neon-form-title org-chart-title">{dept.name}</h2>
-            {dept.is_archived && (
-              <span className="org-chart-archived">Archived</span>
-            )}
-          </div>
-          <div className="org-chart-header-actions">
-            <span className="org-chart-path">{currentPath.join(" › ")}</span>
-            <NeonIconButton
-              as="button"
-              variant="edit"
-              icon={<FiEdit className="org-chart-action-icon" />}
-              title="Edit Department"
-              onClick={(e) => {
-                e.stopPropagation();
-                setEditingDeptId(dept.id);
-                setDeptEditName(dept.name);
-              }}
-              className="org-chart-btn ml-2"
-            />
-            {!dept.is_archived && (
-              <NeonIconButton
-                as="button"
-                variant="archive"
-                icon={<FiArchive className="org-chart-action-icon" />}
-                title="Archive Department"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDeptArchive(dept.id);
+      <div className="org-chart-branch" style={{ position: 'relative', marginLeft: level * 40 }}>
+        {children.map((dept, idx) => {
+          const isExpanded = expanded[dept.id] ?? true;
+          return (
+            <div key={dept.id} style={{ position: 'relative', marginBottom: 40 }}>
+              {/* Joining line to parent */}
+              {parentId !== 'root' && (
+                <div
+                  className="org-chart-join-line"
+                  style={{
+                    position: 'absolute',
+                    left: -20,
+                    top: 32,
+                    width: 20,
+                    height: 3,
+                    background: 'var(--neon)',
+                    borderRadius: 2,
+                    opacity: 0.7,
+                  }}
+                />
+              )}
+              <div
+                className={`org-chart-node neon-card org-chart-dept-card ${activeDeptId === dept.id ? 'neon-glow' : ''} ${dept.is_archived ? 'opacity-50 grayscale' : ''}`}
+                style={{
+                  position: 'relative',
+                  transition: 'box-shadow .2s',
+                  minWidth: 260,
+                  minHeight: 80,
+                  padding: '1.5rem 2rem',
+                  fontSize: '1.2rem',
+                  fontWeight: 600,
+                  boxShadow: '0 0 24px var(--neon)',
+                  border: '2px solid var(--neon)',
+                  background: 'var(--panel)',
+                  color: 'var(--neon)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.5rem',
                 }}
-                className="org-chart-btn ml-2"
-              />
-            )}
-          </div>
-        </div>
-        {expanded[dept.id] && (
-          <div className="org-chart-roles">
-            <span className="org-chart-roles-label">
-              Associated roles to this department:
-            </span>
-            <div className="org-chart-roles-list">
-              {(rolesByDept[dept.id] || []).map((role) => (
-                <div key={role.id} className="org-chart-role-item">
-                  {editingRoleId === role.id ? (
-                    <form
-                      className="org-chart-role-edit-form"
-                      onSubmit={async (e) => {
-                        e.preventDefault();
-                        await supabase
-                          .from("roles")
-                          .update({
-                            title: roleEditTitle,
-                            department_id: roleEditDeptId,
-                          })
-                          .eq("id", role.id);
-                        setEditingRoleId(null);
-                        setRoleEditTitle("");
-                        setRoleEditDeptId("");
-                        // Refetch roles and update rolesByDept
-                        const { data: roleData } = await supabase
-                          .from("roles")
-                          .select("id, title, department_id");
+                onMouseEnter={() => setActiveDeptId(dept.id)}
+                onMouseLeave={() => setActiveDeptId(null)}
+              >
+                <div className="org-chart-title-row" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <NeonIconButton
+                    as="button"
+                    variant={isExpanded ? 'back' : 'view'}
+                    title={isExpanded ? 'Collapse' : 'Expand'}
+                    onClick={() => toggleExpand(dept.id)}
+                  />
+                  <span className="org-chart-title" style={{ fontSize: '1.3rem', fontWeight: 700 }}>{dept.name}</span>
+                  {dept.is_archived && <span className="org-chart-archived neon-badge">Archived</span>}
+                  <NeonIconButton as="button" variant="edit" title="Edit Department" onClick={() => {
+                    setEditingDeptId(dept.id);
+                    setDeptEditName(dept.name);
+                    setDeptEditArchived(!!dept.is_archived);
+                    setNewParentId(dept.parent_id ?? 'root');
+                  }} />
+                  <NeonIconButton as="button" variant="archive" title="Archive Department" onClick={() => handleDeptArchive(dept.id)} />
+                  <NeonIconButton as="button" variant="view" title="Show Roles" onClick={() => setShowModalFor(dept.id)}>
+                    <FiGrid />
+                  </NeonIconButton>
+                </div>
+                {/* Roles as subtle badges below department name */}
+                <div className="org-chart-role-badges-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: 4 }}>
+                  {(rolesByDept[dept.id] || []).map((role) => (
+                    <span key={role.id} className="org-chart-role-badge neon-badge" style={{ fontSize: '0.9rem', padding: '2px 10px', background: 'var(--panel)', color: 'var(--neon)', border: '1px solid var(--neon)', borderRadius: 12, opacity: 0.7 }}>
+                      <FiUsers className="org-chart-role-icon" style={{ marginRight: 4, fontSize: '1rem' }} /> {role.title}
+                    </span>
+                  ))}
+                  {!(rolesByDept[dept.id] || []).length && (
+                    <span className="text-xs opacity-40">No roles</span>
+                  )}
+                </div>
+                {editingDeptId === dept.id && (
+                  <div className="org-chart-edit-popover neon-card" style={{ position: 'absolute', top: 60, right: 8, zIndex: 10, background: 'var(--panel)', boxShadow: '0 0 16px var(--neon)', padding: 16, borderRadius: 12 }}>
+                    <input
+                      type="text"
+                      value={deptEditName}
+                      onChange={(e) => setDeptEditName(e.target.value)}
+                      className="neon-input"
+                      placeholder="Department Name"
+                    />
+                    <label className="text-sm flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={deptEditArchived}
+                        onChange={(e) => setDeptEditArchived(e.target.checked)}
+                      />
+                      Archive
+                    </label>
+                    <label className="text-sm flex items-center gap-2 mt-2">
+                      Move to:
+                      <select
+                        value={newParentId ?? 'root'}
+                        onChange={(e) => setNewParentId(e.target.value)}
+                        className="neon-input"
+                        style={{ minWidth: 120 }}
+                      >
+                        <option value="root">Top Level</option>
+                        {departments.filter(d => d.id !== dept.id).map(d => (
+                          <option key={d.id} value={d.id}>{d.name}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <div className="flex gap-2 mt-2">
+                      <NeonIconButton as="button" variant="save" title="Save Department" onClick={() => handleDeptEditSaveWithMove(dept.id)} />
+                      <NeonIconButton as="button" variant="cancel" title="Cancel" onClick={() => setEditingDeptId(null)} />
+                    </div>
+                  </div>
+                )}
+                {showModalFor === dept.id && (
+                  <div className="org-chart-roles-modal neon-card" style={{ position: 'absolute', top: 60, left: 0, zIndex: 20, background: 'var(--panel)', boxShadow: '0 0 24px var(--neon)', padding: 20, borderRadius: 16, minWidth: 340 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                      <span style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--neon)' }}>Manage Roles for {dept.name}</span>
+                      <NeonIconButton as="button" variant="cancel" title="Close" onClick={() => setShowModalFor(null)} />
+                    </div>
+                    <NeonDualListbox
+                      items={Object.values(rolesByDept).flat().map(role => ({ id: role.id, label: role.title }))}
+                      selected={(rolesByDept[dept.id] || []).map(role => role.id)}
+                      onChange={async (selectedIds) => {
+                        // Remove all roles from this dept, then add selected
+                        const allRoleIds = (rolesByDept[dept.id] || []).map(r => r.id);
+                        // Remove roles
+                        for (const roleId of allRoleIds) {
+                          await supabase.from('roles').update({ department_id: null }).eq('id', roleId);
+                        }
+                        // Add selected roles
+                        for (const roleId of selectedIds) {
+                          await supabase.from('roles').update({ department_id: dept.id }).eq('id', roleId);
+                        }
+                        // Refresh rolesByDept
+                        const { data: roleData } = await supabase.from('roles').select('id, title, department_id');
                         const grouped: RolesByDept = {};
-                        for (const r of roleData || []) {
-                          if (!grouped[r.department_id])
-                            grouped[r.department_id] = [];
-                          grouped[r.department_id].push(r);
+                        for (const role of roleData || []) {
+                          if (!grouped[role.department_id]) grouped[role.department_id] = [];
+                          grouped[role.department_id].push(role);
                         }
                         setRolesByDept(grouped);
                       }}
-                    >
-                      <input
-                        type="text"
-                        value={roleEditTitle}
-                        onChange={(e) => setRoleEditTitle(e.target.value)}
-                        className="neon-input"
-                        placeholder="Role Title"
-                      />
-                      <select
-                        value={roleEditDeptId}
-                        onChange={(e) => setRoleEditDeptId(e.target.value)}
-                        className="neon-input"
-                      >
-                        {departments.map((d) => (
-                          <option key={d.id} value={d.id}>
-                            {d.name}
-                          </option>
-                        ))}
-                      </select>
-                      <button
-                        type="submit"
-                        className="neon-btn neon-btn-save neon-btn-square org-chart-btn"
-                        data-variant="save"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="feather feather-save neon-icon"
-                        >
-                          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                          <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                          <polyline points="7 3 7 8 15 8"></polyline>
-                        </svg>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingRoleId(null);
-                          setRoleEditTitle("");
-                          setRoleEditDeptId("");
-                        }}
-                        className="neon-btn neon-btn-danger org-chart-btn"
-                        data-variant="close"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="feather feather-x"
-                        >
-                          <line x1="18" y1="6" x2="6" y2="18"></line>
-                          <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                      </button>
-                    </form>
-                  ) : (
-                    <span
-                      className="org-chart-role-badge"
-                      onClick={() => {
-                        setEditingRoleId(role.id);
-                        setRoleEditTitle(role.title);
-                        setRoleEditDeptId(role.department_id);
-                      }}
-                      title="Edit Role"
-                    >
-                      <FiUsers className="org-chart-role-icon" /> {role.title}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-            <div className="org-chart-actions">
-              <Link
-                href={`/admin/departments/add?parent_id=${dept.id}`}
-                className="neon-btn neon-btn-add org-chart-btn"
-              >
-                <FiUmbrella className="org-chart-toolbar-icon" />
-              </Link>
-              <NeonIconButton
-                as="button"
-                variant="refresh"
-                icon={<FiChevronRight className="org-chart-toolbar-icon" />}
-                title="Change Parent Department"
-                onClick={() => {
-                  setShowModalFor(dept.id);
-                  setNewParentId(null);
-                }}
-                className="neon-btn neon-btn-orgchart org-chart-btn ml-2"
-              />
-              <Link
-                href={`/admin/roles/add?department_id=${dept.id}`}
-                className="neon-btn neon-btn-orgchart org-chart-btn"
-              >
-                <FiTool className="org-chart-toolbar-icon" />
-              </Link>
-            </div>
-            {showModalFor === dept.id && (
-              <NeonPanel className="org-chart-modal-panel">
-                <label className="org-chart-modal-label">
-                  Select New Parent Department:
-                </label>
-                <select
-                  value={newParentId ?? ""}
-                  onChange={(e) =>
-                    setNewParentId(
-                      e.target.value === "" ? null : e.target.value,
-                    )
-                  }
-                  className="neon-input"
-                >
-                  <option value="">No Parent (Top Level)</option>
-                  {departments
-                    .filter((d) => d.id !== dept.id)
-                    .map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.name}
-                      </option>
-                    ))}
-                </select>
-                <div className="org-chart-modal-actions">
-                  <button
-                    onClick={async () => {
-                      const parentUUID =
-                        newParentId === "" ? null : newParentId;
-                      const { error } = await supabase.rpc(
-                        "update_department_parent",
-                        {
-                          dept_to_move: dept.id,
-                          new_parent: parentUUID,
-                        },
-                      );
-                      if (error) {
-                        alert("Error: " + error.message);
-                      } else {
-                        const { data: updatedDepartments } = await supabase
-                          .from("departments")
-                          .select("id, name, parent_id, is_archived");
-                        if (updatedDepartments)
-                          setDepartments(updatedDepartments);
-                        setShowModalFor(null);
-                        setNewParentId(null);
-                      }
-                    }}
-                    className="neon-btn neon-btn-submit"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="feather feather-save"
-                    >
-                      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                      <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                      <polyline points="7 3 7 8 15 8"></polyline>
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => setShowModalFor(null)}
-                    className="neon-btn neon-btn-back"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="feather feather-x"
-                    >
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                  </button>
-                </div>
-              </NeonPanel>
-            )}
-            {editingDeptId === dept.id && (
-              <div className="org-chart-edit-panel">
-                <input
-                  type="text"
-                  value={deptEditName}
-                  onChange={(e) => setDeptEditName(e.target.value)}
-                  className="neon-input"
-                  placeholder="Department Name"
-                />
-                <label className="org-chart-edit-label">
-                  <input
-                    type="checkbox"
-                    checked={deptEditArchived}
-                    onChange={(e) => setDeptEditArchived(e.target.checked)}
-                  />{" "}
-                  Archive
-                </label>
-                <button
-                  onClick={() => handleDeptEditSave(dept.id)}
-                  className="neon-btn neon-btn-save"
-                  data-variant="save"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="feather feather-save"
-                  >
-                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                    <polyline points="7 3 7 8 15 8"></polyline>
-                  </svg>
-                </button>
-                <button
-                  onClick={() => setEditingDeptId(null)}
-                  className="neon-btn neon-btn-danger"
-                  data-variant="close"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="feather feather-x"
-                  >
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                  </svg>
-                </button>
-                {!dept.is_archived && (
-                  <button
-                    onClick={() => handleDeptArchive(dept.id)}
-                    className="neon-btn neon-btn-archive"
-                    data-variant="archive"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="feather feather-archive"
-                    >
-                      <rect
-                        x="3"
-                        y="3"
-                        width="18"
-                        height="4"
-                        rx="1"
-                        ry="1"
-                      ></rect>
-                      <path d="M21 7v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7"></path>
-                      <line x1="12" y1="11" x2="12" y2="17"></line>
-                    </svg>
-                  </button>
+                      titleLeft="Available Roles"
+                      titleRight="Assigned Roles"
+                    />
+                  </div>
                 )}
+                {/* Children */}
+                {isExpanded && renderTree(dept.id, level + 1)}
               </div>
-            )}
-            {renderBranch(dept.id, level + 1, currentPath)}
-          </div>
-        )}
-      </NeonPanel>
+            </div>
+          );
+        })}
+      </div>
     );
-  };
+  }
+
+  // Save department edit, including move to new parent
+  async function handleDeptEditSaveWithMove(deptId: string) {
+    const { error } = await supabase
+      .from("departments")
+      .update({ name: deptEditName, is_archived: deptEditArchived, parent_id: newParentId === 'root' ? null : newParentId })
+      .eq("id", deptId);
+    if (!error) {
+      setEditingDeptId(null);
+      setDeptEditName("");
+      setDeptEditArchived(false);
+      setNewParentId(null);
+      const { data } = await supabase
+        .from("departments")
+        .select("id, name, parent_id, is_archived, level");
+      if (data) setDepartments(data);
+    }
+  }
 
   return (
-    <>
-      <main className="org-chart-main">
-        <section className="org-chart-section">
-          <div className="org-chart-container">
-            <h1 className="neon-form-title org-chart-page-title">
-              Organisation Chart
-            </h1>
-            <div className="org-chart-toolbar">
-              <Link
-                href="/admin/departments/add"
-                className="neon-btn neon-btn-orgchart"
-              >
-                <FiUmbrella className="org-chart-toolbar-icon" />
-              </Link>
-              <Link
-                href="/admin/roles/add"
-                className="neon-btn neon-btn-orgchart"
-              >
-                <FiTool className="org-chart-toolbar-icon" />
-              </Link>
-            </div>
-            {departments.length === 0 ? (
-              <p className="org-chart-empty">Loading organisation chart...</p>
-            ) : (
-              renderBranch("root")
-            )}
+    <main className="org-chart-main neon-panel neon-form-padding">
+      <section className="org-chart-section">
+        <div className="org-chart-container">
+          <h1 className="neon-form-title org-chart-page-title" style={{ marginBottom: '2rem', color: 'var(--neon)' }}>
+            <FiUsers style={{ marginRight: 8, verticalAlign: 'middle' }} /> Organisation Chart
+          </h1>
+          <div className="org-chart-toolbar" style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
+            <Link href="/admin/departments/add" className="neon-btn neon-btn-orgchart" title="Add Department" aria-label="Add Department">
+              <FiUmbrella className="org-chart-toolbar-icon" />
+            </Link>
+            <Link href="/admin/roles/add" className="neon-btn neon-btn-orgchart" title="Add Role" aria-label="Add Role">
+              <FiTool className="org-chart-toolbar-icon" />
+            </Link>
           </div>
-        </section>
-      </main>
-    </>
+          {departments.length === 0 ? (
+            <div className="org-chart-empty neon-panel neon-form-padding" style={{ textAlign: 'center', color: 'var(--neon)', fontSize: '1.1rem' }}>
+              <FiUsers size={32} style={{ marginBottom: 8 }} />
+              Loading organisation chart...
+            </div>
+          ) : (
+            <div className="org-chart-tree" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              {renderTree('root', 0)}
+            </div>
+          )}
+        </div>
+      </section>
+    </main>
   );
 }
