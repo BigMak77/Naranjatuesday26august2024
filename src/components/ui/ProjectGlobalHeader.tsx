@@ -62,9 +62,9 @@ export default function GlobalHeader({
     () =>
       navLinks ?? [
         { href: dashboardHref, label: "Dashboard", icon: <FiHome /> },
-        { href: "/hr/people/", label: "HR", icon: <FiUsers /> }, // Updated link to /hr/
+        { href: "/hr/people/", label: "HR", icon: <FiUsers /> },
         { href: "/admin/documents", label: "Documents", icon: <FiFileText /> },
-        { href: "/compliance", label: "Compliance", icon: <FiShield /> },
+        { href: "/admin/incomplete", label: "Compliance", icon: <FiShield /> },
         { href: "/settings", label: "Settings", icon: <FiSettings /> },
       ],
     [navLinks, dashboardHref],

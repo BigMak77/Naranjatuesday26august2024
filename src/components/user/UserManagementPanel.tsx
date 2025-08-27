@@ -15,6 +15,7 @@ import {
   FiX,
 } from "react-icons/fi";
 import { useUser } from "@/lib/useUser";
+import OverlayDialog from '@/components/ui/OverlayDialog';
 
 interface User {
   id: string;
@@ -43,144 +44,6 @@ interface User {
   shift_id?: string;
   shift_name?: string;
   role_profile_name?: string;
-}
-
-// ---------- Small, dependency-free Modal with portal + focus trap ----------
-function Modal({
-  open,
-  title,
-  onClose,
-  children,
-  labelledById,
-  describedById,
-  initialFocusRef,
-}: {
-  open: boolean;
-  title: string;
-  onClose: () => void;
-  children: React.ReactNode;
-  labelledById: string;
-  describedById?: string;
-  initialFocusRef?: React.RefObject<HTMLElement>;
-}) {
-  const contentRef = useRef<HTMLDivElement | null>(null);
-  const lastActiveRef = useRef<HTMLElement | null>(null);
-
-  // Lock background scroll
-  useEffect(() => {
-    if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [open]);
-
-  // Save/restore last focused element
-  useEffect(() => {
-    if (open) {
-      lastActiveRef.current = document.activeElement as HTMLElement | null;
-    } else {
-      lastActiveRef.current?.focus?.();
-    }
-  }, [open]);
-
-  // Move focus into modal
-  useEffect(() => {
-    if (!open) return;
-    const focusTarget =
-      initialFocusRef?.current ||
-      (contentRef.current?.querySelector(
-        "input,select,textarea,button,[tabindex]:not([tabindex='-1'])",
-      ) as HTMLElement | null);
-    focusTarget?.focus?.();
-  }, [open, initialFocusRef]);
-
-  // Focus trap + esc + backdrop click
-  useEffect(() => {
-    if (!open) return;
-
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        onClose();
-        return;
-      }
-      if (e.key === "Tab") {
-        const root = contentRef.current;
-        if (!root) return;
-        const focusables = Array.from(
-          root.querySelectorAll<HTMLElement>(
-            "a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex='-1'])",
-          ),
-        ).filter((el) => !el.hasAttribute("disabled") && !el.getAttribute("aria-hidden"));
-        if (focusables.length === 0) return;
-        const first = focusables[0];
-        const last = focusables[focusables.length - 1];
-        const current = document.activeElement as HTMLElement | null;
-
-        if (e.shiftKey) {
-          if (current === first || !root.contains(current)) {
-            e.preventDefault();
-            last.focus();
-          }
-        } else {
-          if (current === last) {
-            e.preventDefault();
-            first.focus();
-          }
-        }
-      }
-    };
-
-    const onMouseDown = (e: MouseEvent) => {
-      const panel = contentRef.current;
-      if (!panel) return;
-      if (!panel.contains(e.target as Node)) {
-        onClose();
-      }
-    };
-
-    document.addEventListener("keydown", onKeyDown);
-    // use mousedown on the overlay element only
-    const overlay = document.getElementById("app-dialog-overlay");
-    overlay?.addEventListener("mousedown", onMouseDown);
-
-    return () => {
-      document.removeEventListener("keydown", onKeyDown);
-      overlay?.removeEventListener("mousedown", onMouseDown);
-    };
-  }, [open, onClose]);
-
-  if (!open) return null;
-
-  const dialog = (
-    <div
-      id="app-dialog-overlay"
-      tabIndex={-1}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={labelledById}
-      aria-describedby={describedById}
-      className="fixed inset-0 z-[999] flex items-center justify-center"
-    >
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]" />
-
-      {/* Panel */}
-      <div
-        ref={contentRef}
-        className="relative w-full max-w-4xl mx-4 rounded-2xl bg-white shadow-2xl p-6 neon-panel"
-        role="document"
-      >
-        {children}
-      </div>
-    </div>
-  );
-
-  // SSR guard for createPortal
-  if (typeof window === "undefined") return dialog;
-  return createPortal(dialog, document.body);
 }
 
 // ---------------------- Main component (your logic kept) ----------------------
@@ -555,13 +418,10 @@ export default function UserManagementPanel() {
       </div>
 
       {/* Overlaid dialog rendered via portal */}
-      <Modal
+      <OverlayDialog
         open={dialogOpen}
         onClose={handleCloseDialog}
-        title={isAddMode ? "Add User" : "Edit User"}
-        labelledById="user-editor-title"
-        describedById={errorMsg ? "user-editor-error" : undefined}
-        initialFocusRef={firstNameRef as React.RefObject<HTMLElement>}
+        ariaLabelledby="user-editor-title"
       >
         <div className="neon-form-title" id="user-editor-title" style={{ marginBottom: "1.25rem" }}>
           {isAddMode ? "Add User" : "Edit User"}
@@ -865,7 +725,7 @@ export default function UserManagementPanel() {
             Close
           </button>
         </div>
-      </Modal>
+      </OverlayDialog>
     </>
   );
 }

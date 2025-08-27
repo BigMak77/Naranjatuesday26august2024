@@ -195,7 +195,6 @@ export default function CompliancePage() {
             </div>
           </div>
         </NeonForm>
-
         <NeonTable
           columns={[
             { header: "User", accessor: "user" },

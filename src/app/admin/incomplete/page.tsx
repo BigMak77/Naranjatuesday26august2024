@@ -22,6 +22,7 @@ type IncompleteRow = {
   item_id: string;
   item_type: string;
   completed_at?: string;
+  due_at?: string;
   users?: {
     first_name?: string;
     last_name?: string;
@@ -40,60 +41,58 @@ export default function IncompleteTrainingPage() {
   const [selectedModule, setSelectedModule] = useState("All");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [totalAssignments, setTotalAssignments] = useState(0);
+  const [totalCompleted, setTotalCompleted] = useState(0);
+  const [totalOverdue, setTotalOverdue] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
-
     (async () => {
       setLoading(true);
       setError(null);
 
-      // 1) Incomplete assignments
-      const { data: ua, error: uaErr } = await supabase
+      // 1) All assignments
+      const { data: allAssignments, error: allErr } = await supabase
         .from("user_assignments")
         .select(
-          `
-          auth_id,
-          item_id,
-          item_type,
-          completed_at,
-          users:users!inner(
-            first_name,
-            last_name,
-            department_id,
-            departments(name),
-            role_id,
-            role:roles!users_role_id_fkey(title)
-          )
-        `,
+          `auth_id, item_id, item_type, completed_at, due_at, users:users!inner(first_name, last_name, department_id, departments(name), role_id, role:roles!users_role_id_fkey(title))`
         )
-        .in("item_type", ["module", "document"])
-        .is("completed_at", null);
+        .in("item_type", ["module", "document"]);
 
       if (!isMounted) return;
-
-      if (uaErr) {
-        console.error("Error fetching incomplete training:", uaErr);
-        setError(uaErr.message);
+      if (allErr) {
+        setError(allErr.message);
         setLoading(false);
         return;
       }
 
-      const rows = ua ?? [];
+      // 2) Completed assignments
+      const completed = (allAssignments ?? []).filter((a) => !!a.completed_at);
+      // 3) Overdue assignments (if due_at exists and is past today and not completed)
+      const overdue = (allAssignments ?? []).filter(
+        (a) => a.due_at && !a.completed_at && new Date(a.due_at) < new Date()
+      );
 
-      // 2) Collect IDs for name lookups
+      setTotalAssignments(allAssignments?.length ?? 0);
+      setTotalCompleted(completed.length);
+      setTotalOverdue(overdue.length);
+
+      // 4) Filter for incomplete assignments for table
+      const incompleteRows = (allAssignments ?? []).filter((a) => !a.completed_at);
+
+      // 5) Collect IDs for name lookups
       const moduleIds = Array.from(
         new Set(
-          rows.filter((r) => r.item_type === "module").map((r) => r.item_id),
+          incompleteRows.filter((r) => r.item_type === "module").map((r) => r.item_id),
         ),
       );
       const documentIds = Array.from(
         new Set(
-          rows.filter((r) => r.item_type === "document").map((r) => r.item_id),
+          incompleteRows.filter((r) => r.item_type === "document").map((r) => r.item_id),
         ),
       );
 
-      // 3) Fetch module/document names
+      // 6) Fetch module/document names
       const [modsRes, docsRes] = await Promise.all([
         moduleIds.length
           ? supabase.from("modules").select("id, name").in("id", moduleIds)
@@ -129,8 +128,8 @@ export default function IncompleteTrainingPage() {
         ),
       );
 
-      // 4) Normalize to UI rows
-      const results: IncompleteRecord[] = (rows as IncompleteRow[]).map(
+      // 7) Normalize to UI rows
+      const results: IncompleteRecord[] = (incompleteRows as IncompleteRow[]).map(
         (item) => {
           const user = Array.isArray(item.users)
             ? item.users[0]
@@ -165,11 +164,10 @@ export default function IncompleteTrainingPage() {
       setData(results);
       setLoading(false);
     })();
-
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, []);
+
+  const compliancePercent = totalAssignments > 0 ? Math.round((totalCompleted / totalAssignments) * 100) : 0;
 
   // Facets
   const departments = useMemo(() => {
@@ -236,6 +234,24 @@ export default function IncompleteTrainingPage() {
     <div className="after-hero">
       <div className="global-content">
         <main className="page-main">
+          {/* Compliance summary panel */}
+          <div className="neon-panel" style={{ marginBottom: "2rem", background: "#0d3c47", color: "#fff", borderRadius: "18px", boxShadow: "0 2px 16px rgba(0,0,0,0.10)", padding: "2rem 2rem 1.5rem 2rem", display: "flex", alignItems: "center", gap: "2.5rem" }}>
+            <div style={{ flex: 1 }}>
+              <h2 style={{ margin: 0, fontSize: "1.35rem", fontWeight: 700, color: "#19e6d9" }}>Overall Compliance</h2>
+              <ul style={{ margin: "1rem 0 0 0", fontSize: "1.08rem", fontWeight: 500, color: "#fff" }}>
+                <li>Assigned modules: <strong>{totalAssignments}</strong></li>
+                <li>Completed modules: <strong>{totalCompleted}</strong></li>
+                <li>Overdue modules: <strong>{totalOverdue}</strong></li>
+                <li>Compliance rate: <strong>{compliancePercent}%</strong></li>
+              </ul>
+            </div>
+            <div style={{ flex: "0 0 120px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              {/* Circular compliance percent visual */}
+              <div style={{ width: 90, height: 90, borderRadius: "50%", background: "#19e6d9", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 16px #19e6d9" }}>
+                <span style={{ fontSize: "2.2rem", fontWeight: 700, color: "#0d3c47" }}>{compliancePercent}%</span>
+              </div>
+            </div>
+          </div>
           <div className="neon-panel">
             <div className="neon-panel-content">
               {/* Filters */}

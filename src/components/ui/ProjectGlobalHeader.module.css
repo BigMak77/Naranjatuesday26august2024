@@ -102,7 +102,10 @@
 /* ==========================
    User area
    ========================== */
-.userBlock { position: relative; }
+.userBlock {
+  position: relative;
+  z-index: 3001;
+}
 
 .userPill {
   position: relative;
@@ -214,14 +217,16 @@
    ========================== */
 .menu {
   position: absolute;
+  top: 100%;
   right: 0;
-  margin-top: 8px;
   min-width: 220px;
-  background: #ffffff;
-  border: 1px solid #e9ecef;
-  border-radius: 10px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  padding: 6px;
+  background: #fa7a20;
+  color: #ffffff;
+  border-radius: var(--radius);
+  z-index: 3002;
+  padding: 0.5rem 0;
+  margin-top: 0.5rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.18), var(--shadow-neon);
 }
 .menuItem,
 .menuItemDanger {
@@ -251,3 +256,8 @@ header.header > .secondRow {
 
 /* If you keep .fullBleed, make sure it doesn't zero padding */
 .fullBleed .row { padding-inline: var(--header-gutter) !important; }
+
+.neon-toolbar {
+  z-index: 20;
+  position: relative;
+}

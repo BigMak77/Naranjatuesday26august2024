@@ -124,7 +124,7 @@ export default function DashboardPage() {
       ),
       links: [
         {
-          href: "/admin/compliance",
+          href: "/admin/incomplete",
           label: (
             <>
               <FiShield size={iconSize} /> Compliance
@@ -380,7 +380,7 @@ export default function DashboardPage() {
           <p className="overview-stat">
             <FiAlertTriangle size={iconSize} className="icon-warning" /> <strong>Users &lt; 70%:</strong> {lowComplianceCount}
           </p>
-          <Link href="/admin/compliance" className="dashboard-btn">
+          <Link href="/admin/incomplete" className="dashboard-btn">
             <FiPieChart size={iconSize} /> View Full →
           </Link>
         </div>

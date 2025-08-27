@@ -274,15 +274,14 @@ If this persists, check Row Level Security policies on "user_assignments".`);
               marginTop: 8,
             }}
           >
-            <button
-              className="neon-btn"
-              disabled={!canGoNextFrom1}
-              onClick={() => setStep(2)}
+            <NeonIconButton
+              variant="next"
+              icon={<FiChevronRight />}
               title="Next: choose departments"
-              style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
-            >
-              Next <FiChevronRight />
-            </button>
+              onClick={() => setStep(2)}
+              disabled={!canGoNextFrom1}
+              aria-label="Next"
+            />
           </div>
         </div>
       )}
@@ -345,25 +344,24 @@ If this persists, check Row Level Security policies on "user_assignments".`);
               marginTop: 8,
             }}
           >
-            <button
-              className="neon-btn ghost"
+            <NeonIconButton
+              variant="back"
+              icon={<FiChevronLeft />}
+              title="Back"
               onClick={() => setStep(1)}
-              style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
-            >
-              <FiChevronLeft /> Back
-            </button>
-            <button
-              className="neon-btn"
-              disabled={!canGoNextFrom2}
+              aria-label="Back"
+            />
+            <NeonIconButton
+              variant="next"
+              icon={<FiChevronRight />}
+              title="Next: choose users"
               onClick={() => {
                 setSelectedUserAuthIds([]);
                 setStep(3);
               }}
-              style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
-              title="Next: choose users"
-            >
-              Next <FiChevronRight />
-            </button>
+              disabled={!canGoNextFrom2}
+              aria-label="Next"
+            />
           </div>
         </div>
       )}
@@ -380,29 +378,25 @@ If this persists, check Row Level Security policies on "user_assignments".`);
             }}
           >
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-              <button
-                className="neon-btn ghost"
+              <NeonIconButton
+                variant="back"
+                icon={<FiChevronLeft />}
+                title="Back"
                 onClick={() => setStep(2)}
-                style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
-              >
-                <FiChevronLeft /> Back
-              </button>
+                aria-label="Back"
+              />
               <div style={{ fontSize: 13, opacity: 0.9 }}>
                 {filteredUsers.length} user(s) in selected department(s)
               </div>
             </div>
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-              <button
-                className="neon-btn"
+              <NeonIconButton
+                variant={allChecked ? "cancel" : "add"}
+                icon={allChecked ? <FiCheckSquare /> : <FiSquare />}
+                title={allChecked ? "Unselect all visible" : "Select all visible"}
                 onClick={toggleSelectAllVisible}
-                title={
-                  allChecked ? "Unselect all visible" : "Select all visible"
-                }
-                style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
-              >
-                {allChecked ? <FiCheckSquare /> : <FiSquare />}
-                {allChecked ? "Unselect All" : "Select All"}
-              </button>
+                aria-label={allChecked ? "Unselect All" : "Select All"}
+              />
               <input
                 className="neon-input"
                 placeholder="Search users…"
@@ -478,6 +472,7 @@ If this persists, check Row Level Security policies on "user_assignments".`);
               title={assigning ? "Assigning…" : "Assign Module"}
               onClick={handleAssign}
               disabled={assigning || !canAssign}
+              aria-label="Assign Module"
             />
           </div>
         </div>

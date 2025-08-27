@@ -11,6 +11,8 @@ import {
   FiBookOpen,
   FiClipboard,
   FiPlus,
+  FiEdit,
+  FiFileMinus,
 } from "react-icons/fi";
 import { useUser } from "@/lib/useUser";
 import NeonIconButton from "@/components/ui/NeonIconButton";
@@ -227,7 +229,7 @@ export default function DocumentManager() {
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="neon-input neon-select"
+            className="neon-select"
           >
             <option value="">All Types</option>
             <option value="policy">Policy</option>
@@ -237,7 +239,7 @@ export default function DocumentManager() {
           <select
             value={filterSection}
             onChange={(e) => setFilterSection(e.target.value)}
-            className="neon-input neon-select"
+            className="neon-select"
           >
             <option value="">All Sections</option>
             {sections.map((s) => (
@@ -248,24 +250,22 @@ export default function DocumentManager() {
           </select>
         </div>
         <div className="document-section-controls-actions">
-          <button
-            onClick={() => router.push("/admin/documents/add")}
-            className="neon-btn neon-btn-add"
+          <NeonIconButton
+            variant="add"
+            icon={<FiPlus size={22} />}
             title="Add Document"
+            aria-label="Add Document"
+            onClick={() => router.push("/admin/documents/add")}
             disabled={!!buttonLoading}
-          >
-            <FiPlus size={22} />
-            <span className="sr-only">Add Document</span>
-          </button>
-          <button
-            onClick={() => router.push("/admin/documents/archived")}
-            className="neon-btn neon-btn-archive"
+          />
+          <NeonIconButton
+            variant="archive"
+            icon={<FiArchive size={22} />}
             title="View Archived Documents"
+            aria-label="View Archived Documents"
+            onClick={() => router.push("/admin/documents/archived")}
             disabled={!!buttonLoading}
-          >
-            <FiArchive size={22} />
-            <span className="sr-only">Archived Documents</span>
-          </button>
+          />
         </div>
       </div>
 
@@ -344,6 +344,7 @@ export default function DocumentManager() {
                         >
                           <NeonIconButton
                             variant="edit"
+                            icon={<FiEdit size={18} />}
                             title="Edit document"
                             aria-label="Edit document"
                           />
@@ -354,7 +355,7 @@ export default function DocumentManager() {
                       <div className="document-archive-cell">
                         <NeonIconButton
                           variant="archive"
-                          icon={<FiArchive size={18} />}
+                          icon={<FiFileMinus size={18} />}
                           title="Archive document"
                           aria-label="Archive document"
                           onClick={() => handleArchiveClick(doc.id)}
