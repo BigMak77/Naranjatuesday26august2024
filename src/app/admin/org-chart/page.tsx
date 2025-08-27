@@ -9,6 +9,7 @@ import {
   FiTool,
   FiUmbrella,
   FiGrid,
+  FiPlus,
 } from "react-icons/fi";
 import Link from "next/link";
 import NeonIconButton from "@/components/ui/NeonIconButton";
@@ -238,7 +239,7 @@ export default function OrgChartPage() {
                     </label>
                     <div className="flex gap-2 mt-2">
                       <NeonIconButton as="button" variant="save" title="Save Department" onClick={() => handleDeptEditSaveWithMove(dept.id)} />
-                      <NeonIconButton as="button" variant="cancel" title="Cancel" onClick={() => setEditingDeptId(null)} />
+                      <NeonIconButton as="button" variant="close" title="Cancel" className="neon-btn-close" onClick={() => setEditingDeptId(null)} />
                     </div>
                   </div>
                 )}
@@ -312,9 +313,7 @@ export default function OrgChartPage() {
             <FiUsers style={{ marginRight: 8, verticalAlign: 'middle' }} /> Organisation Chart
           </h1>
           <div className="org-chart-toolbar" style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
-            <Link href="/admin/departments/add" className="neon-btn neon-btn-orgchart" title="Add Department" aria-label="Add Department">
-              <FiUmbrella className="org-chart-toolbar-icon" />
-            </Link>
+            <NeonIconButton variant="add" icon={<FiPlus />} title="Add Department" />
             <Link href="/admin/roles/add" className="neon-btn neon-btn-orgchart" title="Add Role" aria-label="Add Role">
               <FiTool className="org-chart-toolbar-icon" />
             </Link>

@@ -38,6 +38,7 @@ const ICONS = {
   refresh: <FiRefreshCw />,
   info: <FiInfo />,
   login: <FiLogIn />,
+  close: <FiX />,
 } as const;
 
 type Variant = keyof typeof ICONS;

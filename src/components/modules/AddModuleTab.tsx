@@ -59,7 +59,7 @@ export default function AddModuleTab({
   return (
     <>
       <h1 className="add-module-tab-title">
-        {/* Removed Add button from form header */}
+        <NeonIconButton variant="add" icon={<FiPlus />} title="Add Module" />
       </h1>
       <NeonForm title="Add Module" onSubmit={handleSubmit}>
         {/* Same fields as edit, but for adding */}

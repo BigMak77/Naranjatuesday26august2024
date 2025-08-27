@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
+import { FiPlus } from "react-icons/fi";
+import NeonIconButton from "./ui/NeonIconButton";
 
 type ModalProps = {
   open: boolean;
@@ -129,6 +131,7 @@ export default function Modal({
           </button>
         </div>
         <div>{children}</div>
+        <NeonIconButton variant="add" icon={<FiPlus />} title="Add" />
       </div>
     </>
   );

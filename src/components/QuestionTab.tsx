@@ -5,6 +5,8 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase-client";
 import QuestionEditor from "./QuestionEditor";
 import type { Question, Department } from "@/types";
+import NeonIconButton from "@/components/ui/NeonIconButton";
+import { FiPlus } from "react-icons/fi";
 
 export default function QuestionTab() {
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -173,6 +175,7 @@ export default function QuestionTab() {
         addQuestion={addQuestion}
         bulkAddQuestions={bulkAddQuestions}
       />
+      <NeonIconButton variant="add" icon={<FiPlus />} title="Add Question" />
     </div>
   );
 }

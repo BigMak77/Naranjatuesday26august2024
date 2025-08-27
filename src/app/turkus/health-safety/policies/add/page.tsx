@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import NeonPanel from "@/components/NeonPanel";
 import NeonIconButton from "@/components/ui/NeonIconButton";
-import { FiFileText, FiCheck } from "react-icons/fi";
+import { FiFileText, FiCheck, FiPlus } from "react-icons/fi";
 
 export default function AddPolicyPage() {
   const [title, setTitle] = useState("");
@@ -67,11 +67,9 @@ export default function AddPolicyPage() {
         )}
         <div className="add-policy-actions">
           <NeonIconButton
-            variant="submit"
-            icon={<FiCheck />}
-            title={saving ? "Uploading..." : "Upload Policy"}
-            type="submit"
-            disabled={saving}
+            variant="add"
+            icon={<FiPlus />}
+            title="Add Policy"
           />
         </div>
       </form>

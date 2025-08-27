@@ -9,6 +9,7 @@ import {
   FiChevronRight,
   FiCheckSquare,
   FiSquare,
+  FiPlus,
 } from "react-icons/fi";
 
 type UUID = string;
@@ -467,8 +468,8 @@ If this persists, check Row Level Security policies on "user_assignments".`);
 
           <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
             <NeonIconButton
-              variant="edit"
-              icon={<FiSend />}
+              variant="add"
+              icon={<FiPlus />}
               title={assigning ? "Assigning…" : "Assign Module"}
               onClick={handleAssign}
               disabled={assigning || !canAssign}

@@ -2,7 +2,6 @@
 
 import React from "react";
 import { useUser } from "@/lib/useUser";
-import UserProfileCardSection from "@/components/UserProfileCardSection";
 import UserTrainingDashboard from "@/components/training/UserTrainingDashboard";
 import UserTrainingRequest from "@/components/user/UserTrainingRequest";
 
@@ -21,7 +20,6 @@ export default function UserView() {
 
   return (
     <div className="user-view global-content">
-      <UserProfileCardSection />
       <UserTrainingDashboard authId={authId} />
       <UserTrainingRequest userId={appUserId!} />
     </div>

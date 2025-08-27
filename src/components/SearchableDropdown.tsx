@@ -2,6 +2,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import NeonIconButton from "@/components/ui/NeonIconButton";
+import { FiPlus } from "react-icons/fi";
 
 interface Option {
   label: string;
@@ -54,6 +56,7 @@ export default function SearchableDropdown({
         placeholder={placeholder}
         className="searchable-dropdown-input"
       />
+      <NeonIconButton variant="add" icon={<FiPlus />} title="Add Option" />
       {isOpen && (
         <ul className="searchable-dropdown-list">
           {filteredOptions.length > 0 ? (

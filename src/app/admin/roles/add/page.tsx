@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-client";
+import { FiPlus } from "react-icons/fi";
+import NeonIconButton from "@/components/ui/NeonIconButton";
 
 interface Department {
   id: string;
@@ -88,13 +90,11 @@ export default function AddRolePage() {
 
           {error && <p className="add-role-error">{error}</p>}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="add-role-submit-btn"
-          >
-            {loading ? "Saving..." : "Add Role"}
-          </button>
+          <NeonIconButton
+            variant="add"
+            icon={<FiPlus />}
+            title="Add Role"
+          />
         </form>
       </div>
     </div>

@@ -1,4 +1,6 @@
 import React from "react";
+import { FiPlus } from "react-icons/fi";
+import NeonIconButton from "@/components/ui/NeonIconButton";
 
 export default function TurkusAboutPage() {
   return (
@@ -89,6 +91,7 @@ export default function TurkusAboutPage() {
           Address: 456 Blue Street, London, UK
         </p>
       </section>
+      <NeonIconButton variant="add" icon={<FiPlus />} title="Add" />
     </main>
   );
 }

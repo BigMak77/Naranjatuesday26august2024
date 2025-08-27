@@ -139,8 +139,8 @@ export default function RiskAssessmentManager() {
         </h2>
         <NeonIconButton
           variant="add"
-          title="Create New"
           icon={<FiEdit2 />}
+          title="Create New"
           onClick={() => {
             setMode("create");
             setSelectedId(null);

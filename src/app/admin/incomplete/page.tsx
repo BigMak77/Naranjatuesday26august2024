@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import NeonTable from "@/components/NeonTable";
-import { FiSearch, FiUsers, FiLayers, FiBookOpen } from "react-icons/fi";
+import { FiSearch, FiUsers, FiLayers, FiBookOpen, FiPlus } from "react-icons/fi";
+import NeonIconButton from "@/components/ui/NeonIconButton";
 
 interface IncompleteRecord {
   auth_id: string;
@@ -344,6 +345,7 @@ export default function IncompleteTrainingPage() {
                   />
                 </div>
               )}
+              <NeonIconButton variant="add" icon={<FiPlus />} title="Add" />
             </div>
           </div>
         </main>

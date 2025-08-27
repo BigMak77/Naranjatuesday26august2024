@@ -7,7 +7,7 @@ import ContentHeader from "@/components/headersandfooters/ContentHeader";
 import DocumentSelectorWidget from "./widgets/DocumentSelectorWidget";
 import BehaviourSelectorWidget from "./widgets/BehaviourSelectorWidget";
 import NeonIconButton from "../../ui/NeonIconButton";
-import { FiArrowLeft, FiArrowRight, FiSave } from "react-icons/fi";
+import { FiArrowLeft, FiArrowRight, FiSave, FiX } from "react-icons/fi";
 import NeonDualListbox from "@/components/ui/NeonDualListbox";
 
 export default function RoleProfileEdit({
@@ -301,10 +301,12 @@ export default function RoleProfileEdit({
         {/* Controls */}
         <div className="neon-mt-8 neon-flex justify-between items-center">
           <NeonIconButton
-            variant="back"
-            icon={<FiArrowLeft />}
-            title={step === 0 ? "Cancel" : "Back"}
-            onClick={step === 0 ? onCancel : () => setStep(step - 1)}
+            variant="close"
+            icon={<FiX />}
+            title="Cancel"
+            type="button"
+            onClick={onCancel}
+            className="neon-btn-close"
           />
 
           {step < 4 ? (

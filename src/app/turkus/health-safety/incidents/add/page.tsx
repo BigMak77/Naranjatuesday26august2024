@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import NeonPanel from "@/components/NeonPanel";
 import NeonIconButton from "@/components/ui/NeonIconButton";
-import { FiAlertCircle, FiCheck } from "react-icons/fi";
+import { FiAlertCircle, FiCheck, FiPlus } from "react-icons/fi";
 
 export default function AddIncidentPage() {
   const [title, setTitle] = useState("");
@@ -94,9 +94,9 @@ export default function AddIncidentPage() {
               )}
               <div className="add-incident-actions">
                 <NeonIconButton
-                  variant="submit"
-                  icon={<FiCheck />}
-                  title={saving ? "Saving..." : "Record Incident"}
+                  variant="add"
+                  icon={<FiPlus />}
+                  title="Add Incident"
                   type="submit"
                   disabled={saving}
                 />

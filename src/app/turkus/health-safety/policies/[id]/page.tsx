@@ -1,9 +1,19 @@
 "use client";
 import NeonPanel from "@/components/NeonPanel";
-import { FiFileText } from "react-icons/fi";
+import { FiFileText, FiPlus } from "react-icons/fi";
 import { supabase } from "@/lib/supabase-client";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+// Update the import path to match the actual file location and filename
+// Update the import path to match the actual file location and filename
+import NeonIconButton from "@/components/ui/NeonIconButton"; // <-- Ensure this file exists and the casing is correct
+// If the file is actually named 'NeonIconButton.tsx', ensure the casing matches exactly.
+// For example, if the file is 'NeonIconButton.tsx', this import is correct.
+// If the file is 'neonIconButton.tsx', change to:
+//
+// import NeonIconButton from "@/components/neonIconButton";
+//
+// If the file is in a different folder, update the path accordingly.
 
 type Policy = {
   id?: string;
@@ -68,6 +78,7 @@ export default function PolicyDetailPage() {
       </h1>
       <p className="mb-2">{policy.description}</p>
       {/* Add more policy details here as needed */}
+      <NeonIconButton variant="add" icon={<FiPlus />} title="Add Policy" />
     </NeonPanel>
   );
 }

@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase-client";
 import { useUser } from "@/lib/useUser";
 import { FiRepeat } from "react-icons/fi"; // Add Fi icon import
 import NeonTable from "@/components/NeonTable";
+import NeonIconButton from "@/components/ui/NeonIconButton"; // Add NeonIconButton import
 
 export default function RecurringTaskList() {
   const { user } = useUser();
@@ -94,6 +95,8 @@ export default function RecurringTaskList() {
       <h2 className="neon-section-title">
         <FiRepeat className="recurring-task-list-title-icon" />
       </h2>
+
+      <NeonIconButton variant="add" icon={<FiRepeat />} title="Add Recurring Task" />
 
       {loading ? (
         <p className="neon-loading">Loading recurring tasks...</p>

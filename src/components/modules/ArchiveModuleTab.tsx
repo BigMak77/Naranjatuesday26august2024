@@ -3,8 +3,9 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import NeonPanel from "@/components/NeonPanel";
-import { FiArchive } from "react-icons/fi";
+import { FiArchive, FiPlus } from "react-icons/fi";
 import { supabase } from "@/lib/supabase-client";
+import NeonIconButton from "@/components/ui/NeonIconButton";
 
 export interface Module {
   id: string;
@@ -109,14 +110,12 @@ export default function ArchiveModuleTab({
             <p className="mb-4">
               Selected: <span className="font-semibold">{module.name}</span>
             </p>
-            <button
-              className="btn-archive neon-btn neon-btn-archive"
-              data-tooltip="Archive Module"
+            <NeonIconButton
+              variant="add"
+              icon={<FiPlus />}
+              title="Add"
               onClick={openDialog}
-            >
-              <FiArchive />
-              {/* Icon only, no label */}
-            </button>
+            />
           </>
         )}
       </NeonPanel>

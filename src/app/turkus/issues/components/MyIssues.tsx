@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
-import { FiAlertCircle } from "react-icons/fi"; // Add Fi icon import
+import { FiAlertCircle, FiPlus } from "react-icons/fi"; // Add Fi icon import
+import NeonIconButton from "@/components/ui/NeonIconButton"; // Import NeonIconButton
 
 interface Department {
   name: string;
@@ -55,6 +56,7 @@ export default function MyIssues() {
   return (
     <div className="p-5">
       <h1 className="text-2xl font-bold mb-4">My Issues</h1>
+      <NeonIconButton variant="add" icon={<FiPlus />} title="Add Issue" />
       {loading ? (
         <div>Loading...</div>
       ) : issues.length === 0 ? (

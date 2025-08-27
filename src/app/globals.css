@@ -154,6 +154,15 @@ select{
   transform: translateY(1px);
 }
 
+.neon-btn-close {
+  background: #ea1c1c;
+  color: #fff;
+}
+.neon-btn-close:hover {
+  background: #c1121f;
+  color: #fff;
+}
+
 /* Variant shortcut (set bg with a class or inline) */
 .btn-green { --btn-bg:#16a34a; --btn-color:#012b2b; }
 .btn-blue  { --btn-bg:#2563eb; --btn-color:#fff; }

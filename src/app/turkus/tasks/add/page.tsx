@@ -188,7 +188,7 @@ export default function AddTurkusTaskPage() {
           type="button"
           variant="add"
           icon={<FiPlus />}
-          title="Add Step"
+          title="Add Task"
           onClick={addQuestion}
         />
       </div>

@@ -3,6 +3,8 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase-client";
+import { FiPlus } from "react-icons/fi";
+import NeonIconButton from "@/components/ui/NeonIconButton";
 
 export default function AddAuditorWidget({
   onAdded,
@@ -98,9 +100,7 @@ export default function AddAuditorWidget({
       )}
       {error && <p className="neon-error">{error}</p>}
       {success && <p className="neon-success">User added to auditor list!</p>}
-      <button type="submit" className="neon-btn" disabled={loading}>
-        {loading ? "Adding..." : "Add Auditor"}
-      </button>
+      <NeonIconButton variant="add" icon={<FiPlus />} title="Add Auditor" />
     </form>
   );
 }

@@ -8,7 +8,9 @@ import {
   FiAlertTriangle,
   FiCheckCircle,
   FiShield,
+  FiPlus,
 } from "react-icons/fi";
+import NeonIconButton from "@/components/ui/NeonIconButton";
 
 export default function TurkusHomePage() {
   const iconSize = 20;
@@ -94,6 +96,9 @@ export default function TurkusHomePage() {
         <a href="/homepage/login" className="neon-btn neon-btn-primary px-6 py-3 text-lg font-semibold rounded shadow">
           Log In
         </a>
+      </div>
+      <div className="flex justify-center mt-8">
+        <NeonIconButton variant="add" icon={<FiPlus />} title="Add" />
       </div>
     </>
   );

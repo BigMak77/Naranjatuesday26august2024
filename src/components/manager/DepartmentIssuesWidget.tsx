@@ -249,10 +249,12 @@ export default function DepartmentIssuesWidget() {
             </p>
             <div className="flex justify-end gap-2">
               <NeonIconButton
-                variant="view"
+                variant="close"
                 icon={<FiX />}
-                title="Close"
+                title="Cancel"
+                type="button"
                 onClick={() => setViewIssue(null)}
+                className="neon-btn-close"
               />
             </div>
           </div>
@@ -335,11 +337,12 @@ export default function DepartmentIssuesWidget() {
             )}
             <div className="neon-flex gap-2 justify-end">
               <NeonIconButton
-                variant="cancel"
+                variant="close"
                 icon={<FiX />}
                 title="Cancel"
+                type="button"
                 onClick={() => setAssignIssue(null)}
-                disabled={assignLoading}
+                className="neon-btn-close"
               />
               <NeonIconButton
                 variant="save"

@@ -13,6 +13,7 @@ import {
   FiUpload,
   FiCheck,
   FiX,
+  FiPlus,
 } from "react-icons/fi";
 import { useUser } from "@/lib/useUser";
 import OverlayDialog from '@/components/ui/OverlayDialog';
@@ -490,9 +491,9 @@ export default function UserManagementPanel() {
             toolbar={
               <>
                 <NeonIconButton
-                  icon={<FiUserPlus />}
-                  title="Add User"
                   variant="add"
+                  icon={<FiPlus />}
+                  title="Add User"
                   onClick={(e: any) => {
                     handleOpenDialog(
                       {
@@ -863,9 +864,14 @@ export default function UserManagementPanel() {
             onClick={handleSave}
             disabled={saving}
           />
-          <button className="neon-btn neon-btn-danger" onClick={handleCloseDialog}>
-            Close
-          </button>
+          <NeonIconButton
+            variant="close"
+            icon={<FiX />}
+            title="Cancel"
+            type="button"
+            onClick={handleCloseDialog}
+            className="neon-btn-close"
+          />
         </div>
       </OverlayDialog>
 

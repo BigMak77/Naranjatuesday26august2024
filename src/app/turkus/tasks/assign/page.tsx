@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import { useUser } from "@/lib/useUser";
+import NeonIconButton from "@/components/ui/NeonIconButton";
+import { FiPlus } from "react-icons/fi";
 
 interface TurkusTask {
   id: string;
@@ -198,13 +200,7 @@ export default function AssignTask() {
               </div>
             </div>
           )}
-          <button
-            type="submit"
-            className="assign-task-submit-btn"
-            disabled={loading}
-          >
-            {loading ? "Assigning..." : "Assign Task"}
-          </button>
+          <NeonIconButton variant="add" icon={<FiPlus />} title="Assign Task" />
         </form>
       </div>
     </div>

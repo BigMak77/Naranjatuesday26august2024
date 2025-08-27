@@ -8,9 +8,11 @@ import {
   FiAlertTriangle,
   FiPlayCircle,
   FiStar,
+  FiPlus,
 } from "react-icons/fi";
 import Image from "next/image";
 import GlobalFooter from "@/components/GlobalFooter";
+import NeonIconButton from "@/components/ui/NeonIconButton";
 
 export default function HomePage() {
   return (
@@ -433,6 +435,8 @@ export default function HomePage() {
             </svg>
           </a>
         </div>
+
+        <NeonIconButton variant="add" icon={<FiPlus />} title="Add" />
 
         <GlobalFooter />
 

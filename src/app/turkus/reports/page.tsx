@@ -1,5 +1,6 @@
 import NeonPanel from "@/components/NeonPanel";
-import { FiPieChart } from "react-icons/fi";
+import { FiPieChart, FiPlus } from "react-icons/fi";
+import NeonIconButton from "@/components/ui/NeonIconButton";
 
 export default function TurkusReportsPage() {
   return (
@@ -10,6 +11,7 @@ export default function TurkusReportsPage() {
       <p className="neon-info">
         This is the Turkus Reports section. Add your reporting features here.
       </p>
+      <NeonIconButton variant="add" icon={<FiPlus />} title="Add Report" />
     </NeonPanel>
   );
 }
