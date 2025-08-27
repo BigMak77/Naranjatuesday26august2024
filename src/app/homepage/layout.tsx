@@ -1,20 +1,19 @@
-// app/admin/layout.tsx
+// app/layout.tsx  (SERVER component — no "use client")
+import "../globals.css";
 import type { ReactNode } from "react";
-import ProjectGlobalHeader from "@/components/ui/ProjectGlobalHeader";
-import ContentHeader from "@/components/headersandfooters/ContentHeader";
-import { UserProvider } from "@/context/UserContext";
+import AuthListener from "@/app/AuthListener";
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <UserProvider>
-      {/* Sidebar removed */}
-      <ProjectGlobalHeader />
-      <ContentHeader title="Admin" />
-      <main className="page">
-        <div className="container">
-          <section className="frame">{children}</section>
-        </div>
-      </main>
-    </UserProvider>
+    <>
+      <AuthListener />
+      <section className="section-toolbar">
+        <div className="inner">{/* filters/actions */}</div>
+      </section>
+      <main className="content">{children}</main>
+      <footer className="site-footer">
+        <div className="inner">© Naranja</div>
+      </footer>
+    </>
   );
 }

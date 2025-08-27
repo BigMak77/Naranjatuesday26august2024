@@ -10,6 +10,7 @@ import {
   FiStar,
 } from "react-icons/fi";
 import Image from "next/image";
+import GlobalFooter from "@/components/GlobalFooter";
 
 export default function HomePage() {
   return (
@@ -387,10 +388,23 @@ export default function HomePage() {
 
         {/* Add Log In button below main content */}
         <div style={{ display: "flex", justifyContent: "center", marginTop: "2.5rem" }}>
-          <Link href="/homepage/login" legacyBehavior>
-            <a className="neon-btn neon-btn-primary neon-btn-square">
-              Log In
-            </a>
+          <Link href="/homepage/login" aria-label="Log In" className="neon-btn neon-btn-primary neon-btn-square">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="feather feather-log-in neon-icon"
+            >
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+              <polyline points="10 17 15 12 10 7"></polyline>
+              <line x1="3" y1="12" x2="15" y2="12"></line>
+            </svg>
           </Link>
         </div>
 
@@ -399,10 +413,28 @@ export default function HomePage() {
           <a
             className="neon-btn neon-btn-primary neon-btn-square"
             href="/raise-issue"
+            aria-label="Raise an issue"
           >
-            Raise an issue
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="feather feather-alert-triangle neon-icon"
+            >
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3l-8.47-14.14a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12" y2="17"></line>
+            </svg>
           </a>
         </div>
+
+        <GlobalFooter />
 
         {/* Global overrides */}
         <style jsx global>{`
@@ -624,24 +656,24 @@ const FEATURES = [
     Icon: FiFileText,
     title: "SOPs & Policies",
     text: "Create, assign, and manage controlled documents with acknowledgments & audit trail.",
-    href: "/about/sops-policies",
+    href: "/homepage/about/sops-policies",
   },
   {
     Icon: FiLayers,
     title: "Turkus",
     text: "Your single source of truth: versioned docs, linked to modules and roles.",
-    href: "/about/turkus",
+    href: "/homepage/about/turkus",
   },
   {
     Icon: FiAlertTriangle,
     title: "Risk Assessments",
     text: "Assign and track risk controls with evidence, sign-off, and reminders.",
-    href: "/about/managing-risks",
+    href: "/homepage/about/managing-risks",
   },
   {
     Icon: FiPlayCircle,
     title: "Instructional Media",
     text: "Embed videos and visuals straight into training to boost retention.",
-    href: "/about/instructional-media",
+    href: "/homepage/about/instructional-media",
   },
 ];
