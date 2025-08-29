@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useMemo } from "react";
 import Link from "next/link";
+import useSWR from "swr";
 import { supabase } from "@/lib/supabase-client";
 import {
   FiUsers,
@@ -24,440 +25,439 @@ import {
   FiClock,
 } from "react-icons/fi";
 
-interface DashboardLink {
+/*********************************
+ * Types
+ *********************************/
+interface DashboardAction {
   href: string;
-  label: React.ReactNode;
-  className?: string;
+  label: React.ReactNode; // usually <Icon/> Text
+  className?: string; // keep for future variants
+  ariaLabel?: string; // spoken label for icon-only buttons
 }
 
-interface DashboardCard {
-  title: React.ReactNode;
-  links: DashboardLink[];
+interface DashboardSection {
+  key: string;
+  title: string;
+  icon: React.ReactNode; // large icon for card header
+  primary: DashboardAction; // main click target for the card
+  actions?: DashboardAction[]; // secondary icon-only actions
 }
 
+/*********************************
+ * Data fetching
+ *********************************/
+const fetchCompliance = async () => {
+  const { data, error } = await supabase
+    .from("user_compliance_dashboard")
+    .select("completed_items,total_items");
+  if (error) throw error;
+  return data as { completed_items: number; total_items: number }[];
+};
+
+function useCompliance() {
+  const { data, error, isLoading } = useSWR(
+    "user_compliance_dashboard",
+    fetchCompliance,
+    {
+      revalidateOnFocus: false,
+      shouldRetryOnError: true,
+    }
+  );
+
+  const stats = useMemo(() => {
+    if (!data || data.length === 0) {
+      return { avg: null as number | null, lowCount: 0 };
+    }
+    let percentSum = 0;
+    let counted = 0;
+    let low = 0;
+    for (const row of data) {
+      const total = row.total_items || 0;
+      if (total > 0) {
+        const p = (row.completed_items / total) * 100;
+        percentSum += p;
+        counted += 1;
+        if (p < 70) low += 1;
+      }
+    }
+    const avg = counted ? Number((percentSum / counted).toFixed(1)) : null;
+    return { avg, lowCount: low };
+  }, [data]);
+
+  return { ...stats, isLoading, error };
+}
+
+/*********************************
+ * Config (DRY)
+ *********************************/
+const iconSize = 18;
+
+const SECTIONS: DashboardSection[] = [
+  {
+    key: "people",
+    title: "People",
+    icon: <FiUsers size={20} aria-hidden />,
+    primary: {
+      href: "/admin/roles",
+      label: (
+        <>
+          <FiUserCheck size={iconSize} aria-hidden /> Roles
+        </>
+      ),
+      ariaLabel: "Manage roles",
+    },
+    actions: [],
+  },
+  {
+    key: "modules",
+    title: "Modules",
+    icon: <FiLayers size={20} aria-hidden />,
+    primary: {
+      href: "/admin/modules",
+      label: (
+        <>
+          <FiLayers size={iconSize} aria-hidden /> Modules
+        </>
+      ),
+      ariaLabel: "Browse modules",
+    },
+    actions: [
+      {
+        href: "/admin/modules/add",
+        label: (
+          <>
+            <FiPlus size={iconSize} aria-hidden /> Add Module
+          </>
+        ),
+        ariaLabel: "Add module",
+      },
+      {
+        href: "/admin/modules/assign",
+        label: (
+          <>
+            <FiUserCheck size={iconSize} aria-hidden /> Assign Module
+          </>
+        ),
+        ariaLabel: "Assign module",
+      },
+    ],
+  },
+  {
+    key: "documents",
+    title: "Documents",
+    icon: <FiFileText size={20} aria-hidden />,
+    primary: {
+      href: "/admin/documents",
+      label: (
+        <>
+          <FiFileText size={iconSize} aria-hidden /> Documents
+        </>
+      ),
+      ariaLabel: "Document manager",
+    },
+    actions: [
+      {
+        href: "/admin/documents/add",
+        label: (
+          <>
+            <FiPlus size={iconSize} aria-hidden /> Add Document
+          </>
+        ),
+        ariaLabel: "Add document",
+      },
+      {
+        href: "/admin/documents/versions",
+        label: (
+          <>
+            <FiClock size={iconSize} aria-hidden /> Versions
+          </>
+        ),
+        ariaLabel: "Document versions",
+      },
+    ],
+  },
+  {
+    key: "org",
+    title: "Org Chart",
+    icon: <FiUsers size={20} aria-hidden />,
+    primary: {
+      href: "/admin/org-chart",
+      label: (
+        <>
+          <FiUsers size={iconSize} aria-hidden /> Org Chart
+        </>
+      ),
+      ariaLabel: "View org chart",
+    },
+    actions: [
+      {
+        href: "/admin/roles/add",
+        label: (
+          <>
+            <FiPlus size={iconSize} aria-hidden /> Add Role
+          </>
+        ),
+        ariaLabel: "Add role",
+      },
+    ],
+  },
+  {
+    key: "roles",
+    title: "Role Profiles",
+    icon: <FiUserCheck size={20} aria-hidden />,
+    primary: {
+      href: "/admin/role-profiles",
+      label: (
+        <>
+          <FiUserCheck size={iconSize} aria-hidden /> Role Profiles
+        </>
+      ),
+      ariaLabel: "View role profiles",
+    },
+    actions: [
+      {
+        href: "/admin/role-profiles/add",
+        label: (
+          <>
+            <FiPlus size={iconSize} aria-hidden /> Add Profile
+          </>
+        ),
+        ariaLabel: "Add profile",
+      },
+      {
+        href: "/admin/role-profiles/manage",
+        label: (
+          <>
+            <FiSettings size={iconSize} aria-hidden /> Manage Profiles
+          </>
+        ),
+        ariaLabel: "Manage profiles",
+      },
+    ],
+  },
+  {
+    key: "hs",
+    title: "Health & Safety",
+    icon: <FiShield size={20} aria-hidden />,
+    primary: {
+      href: "/turkus/health-safety",
+      label: (
+        <>
+          <FiShield size={iconSize} aria-hidden /> H&S Home
+        </>
+      ),
+      ariaLabel: "Health and Safety home",
+    },
+    actions: [
+      {
+        href: "/turkus/health-safety/policies",
+        label: (
+          <>
+            <FiFileText size={iconSize} aria-hidden /> Policies
+          </>
+        ),
+        ariaLabel: "H&S policies",
+      },
+      {
+        href: "/turkus/health-safety/assessments",
+        label: (
+          <>
+            <FiActivity size={iconSize} aria-hidden /> Risk Assessments
+          </>
+        ),
+        ariaLabel: "Risk assessments",
+      },
+      {
+        href: "/turkus/health-safety/incidents",
+        label: (
+          <>
+            <FiAlertTriangle size={iconSize} aria-hidden /> Incidents
+          </>
+        ),
+        ariaLabel: "Incidents",
+      },
+      {
+        href: "/turkus/health-safety/resources",
+        label: (
+          <>
+            <FiBookOpen size={iconSize} aria-hidden /> Resources
+          </>
+        ),
+        ariaLabel: "H&S resources",
+      },
+    ],
+  },
+  {
+    key: "turkus",
+    title: "Turkus",
+    icon: <FiHome size={20} aria-hidden />,
+    primary: {
+      href: "/turkus",
+      label: (
+        <>
+          <FiHome size={iconSize} aria-hidden /> Turkus Home
+        </>
+      ),
+      ariaLabel: "Turkus home",
+    },
+    actions: [
+      {
+        href: "/turkus/tasks/dashboard",
+        label: (
+          <>
+            <FiBarChart2 size={iconSize} aria-hidden /> Dashboard
+          </>
+        ),
+        ariaLabel: "Turkus dashboard",
+      },
+      {
+        href: "/turkus/tasks",
+        label: (
+          <>
+            <FiGrid size={iconSize} aria-hidden /> Tasks
+          </>
+        ),
+        ariaLabel: "Turkus tasks",
+      },
+      {
+        href: "/turkus/reports",
+        label: (
+          <>
+            <FiPieChart size={iconSize} aria-hidden /> Reports
+          </>
+        ),
+        ariaLabel: "Turkus reports",
+      },
+      {
+        href: "/turkus/assignments",
+        label: (
+          <>
+            <FiSettings size={iconSize} aria-hidden /> Assignments
+          </>
+        ),
+        ariaLabel: "Turkus assignments",
+      },
+      {
+        href: "/turkus/taskmanager",
+        label: (
+          <>
+            <FiClipboard size={iconSize} aria-hidden /> Task Manager
+          </>
+        ),
+        ariaLabel: "Turkus task manager",
+      },
+      {
+        href: "/turkus/audit",
+        label: (
+          <>
+            <FiDatabase size={iconSize} aria-hidden /> Audit
+          </>
+        ),
+        ariaLabel: "Turkus audit",
+      },
+      {
+        href: "/turkus/documents",
+        label: (
+          <>
+            <FiFileText size={iconSize} aria-hidden /> Document Manager
+          </>
+        ),
+        ariaLabel: "Turkus document manager",
+      },
+      {
+        href: "/turkus/issues",
+        label: (
+          <>
+            <FiAlertTriangle size={iconSize} aria-hidden /> Issues
+          </>
+        ),
+        ariaLabel: "Turkus issues",
+      },
+    ],
+  },
+];
+
+/*********************************
+ * Helpers
+ *********************************/
+// Pull the first child of a label (usually the icon). Fallback to a generic icon.
+function leadingIcon(node: React.ReactNode) {
+  if (React.isValidElement(node)) {
+    const children = (node.props as any)?.children;
+    if (Array.isArray(children) && children[0]) return children[0];
+  }
+  return <FiActivity aria-hidden />;
+}
+
+/*********************************
+ * Presentational components (match your global CSS)
+ *********************************/
+function FeatureCard({
+  title,
+  icon,
+  primary,
+  actions = [],
+}: Pick<DashboardSection, "title" | "icon" | "primary" | "actions">) {
+  return (
+    <div className="neon-feature-card" role="region" aria-label={title}>
+      <Link href={primary.href} aria-label={primary.ariaLabel || title}>
+        <div className="neon-feature-card-header">
+          <span aria-hidden>{icon}</span>
+          <span className="neon-feature-card-title">{title}</span>
+        </div>
+        {/* Optional intro text area if you want */}
+        {/* <p className="neon-feature-card-text">Short description</p> */}
+      </Link>
+
+      {actions.length > 0 && (
+        <div className="neon-feature-card-children" aria-label={`${title} actions`}>
+          {/* Use icon-only square buttons to respect your .neon-btn sizing */}
+          {actions.map((a, i) => (
+            <Link
+              key={`${title}-action-${i}`}
+              href={a.href}
+              className="neon-btn-square"
+              aria-label={a.ariaLabel || (typeof a.label === "string" ? a.label : undefined)}
+              title={a.ariaLabel || (typeof a.label === "string" ? a.label : undefined)}
+            >
+              {/* Only render the leading icon to avoid clipped text inside 40x40 */}
+              {leadingIcon(a.label)}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/*********************************
+ * Page
+ *********************************/
 export default function DashboardPage() {
-  const [avgCompliance, setAvgCompliance] = useState<number | null>(null);
-  const [lowComplianceCount, setLowComplianceCount] = useState<number>(0);
-
-  useEffect(() => {
-    const fetchCompliance = async () => {
-      const { data, error } = await supabase
-        .from("user_compliance_dashboard")
-        .select("*");
-      if (error) return;
-
-      let total = 0,
-        percent = 0,
-        low = 0;
-      data?.forEach((row) => {
-        if (row.total_items > 0) {
-          const p = (row.completed_items / row.total_items) * 100;
-          percent += p;
-          total++;
-          if (p < 70) low++;
-        }
-      });
-      setAvgCompliance(total ? Number((percent / total).toFixed(1)) : null);
-      setLowComplianceCount(low);
-    };
-    fetchCompliance();
-  }, []);
-
-  const iconSize = 18;
-
-  const cards: DashboardCard[] = [
-    {
-      title: (
-        <>
-          <FiUsers size={20} /> People
-        </>
-      ),
-      links: [
-        {
-          href: "/admin/roles",
-          label: (
-            <>
-              <FiUserCheck size={iconSize} /> Roles
-            </>
-          ),
-          className: "neon-btn neon-btn-roles"
-        },
-      ],
-    },
-    {
-      title: (
-        <>
-          <FiLayers size={20} /> Modules
-        </>
-      ),
-      links: [
-        {
-          href: "/admin/modules",
-          label: (
-            <>
-              <FiLayers size={iconSize} /> Modules
-            </>
-          ),
-        },
-        {
-          href: "/admin/modules/add",
-          label: (
-            <>
-              <FiPlus size={iconSize} /> Add Module
-            </>
-          ),
-        },
-        {
-          href: "/admin/modules/assign",
-          label: (
-            <>
-              <FiUserCheck size={iconSize} /> Assign Module
-            </>
-          ),
-        },
-      ],
-    },
-    {
-      title: (
-        <>
-          <FiShield size={20} /> Compliance
-        </>
-      ),
-      links: [
-        {
-          href: "/admin/incomplete",
-          label: (
-            <>
-              <FiShield size={iconSize} /> Compliance
-            </>
-          ),
-        },
-        {
-          href: "/admin/incomplete",
-          label: (
-            <>
-              <FiAlertTriangle size={iconSize} /> Incomplete
-            </>
-          ),
-        },
-      ],
-    },
-    {
-      title: (
-        <>
-          <FiFileText size={20} /> Documents
-        </>
-      ),
-      links: [
-        {
-          href: "/admin/documents",
-          label: (
-            <>
-              <FiFileText size={iconSize} /> Documents
-            </>
-          ),
-        },
-        {
-          href: "/admin/documents/add",
-          label: (
-            <>
-              <FiPlus size={iconSize} /> Add Document
-            </>
-          ),
-        },
-        {
-          href: "/admin/documents/versions",
-          label: (
-            <>
-              <FiClock size={iconSize} /> Versions
-            </>
-          ),
-        },
-      ],
-    },
-    {
-      title: (
-        <>
-          <FiUsers size={20} /> Org Chart
-        </>
-      ),
-      links: [
-        {
-          href: "/admin/org-chart",
-          label: (
-            <>
-              <FiUsers size={iconSize} /> Org Chart
-            </>
-          ),
-        },
-        {
-          href: "/admin/roles/add",
-          label: (
-            <>
-              <FiPlus size={iconSize} /> Add Role
-            </>
-          ),
-        },
-      ],
-    },
-    {
-      title: (
-        <>
-          <FiUserCheck size={20} /> Role Profiles
-        </>
-      ),
-      links: [
-        {
-          href: "/admin/role-profiles",
-          label: (
-            <>
-              <FiUserCheck size={iconSize} /> Role Profiles
-            </>
-          ),
-        },
-        {
-          href: "/admin/role-profiles/add",
-          label: (
-            <>
-              <FiPlus size={iconSize} /> Add Profile
-            </>
-          ),
-        },
-        {
-          href: "/admin/role-profiles/manage",
-          label: (
-            <>
-              <FiSettings size={iconSize} /> Manage Profiles
-            </>
-          ),
-        },
-      ],
-    },
-    {
-      title: (
-        <>
-          <FiShield size={iconSize} /> Health & Safety
-        </>
-      ),
-      links: [
-        {
-          href: "/turkus/health-safety",
-          label: (
-            <>
-              <FiShield size={iconSize} /> H&S Home
-            </>
-          ),
-        },
-        {
-          href: "/turkus/health-safety/policies",
-          label: (
-            <>
-              <FiFileText size={iconSize} /> Policies
-            </>
-          ),
-        },
-        {
-          href: "/turkus/health-safety/assessments",
-          label: (
-            <>
-              <FiActivity size={iconSize} /> Risk Assessments
-            </>
-          ),
-        },
-        {
-          href: "/turkus/health-safety/incidents",
-          label: (
-            <>
-              <FiAlertTriangle size={iconSize} /> Incidents
-            </>
-          ),
-        },
-        {
-          href: "/turkus/health-safety/resources",
-          label: (
-            <>
-              <FiBookOpen size={iconSize} /> Resources
-            </>
-          ),
-        },
-      ],
-    },
-    {
-      title: (
-        <>
-          <FiHome size={20} /> Turkus
-        </>
-      ),
-      links: [
-        {
-          href: "/turkus",
-          label: (
-            <>
-              <FiHome size={iconSize} /> Turkus Home
-            </>
-          ),
-        },
-        {
-          href: "/turkus/tasks/dashboard",
-          label: (
-            <>
-              <FiBarChart2 size={iconSize} /> Dashboard
-            </>
-          ),
-        },
-        {
-          href: "/turkus/tasks",
-          label: (
-            <>
-              <FiGrid size={iconSize} /> Tasks
-            </>
-          ),
-        },
-        {
-          href: "/turkus/reports",
-          label: (
-            <>
-              <FiPieChart size={iconSize} /> Reports
-            </>
-          ),
-        },
-        {
-          href: "/turkus/assignments",
-          label: (
-            <>
-              <FiSettings size={iconSize} /> Assignments
-            </>
-          ),
-        },
-        {
-          href: "/turkus/taskmanager",
-          label: (
-            <>
-              <FiClipboard size={iconSize} /> Task Manager
-            </>
-          ),
-        },
-        {
-          href: "/turkus/audit",
-          label: (
-            <>
-              <FiDatabase size={iconSize} /> Audit
-            </>
-          ),
-        },
-        {
-          href: "/turkus/documents",
-          label: (
-            <>
-              <FiFileText size={iconSize} /> Document Manager
-            </>
-          ),
-        },
-        {
-          href: "/turkus/issues",
-          label: (
-            <>
-              <FiAlertTriangle size={iconSize} /> Issues
-            </>
-          ),
-        },
-      ],
-    },
-  ];
+  const { avg, lowCount, isLoading, error } = useCompliance();
 
   return (
-    <main className="dashboard-panel">
-      <section className="dashboard-overview">
-        <div className="overview-info">
-          <p className="overview-title">
-            <FiPieChart size={iconSize} /> Compliance Overview
-          </p>
-          <p className="overview-desc">Live summary of completion status</p>
-        </div>
-        <div className="overview-stats">
-          <p className="overview-stat">
-            <FiCheckCircle size={iconSize} /> <strong>Avg Compliance:</strong> {avgCompliance ?? "Loading..."}%
-          </p>
-          <p className="overview-stat">
-            <FiAlertTriangle size={iconSize} className="icon-warning" /> <strong>Users &lt; 70%:</strong> {lowComplianceCount}
-          </p>
-          <Link href="/admin/incomplete" className="dashboard-btn">
-            <FiPieChart size={iconSize} /> View Full →
-          </Link>
-        </div>
-      </section>
-
-      <section className="dashboard-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem' }}>
-        <Link href="/admin/create-auth-user" className="dashboard-card neon-feature-card" aria-label="Create Auth User">
-          <div className="dashboard-card-content">
-            <span className="dashboard-card-icon"><FiPlus size={iconSize} /></span>
-            <span className="dashboard-card-title">Create Auth User</span>
+    <>
+      {/* Cards */}
+      <section aria-label="Dashboard shortcuts" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "1rem", marginTop: "1rem" }}>
+        {/* Quick-create card */}
+        <Link href="/admin/create-auth-user" className="neon-feature-card" aria-label="Create Auth User">
+          <div className="neon-feature-card-header">
+            <FiPlus size={iconSize} aria-hidden />
+            <span className="neon-feature-card-title">Create Auth User</span>
           </div>
         </Link>
-        {cards.map((card, idx) => {
-          // Main action: first link only
-          const mainLink = card.links[0];
-          let icon = <FiActivity />;
-          let title = "Feature";
-          if (React.isValidElement(card.title)) {
-            const element = card.title as React.ReactElement<{ children?: React.ReactNode }>;
-            const children = element.props?.children;
-            if (Array.isArray(children)) {
-              icon = children[0] || <FiActivity />;
-              title = typeof children[1] === "string" ? children[1] : "Feature";
-            } else {
-              title = typeof children === "string" ? children : "Feature";
-            }
-          } else if (typeof card.title === "string") {
-            title = card.title;
-          }
-          // Special rendering for People card (idx === 0)
-          if (idx === 0) {
-            return (
-              <div key={idx} className="dashboard-card neon-feature-card" style={{ minWidth: 260, flex: '1 1 260px', display: 'inline-flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                <div className="dashboard-card-content">
-                  <span className="dashboard-card-icon">{icon}</span>
-                  <span className="dashboard-card-title">{title}</span>
-                </div>
-                <div className="dashboard-card-actions">
-                  {card.links.map((link, lidx) => (
-                    <Link
-                      key={lidx}
-                      href={link.href}
-                      className={link.className || "dashboard-btn neon-btn"}
-                      aria-label={typeof link.label === "string" ? link.label : undefined}
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            );
-          }
-          return (
-            <div key={idx} className="dashboard-card neon-feature-card" style={{ minWidth: 260, flex: '1 1 260px', display: 'inline-flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-              <Link href={mainLink.href} style={{ textDecoration: 'none', color: 'inherit', flex: 1 }}>
-                <div className="dashboard-card-content">
-                  <span className="dashboard-card-icon">{icon}</span>
-                  <span className="dashboard-card-title">{title}</span>
-                </div>
-              </Link>
-              <div className="dashboard-card-actions">
-                {card.links.slice(1).map((link, lidx) => (
-                  <Link
-                    key={lidx}
-                    href={link.href}
-                    className={link.className || "dashboard-btn neon-btn"}
-                    aria-label={typeof link.label === "string" ? link.label : undefined}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          );
-        })}
+
+        {SECTIONS.map((s) => (
+          <FeatureCard key={s.key} title={s.title} icon={s.icon} primary={s.primary} actions={s.actions} />
+        ))}
       </section>
-    </main>
+
+      {error && (
+        <p role="alert" className="neon-feature-card-text" style={{ marginTop: "0.75rem", color: "#ffd2d2" }}>
+          Failed to load compliance data.
+        </p>
+      )}
+    </>
   );
 }

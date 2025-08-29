@@ -15,6 +15,7 @@ import {
   FiLogOut,
   FiChevronDown,
   FiAlertOctagon,
+  FiSearch,
 } from "react-icons/fi";
 import styles from "@/components/ui/ProjectGlobalHeader.module.css";
 import MyProfileModal from "@/components/user/MyProfileModal";
@@ -129,6 +130,29 @@ export default function GlobalHeader({
               ))}
             </nav>
           )}
+
+          {/* Search Bar */}
+          <form
+            role="search"
+            aria-label="Site search"
+            style={{ marginLeft: 24, marginRight: 24 }}
+            onSubmit={(e) => e.preventDefault()}
+          >
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <span className={styles.searchIcon} aria-hidden="true">
+                <FiSearch />
+              </span>
+              <input
+                id="global-header-search"
+                className={styles.searchBar}
+                type="search"
+                placeholder="Search..."
+                autoComplete="off"
+                name="search"
+                style={{ marginLeft: 0 }}
+              />
+            </div>
+          </form>
 
           {/* Right: Auth area */}
           <div className={styles.right}>

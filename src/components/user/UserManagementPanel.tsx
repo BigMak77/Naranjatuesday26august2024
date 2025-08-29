@@ -14,6 +14,7 @@ import {
   FiCheck,
   FiX,
   FiPlus,
+  FiArchive,
 } from "react-icons/fi";
 import { useUser } from "@/lib/useUser";
 import OverlayDialog from '@/components/ui/OverlayDialog';
@@ -45,6 +46,9 @@ interface User {
   shift_id?: string;
   shift_name?: string;
   role_profile_name?: string;
+  is_leaver?: boolean;
+  leaver_date?: string;
+  leaver_reason?: string;
 }
 
 // ---------------------- Main component (your logic kept) ----------------------
@@ -74,6 +78,9 @@ export default function UserManagementPanel() {
   const [bulkTrainer, setBulkTrainer] = useState(false);
   const [bulkAssignLoading, setBulkAssignLoading] = useState(false);
   const [bulkSelectedUserIds, setBulkSelectedUserIds] = useState<string[]>([]);
+
+  const [showLeavers, setShowLeavers] = useState(false);
+  const filteredUsers = users.filter((u) => showLeavers ? u.is_leaver : !u.is_leaver);
 
   // store the element that opened the dialog (e.g. clicked name) to restore focus
   const openerRef = useRef<HTMLElement | null>(null);
@@ -263,6 +270,9 @@ export default function UserManagementPanel() {
             is_first_aid: cleanedUser.is_first_aid ?? false,
             is_trainer: cleanedUser.is_trainer ?? false,
             start_date: cleanedUser.start_date,
+            is_leaver: cleanedUser.is_leaver ?? false,
+            leaver_date: cleanedUser.leaver_date || null,
+            leaver_reason: cleanedUser.leaver_reason || null,
           })
           .select()
           .single();
@@ -289,6 +299,9 @@ export default function UserManagementPanel() {
             is_first_aid: cleanedUser.is_first_aid ?? false,
             is_trainer: cleanedUser.is_trainer ?? false,
             start_date: cleanedUser.start_date,
+            is_leaver: cleanedUser.is_leaver ?? false,
+            leaver_date: cleanedUser.leaver_date || null,
+            leaver_reason: cleanedUser.leaver_reason || null,
           })
           .eq("id", cleanedUser.id);
         if (userErr) {
@@ -422,24 +435,18 @@ export default function UserManagementPanel() {
   return (
     <>
       <div className="neon-table-panel">
-        <div style={{ marginBottom: '1rem' }}>
-          <input
-            type="checkbox"
-            checked={selectedUserIds.length === users.length && users.length > 0}
-            onChange={(e) => {
-              if (e.target.checked) {
-                setSelectedUserIds(users.map((u) => u.id));
-              } else {
-                setSelectedUserIds([]);
-              }
-            }}
-            aria-label="Select all users"
-          /> Select All
+        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+          <button
+            className="neon-btn"
+            onClick={() => setShowLeavers((v) => !v)}
+          >
+            {showLeavers ? 'Show Active Users' : 'Show Leavers'}
+          </button>
         </div>
         <div className="neon-table-scroll">
           <NeonTable
             columns={userTableColumns}
-            data={users.map((user) => {
+            data={filteredUsers.map((user) => {
               const department = departments.find((d) => d.id === user.department_id);
               const role = roles.find((r) => r.id === user.role_id);
               return {
@@ -603,6 +610,8 @@ export default function UserManagementPanel() {
                   })
                 }
                 placeholder="First Name"
+                readOnly={!!selectedUser.is_leaver}
+                disabled={!!selectedUser.is_leaver}
               />
             </div>
             {/* last_name */}
@@ -621,6 +630,8 @@ export default function UserManagementPanel() {
                   })
                 }
                 placeholder="Last Name"
+                readOnly={!!selectedUser.is_leaver}
+                disabled={!!selectedUser.is_leaver}
               />
             </div>
             {/* email */}
@@ -641,6 +652,8 @@ export default function UserManagementPanel() {
                 placeholder="Email"
                 inputMode="email"
                 autoComplete="email"
+                readOnly={!!selectedUser.is_leaver}
+                disabled={!!selectedUser.is_leaver}
               />
             </div>
             {/* department_id */}
@@ -659,6 +672,7 @@ export default function UserManagementPanel() {
                     role_id: "", // Reset role when department changes
                   });
                 }}
+                disabled={!!selectedUser.is_leaver}
               >
                 <option value="">Select Department</option>
                 {departments.map((d) => (
@@ -683,7 +697,7 @@ export default function UserManagementPanel() {
                     role_id: e.target.value,
                   })
                 }
-                disabled={!selectedUser.department_id}
+                disabled={!selectedUser.department_id || !!selectedUser.is_leaver}
               >
                 <option value="">Select Role</option>
                 {roles
@@ -710,6 +724,7 @@ export default function UserManagementPanel() {
                     access_level: e.target.value,
                   })
                 }
+                disabled={!!selectedUser.is_leaver}
               >
                 <option value="User">User</option>
                 <option value="Manager">Manager</option>
@@ -734,6 +749,8 @@ export default function UserManagementPanel() {
                 placeholder="Phone"
                 inputMode="tel"
                 autoComplete="tel"
+                readOnly={!!selectedUser.is_leaver}
+                disabled={!!selectedUser.is_leaver}
               />
             </div>
             {/* nationality */}
@@ -752,6 +769,8 @@ export default function UserManagementPanel() {
                   })
                 }
                 placeholder="Nationality"
+                readOnly={!!selectedUser.is_leaver}
+                disabled={!!selectedUser.is_leaver}
               />
             </div>
             {/* is_first_aid */}
@@ -769,6 +788,7 @@ export default function UserManagementPanel() {
                     is_first_aid: e.target.value === "true",
                   })
                 }
+                disabled={!!selectedUser.is_leaver}
               >
                 <option value="false">No</option>
                 <option value="true">Yes</option>
@@ -789,6 +809,7 @@ export default function UserManagementPanel() {
                     is_trainer: e.target.value === "true",
                   })
                 }
+                disabled={!!selectedUser.is_leaver}
               >
                 <option value="false">No</option>
                 <option value="true">Yes</option>
@@ -811,6 +832,7 @@ export default function UserManagementPanel() {
                     shift_name: selectedPattern ? selectedPattern.name : "",
                   });
                 }}
+                disabled={!!selectedUser.is_leaver}
               >
                 <option value="">Select Shift</option>
                 {shiftPatterns?.map((s) => (
@@ -837,8 +859,79 @@ export default function UserManagementPanel() {
                   })
                 }
                 placeholder="Start Date"
+                readOnly={!!selectedUser.is_leaver}
+                disabled={!!selectedUser.is_leaver}
               />
             </div>
+            {/* is_leaver */}
+            <div>
+              <label className="neon-label" htmlFor="leaver-select">
+                Leaver
+              </label>
+              <select
+                id="leaver-select"
+                className="neon-input"
+                value={selectedUser.is_leaver ? "true" : "false"}
+                onChange={(e) =>
+                  setSelectedUser({
+                    ...selectedUser,
+                    is_leaver: e.target.value === "true",
+                  })
+                }
+              >
+                <option value="false">No</option>
+                <option value="true">Yes</option>
+              </select>
+            </div>
+            {/* leaver_reason (only show if is_leaver) */}
+            {selectedUser.is_leaver && (
+              <div>
+                <label className="neon-label" htmlFor="leaver-reason-select">
+                  Leaver Reason
+                </label>
+                <select
+                  id="leaver-reason-select"
+                  className="neon-input"
+                  value={selectedUser.leaver_reason || ""}
+                  onChange={(e) =>
+                    setSelectedUser({
+                      ...selectedUser,
+                      leaver_reason: e.target.value,
+                    })
+                  }
+                  disabled={!!selectedUser.is_leaver}
+                >
+                  <option value="">Select Reason</option>
+                  <option value="Resignation">Resignation</option>
+                  <option value="Termination">Termination</option>
+                  <option value="Retirement">Retirement</option>
+                  <option value="End of Contract">End of Contract</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            )}
+            {/* leaver_date */}
+            {selectedUser.is_leaver && (
+              <div>
+                <label className="neon-label" htmlFor="leaver-date-input">
+                  Leaver Date
+                </label>
+                <input
+                  id="leaver-date-input"
+                  className="neon-input"
+                  type="date"
+                  value={selectedUser.leaver_date || ""}
+                  onChange={(e) =>
+                    setSelectedUser({
+                      ...selectedUser,
+                      leaver_date: e.target.value,
+                    })
+                  }
+                  placeholder="Leaver Date"
+                  readOnly={!!selectedUser.is_leaver}
+                />
+              </div>
+            )}
 
             {showSuccess && (
               <div className="md:col-span-3 lg:col-span-3" style={{ gridColumn: "span 3", marginTop: "0.5rem" }}>
@@ -857,6 +950,21 @@ export default function UserManagementPanel() {
             marginTop: "2rem",
           }}
         >
+          {/* Register as Leaver button, only if not already a leaver */}
+          {!selectedUser?.is_leaver && (
+            <NeonIconButton
+              variant="archive"
+              icon={<FiArchive />}
+              title="Register as Leaver"
+              onClick={() => {
+                setSelectedUser({
+                  ...selectedUser!,
+                  is_leaver: true,
+                  leaver_date: new Date().toISOString().slice(0, 10),
+                });
+              }}
+            />
+          )}
           <NeonIconButton
             variant="save"
             icon={saving ? <span className="neon-spinner" style={{ marginRight: 8 }} /> : <FiSave />}

@@ -113,7 +113,8 @@
   align-items: center;
   gap: 10px;
   height: 44px;
-  padding: 0;
+  min-width: 160px;
+  padding: 0 20px;
   border-radius: 999px;
   background: #fa7a20;
   border: 2px solid #ffffff;
@@ -260,4 +261,30 @@ header.header > .secondRow {
 .neon-toolbar {
   z-index: 20;
   position: relative;
+}
+
+/* ==========================
+   Search Bar
+   ========================== */
+.searchBar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: #05363a;
+  color: #fff;
+  border: 2px solid #16cbcf;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.searchBar:focus {
+  border-color: #ffa500;
+}
+.searchIcon {
+  margin-right: 6px;
+  color: #16cbcf;
+  font-size: 18px;
 }
