@@ -236,7 +236,7 @@ export default function IncompleteTrainingPage() {
       <div className="global-content">
         <main className="page-main">
           {/* Compliance summary panel */}
-          <div className="neon-panel" style={{ marginBottom: "2rem", background: "#0d3c47", color: "#fff", borderRadius: "18px", boxShadow: "0 2px 16px rgba(0,0,0,0.10)", padding: "2rem 2rem 1.5rem 2rem", display: "flex", alignItems: "center", gap: "2.5rem" }}>
+          <div className="neon-panel" style={{ marginBottom: "2rem", background: "#0d3c47", color: "#fff", borderRadius: "18px", boxShadow: "0 2px 8px rgba(0,0,0,0.10)", padding: "2rem 2rem 1.5rem 2rem", display: "flex", alignItems: "center", gap: "2.5rem" }}>
             <div style={{ flex: 1 }}>
               <h2 style={{ margin: 0, fontSize: "1.35rem", fontWeight: 700, color: "#19e6d9" }}>Overall Compliance</h2>
               <ul style={{ margin: "1rem 0 0 0", fontSize: "1.08rem", fontWeight: 500, color: "#fff" }}>
@@ -248,7 +248,7 @@ export default function IncompleteTrainingPage() {
             </div>
             <div style={{ flex: "0 0 120px", display: "flex", alignItems: "center", justifyContent: "center" }}>
               {/* Circular compliance percent visual */}
-              <div style={{ width: 90, height: 90, borderRadius: "50%", background: "#19e6d9", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 16px #19e6d9" }}>
+              <div style={{ width: 90, height: 90, borderRadius: "50%", background: "#19e6d9", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 8px #19e6d9" }}>
                 <span style={{ fontSize: "2.2rem", fontWeight: 700, color: "#0d3c47" }}>{compliancePercent}%</span>
               </div>
             </div>

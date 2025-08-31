@@ -39,15 +39,14 @@ export default function QuestionTab() {
 
     if (dRes.error) {
       console.error("departments load error:", dRes.error);
-      // Don’t block the page if departments fails; just leave it empty
       setDepartments([]);
-      if (!err) setErr(dRes.error.message);
+      setErr((prev) => prev || dRes.error.message);
     } else {
       setDepartments((dRes.data as Department[]) ?? []);
     }
 
     setLoading(false);
-  }, [err]);
+  }, []);
 
   useEffect(() => {
     fetchAll();
@@ -157,7 +156,7 @@ export default function QuestionTab() {
 
   if (loading) {
     return (
-      <div className="text-[#40E0D0] text-center py-8">
+      <div className="neon-loading-message">
         Loading questions...
       </div>
     );
@@ -165,7 +164,7 @@ export default function QuestionTab() {
 
   return (
     <div>
-      {err && <div className="mb-3 text-sm text-red-400">{err}</div>}
+      {err && <div className="neon-error-message">{err}</div>}
 
       <QuestionEditor
         questions={questions}
@@ -175,7 +174,7 @@ export default function QuestionTab() {
         addQuestion={addQuestion}
         bulkAddQuestions={bulkAddQuestions}
       />
-      <NeonIconButton variant="add" icon={<FiPlus />} title="Add Question" />
+      <NeonIconButton variant="add" icon={<FiPlus />} title="Add Question" onClick={addQuestion} className="neon-add-btn" />
     </div>
   );
 }

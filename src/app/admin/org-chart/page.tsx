@@ -164,7 +164,7 @@ export default function OrgChartPage() {
                   padding: '1.5rem 2rem',
                   fontSize: '1.2rem',
                   fontWeight: 600,
-                  boxShadow: '0 0 24px var(--neon)',
+                  boxShadow: '0 0 8px var(--neon)',
                   border: '2px solid var(--neon)',
                   background: 'var(--panel)',
                   color: 'var(--neon)',
@@ -207,7 +207,7 @@ export default function OrgChartPage() {
                   )}
                 </div>
                 {editingDeptId === dept.id && (
-                  <div className="org-chart-edit-popover neon-card" style={{ position: 'absolute', top: 60, right: 8, zIndex: 10, background: 'var(--panel)', boxShadow: '0 0 16px var(--neon)', padding: 16, borderRadius: 12 }}>
+                  <div className="org-chart-edit-popover neon-card" style={{ position: 'absolute', top: 60, right: 8, zIndex: 10, background: 'var(--panel)', boxShadow: '0 0 8px var(--neon)', padding: 16, borderRadius: 12 }}>
                     <input
                       type="text"
                       value={deptEditName}
@@ -244,7 +244,7 @@ export default function OrgChartPage() {
                   </div>
                 )}
                 {showModalFor === dept.id && (
-                  <div className="org-chart-roles-modal neon-card" style={{ position: 'absolute', top: 60, left: 0, zIndex: 20, background: 'var(--panel)', boxShadow: '0 0 24px var(--neon)', padding: 20, borderRadius: 16, minWidth: 340 }}>
+                  <div className="org-chart-roles-modal neon-card" style={{ position: 'absolute', top: 60, left: 0, zIndex: 20, background: 'var(--panel)', boxShadow: '0 0 8px var(--neon)', padding: 20, borderRadius: 16, minWidth: 340 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                       <span style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--neon)' }}>Manage Roles for {dept.name}</span>
                       <NeonIconButton as="button" variant="cancel" title="Close" onClick={() => setShowModalFor(null)} />

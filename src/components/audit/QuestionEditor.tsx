@@ -30,16 +30,16 @@ export default function QuestionEditor({
 
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-4 text-orange-800">
-        📋 Audit Questions
+      <h2 className="question-editor-title">
+        Audit Questions
       </h2>
 
       <button
         type="button"
         onClick={() => setShowBulkInput(!showBulkInput)}
-        className="text-sm text-orange-700 underline mb-4"
+        className="question-editor-bulk-toggle"
       >
-        {showBulkInput ? "Hide Bulk Input" : "➕ Bulk Add Questions"}
+        {showBulkInput ? "Hide Bulk Input" : "Bulk Add Questions"}
       </button>
 
       {showBulkInput && (
@@ -115,7 +115,7 @@ export default function QuestionEditor({
         className="question-editor-add-btn"
         onClick={addQuestion}
       >
-        ➕ Add Question
+        Add Question
       </button>
     </div>
   );

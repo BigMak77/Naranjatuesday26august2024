@@ -7,8 +7,7 @@ import NeonPanel from "@/components/NeonPanel";
 
 type TemplateRow = {
   id: string;
-  title?: string | null; // some schemas use 'title'
-  template_title?: string | null; // others use 'template_title'
+  title?: string | null;
   description?: string | null;
   frequency?: string | null;
   version?: string | null;
@@ -43,7 +42,7 @@ export default function ViewAuditTab() {
       const { data, error } = await supabase
         .from("audit_templates")
         .select(
-          "id, title, template_title, description, frequency, version, standard_section_id, archived",
+          "id, title, description, frequency, version, standard_section_id, archived",
         )
         .order("title", { ascending: true });
 
@@ -66,7 +65,7 @@ export default function ViewAuditTab() {
   }, []);
 
   const displayTitle = (tpl: TemplateRow) =>
-    tpl.title?.trim() || tpl.template_title?.trim() || "(untitled)";
+    tpl.title?.trim() || "(untitled)";
 
   const toggleExpand = async (templateId: string) => {
     setErr(null);

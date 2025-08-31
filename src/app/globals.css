@@ -1,3 +1,5 @@
+@import "../components/folder-tabs-equal-width.css";
+
 /* ================== Fonts ================== */
 @font-face {
   font-family: "Geist";
@@ -13,7 +15,7 @@
 /* ================== Theme ================== */
 :root{
   --neon:#40e0d0; --neon-2:#2edbd0; --bg:#16cbcf; --panel:#053639; --field:#012b2b;
-  --text:#fff; --ink:#011f24; --accent:#ffa500; --muted:#014d4d; --border:#40e0d0; --radius:12px;
+  --text:#fff; --accent:#ffa500; --muted:#014d4d; --border:#40e0d0; --radius:12px;
   --gutter:clamp(12px,2.5vw,32px);  /* side padding */
   --page-max:none;                  /* no container cap by default */
   --header-gutter: clamp(16px, 3vw, 32px);
@@ -111,7 +113,7 @@ select{
 /* ================== Panels / Buttons ================== */
 .neon-form{
   background:var(--panel); border:1px solid var(--neon); border-radius:var(--radius);
-  box-shadow:0 0 12px var(--neon); padding:2rem;
+  box-shadow:0 0 8px var(--neon); padding:2rem; color: var(--text);
 }
 
 .neon-btn,
@@ -128,7 +130,7 @@ select{
   padding: 0;
   border-radius: 8px;
   background: var(--panel);
-  box-shadow: 0 0 12px var(--neon);
+  box-shadow: 0 0 8px var(--neon);
   border: 0;
   cursor: pointer;
   transition: background .2s, color .2s, box-shadow .2s, transform .06s;
@@ -147,7 +149,7 @@ select{
 .neon-btn:hover,
 .neon-btn-square:hover {
   background: var(--neon);
-  box-shadow: 0 4px 16px 0 var(--neon);
+  box-shadow: 0 4px 8px 0 var(--neon);
 }
 .neon-btn:active,
 .neon-btn-square:active {
@@ -174,9 +176,21 @@ select{
   background:var(--field); border:1px solid var(--neon); border-radius:12px; overflow:hidden;
   box-shadow:0 0 8px var(--neon);
 }
-.neon-table thead{ background:var(--neon); color:var(--ink); text-align:left; }
-.neon-table th,.neon-table td{ padding:.75rem 1rem; border-bottom:1px solid var(--neon); }
+.neon-table thead{ background:var(--neon); color:var(--text); text-align:left; }
+.neon-table th,.neon-table td{ padding:1.5rem 1.5rem; border-bottom:1px solid var(--neon); }
 .neon-table tbody tr:hover{ background:var(--muted); }
+
+.neon-table th {
+  font-size: 1.rem !important;
+  color: var(--text) !important;
+}
+.neon-table td {
+  font-size: 1rem !important;
+  color: var(--text) !important;
+}
+.neon-table tr {
+  height: 2.5rem;
+}
 
 /* ================== User Profile (safe; no 100vw) ================== */
 .user-profile-card{
@@ -186,7 +200,7 @@ select{
 .user-profile-card .label{ color:var(--neon); font-weight:700; }
 
 /* ================== Utilities ================== */
-.shadow-glow{ box-shadow:0 0 12px var(--neon); }
+.shadow-glow{ box-shadow:0 0 8px var(--neon); }
 .no-shadow-glow{ box-shadow:none !important; }
 
 /* ================== Neon Feature Card ================== */
@@ -194,7 +208,7 @@ select{
   background: var(--panel);
   border: 1.5px solid var(--neon);
   border-radius: 16px;
-  box-shadow: 0 0 16px var(--neon);
+  box-shadow: 0 0 8px var(--neon);
   padding: 1.5rem 1.25rem;
   min-height: 140px;
   display: flex;
@@ -208,7 +222,7 @@ select{
 }
 .neon-feature-card:hover,
 .neon-feature-card:focus {
-  box-shadow: 0 0 32px var(--neon);
+  box-shadow: 0 0 8px var(--neon);
   transform: scale(1.03);
   outline: none;
 }
@@ -253,7 +267,7 @@ select{
   max-height: 90%;
   overflow: auto; /* if content is too tall, scroll inside */
   padding: 1.5rem;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
 }
 
 /* Org chart toolbar and button spacing improvements */
@@ -279,3 +293,101 @@ select{
 .neon-btn-orgchart {
   margin: 0 !important;
 }
+
+/* ================== Neon Toggle Switch Styles */
+.neon-switch-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+}
+.neon-switch-input {
+  display: none;
+}
+.neon-switch {
+  width: 44px;
+  height: 24px;
+  background: #222;
+  border-radius: 12px;
+  position: relative;
+  transition: background 0.2s;
+  box-shadow: 0 0 0 2px var(--neon), 0 0 8px var(--neon);
+}
+.neon-switch::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  width: 18px;
+  height: 18px;
+  background: var(--neon);
+  border-radius: 50%;
+  transition: left 0.2s, background 0.2s;
+  box-shadow: 0 0 8px var(--neon);
+}
+.neon-switch-on {
+  background: var(--neon);
+}
+.neon-switch-on::after {
+  left: 23px;
+  background: #222;
+}
+
+/* Improved Alternate Neon Toggle Switch Styles (for pages, forms, etc.) */
+.neon-switch-alt-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+}
+.neon-switch-alt-input {
+  display: none;
+}
+.neon-switch-alt {
+  width: 52px;
+  height: 28px;
+  background: linear-gradient(90deg, var(--panel) 0%, var(--field) 100%);
+  border-radius: 14px;
+  position: relative;
+  transition: background 0.25s, box-shadow 0.18s;
+  box-shadow: 0 0 0 2px var(--accent), 0 0 12px var(--accent);
+  border: 1.5px solid var(--accent);
+}
+.neon-switch-alt::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  width: 20px;
+  height: 20px;
+  background: radial-gradient(circle, var(--accent) 60%, #fff 100%);
+  border-radius: 50%;
+  transition: left 0.25s, background 0.25s, box-shadow 0.18s;
+  box-shadow: 0 0 12px var(--accent), 0 0 2px #fff;
+}
+.neon-switch-alt-on {
+  background: linear-gradient(90deg, var(--accent) 0%, #ffd580 100%);
+  box-shadow: 0 0 0 2px var(--accent), 0 0 16px var(--accent);
+}
+.neon-switch-alt-on::after {
+  left: 28px;
+  background: radial-gradient(circle, #fff 60%, var(--accent) 100%);
+  box-shadow: 0 0 16px #fff, 0 0 4px var(--accent);
+}
+
+/* ================== Container Utility ================== */
+.container {
+  max-width: 1300px;
+  margin-inline: auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.standards-modal-wide {
+  min-width: 1000px;
+  width: 100%;
+  margin: 0 auto;
+}
+

@@ -2,11 +2,11 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase-client";
-import CertificateTemplate from "@/components/training/CertificateTemplate";
 import NeonPanel from "@/components/NeonPanel";
 import NeonTable from "@/components/NeonTable";
 import NeonIconButton from "../ui/NeonIconButton";
 import { FiX, FiDownload, FiCheck, FiCircle, FiAlertCircle } from "react-icons/fi";
+import jsPDF from "jspdf";
 
 type ItemType = "module" | "document" | "behaviour";
 type Status = "assigned" | "opened" | "completed";
@@ -35,11 +35,6 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [showCert, setShowCert] = useState<{
-    name: string;
-    training: string;
-    date: string;
-  } | null>(null);
   const [userFullName, setUserFullName] = useState("User");
 
   const [viewingModule, setViewingModule] = useState<{
@@ -92,27 +87,81 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
         `${user?.first_name ?? ""} ${user?.last_name ?? ""}`.trim() || "User",
       );
 
-      const { data: rpcData, error: rpcErr } = await supabase.rpc(
-        "api_get_my_training",
-        { _auth_id: authId },
-      );
-      if (rpcErr) throw rpcErr;
+      // Get all assignments for this user
+      const { data: rows, error: rowsErr } = await supabase
+        .from("user_assignments")
+        .select("item_id, item_type, opened_at, completed_at")
+        .eq("auth_id", authId);
+      if (rowsErr) throw rowsErr;
 
-      const rows = (rpcData as RpcRow[]) ?? [];
-      const normalized: Assignment[] = rows
-        .map((r) => ({
+      // Get all document IDs assigned
+      const documentIds = rows
+        .filter((r) => r.item_type === "document")
+        .map((r) => r.item_id);
+      let docTitles: Record<string, string> = {};
+      if (documentIds.length > 0) {
+        const { data: docs, error: docsErr } = await supabase
+          .from("documents")
+          .select("id, title")
+          .in("id", documentIds);
+        if (!docsErr && docs) {
+          docs.forEach((d) => {
+            docTitles[d.id] = d.title ?? "(untitled)";
+          });
+        }
+      }
+
+      // Get all module IDs assigned
+      const moduleIds = rows
+        .filter((r) => r.item_type === "module")
+        .map((r) => r.item_id);
+      let moduleNames: Record<string, string> = {};
+      if (moduleIds.length > 0) {
+        const { data: mods, error: modsErr } = await supabase
+          .from("modules")
+          .select("id, name")
+          .in("id", moduleIds);
+        if (!modsErr && mods) {
+          mods.forEach((m) => {
+            moduleNames[m.id] = m.name ?? "(untitled)";
+          });
+        }
+      }
+
+      // Get all behaviour IDs assigned
+      const behaviourIds = rows
+        .filter((r) => r.item_type === "behaviour")
+        .map((r) => r.item_id);
+      let behaviourNames: Record<string, string> = {};
+      if (behaviourIds.length > 0) {
+        const { data: behs, error: behsErr } = await supabase
+          .from("behaviours")
+          .select("id, name")
+          .in("id", behaviourIds);
+        if (!behsErr && behs) {
+          behs.forEach((b) => {
+            behaviourNames[b.id] = b.name ?? "(untitled)";
+          });
+        }
+      }
+
+      // Normalize assignments with correct titles/names
+      const normalized: Assignment[] = rows.map((r) => {
+        let name = "(untitled)";
+        if (r.item_type === "document") name = docTitles[r.item_id] ?? r.item_id;
+        else if (r.item_type === "module") name = moduleNames[r.item_id] ?? r.item_id;
+        else if (r.item_type === "behaviour") name = behaviourNames[r.item_id] ?? r.item_id;
+        return {
           id: r.item_id,
           type: r.item_type,
-          name: r.name ?? "(untitled)",
-          status: r.status,
+          name,
+          status: r.completed_at ? "completed" : r.opened_at ? "opened" : "assigned",
           opened_at: r.opened_at,
           completed_at: r.completed_at,
-        }))
-        .sort((a, b) =>
-          a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
-        );
+        };
+      });
 
-      setAssignments(normalized);
+      setAssignments(normalized.sort((a, b) => a.name.localeCompare(b.name)));
     } catch (e: unknown) {
       console.error(e);
       setError(e instanceof Error ? e.message : "Something went wrong.");
@@ -265,24 +314,27 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
     setDocumentContent(data?.file_url || null);
   };
 
-  const handleShowCertificate = (a: Assignment) => {
+  // PDF generation handler
+  const handleDownloadCertificatePDFDirect = (a: Assignment) => {
     if (a.status !== "completed" || !a.completed_at) return;
-    setShowCert({
-      name: userFullName,
-      training: a.name,
-      date: fmt(a.completed_at),
-    });
+    const doc = new jsPDF();
+    doc.setFontSize(22);
+    doc.text("Certificate of Completion", 20, 30);
+    doc.setFontSize(16);
+    doc.text(`Awarded to: ${userFullName}`, 20, 50);
+    doc.text(`Training: ${a.name}`, 20, 65);
+    doc.text(`Date: ${fmt(a.completed_at)}`, 20, 80);
+    doc.save(`${userFullName}-certificate.pdf`);
   };
 
   if (!authId) return null;
 
-  // --- Derived/grouped data --------------------------------------------------
-
-  const statusIcon = (status: Status) => {
-    if (status === "completed") {
+  // --- UI rendering ---------------------------------------------------------
+  const statusIcon = (completed_at: string | null, opened_at: string | null) => {
+    if (completed_at) {
       return <FiCheck style={{ color: "#40E0D0" }} title="Completed" />; // neon teal
     }
-    if (status === "opened") {
+    if (opened_at) {
       return <FiCircle style={{ color: "#FFD700" }} title="Opened" />; // gold
     }
     return <FiAlertCircle style={{ color: "#FF6347" }} title="Incomplete" />; // tomato
@@ -291,7 +343,7 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
   const allRows = assignments.map((a) => ({
     name: a.name,
     type: a.type,
-    status: statusIcon(a.status),
+    status: statusIcon(a.completed_at, a.opened_at),
     when: whenOf(a),
     actions: (
       <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
@@ -308,7 +360,7 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
             }
           />
         )}
-        {a.status !== "completed" && (
+        {!a.completed_at && (
           <NeonIconButton
             as="button"
             variant="save"
@@ -318,13 +370,13 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
             disabled={completing.has(rowKey(a))}
           />
         )}
-        {a.status === "completed" && a.completed_at && (
+        {a.completed_at && (
           <NeonIconButton
             as="button"
             variant="download"
             icon={<FiDownload />}
             title="Certificate"
-            onClick={() => handleShowCertificate(a)}
+            onClick={() => handleDownloadCertificatePDFDirect(a)}
           />
         )}
       </div>
@@ -332,27 +384,25 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
   }));
 
   const modules = assignments.filter(
-    (a) => a.type === "module" && a.status !== "completed",
+    (a) => a.type === "module" && !a.completed_at,
   );
   const documents = assignments.filter(
-    (a) => a.type === "document" && a.status !== "completed",
+    (a) => a.type === "document" && !a.completed_at,
   );
-  const behaviours = assignments.filter(
-    (a) => a.type === "behaviour" && a.status !== "completed",
-  );
-  const completed = assignments.filter((a) => a.status === "completed");
+  const completed = assignments.filter((a) => !!a.completed_at);
 
   const moduleColumns = [
     { header: "Name", accessor: "name" },
     {
       header: "Status",
       accessor: "status",
-      render: (_v: unknown, row: Record<string, unknown>) => statusIcon(row.status as Status),
+      render: (_v: unknown, row: Record<string, unknown>) => statusIcon(row.completed_at as string | null, row.opened_at as string | null),
     },
     { header: "When", accessor: "when" },
     { header: "Action", accessor: "action" },
   ];
 
+  // --- UI rendering ---------------------------------------------------------
   return (
     <NeonPanel className="w-full">
       {loading ? (
@@ -362,234 +412,161 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
       ) : assignments.length === 0 ? (
         <p className="neon-info">No training assigned.</p>
       ) : (
-        <>
-          {/* View switcher */}
-          <div className="neon-form-grid neon-form-padding" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-            <h3 className="neon-form-title mt-2">Training</h3>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button
-                className={`neon-btn${viewMode === "all" ? " neon-btn-active" : ""}`}
-                style={{ minWidth: 100 }}
-                onClick={() => setViewMode("all")}
-              >
-                All (union)
-              </button>
-              <button
-                className={`neon-btn${viewMode === "grouped" ? " neon-btn-active" : ""}`}
-                style={{ minWidth: 100 }}
-                onClick={() => setViewMode("grouped")}
-              >
-                Grouped
-              </button>
-            </div>
-          </div>
-
-          {viewMode === "all" ? (
-            <NeonTable
-              columns={[{ header: "Name", accessor: "name" }, { header: "Type", accessor: "type" }, { header: "Status", accessor: "status" }, { header: "When", accessor: "when" }, { header: "Actions", accessor: "actions" }]}
-              data={allRows}
-            />
-          ) : (
-            <>
-              {/* Modules */}
-              <h4 className="neon-form-title mt-4 mb-2">Modules</h4>
+        <div className="user-training-dashboard-list">
+          <div className="neon-panels-row" style={{ display: 'flex', gap: 32, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+            <div style={{ flex: 1, minWidth: 320 }}>
+              <h2 className="neon-section-title">Modules</h2>
               {modules.length === 0 ? (
                 <p className="neon-info mb-4">No modules assigned.</p>
               ) : (
-                <NeonTable
-                  columns={moduleColumns}
-                  data={modules.map((a) => ({
-                    name: a.name,
-                    status: a.status === "completed" ? "Completed" : a.status === "opened" ? "Opened" : "Incomplete",
-                    when: whenOf(a),
-                    action: (
-                      <div style={{ display: "flex", gap: 16 }}>
-                        <NeonIconButton
-                          as="button"
-                          variant="view"
-                          icon={<FiDownload />}
-                          title="View Module"
-                          onClick={() => handleViewModule({ id: a.id, name: a.name })}
-                        />
-                        <NeonIconButton
-                          as="button"
-                          variant="save"
-                          icon={<FiCheck />}
-                          title="Mark Complete"
-                          onClick={() => handleComplete(a)}
-                          disabled={completing.has(rowKey(a))}
-                        />
-                      </div>
-                    ),
-                  }))}
-                />
+                <div style={{ marginBottom: 24 }}>
+                  <NeonTable
+                    columns={moduleColumns}
+                    data={modules.map((a) => ({
+                      name: a.name,
+                      status: a.status === "completed" ? "Completed" : a.status === "opened" ? "Opened" : "Incomplete",
+                      when: whenOf(a),
+                      action: (
+                        <div style={{ display: "flex", gap: 16 }}>
+                          <NeonIconButton
+                            as="button"
+                            variant="view"
+                            icon={<FiDownload />}
+                            title="View Module"
+                            onClick={() => handleViewModule({ id: a.id, name: a.name })}
+                          />
+                          <NeonIconButton
+                            as="button"
+                            variant="save"
+                            icon={<FiCheck />}
+                            title="Mark Complete"
+                            onClick={() => handleComplete(a)}
+                            disabled={completing.has(rowKey(a))}
+                          />
+                        </div>
+                      ),
+                    }))}
+                  />
+                </div>
               )}
-
-              {/* Documents */}
-              <h4 className="neon-form-title mt-4 mb-2">Documents</h4>
+            </div>
+            <div style={{ flex: 1, minWidth: 320 }}>
+              <h2 className="neon-section-title">Documents</h2>
               {documents.length === 0 ? (
                 <p className="neon-info mb-4">No documents assigned.</p>
               ) : (
-                <NeonTable
-                  columns={[{ header: "Name", accessor: "name" }, { header: "Status", accessor: "status", render: (_v, row) => statusIcon(row.status === "Completed" ? "completed" : row.status === "Opened" ? "opened" : "assigned") }, { header: "When", accessor: "when" }, { header: "Action", accessor: "action" }]}
-                  data={documents.map((a) => ({
-                    name: a.name,
-                    status: a.status === "completed" ? "Completed" : a.status === "opened" ? "Opened" : "Incomplete",
-                    when: whenOf(a),
-                    action: (
-                      <div style={{ display: "flex", gap: 16 }}>
-                        <NeonIconButton
-                          as="button"
-                          variant="view"
-                          icon={<FiDownload />}
-                          title="View Document"
-                          onClick={() => handleViewDocument({ id: a.id, name: a.name })}
-                        />
-                        <NeonIconButton
-                          as="button"
-                          variant="save"
-                          icon={<FiCheck />}
-                          title="Mark Complete"
-                          onClick={() => handleComplete(a)}
-                          disabled={completing.has(rowKey(a))}
-                        />
-                      </div>
-                    ),
-                  }))}
-                />
-              )}
-
-              {/* Behaviours */}
-              <h4 className="neon-form-title mt-4 mb-2">Behaviours</h4>
-              {behaviours.length === 0 ? (
-                <p className="neon-info mb-4">No behaviours assigned.</p>
-              ) : (
-                <NeonTable
-                  columns={[{ header: "Name", accessor: "name" }, { header: "Status", accessor: "status", render: (_v, row) => statusIcon(row.status === "Completed" ? "completed" : row.status === "Opened" ? "opened" : "assigned") }, { header: "When", accessor: "when" }, { header: "Action", accessor: "action" }]}
-                  data={behaviours.map((a) => ({
-                    name: a.name,
-                    status: a.status === "completed" ? "Completed" : a.status === "opened" ? "Opened" : "Incomplete",
-                    when: whenOf(a),
-                    action: (
-                      <NeonIconButton
-                        as="button"
-                        variant="save"
-                        icon={<FiCheck />}
-                        title="Mark Complete"
-                        onClick={() => handleComplete(a)}
-                        disabled={completing.has(rowKey(a))}
-                      />
-                    ),
-                  }))}
-                />
-              )}
-
-              {/* Completed */}
-              <h4 className="neon-form-title mt-8 mb-2 neon-info">Completed Training</h4>
-              {completed.length === 0 ? (
-                <p className="neon-info">No completed training yet.</p>
-              ) : (
-                <NeonTable
-                  columns={[{ header: "Name", accessor: "name" }, { header: "Type", accessor: "type" }, { header: "Completed At", accessor: "completed_at" }, { header: "Certificate", accessor: "certificate" }]}
-                  data={completed.map((a) => ({
-                    name: a.name,
-                    type: a.type,
-                    completed_at: fmt(a.completed_at),
-                    certificate: (
-                      <NeonIconButton
-                        as="button"
-                        variant="download"
-                        icon={<FiDownload />}
-                        title="Certificate"
-                        onClick={() => handleShowCertificate(a)}
-                        disabled={a.status !== "completed" || !a.completed_at}
-                      />
-                    ),
-                  }))}
-                />
-              )}
-            </>
-          )}
-
-          {/* Certificate Modal */}
-          {showCert && (
-            <div className="neon-modal-overlay">
-              <div className="neon-modal neon-modal-certificate">
-                <NeonIconButton
-                  variant="close"
-                  title="Close"
-                  className="neon-btn-close neon-modal-close-btn"
-                  onClick={() => setShowCert(null)}
-                />
-                <CertificateTemplate
-                  userName={showCert.name}
-                  trainingName={showCert.training}
-                  completionDate={showCert.date}
-                />
-                <NeonIconButton
-                  variant="download"
-                  icon={<FiDownload />}
-                  title="Print / Save as PDF"
-                  onClick={() => window.print()}
-                  className="neon-btn neon-btn-print neon-modal-print-btn"
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Module/document modals */}
-          {viewingModule && (
-            <div className="neon-modal-overlay">
-              <div className="neon-modal neon-modal-module">
-                <NeonIconButton
-                  variant="close"
-                  title="Close"
-                  className="neon-btn-close neon-modal-close-btn"
-                  onClick={() => {
-                    setViewingModule(null);
-                    setModuleContent(null);
-                  }}
-                />
-                <h2 className="neon-modal-title">
-                  Module: {viewingModule.name}
-                </h2>
-                <div className="neon-modal-content">
-                  {moduleContent || "Loading..."}
+                <div style={{ marginBottom: 24 }}>
+                  <NeonTable
+                    columns={[{ header: "Name", accessor: "name" }, { header: "Status", accessor: "status", render: (_v, row) => statusIcon(row.completed_at as string | null, row.opened_at as string | null) }, { header: "When", accessor: "when" }, { header: "Action", accessor: "action" }]}
+                    data={documents.map((a) => ({
+                      name: a.name,
+                      status: a.status === "completed" ? "Completed" : a.status === "opened" ? "Opened" : "Incomplete",
+                      when: whenOf(a),
+                      action: (
+                        <div style={{ display: "flex", gap: 16 }}>
+                          <NeonIconButton
+                            as="button"
+                            variant="view"
+                            icon={<FiDownload />}
+                            title="View Document"
+                            onClick={() => handleViewDocument({ id: a.id, name: a.name })}
+                          />
+                          <NeonIconButton
+                            as="button"
+                            variant="save"
+                            icon={<FiCheck />}
+                            title="Mark Complete"
+                            onClick={() => handleComplete(a)}
+                            disabled={completing.has(rowKey(a))}
+                          />
+                        </div>
+                      ),
+                    }))}
+                  />
                 </div>
-              </div>
+              )}
+            </div>
+          </div>
+
+          <h2 className="neon-section-title">Completed Training</h2>
+          {completed.length === 0 ? (
+            <p className="neon-info">No completed training yet.</p>
+          ) : (
+            <div style={{ marginBottom: 24 }}>
+              <NeonTable
+                columns={[{ header: "Name", accessor: "name" }, { header: "Type", accessor: "type" }, { header: "Completed At", accessor: "completed_at" }, { header: "Certificate", accessor: "certificate" }]}
+                data={completed.map((a) => ({
+                  name: a.name,
+                  type: a.type,
+                  completed_at: fmt(a.completed_at),
+                  certificate: (
+                    <NeonIconButton
+                      as="button"
+                      variant="download"
+                      icon={<FiDownload />}
+                      title="Certificate"
+                      onClick={() => handleDownloadCertificatePDFDirect(a)}
+                      disabled={a.status !== "completed" || !a.completed_at}
+                    />
+                  ),
+                }))}
+              />
             </div>
           )}
-          {viewingDocument && (
-            <div className="neon-modal-overlay">
-              <div className="neon-modal neon-modal-document">
-                <NeonIconButton
-                  variant="close"
-                  title="Close"
-                  className="neon-btn-close neon-modal-close-btn"
-                  onClick={() => {
-                    setViewingDocument(null);
-                    setDocumentContent(null);
-                  }}
-                />
-                <h2 className="neon-modal-title">
-                  Document: {viewingDocument.name}
-                </h2>
-                {documentContent ? (
-                  <a
-                    href={documentContent}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="neon-modal-link"
-                  >
-                    Open Document
-                  </a>
-                ) : (
-                  <div className="neon-modal-content">No file available.</div>
-                )}
-              </div>
+        </div>
+      )}
+
+      {/* Module/document modals */}
+      {viewingModule && (
+        <div className="neon-modal-overlay">
+          <div className="neon-modal neon-modal-module">
+            <NeonIconButton
+              variant="close"
+              title="Close"
+              className="neon-btn-close neon-modal-close-btn"
+              onClick={() => {
+                setViewingModule(null);
+                setModuleContent(null);
+              }}
+            />
+            <h2 className="neon-modal-title">
+              Module: {viewingModule.name}
+            </h2>
+            <div className="neon-modal-content">
+              {moduleContent || "Loading..."}
             </div>
-          )}
-        </>
+          </div>
+        </div>
+      )}
+      {viewingDocument && (
+        <div className="neon-modal-overlay">
+          <div className="neon-modal neon-modal-document">
+            <NeonIconButton
+              variant="close"
+              title="Close"
+              className="neon-btn-close neon-modal-close-btn"
+              onClick={() => {
+                setViewingDocument(null);
+                setDocumentContent(null);
+              }}
+            />
+            <h2 className="neon-modal-title">
+              Document: {viewingDocument.name}
+            </h2>
+            {documentContent ? (
+              <a
+                href={documentContent}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="neon-modal-link"
+              >
+                Open Document
+              </a>
+            ) : (
+              <div className="neon-modal-content">No file available.</div>
+            )}
+          </div>
+        </div>
       )}
     </NeonPanel>
   );

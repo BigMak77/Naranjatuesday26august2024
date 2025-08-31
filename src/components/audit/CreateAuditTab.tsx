@@ -5,10 +5,6 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-client";
 import NeonForm from "@/components/NeonForm";
 
-interface AuditQuestion {
-  id: string;
-  question_text: string;
-}
 interface Section {
   id: string;
   title: string;
@@ -20,10 +16,6 @@ export default function CreateAuditTab() {
   const [frequency, setFrequency] = useState("");
   const [version, setVersion] = useState("");
   const [sectionId, setSectionId] = useState("");
-  const [availableQuestions, setAvailableQuestions] = useState<AuditQuestion[]>(
-    [],
-  );
-  const [selectedQuestions, setSelectedQuestions] = useState<string[]>([]);
   const [sections, setSections] = useState<Section[]>([]);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -31,14 +23,10 @@ export default function CreateAuditTab() {
   useEffect(() => {
     const editId = sessionStorage.getItem("edit_template_id");
     const fetchData = async () => {
-      const [qRes, sRes] = await Promise.all([
-        supabase
-          .from("audit_questions")
-          .select("id, question_text")
-          .order("question_text"),
-        supabase.from("standard_sections").select("id, title").order("title"),
-      ]);
-      if (!qRes.error) setAvailableQuestions(qRes.data || []);
+      const sRes = await supabase
+        .from("standard_sections")
+        .select("id, title")
+        .order("title");
       if (!sRes.error) setSections(sRes.data || []);
 
       if (editId) {
@@ -53,14 +41,6 @@ export default function CreateAuditTab() {
           setFrequency(tpl.frequency || "");
           setVersion(tpl.version || "");
           setSectionId(tpl.standard_section_id || "");
-          const { data: qLinks } = await supabase
-            .from("audit_template_questions_status")
-            .select("question_id")
-            .eq("template_id", editId);
-          if (qLinks)
-            setSelectedQuestions(
-              qLinks.map((q: { question_id: string }) => q.question_id),
-            );
         }
       }
     };
@@ -107,17 +87,6 @@ export default function CreateAuditTab() {
       setLoading(false);
       return;
     }
-    if (selectedQuestions.length > 0) {
-      const rows = selectedQuestions.map((qId, idx) => ({
-        template_id: inserted.id,
-        question_id: qId,
-        sort_order: idx + 1,
-      }));
-      const { error: qErr } = await supabase
-        .from("audit_template_questions_status")
-        .insert(rows);
-      if (qErr) alert("Error linking questions: " + qErr.message);
-    }
     alert(
       editId
         ? "Audit template updated successfully"
@@ -130,7 +99,6 @@ export default function CreateAuditTab() {
     setFrequency("");
     setVersion("");
     setSectionId("");
-    setSelectedQuestions([]);
     router.refresh();
   };
 
@@ -187,33 +155,6 @@ export default function CreateAuditTab() {
               </option>
             ))}
           </select>
-        </div>
-        <div className="flex flex-col gap-2">
-          <label className="neon-label mb-2">Link Questions</label>
-          <div className="neon-panel p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-            {availableQuestions.map((q) => (
-              <label
-                key={q.id}
-                className="flex items-center gap-2 p-2 rounded bg-white shadow-sm neon-panel"
-              >
-                <input
-                  type="checkbox"
-                  value={q.id}
-                  checked={selectedQuestions.includes(q.id)}
-                  onChange={(e) => {
-                    const id = e.target.value;
-                    setSelectedQuestions((prev) =>
-                      prev.includes(id)
-                        ? prev.filter((x) => x !== id)
-                        : [...prev, id],
-                    );
-                  }}
-                  className="neon-checkbox"
-                />
-                <span className="text-sm text-gray-800">{q.question_text}</span>
-              </label>
-            ))}
-          </div>
         </div>
       </div>
     </NeonForm>

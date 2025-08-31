@@ -340,7 +340,7 @@ export default function HomePage() {
                 fontSize: "5.5rem",
                 color: "#ffb347",
                 filter:
-                  "drop-shadow(0 0 12px #ffb347) drop-shadow(0 0 24px #fff7e6)",
+                  "drop-shadow(0 0 12px #ffb347) drop-shadow(0 0 8px #fff7e6)",
                 animation: "homepage-cto-star-pulse 1.2s infinite alternate",
               }}
               aria-label="CTO Star Icon"

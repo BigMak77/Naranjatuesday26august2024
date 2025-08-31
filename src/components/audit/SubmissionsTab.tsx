@@ -240,20 +240,20 @@ export default function SubmissionsTab() {
       <h3 className="submissions-tab-title">Audit Submissions</h3>
 
       {/* Controls */}
-      <div className="flex items-center gap-3 mb-3">
-        <div className="relative grow max-w-md">
-          <FiSearch className="absolute left-2 top-2.5 opacity-70" />
+      <div className="submissions-tab-controls">
+        <div className="submissions-tab-search-wrapper">
+          <FiSearch className="submissions-tab-search-icon" />
           <input
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by user, department, or audit…"
-            className="pl-8 neon-input w-full"
+            className="submissions-tab-search-input neon-input"
           />
         </div>
 
         <select
-          className="neon-input"
+          className="submissions-tab-status-select neon-input"
           value={statusFilter}
           onChange={(e) =>
             setStatusFilter(
@@ -271,7 +271,7 @@ export default function SubmissionsTab() {
 
       {/* Body */}
       {err && (
-        <p className="text-red-400 text-sm mb-2">Failed to load: {err}</p>
+        <p className="submissions-tab-error-msg">Failed to load: {err}</p>
       )}
 
       {loading ? (

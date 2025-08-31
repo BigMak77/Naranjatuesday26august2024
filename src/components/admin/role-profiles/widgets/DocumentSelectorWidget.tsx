@@ -8,7 +8,7 @@ import React from "react";
 
 type Document = {
   id: string;
-  name: string;
+  title: string;
   document_type: string;
 };
 
@@ -34,7 +34,7 @@ export default function DocumentSelectorWidget({
     const fetchDocuments = async () => {
       const { data, error } = await supabase
         .from("documents")
-        .select("id, name, document_type");
+        .select("id, title, document_type"); // changed 'name' to 'title'
       if (error) console.error("Error fetching documents:", error);
       else setDocuments(data);
     };
@@ -51,7 +51,9 @@ export default function DocumentSelectorWidget({
 
   // Filter available docs by search and type
   const filteredAvailable = availableDocs.filter((doc) => {
-    const matchesSearch = doc.name.toLowerCase().includes(search.toLowerCase());
+    // Defensive: fallback to title if name is missing (now always use title)
+    const docTitle = (doc as any).title || "";
+    const matchesSearch = docTitle.toLowerCase().includes(search.toLowerCase());
     const matchesType =
       typeFilter === "all" || doc.document_type === typeFilter;
     return matchesSearch && matchesType;
@@ -126,7 +128,7 @@ export default function DocumentSelectorWidget({
               >
                 {filteredAvailable.map((doc) => (
                   <option key={doc.id} value={doc.id}>
-                    {doc.name} ({doc.document_type})
+                    {(doc as any).title || "Untitled"} ({doc.document_type})
                   </option>
                 ))}
               </select>
@@ -168,7 +170,7 @@ export default function DocumentSelectorWidget({
               >
                 {attachedDocs.map((doc) => (
                   <option key={doc.id} value={doc.id}>
-                    {doc.name} ({doc.document_type})
+                    {(doc as any).title || "Untitled"} ({doc.document_type})
                   </option>
                 ))}
               </select>

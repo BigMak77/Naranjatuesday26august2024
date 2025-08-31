@@ -11,8 +11,13 @@ import {
 } from "react-icons/fi";
 import NeonForm from "@/components/NeonForm";
 import NeonPanel from "@/components/NeonPanel";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import FolderTabs from "@/components/FolderTabs";
 import HealthSafetyPolicyManager from "@/components/turkus/HealthSafetyPolicyManager";
+// If the file is named 'NeonIconButton.tsx' and located in 'src/components', use:
+import NeonIconButton from "@/components/ui/NeonIconButton";
+// Or, if using absolute imports, ensure the file exists at 'src/components/NeonIconButton.tsx'
+import IncidentFormMinimal from "@/components/safety/IncidentFormMinimal";
+import type { MinimalIncidentForm } from "@/components/safety/IncidentFormMinimal";
 
 export default function HealthSafetyManager() {
   const [activeTab, setActiveTab] = useState<
@@ -27,30 +32,16 @@ export default function HealthSafetyManager() {
     <div className="after-hero">
       <div className="global-content">
         <main className="global-content">
-          <div className="neon-tab-bar">
-            <NeonIconButton
-              variant={activeTab === "assessments" ? "view" : "info"}
-              icon={<FiClipboard />}
-              title="Risk Assessments"
-              onClick={() => setActiveTab("assessments")}
-            />
-            <NeonIconButton
-              variant={activeTab === "incidents" ? "view" : "info"}
-              icon={<FiAlertCircle />}
-              title="Incidents"
-              onClick={() => setActiveTab("incidents")}
-            />
-            <NeonIconButton
-              variant={activeTab === "policies" ? "view" : "info"}
-              icon={<FiFileText />}
-              title="Policies"
-              onClick={() => setActiveTab("policies")}
-            />
-            <NeonIconButton
-              variant={activeTab === "firstaid" ? "view" : "info"}
-              icon={<FiHeart />}
-              title="First Aid"
-              onClick={() => setActiveTab("firstaid")}
+          <div style={{ marginBottom: 24 }}>
+            <FolderTabs
+              tabs={[
+                { key: "assessments", label: "Risk Assessments", icon: <FiClipboard /> },
+                { key: "incidents", label: "Incidents", icon: <FiAlertCircle /> },
+                { key: "policies", label: "Policies", icon: <FiFileText /> },
+                { key: "firstaid", label: "First Aid", icon: <FiHeart /> },
+              ]}
+              activeTab={activeTab}
+              onChange={tabKey => setActiveTab(tabKey as typeof activeTab)}
             />
           </div>
 
@@ -58,19 +49,13 @@ export default function HealthSafetyManager() {
 
           {activeTab === "incidents" && (
             <NeonPanel>
-              <NeonForm
-                title="Incident Report Form"
-                onSubmit={(e) => {
-                  e.preventDefault(); /* handle incident submit */
+              {/* Render the minimal incident form from incidents/add */}
+              <IncidentFormMinimal
+                onSubmit={async (data: MinimalIncidentForm) => {
+                  // TODO: handle incident submission (e.g., save to supabase)
+                  // You can add your logic here or pass a handler from parent
                 }}
-              >
-                <input className="neon-input" placeholder="Incident Title" />
-                <textarea
-                  className="neon-input"
-                  placeholder="Description"
-                  rows={3}
-                />
-              </NeonForm>
+              />
             </NeonPanel>
           )}
 

@@ -13,7 +13,7 @@ export default function GlobalFooter() {
       zIndex: 100,
       background: "var(--panel, #0d3c47)",
       color: "var(--text, #fff)",
-      boxShadow: "0 -2px 16px rgba(0,0,0,0.10)",
+      boxShadow: "0 -2px 8px rgba(0,0,0,0.10)",
       padding: "1rem 0",
     }}>
       <div className="inner" style={{

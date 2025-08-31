@@ -16,7 +16,7 @@ export default function NeonPanel({
   // Use global neon classes for panel styling
   return (
     <div
-      className={`neon-form neon-panel ${className}`.trim()}
+      className={`neon-panel ${className}`.trim()}
       style={{
         backgroundColor: bgColor || undefined,
         boxShadow: glowColor ? `0 0 12px ${glowColor}` : undefined,

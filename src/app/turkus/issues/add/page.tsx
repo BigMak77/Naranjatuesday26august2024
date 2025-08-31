@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import { useRouter } from "next/navigation";
 import { FiAlertCircle } from "react-icons/fi";
-import Modal from "@/components/modal";
+import NeonPanel from "@/components/NeonPanel";
 
 export default function RaiseIssuePage() {
   const [title, setTitle] = useState("");
@@ -71,73 +71,57 @@ export default function RaiseIssuePage() {
   };
 
   return (
-    <Modal open={true} onClose={() => router.push("/turkus/issues")}>
-      <form className="neon-panel" onSubmit={handleSubmit}>
-        <h1 className="font-title accent-text">New Issue</h1>
-        <input
-          className="neon-input"
-          placeholder="Issue Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-        />
-        <textarea
-          className="neon-input"
-          placeholder="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          rows={3}
-          required
-        />
-        <select
-          className="neon-input"
-          value={priority}
-          onChange={(e) => setPriority(e.target.value)}
-        >
-          <option value="Low">Low</option>
-          <option value="Medium">Medium</option>
-          <option value="High">High</option>
-        </select>
-        <select
-          className="neon-input"
-          value={departmentId}
-          onChange={(e) => setDepartmentId(e.target.value)}
-          required
-        >
-          <option value="">Select Department</option>
-          {departments.map((d) => (
-            <option key={d.id} value={d.id}>
-              {d.name}
-            </option>
-          ))}
-        </select>
-        {error && (
-          <p className="neon-error">
-            <FiAlertCircle /> {error}
-          </p>
-        )}
-        <button type="submit" className="neon-btn" disabled={loading}>
-          <FiAlertCircle style={{ display: loading ? "none" : "inline-block" }} />
-          {/* Icon only, no label */}
-          {loading && (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="feather feather-loader neon-icon"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <polyline points="12 6 12 12 16 14" />
-            </svg>
+    <div style={{ maxWidth: 480, margin: '3rem auto' }}>
+      <NeonPanel>
+        <form onSubmit={handleSubmit}>
+          <h1 className="font-title accent-text">New Issue</h1>
+          <input
+            className="neon-input"
+            placeholder="Issue Title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+          />
+          <textarea
+            className="neon-input"
+            placeholder="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={3}
+            required
+          />
+          <select
+            className="neon-input"
+            value={priority}
+            onChange={(e) => setPriority(e.target.value)}
+          >
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+          </select>
+          <select
+            className="neon-input"
+            value={departmentId}
+            onChange={(e) => setDepartmentId(e.target.value)}
+            required
+          >
+            <option value="">Select Department</option>
+            {departments.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.name}
+              </option>
+            ))}
+          </select>
+          {error && (
+            <p className="neon-error">
+              <FiAlertCircle /> {error}
+            </p>
           )}
-        </button>
-      </form>
-    </Modal>
+          <button type="submit" className="neon-btn" disabled={loading} aria-label="Raise Issue">
+            <FiAlertCircle className="neon-icon" />
+          </button>
+        </form>
+      </NeonPanel>
+    </div>
   );
 }

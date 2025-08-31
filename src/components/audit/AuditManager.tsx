@@ -23,13 +23,14 @@ import {
   FiShield,
 } from "react-icons/fi";
 
-import QuestionTab from "@/components/QuestionTab";
-import ViewAuditTab from "@/components/ViewAuditTab";
-import SubmissionsTab from "@/components/SubmissionsTab";
-import CreateAuditTab from "@/components/CreateAuditTab";
-import AssignAuditTab from "@/components/AssignAuditTab";
-import AssignedToTab from "@/components/AssignedToTab";
+import QuestionTab from "@/components/audit/QuestionTab";
+import ViewAuditTab from "@/components/audit/ViewAuditTab";
+import SubmissionsTab from "@/components/audit/SubmissionsTab";
+import CreateAuditTab from "@/components/audit/CreateAuditTab";
+import AssignAuditTab from "@/components/audit/AssignAuditTab";
+import AssignedToTab from "@/components/audit/AssignedToTab";
 import AuditorsListWidget from "@/components/task/AuditorsListWidget";
+import StandardsTab from "@/components/audit/StandardsTab";
 
 /* =========================================================
    Shared context (optional for your child tabs to use)
@@ -41,7 +42,9 @@ type TabKey =
   | "submissions"
   | "questions"
   | "assigned"
-  | "auditors";
+  | "auditors"
+  | "sections"
+  | "standards";
 
 type AuditManagerCtx = {
   activeTab: TabKey;
@@ -161,6 +164,12 @@ export default function AuditManager() {
           label: "Auditors",
           icon: <FiShield className="folder-tab-icon" />,
         },
+       
+        {
+          key: "standards",
+          label: "Standards",
+          icon: <FiFileText className="folder-tab-icon" />,
+        },
       ] satisfies { key: TabKey; label: string; icon: React.ReactNode }[],
     [],
   );
@@ -218,6 +227,7 @@ export default function AuditManager() {
             {activeTab === "questions" && <QuestionTab />}
             {activeTab === "assigned" && <AssignedToTab />}
             {activeTab === "auditors" && <AuditorsListWidget />}
+            {activeTab === "standards" && <StandardsTab />}
           </div>
         </div>
       </div>

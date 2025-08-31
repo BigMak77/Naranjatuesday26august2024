@@ -185,7 +185,10 @@ export default function RoleProfileCreate({
           .from("role_profiles")
           .update({ name, description })
           .eq("id", profileId);
-        if (updateErr) throw updateErr;
+        if (updateErr) {
+          console.error("Supabase update error:", updateErr);
+          throw updateErr;
+        }
         profileRow = { id: profileId };
       } else {
         // Insert new profile
@@ -194,78 +197,117 @@ export default function RoleProfileCreate({
           .insert([{ name, description }])
           .select("id")
           .single();
-        if (insertErr) throw insertErr;
+        if (insertErr) {
+          console.error("Supabase insert error:", insertErr, { name, description });
+          throw insertErr;
+        }
         profileRow = data;
       }
       const id = profileRow.id;
 
-      // Remove old module/document/behaviour/assignment links if editing
+      // Remove old assignments if editing
       if (profileId) {
-        await Promise.all([
-          supabase
-            .from("role_profile_modules")
-            .delete()
-            .eq("role_profile_id", id),
-          supabase
-            .from("role_profile_documents")
-            .delete()
-            .eq("role_profile_id", id),
-          supabase
-            .from("role_profile_behaviours")
-            .delete()
-            .eq("role_profile_id", id),
-          supabase
-            .from("role_profile_targets")
-            .delete()
-            .eq("role_profile_id", id),
-        ]);
+        await supabase
+          .from("user_assignments")
+          .delete()
+          .eq("role_profile_id", id);
       }
 
-      // Insert new module links
-      if (selectedModules.length > 0) {
-        await supabase
-          .from("role_profile_modules")
-          .insert(
-            selectedModules.map((module_id) => ({
-              role_profile_id: id,
-              module_id,
-            })),
-          );
+      // Insert all assignments into user_assignments
+      // For each assignment target, resolve to users in the users table
+      const now = new Date().toISOString();
+      let assignmentPayload: any[] = [];
+      let warnings: string[] = [];
+      let allCandidateAssignments: any[] = [];
+      for (const a of selectedAssignments) {
+        let userRows: any[] = [];
+        if (a.type === "user") {
+          const { data: userData, error: userErr } = await supabase
+            .from("users")
+            .select("auth_id")
+            .eq("auth_id", a.id);
+          if (userErr) throw userErr;
+          userRows = userData ?? [];
+        } else if (a.type === "role") {
+          const { data: roleUsers, error: roleErr } = await supabase
+            .from("users")
+            .select("auth_id")
+            .eq("role_id", a.id);
+          if (roleErr) throw roleErr;
+          userRows = roleUsers ?? [];
+        } else if (a.type === "department") {
+          const { data: deptUsers, error: deptErr } = await supabase
+            .from("users")
+            .select("auth_id")
+            .eq("department_id", a.id);
+          if (deptErr) throw deptErr;
+          userRows = deptUsers ?? [];
+        }
+        for (const user of userRows) {
+          selectedModules.forEach((module_id) => {
+            allCandidateAssignments.push({
+              auth_id: user.auth_id,
+              item_id: module_id,
+              item_type: "module",
+              assigned_at: now,
+              origin_type: a.type,
+              origin_id: a.id,
+            });
+          });
+          selectedDocuments.forEach((document_id) => {
+            allCandidateAssignments.push({
+              auth_id: user.auth_id,
+              item_id: document_id,
+              item_type: "document",
+              assigned_at: now,
+              origin_type: a.type,
+              origin_id: a.id,
+            });
+          });
+          selectedBehaviours.forEach((behaviour_id) => {
+            allCandidateAssignments.push({
+              auth_id: user.auth_id,
+              item_id: behaviour_id,
+              item_type: "behaviour",
+              assigned_at: now,
+              origin_type: a.type,
+              origin_id: a.id,
+            });
+          });
+        }
       }
-      // Insert new document links
-      if (selectedDocuments.length > 0) {
-        await supabase
-          .from("role_profile_documents")
-          .insert(
-            selectedDocuments.map((document_id) => ({
-              role_profile_id: id,
-              document_id,
-            })),
-          );
+      // Query existing assignments for all relevant users/items/types
+      if (allCandidateAssignments.length > 0) {
+        // Get all unique auth_ids
+        const authIds = Array.from(new Set(allCandidateAssignments.map(a => a.auth_id)));
+        // Query all assignments for these users
+        const { data: existingRows, error: existingErr } = await supabase
+          .from("user_assignments")
+          .select("auth_id, item_id, item_type")
+          .in("auth_id", authIds);
+        if (existingErr) throw existingErr;
+        // Build set of existing assignment keys
+        const existingSet = new Set((existingRows ?? []).map((r: any) => `${r.auth_id}|${r.item_id}|${r.item_type}`));
+        assignmentPayload = allCandidateAssignments.filter(a => {
+          const key = `${a.auth_id}|${a.item_id}|${a.item_type}`;
+          if (existingSet.has(key)) {
+            warnings.push(`${a.auth_id} already has ${a.item_type} assigned.`);
+            return false;
+          }
+          return true;
+        });
       }
-      // Insert new behaviour links
-      if (selectedBehaviours.length > 0) {
-        await supabase
-          .from("role_profile_behaviours")
-          .insert(
-            selectedBehaviours.map((behaviour_id) => ({
-              role_profile_id: id,
-              behaviour_id,
-            })),
-          );
+      if (assignmentPayload.length > 0) {
+        const { error: assignErr } = await supabase
+          .from("user_assignments")
+          .insert(assignmentPayload);
+        if (assignErr) {
+          console.error("user_assignments link error:", assignErr, assignmentPayload);
+          throw assignErr;
+        }
       }
-      // Insert new assignment links
-      if (selectedAssignments.length > 0) {
-        await supabase
-          .from("role_profile_targets")
-          .insert(
-            selectedAssignments.map((a) => ({
-              role_profile_id: id,
-              target_type: a.type,
-              target_id: a.id,
-              label: a.label,
-            })),
-          );
+      if (warnings.length > 0) {
+        toast("⚠️ Some assignments were skipped: " + warnings.join("; "));
       }
 
       onSubmit?.({
@@ -292,6 +334,7 @@ export default function RoleProfileCreate({
     } catch (e) {
       setError((e as Error)?.message || "Failed to save role profile");
       toast.error((e as Error)?.message || "Failed to save role profile");
+      console.error("RoleProfileCreate save error:", e);
     } finally {
       setSaving(false);
     }

@@ -25,6 +25,7 @@ type NavLink = {
   href: string;
   label: string;
   icon: React.ReactElement;
+  dropdown?: { href: string; label: string }[];
 };
 
 type GlobalHeaderProps = {
@@ -43,6 +44,8 @@ export default function GlobalHeader({
   const { user, loading } = useUser();
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [turkusDropdownOpen, setTurkusDropdownOpen] = useState(false);
+  const handleTurkusDropdown = () => setTurkusDropdownOpen((open) => !open);
 
   const dashboardHref = useMemo(() => {
     if (!user || typeof user.access_level !== "string")
@@ -64,7 +67,17 @@ export default function GlobalHeader({
       navLinks ?? [
         { href: dashboardHref, label: "Dashboard", icon: <FiHome /> },
         { href: "/hr/people/", label: "HR", icon: <FiUsers /> },
-        { href: "/admin/documents", label: "Documents", icon: <FiFileText /> },
+        {
+          href: "/turkus",
+          label: "Turkus",
+          icon: <FiFileText />,
+          dropdown: [
+            { href: "/turkus/audit", label: "Audit" },
+            { href: "/turkus/tasks", label: "Tasks" },
+            { href: "/turkus/issues", label: "Issues" },
+            { href: "/turkus/documents", label: "Documents" },
+          ],
+        },
         { href: "/admin/incomplete", label: "Compliance", icon: <FiShield /> },
         { href: "/settings", label: "Settings", icon: <FiSettings /> },
       ],
@@ -115,19 +128,79 @@ export default function GlobalHeader({
           {/* Center: Quick links (signed-in) */}
           {!loading && user && (
             <nav className={styles.nav} aria-label="Primary">
-              {links.map((l) => (
-                <Link
-                  key={l.href}
-                  href={l.href}
-                  className={styles.navItem}
-                  prefetch
-                >
-                  <span className={styles.navIcon} aria-hidden="true">
-                    {l.icon}
-                  </span>
-                  <span className={styles.navText}>{l.label}</span>
-                </Link>
-              ))}
+              {links.map((l) =>
+                l.dropdown ? (
+                  <div
+                    key={l.href}
+                    className={styles.navItemDropdown}
+                    style={{ position: "relative" }}
+                  >
+                    <button
+                      className={styles.navItem}
+                      type="button"
+                      style={{
+                        fontFamily: "inherit",
+                        fontSize: "inherit",
+                        fontWeight: "inherit",
+                        color: "inherit",
+                        background: "none",
+                        border: "none",
+                        padding: 0,
+                      }}
+                      aria-haspopup="menu"
+                      aria-expanded={turkusDropdownOpen}
+                      onClick={handleTurkusDropdown}
+                    >
+                      <span className={styles.navIcon} aria-hidden="true">
+                        {l.icon}
+                      </span>
+                      <span className={styles.navText}>{l.label}</span>
+                      <FiChevronDown
+                        className={styles.chev}
+                        aria-hidden="true"
+                      />
+                    </button>
+                    {turkusDropdownOpen && (
+                      <div
+                        className={styles.menu}
+                        role="menu"
+                        style={{
+                          top: "100%",
+                          left: 0,
+                          minWidth: 180,
+                          position: "absolute",
+                          zIndex: 3002,
+                        }}
+                      >
+                        {l.dropdown.map((d) => (
+                          <Link
+                            key={d.href}
+                            href={d.href}
+                            className={styles.menuItem}
+                            role="menuitem"
+                            prefetch
+                            onClick={() => setTurkusDropdownOpen(false)}
+                          >
+                            {d.label}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <Link
+                    key={l.href}
+                    href={l.href}
+                    className={styles.navItem}
+                    prefetch
+                  >
+                    <span className={styles.navIcon} aria-hidden="true">
+                      {l.icon}
+                    </span>
+                    <span className={styles.navText}>{l.label}</span>
+                  </Link>
+                )
+              )}
             </nav>
           )}
 

@@ -7,6 +7,7 @@ type Column = {
   header: string;
   accessor: string;
   render?: (value: unknown, row: Record<string, unknown>) => React.ReactNode;
+  width?: number | string;
 };
 
 type NeonTableProps = {
@@ -63,7 +64,7 @@ export default function NeonTable({ columns, data, toolbar }: NeonTableProps) {
   const handleNext = () => setCurrentPage((p) => Math.min(totalPages, p + 1));
 
   return (
-    <div>
+    <div style={{ width: "100%", maxWidth: "1300px", margin: "0 auto" }}>
       {/* Controls Row: Search (left), Toolbar (center, optional), Pagination (right) in-line */}
       <div
         className="neon-table-controls-row"
@@ -169,13 +170,19 @@ export default function NeonTable({ columns, data, toolbar }: NeonTableProps) {
           </button>
         </div>
       </div>
-      <table className="neon-table">
+      <table className="neon-table" style={{ width: "100%", tableLayout: "fixed" }}>
         <thead>
           <tr>
             {columns.map((col) => (
               <th
                 key={col.accessor}
                 className="text-center font-bold tracking-wide cursor-pointer select-none"
+                style={{
+                  ...(col.width ? { width: typeof col.width === 'number' ? `${col.width}px` : col.width } : {}),
+                  padding: 0,
+                  textAlign: 'center',
+                  color: 'var(--neon-text, #fff)'
+                }}
                 onClick={() => {
                   if (sortBy === col.accessor) {
                     setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
@@ -204,7 +211,16 @@ export default function NeonTable({ columns, data, toolbar }: NeonTableProps) {
             paginatedData.map((row, i) => (
               <tr key={i} className="neon-table-row">
                 {columns.map((col) => (
-                  <td key={col.accessor} className="neon-table-cell">
+                  <td
+                    key={col.accessor}
+                    className="neon-table-cell"
+                    style={{
+                      ...(col.width ? { width: typeof col.width === 'number' ? `${col.width}px` : col.width } : {}),
+                      padding: 0,
+                      ...(col.header === "Select" || col.header === "Start Date" || col.header === "First Aid" || col.header === "Trainer" ? { textAlign: 'center' } : {}),
+                      color: 'var(--neon-text, #fff)'
+                    }}
+                  >
                     {col.render
                       ? col.render(row[col.accessor], row)
                       : (row[col.accessor] as React.ReactNode)}

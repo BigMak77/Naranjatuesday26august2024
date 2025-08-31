@@ -28,7 +28,7 @@ export default function TurkusAboutPage() {
           background: "linear-gradient(90deg, #19e6d9 0%, #159ca3 100%)",
           borderRadius: 16,
           padding: "2rem",
-          boxShadow: "0 2px 16px rgba(21,156,163,0.08)",
+          boxShadow: "0 2px 8px rgba(21,156,163,0.08)",
           color: "#fff",
           marginBottom: "2rem",
         }}

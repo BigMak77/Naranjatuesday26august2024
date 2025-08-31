@@ -18,7 +18,7 @@ export default function NeonPanel({
       className={`p-6 rounded-xl ${className}`}
       style={{
         backgroundColor: bgColor,
-        boxShadow: `0 0 12px ${glowColor}`,
+        boxShadow: `0 0 8px ${glowColor}`,
       }}
     >
       {children}

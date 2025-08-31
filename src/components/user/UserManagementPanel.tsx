@@ -78,9 +78,7 @@ export default function UserManagementPanel() {
   const [bulkTrainer, setBulkTrainer] = useState(false);
   const [bulkAssignLoading, setBulkAssignLoading] = useState(false);
   const [bulkSelectedUserIds, setBulkSelectedUserIds] = useState<string[]>([]);
-
   const [showLeavers, setShowLeavers] = useState(false);
-  const filteredUsers = users.filter((u) => showLeavers ? u.is_leaver : !u.is_leaver);
 
   // store the element that opened the dialog (e.g. clicked name) to restore focus
   const openerRef = useRef<HTMLElement | null>(null);
@@ -434,135 +432,149 @@ export default function UserManagementPanel() {
 
   return (
     <>
-      <div className="neon-table-panel">
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
-          <button
-            className="neon-btn"
-            onClick={() => setShowLeavers((v) => !v)}
-          >
-            {showLeavers ? 'Show Active Users' : 'Show Leavers'}
-          </button>
-        </div>
-        <div className="neon-table-scroll">
-          <NeonTable
-            columns={userTableColumns}
-            data={filteredUsers.map((user) => {
-              const department = departments.find((d) => d.id === user.department_id);
-              const role = roles.find((r) => r.id === user.role_id);
-              return {
-                id: user.id,
-                name: (
-                  <span
-                    className="neon-link neon-user-name-selectable"
-                    tabIndex={0}
-                    role="button"
-                    style={{ cursor: "pointer", color: "var(--neon)" }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleOpenDialog(user, false, e.currentTarget as HTMLElement);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
+      <div className="neon-table-panel container" style={{ justifyContent: 'flex-start', display: 'flex' }}>
+        <div style={{ position: 'relative', width: '100%' }}>
+          <div className="neon-table-scroll" style={{ justifyContent: 'flex-start', display: 'flex' }}>
+            <NeonTable
+              columns={userTableColumns.map(col => {
+                // Set explicit column widths for key columns
+                if (col.header === "Select") return { ...col, width: 40 };
+                if (col.header === "Name") return { ...col, width: 180 };
+                if (col.header === "Department") return { ...col, width: 140 };
+                if (col.header === "Role") return { ...col, width: 140 };
+                if (col.header === "Access") return { ...col, width: 80 };
+                if (col.header === "Role Profile") return { ...col, width: 80 };
+                if (col.header === "Shift") return { ...col, width: 80 };
+                if (col.header === "Email") return { ...col, width: 200 };
+                if (col.header === "Start Date") return { ...col, width: 120 };
+                if (col.header === "First Aid") return { ...col, width: 40 };
+                if (col.header === "Trainer") return { ...col, width: 40 };
+                return col;
+              })}
+              data={users.filter(u => showLeavers ? u.is_leaver : !u.is_leaver).map((user) => {
+                const department = departments.find((d) => d.id === user.department_id);
+                const role = roles.find((r) => r.id === user.role_id);
+                return {
+                  id: user.id,
+                  name: (
+                    <span
+                      className="neon-link neon-user-name-selectable"
+                      tabIndex={0}
+                      role="button"
+                      style={{ cursor: "pointer", color: "var(--neon)" }}
+                      onClick={(e) => {
                         e.stopPropagation();
                         handleOpenDialog(user, false, e.currentTarget as HTMLElement);
-                      }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleOpenDialog(user, false, e.currentTarget as HTMLElement);
+                        }
+                      }}
+                      aria-label={`Edit user: ${user.first_name || ""} ${user.last_name || ""}`}
+                    >
+                      {`${user.first_name || ""} ${user.last_name || ""}`.trim() || "—"}
+                    </span>
+                  ),
+                  department_name: department ? department.name : "—",
+                  role_title: role ? role.title : "—",
+                  status: user.status || "—",
+                  access_level: user.access_level,
+                  role_profile_name: user.role_profile_name || "—",
+                  shift_name: user.shift_name || "—",
+                  email: user.email,
+                  start_date: user.start_date || "—",
+                  is_first_aid: user.is_first_aid ? <FiCheck color="#39ff14" /> : <FiX color="#ea1c1c" />,
+                  is_trainer: user.is_trainer ? <FiCheck color="#39ff14" /> : <FiX color="#ea1c1c" />,
+                  actions: (
+                    <NeonIconButton
+                      icon={<FiEdit />}
+                      title="Edit User"
+                      variant="edit"
+                      onClick={(e: any) => {
+                        handleOpenDialog(user, false, (e?.currentTarget as HTMLElement) ?? null);
+                      }}
+                    />
+                  ),
+                };
+              })}
+              toolbar={
+                <>
+                  <NeonIconButton
+                    variant="add"
+                    icon={<FiPlus />}
+                    title="Add User"
+                    onClick={(e: any) => {
+                      handleOpenDialog(
+                        {
+                          id: "",
+                          email: "",
+                          first_name: "",
+                          last_name: "",
+                          department_id: "",
+                          role_id: "",
+                          access_level: "User",
+                          phone: "",
+                          nationality: "",
+                          is_first_aid: false,
+                          is_trainer: false,
+                          start_date: "",
+                        },
+                        true,
+                        (e?.currentTarget as HTMLElement) ?? null,
+                      );
                     }}
-                    aria-label={`Edit user: ${user.first_name || ""} ${user.last_name || ""}`}
-                  >
-                    {`${user.first_name || ""} ${user.last_name || ""}`.trim() || "—"}
-                  </span>
-                ),
-                department_name: department ? department.name : "—",
-                role_title: role ? role.title : "—",
-                status: user.status || "—",
-                access_level: user.access_level,
-                role_profile_name: user.role_profile_name || "—",
-                shift_name: user.shift_name || "—",
-                email: user.email,
-                start_date: user.start_date || "—",
-                is_first_aid: user.is_first_aid ? <FiCheck color="#39ff14" /> : <FiX color="#ea1c1c" />,
-                is_trainer: user.is_trainer ? <FiCheck color="#39ff14" /> : <FiX color="#ea1c1c" />,
-                actions: (
+                  />
+                  <NeonIconButton
+                    icon={<FiDownload />}
+                    title="Download Users CSV"
+                    variant="download"
+                    onClick={handleExportUsers}
+                  />
+                  <label style={{ display: "inline-block" }}>
+                    <NeonIconButton
+                      icon={<FiUpload />}
+                      title="Upload Users CSV"
+                      variant="upload"
+                      as="button"
+                      onClick={() => fileInputRef.current?.click()}
+                    />
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".csv"
+                      style={{ display: "none" }}
+                      onChange={handleImportUsers}
+                    />
+                  </label>
+                  <NeonIconButton
+                    icon={<FiArchive />}
+                    title={showLeavers ? "Hide Leavers" : "Show Leavers"}
+                    variant={showLeavers ? "archive" : "edit"}
+                    onClick={() => setShowLeavers((prev) => !prev)}
+                  />
                   <NeonIconButton
                     icon={<FiEdit />}
-                    title="Edit User"
+                    title="Bulk Assign"
                     variant="edit"
-                    onClick={(e: any) => {
-                      handleOpenDialog(user, false, (e?.currentTarget as HTMLElement) ?? null);
+                    onClick={() => {
+                      setBulkAssignOpen(true);
+                      setBulkAssignStep(1); // Start at user selection step
+                      setBulkAssignType("");
+                      setBulkDeptId("");
+                      setBulkRoleId("");
+                      setBulkShiftId("");
+                      setBulkFirstAid(false);
+                      setBulkTrainer(false);
+                      setBulkSelectedUserIds(selectedUserIds); // Use currently selected users
                     }}
                   />
-                ),
-              };
-            })}
-            toolbar={
-              <>
-                <NeonIconButton
-                  variant="add"
-                  icon={<FiPlus />}
-                  title="Add User"
-                  onClick={(e: any) => {
-                    handleOpenDialog(
-                      {
-                        id: "",
-                        email: "",
-                        first_name: "",
-                        last_name: "",
-                        department_id: "",
-                        role_id: "",
-                        access_level: "User",
-                        phone: "",
-                        nationality: "",
-                        is_first_aid: false,
-                        is_trainer: false,
-                        start_date: "",
-                      },
-                      true,
-                      (e?.currentTarget as HTMLElement) ?? null,
-                    );
-                  }}
-                />
-                <NeonIconButton
-                  icon={<FiDownload />}
-                  title="Download Users CSV"
-                  variant="download"
-                  onClick={handleExportUsers}
-                />
-                <label style={{ display: "inline-block" }}>
-                  <NeonIconButton
-                    icon={<FiUpload />}
-                    title="Upload Users CSV"
-                    variant="upload"
-                    as="button"
-                    onClick={() => fileInputRef.current?.click()}
-                  />
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".csv"
-                    style={{ display: "none" }}
-                    onChange={handleImportUsers}
-                  />
-                </label>
-                <NeonIconButton
-                  icon={<FiEdit />}
-                  title="Bulk Assign"
-                  variant="edit"
-                  onClick={() => {
-                    setBulkAssignOpen(true);
-                    setBulkAssignStep(1); // Start at user selection step
-                    setBulkAssignType("");
-                    setBulkDeptId("");
-                    setBulkRoleId("");
-                    setBulkShiftId("");
-                    setBulkFirstAid(false);
-                    setBulkTrainer(false);
-                    setBulkSelectedUserIds(selectedUserIds); // Use currently selected users
-                  }}
-                />
-              </>
-            }
-          />
+                </>
+              }
+            />
+          </div>
         </div>
       </div>
 
@@ -595,7 +607,7 @@ export default function UserManagementPanel() {
           >
             {/* first_name */}
             <div>
-              <label className="neon-label" htmlFor="first-name-input">
+              <label className="neon-label" htmlFor="first-name-input" style={{ color: 'var(--neon-text, #fff)' }}>
                 First Name
               </label>
               <input
@@ -610,13 +622,12 @@ export default function UserManagementPanel() {
                   })
                 }
                 placeholder="First Name"
-                readOnly={!!selectedUser.is_leaver}
-                disabled={!!selectedUser.is_leaver}
+                style={{ color: 'var(--neon-text, #fff)' }}
               />
             </div>
             {/* last_name */}
             <div>
-              <label className="neon-label" htmlFor="last-name-input">
+              <label className="neon-label" htmlFor="last-name-input" style={{ color: 'var(--neon-text, #fff)' }}>
                 Last Name
               </label>
               <input
@@ -630,13 +641,12 @@ export default function UserManagementPanel() {
                   })
                 }
                 placeholder="Last Name"
-                readOnly={!!selectedUser.is_leaver}
-                disabled={!!selectedUser.is_leaver}
+                style={{ color: 'var(--neon-text, #fff)' }}
               />
             </div>
             {/* email */}
             <div>
-              <label className="neon-label" htmlFor="email-input">
+              <label className="neon-label" htmlFor="email-input" style={{ color: 'var(--neon-text, #fff)' }}>
                 Email
               </label>
               <input
@@ -652,13 +662,12 @@ export default function UserManagementPanel() {
                 placeholder="Email"
                 inputMode="email"
                 autoComplete="email"
-                readOnly={!!selectedUser.is_leaver}
-                disabled={!!selectedUser.is_leaver}
+                style={{ color: 'var(--neon-text, #fff)' }}
               />
             </div>
             {/* department_id */}
             <div>
-              <label className="neon-label" htmlFor="dept-select">
+              <label className="neon-label" htmlFor="dept-select" style={{ color: 'var(--neon-text, #fff)' }}>
                 Department
               </label>
               <select
@@ -672,7 +681,7 @@ export default function UserManagementPanel() {
                     role_id: "", // Reset role when department changes
                   });
                 }}
-                disabled={!!selectedUser.is_leaver}
+                style={{ color: 'var(--neon-text, #fff)' }}
               >
                 <option value="">Select Department</option>
                 {departments.map((d) => (
@@ -684,7 +693,7 @@ export default function UserManagementPanel() {
             </div>
             {/* role_id */}
             <div>
-              <label className="neon-label" htmlFor="role-select">
+              <label className="neon-label" htmlFor="role-select" style={{ color: 'var(--neon-text, #fff)' }}>
                 Role
               </label>
               <select
@@ -697,7 +706,8 @@ export default function UserManagementPanel() {
                     role_id: e.target.value,
                   })
                 }
-                disabled={!selectedUser.department_id || !!selectedUser.is_leaver}
+                disabled={!selectedUser.department_id}
+                style={{ color: 'var(--neon-text, #fff)' }}
               >
                 <option value="">Select Role</option>
                 {roles
@@ -711,7 +721,7 @@ export default function UserManagementPanel() {
             </div>
             {/* access_level */}
             <div>
-              <label className="neon-label" htmlFor="access-select">
+              <label className="neon-label" htmlFor="access-select" style={{ color: 'var(--neon-text, #fff)' }}>
                 Access Level
               </label>
               <select
@@ -724,7 +734,7 @@ export default function UserManagementPanel() {
                     access_level: e.target.value,
                   })
                 }
-                disabled={!!selectedUser.is_leaver}
+                style={{ color: 'var(--neon-text, #fff)' }}
               >
                 <option value="User">User</option>
                 <option value="Manager">Manager</option>
@@ -733,7 +743,7 @@ export default function UserManagementPanel() {
             </div>
             {/* phone */}
             <div>
-              <label className="neon-label" htmlFor="phone-input">
+              <label className="neon-label" htmlFor="phone-input" style={{ color: 'var(--neon-text, #fff)' }}>
                 Phone
               </label>
               <input
@@ -749,13 +759,12 @@ export default function UserManagementPanel() {
                 placeholder="Phone"
                 inputMode="tel"
                 autoComplete="tel"
-                readOnly={!!selectedUser.is_leaver}
-                disabled={!!selectedUser.is_leaver}
+                style={{ color: 'var(--neon-text, #fff)' }}
               />
             </div>
             {/* nationality */}
             <div>
-              <label className="neon-label" htmlFor="nationality-input">
+              <label className="neon-label" htmlFor="nationality-input" style={{ color: 'var(--neon-text, #fff)' }}>
                 Nationality
               </label>
               <input
@@ -769,13 +778,12 @@ export default function UserManagementPanel() {
                   })
                 }
                 placeholder="Nationality"
-                readOnly={!!selectedUser.is_leaver}
-                disabled={!!selectedUser.is_leaver}
+                style={{ color: 'var(--neon-text, #fff)' }}
               />
             </div>
             {/* is_first_aid */}
             <div>
-              <label className="neon-label" htmlFor="firstaid-select">
+              <label className="neon-label" htmlFor="firstaid-select" style={{ color: 'var(--neon-text, #fff)' }}>
                 First Aid
               </label>
               <select
@@ -788,7 +796,7 @@ export default function UserManagementPanel() {
                     is_first_aid: e.target.value === "true",
                   })
                 }
-                disabled={!!selectedUser.is_leaver}
+                style={{ color: 'var(--neon-text, #fff)' }}
               >
                 <option value="false">No</option>
                 <option value="true">Yes</option>
@@ -796,7 +804,7 @@ export default function UserManagementPanel() {
             </div>
             {/* is_trainer */}
             <div>
-              <label className="neon-label" htmlFor="trainer-select">
+              <label className="neon-label" htmlFor="trainer-select" style={{ color: 'var(--neon-text, #fff)' }}>
                 Trainer
               </label>
               <select
@@ -809,7 +817,7 @@ export default function UserManagementPanel() {
                     is_trainer: e.target.value === "true",
                   })
                 }
-                disabled={!!selectedUser.is_leaver}
+                style={{ color: 'var(--neon-text, #fff)' }}
               >
                 <option value="false">No</option>
                 <option value="true">Yes</option>
@@ -817,7 +825,7 @@ export default function UserManagementPanel() {
             </div>
             {/* shift_id */}
             <div>
-              <label className="neon-label" htmlFor="shift-select">
+              <label className="neon-label" htmlFor="shift-select" style={{ color: 'var(--neon-text, #fff)' }}>
                 Shift
               </label>
               <select
@@ -832,7 +840,7 @@ export default function UserManagementPanel() {
                     shift_name: selectedPattern ? selectedPattern.name : "",
                   });
                 }}
-                disabled={!!selectedUser.is_leaver}
+                style={{ color: 'var(--neon-text, #fff)' }}
               >
                 <option value="">Select Shift</option>
                 {shiftPatterns?.map((s) => (
@@ -844,7 +852,7 @@ export default function UserManagementPanel() {
             </div>
             {/* start_date */}
             <div>
-              <label className="neon-label" htmlFor="startdate-input">
+              <label className="neon-label" htmlFor="startdate-input" style={{ color: 'var(--neon-text, #fff)' }}>
                 Start Date
               </label>
               <input
@@ -859,13 +867,12 @@ export default function UserManagementPanel() {
                   })
                 }
                 placeholder="Start Date"
-                readOnly={!!selectedUser.is_leaver}
-                disabled={!!selectedUser.is_leaver}
+                style={{ color: 'var(--neon-text, #fff)' }}
               />
             </div>
             {/* is_leaver */}
             <div>
-              <label className="neon-label" htmlFor="leaver-select">
+              <label className="neon-label" htmlFor="leaver-select" style={{ color: 'var(--neon-text, #fff)' }}>
                 Leaver
               </label>
               <select
@@ -878,6 +885,7 @@ export default function UserManagementPanel() {
                     is_leaver: e.target.value === "true",
                   })
                 }
+                style={{ color: 'var(--neon-text, #fff)' }}
               >
                 <option value="false">No</option>
                 <option value="true">Yes</option>
@@ -886,7 +894,7 @@ export default function UserManagementPanel() {
             {/* leaver_reason (only show if is_leaver) */}
             {selectedUser.is_leaver && (
               <div>
-                <label className="neon-label" htmlFor="leaver-reason-select">
+                <label className="neon-label" htmlFor="leaver-reason-select" style={{ color: 'var(--neon-text, #fff)' }}>
                   Leaver Reason
                 </label>
                 <select
@@ -899,7 +907,7 @@ export default function UserManagementPanel() {
                       leaver_reason: e.target.value,
                     })
                   }
-                  disabled={!!selectedUser.is_leaver}
+                  style={{ color: 'var(--neon-text, #fff)' }}
                 >
                   <option value="">Select Reason</option>
                   <option value="Resignation">Resignation</option>
@@ -913,7 +921,7 @@ export default function UserManagementPanel() {
             {/* leaver_date */}
             {selectedUser.is_leaver && (
               <div>
-                <label className="neon-label" htmlFor="leaver-date-input">
+                <label className="neon-label" htmlFor="leaver-date-input" style={{ color: 'var(--neon-text, #fff)' }}>
                   Leaver Date
                 </label>
                 <input
@@ -928,7 +936,7 @@ export default function UserManagementPanel() {
                     })
                   }
                   placeholder="Leaver Date"
-                  readOnly={!!selectedUser.is_leaver}
+                  style={{ color: 'var(--neon-text, #fff)' }}
                 />
               </div>
             )}
@@ -1048,12 +1056,13 @@ export default function UserManagementPanel() {
               {bulkAssignType === "role" && (
                 <div className="neon-form-grid neon-form-padding" style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "1.5rem" }}>
                   <div>
-                    <label className="neon-label" htmlFor="bulk-dept-select">Department</label>
+                    <label className="neon-label" htmlFor="bulk-dept-select" style={{ color: 'var(--neon-text, #fff)' }}>Department</label>
                     <select
                       id="bulk-dept-select"
                       className="neon-input"
                       value={bulkDeptId}
                       onChange={e => { setBulkDeptId(e.target.value); setBulkRoleId(""); }}
+                      style={{ color: 'var(--neon-text, #fff)' }}
                     >
                       <option value="">Select Department</option>
                       {departments.map((d) => (
@@ -1062,13 +1071,14 @@ export default function UserManagementPanel() {
                     </select>
                   </div>
                   <div>
-                    <label className="neon-label" htmlFor="bulk-role-select">Role</label>
+                    <label className="neon-label" htmlFor="bulk-role-select" style={{ color: 'var(--neon-text, #fff)' }}>Role</label>
                     <select
                       id="bulk-role-select"
                       className="neon-input"
                       value={bulkRoleId}
                       onChange={e => setBulkRoleId(e.target.value)}
                       disabled={!bulkDeptId}
+                      style={{ color: 'var(--neon-text, #fff)' }}
                     >
                       <option value="">Select Role</option>
                       {roles.filter(r => r.department_id === bulkDeptId).map(r => (
@@ -1080,12 +1090,13 @@ export default function UserManagementPanel() {
               )}
               {bulkAssignType === "shift" && (
                 <div>
-                  <label className="neon-label" htmlFor="bulk-shift-select">Shift</label>
+                  <label className="neon-label" htmlFor="bulk-shift-select" style={{ color: 'var(--neon-text, #fff)' }}>Shift</label>
                   <select
                     id="bulk-shift-select"
                     className="neon-input"
                     value={bulkShiftId}
                     onChange={e => setBulkShiftId(e.target.value)}
+                    style={{ color: 'var(--neon-text, #fff)' }}
                   >
                     <option value="">Select Shift</option>
                     {shiftPatterns.map((s) => (
@@ -1096,12 +1107,13 @@ export default function UserManagementPanel() {
               )}
               {bulkAssignType === "first_aid" && (
                 <div>
-                  <label className="neon-label" htmlFor="bulk-firstaid-select">First Aid</label>
+                  <label className="neon-label" htmlFor="bulk-firstaid-select" style={{ color: 'var(--neon-text, #fff)' }}>First Aid</label>
                   <select
                     id="bulk-firstaid-select"
                     className="neon-input"
                     value={bulkFirstAid ? "true" : "false"}
                     onChange={e => setBulkFirstAid(e.target.value === "true")}
+                    style={{ color: 'var(--neon-text, #fff)' }}
                   >
                     <option value="false">No</option>
                     <option value="true">Yes</option>
@@ -1110,12 +1122,13 @@ export default function UserManagementPanel() {
               )}
               {bulkAssignType === "trainer" && (
                 <div>
-                  <label className="neon-label" htmlFor="bulk-trainer-select">Trainer</label>
+                  <label className="neon-label" htmlFor="bulk-trainer-select" style={{ color: 'var(--neon-text, #fff)' }}>Trainer</label>
                   <select
                     id="bulk-trainer-select"
                     className="neon-input"
                     value={bulkTrainer ? "true" : "false"}
                     onChange={e => setBulkTrainer(e.target.value === "true")}
+                    style={{ color: 'var(--neon-text, #fff)' }}
                   >
                     <option value="false">No</option>
                     <option value="true">Yes</option>

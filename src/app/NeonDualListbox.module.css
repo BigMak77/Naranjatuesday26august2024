@@ -1,6 +1,5 @@
 .neon-dual-listbox {
-  display: flex;
-  flex-direction: column;
+  display: block;
   gap: 0.5rem;
   background: var(--panel-bg);
   border-radius: var(--radius);
@@ -9,8 +8,8 @@
 }
 
 .neon-dual-listbox-container {
-  display: flex;
-  flex-direction: row;
+  display: block;
+  /* flex-direction: row; */
   gap: 2rem;
   align-items: stretch;
   justify-content: center;
