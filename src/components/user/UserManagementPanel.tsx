@@ -18,6 +18,8 @@ import {
 } from "react-icons/fi";
 import { useUser } from "@/lib/useUser";
 import OverlayDialog from '@/components/ui/OverlayDialog';
+import nationalities from '@/lib/nationalities.json';
+import MainHeader from "@/components/ui/MainHeader";
 
 interface User {
   id: string;
@@ -432,6 +434,7 @@ export default function UserManagementPanel() {
 
   return (
     <>
+      <MainHeader title="User Management" subtitle="Manage users, roles, and assignments" />
       <div className="neon-table-panel container" style={{ justifyContent: 'flex-start', display: 'flex' }}>
         <div style={{ position: 'relative', width: '100%' }}>
           <div className="neon-table-scroll" style={{ justifyContent: 'flex-start', display: 'flex' }}>
@@ -764,11 +767,11 @@ export default function UserManagementPanel() {
             </div>
             {/* nationality */}
             <div>
-              <label className="neon-label" htmlFor="nationality-input" style={{ color: 'var(--neon-text, #fff)' }}>
+              <label className="neon-label" htmlFor="nationality-select" style={{ color: 'var(--neon-text, #fff)' }}>
                 Nationality
               </label>
-              <input
-                id="nationality-input"
+              <select
+                id="nationality-select"
                 className="neon-input"
                 value={selectedUser.nationality || ""}
                 onChange={(e) =>
@@ -777,9 +780,15 @@ export default function UserManagementPanel() {
                     nationality: e.target.value,
                   })
                 }
-                placeholder="Nationality"
                 style={{ color: 'var(--neon-text, #fff)' }}
-              />
+              >
+                <option value="">Select Nationality</option>
+                {nationalities.map((nat: { name: string; flag: string }) => (
+                  <option key={nat.name} value={nat.name}>
+                    {nat.flag} {nat.name}
+                  </option>
+                ))}
+              </select>
             </div>
             {/* is_first_aid */}
             <div>

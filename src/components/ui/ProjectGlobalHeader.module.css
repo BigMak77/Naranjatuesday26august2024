@@ -59,12 +59,14 @@
   display: inline-flex;
   align-items: center;
   font-size: 16px;
-  gap: 8px;
+  gap: 2px;
   height: 30px;
   padding: 0;
   border-radius: 8px;
   text-decoration: none;
   color: #ffffff;
+  width: 80px;
+  justify-content: center;
 }
 .navItem:hover { background: rgb(0, 206, 209); }
 .navItem:focus-visible { outline: 2px solid #0ea5e9; outline-offset: 2px; }
@@ -221,7 +223,7 @@
   top: 100%;
   right: 0;
   min-width: 220px;
-  background: #fa7a20;
+  background: #b64f06;
   color: #ffffff;
   border-radius: var(--radius);
   z-index: 3002;
@@ -276,15 +278,15 @@ header.header > .secondRow {
   background: #05363a;
   color: #fff;
   border: 2px solid #16cbcf;
-  font-size: 16px;
+  font-size: 1rem;
   outline: none;
   transition: border-color 0.2s;
 }
 .searchBar:focus {
-  border-color: #ffa500;
+  border-color: #e06004;
 }
 .searchIcon {
   margin-right: 6px;
   color: #16cbcf;
-  font-size: 18px;
+  font-size: 1rem;
 }

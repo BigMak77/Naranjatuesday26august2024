@@ -15,7 +15,7 @@
 /* ================== Theme ================== */
 :root{
   --neon:#40e0d0; --neon-2:#2edbd0; --bg:#16cbcf; --panel:#053639; --field:#012b2b;
-  --text:#fff; --accent:#ffa500; --muted:#014d4d; --border:#40e0d0; --radius:12px;
+  --text:#fff; --accent:#fa7a20; --muted:#014d4d; --border:#40e0d0; --radius:12px;
   --gutter:clamp(12px,2.5vw,32px);  /* side padding */
   --page-max:none;                  /* no container cap by default */
   --header-gutter: clamp(16px, 3vw, 32px);
@@ -30,6 +30,18 @@ html,body{
   margin:0; overflow-x:clip;
 }
 img,svg,video{ max-width:100%; height:auto; display:block; }
+
+/* Global icon size and color for all SVG icons */
+svg {
+  width: 20px !important;
+  height: 20px !important;
+  color: #fff !important;
+  stroke: #fff !important;
+  fill: none !important;
+  stroke-width: 2px !important;
+  vertical-align: middle !important;
+  display: inline-block !important;
+}
 
 /* Remove the “mystery gap” under header on first element */
 main > :first-child{ margin-top:0; }
@@ -81,8 +93,12 @@ input[type="text"],input[type="search"],input[type="date"],input[type="number"],
   transition:border-color .2s, box-shadow .2s, background-color .2s;
 }
 input:focus,select:focus,textarea:focus{ outline:none; border-color:var(--neon); box-shadow:0 0 0 2px var(--neon); }
-input[type="search"]{ max-width:20rem; }
-label{ display:block; font-weight:600; color:var(--neon); margin-bottom:.5rem; }
+/* Remove global max-width for all search inputs to avoid conflict */
+input[type="search"] {
+  /* max-width: 20rem;  <-- removed to avoid conflict with toolbar search input */
+  box-shadow: none !important;
+}
+label{ display:block; font-weight:600; color:var(--neon); margin: bottom 0; }
 
 /* Custom select arrow (keeps native a11y) */
 select{
@@ -99,7 +115,7 @@ select{
   border: 1.5px solid var(--neon);
   border-radius: 8px;
   padding: .85rem 1.1rem;
-  margin-bottom: 1rem;
+  ;
   font-size: 1rem;
   box-shadow: 0 0 8px var(--neon);
   transition: border-color .2s, box-shadow .2s, background-color .2s;
@@ -118,27 +134,33 @@ select{
 
 .neon-btn,
 .neon-btn-square {
-  width: 40px;
-  height: 40px;
-  min-width: 40px;
-  min-height: 40px;
-  max-width: 40px;
-  max-height: 40px;
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  min-height: 30px;
+  max-width: 30px;
+  max-height: 30px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0;
   border-radius: 8px;
   background: var(--panel);
-  box-shadow: 0 0 8px var(--neon);
+  color: #fff;
+  box-shadow: none; /* Remove neon blue glow from buttons */
   border: 0;
   cursor: pointer;
   transition: background .2s, color .2s, box-shadow .2s, transform .06s;
+  margin-right: 6px; /* small gap between buttons */
+}
+.neon-btn:last-child,
+.neon-btn-square:last-child {
+  margin-right: 0;
 }
 .neon-btn svg,
 .neon-btn-square svg {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   color: #fff;
   stroke: #fff;
   fill: none;
@@ -149,7 +171,7 @@ select{
 .neon-btn:hover,
 .neon-btn-square:hover {
   background: var(--neon);
-  box-shadow: 0 4px 8px 0 var(--neon);
+  box-shadow: 0 1px 8px 0 var(--neon);
 }
 .neon-btn:active,
 .neon-btn-square:active {
@@ -165,10 +187,105 @@ select{
   color: #fff;
 }
 
-/* Variant shortcut (set bg with a class or inline) */
-.btn-green { --btn-bg:#16a34a; --btn-color:#012b2b; }
-.btn-blue  { --btn-bg:#2563eb; --btn-color:#fff; }
-.btn-red   { --btn-bg:#ea1c1c; --btn-color:#fff; }
+.neon-btn-assign {
+  background: #efb123 !important;
+  color: #012b2b !important;
+}
+.neon-btn-assign svg {
+  color: #012b2b !important;
+}
+
+.neon-btn-view {
+  background: #82c8e5 !important;
+  color: #012b2b !important;
+}
+.neon-btn-view svg {
+  color: #012b2b !important;
+}
+
+.neon-btn-delete {
+  background: #cd5c5c !important;
+  color: #fff !important;
+}
+.neon-btn-delete svg {
+  color: #fff !important;
+}
+
+.neon-btn-save {
+  background: #16a34a !important;
+  color: #fff !important;
+}
+.neon-btn-save svg {
+  color: #fff !important;
+}
+
+.neon-btn-confirm {
+  background: #0e7c3a !important;
+  color: #fff !important;
+}
+.neon-btn-confirm svg {
+  color: #fff !important;
+}
+
+.neon-btn-next,
+.neon-btn-back {
+  background: #222 !important;
+  color: #fff !important;
+}
+.neon-btn-next svg,
+.neon-btn-back svg {
+  color: #fff !important;
+}
+
+.neon-btn-view-archive {
+  background: #000 !important;
+  color: #fff !important;
+}
+.neon-btn-view-archive svg {
+  color: #fff !important;
+  stroke: #fff !important;
+}
+
+.neon-btn-archive {
+  background: #000 !important;
+  color: #fff !important;
+}
+.neon-btn-archive svg {
+  color: #fff !important;
+  stroke: #fff !important;
+}
+
+.neon-btn-edit {
+  background: #083ddb !important;
+  color: #fff !important;
+}
+.neon-btn-edit svg {
+  color: #fff !important;
+  stroke: #fff !important;
+}
+
+.neon-btn-add {
+  background: #14532d !important;
+  color: #fff !important;
+}
+.neon-btn-add svg {
+  color: #fff !important;
+}
+
+.neon-btn-review {
+  background: #32cd32 !important; /* lime green */
+  color: #fff !important;
+}
+.neon-btn-review svg {
+  color: #fff !important;
+  stroke: #fff !important;
+}
+
+/* Button group utility for consistent spacing */
+.neon-btn-group {
+  display: flex;
+  gap: 6px;
+}
 
 /* ================== Tables ================== */
 .neon-table{
@@ -176,20 +293,124 @@ select{
   background:var(--field); border:1px solid var(--neon); border-radius:12px; overflow:hidden;
   box-shadow:0 0 8px var(--neon);
 }
-.neon-table thead{ background:var(--neon); color:var(--text); text-align:left; }
+.neon-table thead {
+  background: #c75c00 !important; /* dark orange */
+  color: var(--text) !important;
+  text-align: center !important;
+}
 .neon-table th,.neon-table td{ padding:1.5rem 1.5rem; border-bottom:1px solid var(--neon); }
 .neon-table tbody tr:hover{ background:var(--muted); }
 
 .neon-table th {
   font-size: 1.rem !important;
   color: var(--text) !important;
+  text-align: center !important;
+  background: #c75c00;
 }
 .neon-table td {
   font-size: 1rem !important;
   color: var(--text) !important;
+  text-align: center !important;
 }
-.neon-table tr {
-  height: 2.5rem;
+
+/* Consistent padding for all neon-table cells */
+.neon-table th,
+.neon-table td {
+  padding: 1.25rem 1.25rem !important;
+}
+
+/* Neon Table Toolbar: for search, pagination, and dropdown above NeonTable */
+.neon-table-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  
+  padding: 0.75rem 1.25rem; /* Increased vertical and horizontal padding for equal spacing */
+  background: var(--accent); /* orange background for visibility */
+  border-radius: 8px;
+  height: 64px;
+  min-height: 64px;
+  max-height: 64px;
+  box-sizing: border-box;
+}
+
+.neon-table-toolbar .neon-table-toolbar-actions,
+.neon-table-toolbar .neon-table-toolbar-search,
+.neon-table-toolbar .neon-table-toolbar-pagination {
+  display: inline-flex;
+  align-items: center;
+}
+
+.neon-table-toolbar .neon-table-toolbar-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.neon-table-toolbar .neon-table-toolbar-search {
+  flex: none !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 !important;
+  margin: 0 !important;
+  height: 100%;
+}
+
+/* --- NeonTable toolbar search input: absolutely fixed width, no flex, no shrink/grow --- */
+.neon-table-toolbar .neon-table-toolbar-search input[type="search"] {
+  width: 150px !important;
+  min-width: 150px !important;
+  max-width: 150px !important;
+  flex: none !important;
+  align-self: flex-start !important;
+  box-sizing: border-box !important;
+  padding-left: 0.5rem !important;
+  padding-right: 0 !important;
+  margin: 0 !important;
+  height: 32px !important;
+  display: block !important;
+  margin-bottom: 0 !important;
+  overflow: hidden !important;
+  box-shadow: none !important;
+  position: relative !important;
+  z-index: 1;
+}
+
+.neon-table-toolbar .neon-table-toolbar-pagination > * {
+  margin: 0 !important;
+  vertical-align: middle !important;
+}
+
+.neon-table-toolbar .neon-table-toolbar-pagination {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.neon-table-toolbar .neon-table-toolbar-dropdown {
+  min-width: 90px;
+  max-width: 90px;
+  width: 90px;
+  padding: 1px 8px !important;
+}
+
+@media (max-width: 900px) {
+  .neon-table-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  .neon-table-toolbar .neon-table-toolbar-actions {
+    justify-content: flex-start;
+  }
+  .neon-table-toolbar .neon-table-toolbar-pagination {
+    justify-content: flex-start;
+  }
 }
 
 /* ================== User Profile (safe; no 100vw) ================== */
@@ -230,7 +451,6 @@ select{
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin-bottom: 0.5rem;
 }
 .neon-feature-card-title {
   font-size: 1.25rem;
@@ -240,7 +460,7 @@ select{
 .neon-feature-card-text {
   font-size: 1rem;
   color: var(--text);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.rem;
 }
 .neon-feature-card-children {
   margin-top: 0.75rem;
@@ -391,3 +611,81 @@ select{
   margin: 0 auto;
 }
 
+/* Placeholder header and subheader styles for main content */
+.main-header {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--neon);
+  margin-bottom: 0.5rem;
+}
+.main-subheader {
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: var(--text);
+  margin-bottom: 2rem;
+  opacity: 0.85;
+}
+
+/* ===== content-controls: 2-col filters + actions on the right ===== */
+.content-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;   /* filters | actions */
+  gap: 1.25rem;
+  align-items: end;
+  margin-bottom: 0rem;
+}
+
+/* ensure the left side is a 2-col grid */
+.content-controls .controls-left {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important; /* Both columns flexible and equal width */
+  gap: 1rem; /* Add gap between the two filter/search columns */
+  align-items: end;
+}
+
+/* span Search across both filter columns */
+.content-controls .control.search {
+  position: relative;
+  grid-column: 1 / -1;  /* make Search full width under the two cols */
+}
+
+.content-controls .control { min-width: 220px; width: 100%; }
+
+/* Section select with inline edit button */
+.content-controls .section-picker {
+  display: grid;
+  grid-template-columns: 1fr auto; /* select | edit button */
+  gap: .5rem;
+  align-items: center;
+  width: 100%; /* Ensure container fills parent column */
+}
+
+/* result count under search, right aligned */
+.content-controls .match-count {
+  position: absolute;
+  right: 0;
+  bottom: -1.6rem;
+  opacity: .9;
+}
+
+/* actions block on the right */
+.content-controls .controls-right {
+  display: inline-flex;
+  gap: .6rem;
+  justify-self: end;
+}
+
+/* Responsive: stack to one column below 900px (adjust if you like) */
+@media (max-width: 900px) {
+  .content-controls { grid-template-columns: 1fr; }
+  .content-controls .controls-right { justify-self: start; }
+  .content-controls .controls-left { grid-template-columns: 1fr; }
+  .content-controls .control.search { grid-column: auto; }
+  .content-controls .match-count { position: static; margin-top: .4rem; }
+}
+
+input[type="search"],
+input[type="text"].search,
+.neon-table-toolbar .neon-table-toolbar-search input[type="search"] {
+  margin-bottom: 0 !important;
+}

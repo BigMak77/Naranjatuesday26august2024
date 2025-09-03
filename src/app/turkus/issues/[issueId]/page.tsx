@@ -3,8 +3,9 @@ import NeonFeatureCard from "@/components/NeonFeatureCard";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
-import AssignIssue from "../components/AssignIssue";
 import { FiAlertCircle } from "react-icons/fi";
+import NeonPanel from "@/components/NeonPanel";
+import NeonIconButton from "@/components/ui/NeonIconButton";
 
 export default function IssueDetailsPage() {
   const params = useParams();
@@ -24,6 +25,7 @@ export default function IssueDetailsPage() {
 
   useEffect(() => {
     if (!issueId) return;
+    console.log("IssueDetailsPage: issueId", issueId);
     supabase
       .from("issues")
       .select(
@@ -32,6 +34,7 @@ export default function IssueDetailsPage() {
       .eq("id", issueId)
       .single()
       .then(({ data }) => {
+        console.log("IssueDetailsPage: fetched data", data);
         setIssue(data);
         setLoading(false);
       });
@@ -43,13 +46,39 @@ export default function IssueDetailsPage() {
   return (
     <div className="ui-dialog-overlay">
       <div className="ui-dialog-content neon-panel" style={{ maxWidth: 600 }}>
-        <NeonFeatureCard
-          icon={<FiAlertCircle />}
-          title={issue.title}
-          text={`Priority: ${issue.priority} · Status: ${issue.status} · ${new Date(issue.created_at).toLocaleDateString()} · Department: ${Array.isArray(issue.departments) ? issue.departments[0]?.name : issue.departments?.name || "N/A"}`}
-          href="#"
-        />
-        <AssignIssue issueId={issue.id} />
+        <NeonPanel>
+          <h1 className="font-title accent-text" style={{ marginBottom: 8 }}>{issue.title}</h1>
+          <div className="neon-label" style={{ marginBottom: 12 }}>
+            <strong>Priority:</strong> {issue.priority} &nbsp;|&nbsp;
+            <strong>Status:</strong> {issue.status} &nbsp;|&nbsp;
+            <strong>Created:</strong> {new Date(issue.created_at).toLocaleDateString()} &nbsp;|&nbsp;
+            <strong>Department:</strong> {Array.isArray(issue.departments) ? issue.departments[0]?.name : issue.departments?.name || "N/A"}
+          </div>
+          <div className="neon-label" style={{ marginBottom: 16 }}>
+            <strong>Description:</strong>
+            <div style={{ marginTop: 4 }}>{issue.description || "No description provided."}</div>
+          </div>
+          <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
+            <NeonIconButton
+              variant="close"
+              title="Close"
+              className="neon-btn-close"
+              onClick={() => window.history.back()}
+            />
+            <NeonIconButton
+              variant="delete"
+              title="Delete"
+              className="neon-btn-delete"
+              onClick={() => {/* TODO: handle delete logic */}}
+            />
+            <NeonIconButton
+              variant="assign"
+              title="Assign"
+              className="neon-btn-assign"
+              onClick={() => {/* TODO: open assign modal or handle assign logic */}}
+            />
+          </div>
+        </NeonPanel>
       </div>
     </div>
   );

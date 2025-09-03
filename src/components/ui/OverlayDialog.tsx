@@ -79,7 +79,7 @@ export default function OverlayDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby={ariaLabelledby}
-        style={{ zIndex: zIndexContent }}
+        style={{ zIndex: zIndexContent, width: 900 }}
       >
         {children}
       </div>

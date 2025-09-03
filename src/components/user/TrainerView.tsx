@@ -522,13 +522,14 @@ export default function TrainerRecordingPage({
             header: "Actions",
             accessor: "actions",
             render: (_, row) => (
-              <div className="inline-flex items-center gap-4">
+              <div style={{ textAlign: 'center' }}>
                 <button
                   className="neon-btn neon-btn-utility neon-btn-global"
                   onClick={() => openLog(row as UserRow)}
                   title="Log a training session"
                   aria-label="Log session"
                   type="button"
+                  style={{ margin: '0 8px' }}
                 >
                   <FiUserPlus />
                 </button>
@@ -538,6 +539,7 @@ export default function TrainerRecordingPage({
                   title="View training history"
                   aria-label="History"
                   type="button"
+                  style={{ margin: '0 8px' }}
                 >
                   <FiArchive />
                 </button>
@@ -547,6 +549,7 @@ export default function TrainerRecordingPage({
                   title="Assign training"
                   aria-label="Assign"
                   type="button"
+                  style={{ margin: '0 8px' }}
                 >
                   <FiClock />
                 </button>
@@ -556,6 +559,7 @@ export default function TrainerRecordingPage({
                   title="Certificates & status"
                   aria-label="Certs"
                   type="button"
+                  style={{ margin: '0 8px' }}
                 >
                   <FiAward />
                 </button>
@@ -565,6 +569,7 @@ export default function TrainerRecordingPage({
                   title="Raise an issue"
                   aria-label="Raise an issue"
                   type="button"
+                  style={{ margin: '0 8px' }}
                 >
                   <FiAlertOctagon />
                 </button>

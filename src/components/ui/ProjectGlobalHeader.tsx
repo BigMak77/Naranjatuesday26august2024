@@ -79,7 +79,6 @@ export default function GlobalHeader({
           ],
         },
         { href: "/admin/incomplete", label: "Compliance", icon: <FiShield /> },
-        { href: "/settings", label: "Settings", icon: <FiSettings /> },
       ],
     [navLinks, dashboardHref],
   );
@@ -140,7 +139,6 @@ export default function GlobalHeader({
                       type="button"
                       style={{
                         fontFamily: "inherit",
-                        fontSize: "inherit",
                         fontWeight: "inherit",
                         color: "inherit",
                         background: "none",

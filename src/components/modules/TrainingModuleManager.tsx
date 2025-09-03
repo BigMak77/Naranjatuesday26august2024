@@ -17,6 +17,7 @@ import AddModuleTab from "@/components/modules/AddModuleTab";
 import { ViewModuleTab } from "@/components/modules/ViewModuleTab";
 import AssignModuleTab from "@/components/modules/AssignModuleTab";
 import NeonIconButton from "@/components/ui/NeonIconButton";
+import MainHeader from "../ui/MainHeader";
 
 import "@/components/folder-tabs-equal-width.css";
 
@@ -112,6 +113,7 @@ export default function TrainingModuleManager() {
 
   return (
     <div className="training-module-manager-container">
+      <MainHeader title="Training Module Manager" subtitle="Add, view, assign, and archive training modules" />
       <FolderTabs
         tabs={tabList}
         activeTab={activeTab}

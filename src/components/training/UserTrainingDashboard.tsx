@@ -7,6 +7,7 @@ import NeonTable from "@/components/NeonTable";
 import NeonIconButton from "../ui/NeonIconButton";
 import { FiX, FiDownload, FiCheck, FiCircle, FiAlertCircle } from "react-icons/fi";
 import jsPDF from "jspdf";
+import MainHeader from "../ui/MainHeader";
 
 type ItemType = "module" | "document" | "behaviour";
 type Status = "assigned" | "opened" | "completed";
@@ -351,8 +352,8 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
           <NeonIconButton
             as="button"
             variant="view"
-            icon={<FiDownload />}
             title={`View ${a.type === "module" ? "Module" : "Document"}`}
+            className="neon-btn-view"
             onClick={() =>
               a.type === "module"
                 ? handleViewModule({ id: a.id, name: a.name })
@@ -363,9 +364,9 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
         {!a.completed_at && (
           <NeonIconButton
             as="button"
-            variant="save"
-            icon={<FiCheck />}
+            variant="submit"
             title="Mark Complete"
+            className="neon-btn-confirm"
             onClick={() => handleComplete(a)}
             disabled={completing.has(rowKey(a))}
           />
@@ -374,8 +375,8 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
           <NeonIconButton
             as="button"
             variant="download"
-            icon={<FiDownload />}
             title="Certificate"
+            className="neon-btn-download"
             onClick={() => handleDownloadCertificatePDFDirect(a)}
           />
         )}
@@ -405,6 +406,7 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
   // --- UI rendering ---------------------------------------------------------
   return (
     <NeonPanel className="w-full">
+      <MainHeader title="User Training Dashboard" subtitle={userFullName ? `Welcome, ${userFullName}` : undefined} />
       {loading ? (
         <p className="neon-success">Loading...</p>
       ) : error ? (
@@ -431,15 +433,15 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
                           <NeonIconButton
                             as="button"
                             variant="view"
-                            icon={<FiDownload />}
                             title="View Module"
+                            className="neon-btn-view"
                             onClick={() => handleViewModule({ id: a.id, name: a.name })}
                           />
                           <NeonIconButton
                             as="button"
-                            variant="save"
-                            icon={<FiCheck />}
+                            variant="submit"
                             title="Mark Complete"
+                            className="neon-btn-confirm"
                             onClick={() => handleComplete(a)}
                             disabled={completing.has(rowKey(a))}
                           />
@@ -467,15 +469,15 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
                           <NeonIconButton
                             as="button"
                             variant="view"
-                            icon={<FiDownload />}
                             title="View Document"
+                            className="neon-btn-view"
                             onClick={() => handleViewDocument({ id: a.id, name: a.name })}
                           />
                           <NeonIconButton
                             as="button"
-                            variant="save"
-                            icon={<FiCheck />}
+                            variant="submit"
                             title="Mark Complete"
+                            className="neon-btn-confirm"
                             onClick={() => handleComplete(a)}
                             disabled={completing.has(rowKey(a))}
                           />
@@ -503,8 +505,8 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
                     <NeonIconButton
                       as="button"
                       variant="download"
-                      icon={<FiDownload />}
                       title="Certificate"
+                      className="neon-btn-download"
                       onClick={() => handleDownloadCertificatePDFDirect(a)}
                       disabled={a.status !== "completed" || !a.completed_at}
                     />

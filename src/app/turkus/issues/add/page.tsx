@@ -10,7 +10,7 @@ export default function RaiseIssuePage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState("Medium");
-  const [category] = useState("");
+  const [category, setCategory] = useState("");
   const [departmentId, setDepartmentId] = useState("");
   const [departments, setDepartments] = useState<
     { id: string; name: string }[]
@@ -98,6 +98,19 @@ export default function RaiseIssuePage() {
             <option value="Low">Low</option>
             <option value="Medium">Medium</option>
             <option value="High">High</option>
+          </select>
+          <select
+            className="neon-input"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            required
+            style={{ marginBottom: 8 }}
+          >
+            <option value="">Select Category</option>
+            <option value="Safety">Safety</option>
+            <option value="Quality">Quality</option>
+            <option value="Environment">Environment</option>
+            <option value="Other">Other</option>
           </select>
           <select
             className="neon-input"

@@ -19,6 +19,8 @@ import {
   FiUpload,
   FiSearch,
   FiRefreshCw,
+  FiCheckSquare,
+  FiServer,
 } from "react-icons/fi";
 
 const ICONS = {
@@ -39,6 +41,8 @@ const ICONS = {
   info: <FiInfo />,
   login: <FiLogIn />,
   close: <FiX />,
+  assign: <FiCheckSquare style={{ color: "#d9ed92" }} />,
+  viewArchive: <FiServer />,
 } as const;
 
 type Variant = keyof typeof ICONS;
@@ -67,6 +71,7 @@ type Props = ButtonProps | AnchorProps | NextLinkOwn;
 
 export default function NeonIconButton(p: Props) {
   const { variant, icon, title, className = "" } = p;
+  // Remove all spacing/padding from button and icon
   const classes = `neon-btn neon-btn-${variant} ${className}`.trim();
   const IconEl = icon ?? ICONS[variant] ?? <FiChevronRight />;
 
@@ -75,7 +80,7 @@ export default function NeonIconButton(p: Props) {
     const { children, ...domProps } = p as AnchorProps & BaseProps;
     return (
       <a {...domProps} className={classes} title={title}>
-        {IconEl}
+        <span>{IconEl}</span>
         {children}
       </a>
     );
@@ -86,7 +91,7 @@ export default function NeonIconButton(p: Props) {
     const { children, href, ...linkProps } = p as NextLinkOwn & BaseProps;
     return (
       <Link href={href} {...linkProps} className={classes} title={title}>
-        {IconEl}
+        <span>{IconEl}</span>
         {children}
       </Link>
     );
@@ -102,7 +107,8 @@ export default function NeonIconButton(p: Props) {
         className={classes}
         title={title}
       >
-        {IconEl}
+        <span>{IconEl}</span>
+        {children}
       </button>
     );
   }

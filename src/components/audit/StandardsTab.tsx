@@ -7,6 +7,7 @@ import NeonPanel from "@/components/NeonPanel";
 import NeonTable from "@/components/NeonTable";
 import OverlayDialog from '@/components/ui/OverlayDialog';
 import NeonForm from '@/components/NeonForm';
+import NeonIconButton from '@/components/ui/NeonIconButton';
 
 // Type for standard_sections row
 interface StandardSection {
@@ -62,15 +63,21 @@ export default function StandardsTab() {
   // State for selected section
   const [selectedHeaderId, setSelectedHeaderId] = useState<string | null>(null);
   // Modal state
-  const [modalOpen, setModalOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [questions, setQuestions] = useState<string[]>([""]);
   const [existingQuestions, setExistingQuestions] = useState<{ id: string; question_text: string }[]>([]);
   const [editingQuestions, setEditingQuestions] = useState<{ id: string; question_text: string }[]>([]);
 
+  // Add state for description editing
+  const [descEditSection, setDescEditSection] = useState<StandardSection | null>(null);
+  const [descEditValue, setDescEditValue] = useState("");
+  const [descEditSaving, setDescEditSaving] = useState(false);
+  const [descEditError, setDescEditError] = useState<string | null>(null);
+
   // Fetch existing questions when modal opens
   useEffect(() => {
-    if (!modalOpen || !selectedHeaderId) {
+    if (!modalOpen) {
       setExistingQuestions([]);
       return;
     }
@@ -79,12 +86,12 @@ export default function StandardsTab() {
       const { data, error } = await supabase
         .from("audit_questions")
         .select("id, question_text")
-        .eq("standard_section_id", selectedHeaderId);
+        .eq("standard_section_id", modalOpen); // Use modalOpen as section id
       if (!alive) return;
       setExistingQuestions(error ? [] : (data ?? []));
     })();
     return () => { alive = false; };
-  }, [modalOpen, selectedHeaderId]);
+  }, [modalOpen]);
 
   // When existingQuestions change, sync editingQuestions
   useEffect(() => {
@@ -125,7 +132,7 @@ export default function StandardsTab() {
     const { data } = await supabase
       .from("audit_questions")
       .select("id, question_text")
-      .eq("standard_section_id", selectedHeaderId);
+      .eq("standard_section_id", modalOpen); // Use modalOpen for consistency
     setExistingQuestions(data ?? []);
   };
 
@@ -133,7 +140,7 @@ export default function StandardsTab() {
   const handleAddQuestions = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
-    if (!selectedHeaderId || questions.every(q => !q.trim())) {
+    if (!modalOpen || questions.every(q => !q.trim())) {
       setFormError("At least one question is required.");
       return;
     }
@@ -142,7 +149,7 @@ export default function StandardsTab() {
     const toInsert = questions.filter(q => q.trim() && !existingTexts.includes(q.trim().toLowerCase())).map(q => ({
       question_text: q.trim(),
       fail_department_id: null,
-      standard_section_id: selectedHeaderId
+      standard_section_id: modalOpen // Use modalOpen as section id
     }));
     if (toInsert.length === 0) {
       setFormError("No new questions to add.");
@@ -160,10 +167,10 @@ export default function StandardsTab() {
     const { data } = await supabase
       .from("audit_questions")
       .select("id, question_text")
-      .eq("standard_section_id", selectedHeaderId);
+      .eq("standard_section_id", modalOpen); // Use modalOpen as section id
     setExistingQuestions(data ?? []);
-    setModalOpen(false);
-    setQuestions([""]);
+    setEditingQuestions((data ?? []).map(q => ({ ...q })));
+    setQuestions([""]); // Optionally reset input
   };
 
   return (
@@ -211,7 +218,7 @@ export default function StandardsTab() {
                     <span
                       className="standards-section-header-title neon-link"
                       style={{ cursor: "pointer", fontWeight: "bold", fontSize: "1.2rem" }}
-                      onClick={() => setModalOpen(true)}
+                      onClick={() => setModalOpen(header.id)}
                     >
                       {header.title}
                     </span>
@@ -219,11 +226,14 @@ export default function StandardsTab() {
                   </div>
                   <NeonTable
                     columns={[
-                      { header: "Code", accessor: "code", width: 60, render: (value) => (
+                      { header: "Code", accessor: "code", width: 60, render: (value, row) => (
                         <span
                           className="neon-link neon-table-code-link"
                           style={{ cursor: "pointer", textAlign: "center", display: "block", margin: "0 auto" }}
-                          onClick={() => setModalOpen(true)}
+                          onClick={() => {
+                            const section = row as unknown as StandardSection;
+                            setModalOpen(section.id);
+                          }}
                         >
                           {String(value ?? '')}
                         </span>
@@ -232,72 +242,163 @@ export default function StandardsTab() {
                       { header: "Description", accessor: "description", width: 320 },
                       { header: "Created", accessor: "created_at", width: 120, render: (value) => <div style={{textAlign: 'center'}}>{value ? new Date(String(value)).toLocaleDateString() : ""}</div> },
                       { header: "Updated", accessor: "updated_at", width: 120, render: (value) => <div style={{textAlign: 'center'}}>{value ? new Date(String(value)).toLocaleDateString() : ""}</div> },
+                      {
+                        header: "Edit",
+                        accessor: "edit",
+                        width: 60,
+                        render: (_, row) => {
+                          const section = row as unknown as StandardSection;
+                          return (
+                            <NeonIconButton
+                              variant="edit"
+                              title="Edit section description"
+                              onClick={() => {
+                                setDescEditSection(section);
+                                setDescEditValue(section.description ?? "");
+                                setDescEditError(null);
+                              }}
+                            />
+                          );
+                        },
+                      },
+                      {
+                        header: "Manage Questions",
+                        accessor: "manageQuestions",
+                        width: 60,
+                        render: (_, row) => {
+                          const section = row as unknown as StandardSection;
+                          return (
+                            <NeonIconButton
+                              variant="view"
+                              title="Manage questions for this section"
+                              onClick={() => {
+                                setSelectedHeaderId(section.id);
+                                setModalOpen(section.id);
+                              }}
+                            />
+                          );
+                        },
+                      },
                     ]}
                     data={sortedChildren.map(s => ({ ...s }))}
                     toolbar={null}
                   />
-                  {modalOpen && (
-                    <OverlayDialog open={modalOpen} onClose={() => setModalOpen(false)}>
-                      <div className="standards-modal-wide">
-                        {header.description && (
-                          <div className="standards-section-header-desc" style={{ marginBottom: '1.5rem' }}>
-                            {header.description}
-                          </div>
-                        )}
-                        {editingQuestions.length > 0 && (
-                          <div style={{ marginBottom: '2rem' }}>
-                            <div className="neon-label" style={{ marginBottom: '0.5rem' }}>Existing Questions:</div>
-                            <ul style={{ paddingLeft: '1.5rem', margin: 0 }}>
-                              {editingQuestions.map((q, idx) => (
-                                <li key={q.id} style={{ marginBottom: '0.5rem', color: '#ccc', listStyle: 'none' }}>
-                                  <input
-                                    type="text"
-                                    className="neon-input"
-                                    value={q.question_text}
-                                    onChange={e => handleEditExistingQuestion(idx, e.target.value)}
-                                    style={{ width: '80%' }}
-                                  />
-                                </li>
-                              ))}
-                            </ul>
-                            <button type="button" className="neon-btn neon-btn-save" onClick={handleSaveEditedQuestions} style={{ marginTop: '0.5rem' }}>
-                              Save Changes
-                            </button>
-                          </div>
-                        )}
-                        <NeonForm
-                          title={`Add Questions to ${header.title}`}
-                          onSubmit={handleAddQuestions}
-                          submitLabel="Add Questions"
-                        >
-                          {questions.map((q, idx) => (
-                            <div className="neon-form-group" key={idx} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                              <label htmlFor={`new-question-${idx}`} className="neon-form-label">Question {idx + 1}</label>
-                              <input
-                                id={`new-question-${idx}`}
-                                type="text"
-                                className="neon-input"
-                                value={q}
-                                onChange={e => handleQuestionChange(idx, e.target.value)}
-                                required={idx === 0}
-                              />
-                            </div>
-                          ))}
-                          <div style={{ margin: '1rem 0' }}>
-                            <button type="button" className="neon-btn neon-btn-add" onClick={handleAddQuestionInput} title="Add another question">
-                              + Add Question
-                            </button>
-                          </div>
-                          {formError && <div className="neon-error">{formError}</div>}
-                        </NeonForm>
-                      </div>
-                    </OverlayDialog>
-                  )}
                 </div>
               );
             })()
           )}
         </div>
+      )}
+      {/* Description Edit Overlay */}
+      {descEditSection && (
+        <OverlayDialog open={!!descEditSection} onClose={() => setDescEditSection(null)}>
+          <div className="standards-modal-wide">
+            <h3>Edit Section Description</h3>
+            <form
+              onSubmit={async e => {
+                e.preventDefault();
+                setDescEditSaving(true);
+                setDescEditError(null);
+                const { error: updateError } = await supabase
+                  .from("standard_sections")
+                  .update({ description: descEditValue })
+                  .eq("id", descEditSection.id);
+                if (updateError) {
+                  setDescEditError(updateError.message);
+                  setDescEditSaving(false);
+                  return;
+                }
+                setDescEditSaving(false);
+                // Refresh sections
+                const { data } = await supabase
+                  .from("standard_sections")
+                  .select("id, standard_id, code, title, description, parent_section_id, created_at, updated_at")
+                  .order("title", { ascending: true });
+                setSections(data ?? []);
+                // Only close modal if user wants to (e.g. after save, keep modal open for further edits)
+                setDescEditSection(null);
+              }}
+            >
+              <label className="neon-label" htmlFor="edit-desc">Description</label>
+              <textarea
+                id="edit-desc"
+                className="neon-input"
+                value={descEditValue}
+                onChange={e => setDescEditValue(e.target.value)}
+                rows={4}
+                style={{ width: "100%" }}
+                disabled={descEditSaving}
+              />
+              {descEditError && <div className="neon-error">{descEditError}</div>}
+              <div style={{ marginTop: "1rem" }}>
+                <button type="submit" className="neon-btn neon-btn-save" disabled={descEditSaving}>
+                  {descEditSaving ? "Saving…" : "Save"}
+                </button>
+                <button type="button" className="neon-btn neon-btn-secondary" onClick={() => setDescEditSection(null)} disabled={descEditSaving} style={{ marginLeft: 8 }}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </OverlayDialog>
+      )}
+      {/* Questions Management Overlay */}
+      {modalOpen && (
+        <OverlayDialog open={!!modalOpen} onClose={() => setModalOpen(null)}>
+          <div className="standards-modal-wide">
+            <h3>Manage Questions</h3>
+            <form onSubmit={handleAddQuestions}>
+              <label className="neon-label">Add New Questions</label>
+              {questions.map((q, idx) => (
+                <div key={idx} style={{ display: "flex", alignItems: "center", marginBottom: 4 }}>
+                  <input
+                    className="neon-input"
+                    type="text"
+                    value={q}
+                    onChange={e => handleQuestionChange(idx, e.target.value)}
+                    placeholder={`Question ${idx + 1}`}
+                    style={{ flex: 1 }}
+                  />
+                  {idx === questions.length - 1 && (
+                    <NeonIconButton
+                      variant="add"
+                      title="Add another question"
+                      onClick={handleAddQuestionInput}
+                      style={{ marginLeft: 8 }}
+                    />
+                  )}
+                </div>
+              ))}
+              <button type="submit" className="neon-btn neon-btn-save" style={{ marginTop: 8 }}>Add Questions</button>
+            </form>
+            <hr style={{ margin: "1rem 0" }} />
+            <label className="neon-label">Existing Questions</label>
+            {existingQuestions.length === 0 ? (
+              <div style={{ color: "#888", marginBottom: 8 }}>No questions yet.</div>
+            ) : (
+              <form onSubmit={e => { e.preventDefault(); handleSaveEditedQuestions(); }}>
+                {editingQuestions.map((q, idx) => (
+                  <div key={q.id} style={{ display: "flex", alignItems: "center", marginBottom: 4 }}>
+                    <input
+                      className="neon-input"
+                      type="text"
+                      value={q.question_text}
+                      onChange={e => handleEditExistingQuestion(idx, e.target.value)}
+                      style={{ flex: 1 }}
+                    />
+                  </div>
+                ))}
+                <button type="submit" className="neon-btn neon-btn-save" style={{ marginTop: 8 }}>Save Changes</button>
+              </form>
+            )}
+            {formError && <div className="neon-error" style={{ marginTop: 8 }}>{formError}</div>}
+            <div style={{ marginTop: "1rem" }}>
+              <button type="button" className="neon-btn neon-btn-secondary" onClick={() => setModalOpen(null)}>
+                Close
+              </button>
+            </div>
+          </div>
+        </OverlayDialog>
       )}
     </NeonPanel>
   );
