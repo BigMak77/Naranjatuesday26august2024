@@ -18,6 +18,7 @@ import NeonIconButton from "@/components/ui/NeonIconButton";
 // Or, if using absolute imports, ensure the file exists at 'src/components/NeonIconButton.tsx'
 import IncidentFormMinimal from "@/components/safety/IncidentFormMinimal";
 import type { MinimalIncidentForm } from "@/components/safety/IncidentFormMinimal";
+import MainHeader from "@/components/ui/MainHeader";
 
 export default function HealthSafetyManager() {
   const [activeTab, setActiveTab] = useState<
@@ -31,6 +32,10 @@ export default function HealthSafetyManager() {
   return (
     <div className="after-hero">
       <div className="global-content">
+        <MainHeader
+          title="Health & Safety Manager"
+          subtitle="Manage risk assessments, incidents, policies, and first aid records"
+        />
         <main className="global-content">
           <div style={{ marginBottom: 24 }}>
             <FolderTabs

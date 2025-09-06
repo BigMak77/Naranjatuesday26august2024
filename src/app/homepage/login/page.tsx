@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-client";
-import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -29,195 +28,155 @@ export default function LoginPage() {
   };
 
   return (
-    <div
-      className="login-page-root"
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "linear-gradient(135deg, #013b3b 0%, #40E0D0 100%)",
-        position: "relative",
-      }}
-    >
-      <div
-        className="login-form-wrapper"
-        style={{ width: "100%", maxWidth: 400, margin: "0 auto", zIndex: 2 }}
-      >
-        <div
-          className="login-form-panel"
-          style={{
-            background: "var(--panel)",
-            border: "2px solid var(--accent)",
-            borderRadius: "var(--radius)",
-            boxShadow: "var(--shadow-neon)",
-            padding: "2.5rem 2rem",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-          }}
-        >
-          <h1
-            className="login-title"
-            style={{
-              color: "var(--accent)",
-              fontSize: "2rem",
-              fontWeight: 800,
-              marginBottom: "1rem",
-              textAlign: "center",
-            }}
+    <div className="login-bg-wrapper">
+      <div className="login-bg-image" aria-hidden="true" />
+      <div className="login-bg-overlay" aria-hidden="true" />
+      <div className="login-center-panel">
+        <form onSubmit={handleLogin} className="login-form">
+          <h1 className="login-title">NARANJA Login</h1>
+          <p className="login-subtitle">Sign in to your account</p>
+          <div>
+            <label className="login-label">Email</label>
+            <input
+              type="email"
+              required
+              placeholder="you@example.com"
+              className="login-input"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="login-label">Password</label>
+            <input
+              type="password"
+              required
+              placeholder="********"
+              className="login-input"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+          <button
+            type="submit"
+            className="neon-btn neon-btn-login neon-btn-square login-submit-btn"
+            data-variant="login"
+            disabled={loading}
           >
-            NARANJA Login
-          </h1>
-          <p
-            style={{
-              color: "var(--neon)",
-              marginBottom: "2rem",
-              textAlign: "center",
-              fontSize: "1.1rem",
-            }}
-          >
-            Sign in to your account
-          </p>
-          <form
-            onSubmit={handleLogin}
-            className="login-form"
-            style={{ width: "100%" }}
-          >
-            <div style={{ marginBottom: "1.5rem" }}>
-              <label
-                className="login-label"
-                style={{
-                  color: "var(--neon)",
-                  fontWeight: 600,
-                  marginBottom: ".5rem",
-                  display: "block",
-                }}
-              >
-                Email
-              </label>
-              <input
-                type="email"
-                required
-                placeholder="you@example.com"
-                className="login-input"
-                style={{
-                  width: "100%",
-                  background: "var(--field)",
-                  color: "var(--text)",
-                  border: "1.5px solid var(--neon)",
-                  borderRadius: "var(--r-sm)",
-                  padding: ".75rem 1rem",
-                  fontSize: "1rem",
-                  marginBottom: ".5rem",
-                }}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div style={{ marginBottom: "1.5rem" }}>
-              <label
-                className="login-label"
-                style={{
-                  color: "var(--neon)",
-                  fontWeight: 600,
-                  marginBottom: ".5rem",
-                  display: "block",
-                }}
-              >
-                Password
-              </label>
-              <input
-                type="password"
-                required
-                placeholder="********"
-                className="login-input"
-                style={{
-                  width: "100%",
-                  background: "var(--field)",
-                  color: "var(--text)",
-                  border: "1.5px solid var(--neon)",
-                  borderRadius: "var(--r-sm)",
-                  padding: ".75rem 1rem",
-                  fontSize: "1rem",
-                  marginBottom: ".5rem",
-                }}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            <button
-              type="submit"
-              className="neon-btn neon-btn-login neon-btn-square login-submit-btn"
-              data-variant="login"
-              disabled={loading}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="feather feather-log-in neon-icon"
             >
-              {loading ? (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="feather feather-log-in neon-icon"
-                >
-                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-                  <polyline points="10 17 15 12 10 7"></polyline>
-                  <line x1="3" y1="12" x2="15" y2="12"></line>
-                </svg>
-              ) : (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="feather feather-log-in neon-icon"
-                >
-                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-                  <polyline points="10 17 15 12 10 7"></polyline>
-                  <line x1="3" y1="12" x2="15" y2="12"></line>
-                </svg>
-              )}
-            </button>
-            {error && (
-              <p
-                className="login-error-msg"
-                style={{
-                  color: "#ff4d4f",
-                  fontWeight: 600,
-                  textAlign: "center",
-                  marginTop: "1rem",
-                }}
-              >
-                {error}
-              </p>
-            )}
-          </form>
-          <Link
-            href="/"
-            className="login-back-link"
-            style={{
-              marginTop: "2rem",
-              color: "var(--neon)",
-              textDecoration: "underline",
-              fontWeight: 600,
-              fontSize: "1rem",
-              transition: "color .18s",
-            }}
-          >
-            ← Back to Home
-          </Link>
-        </div>
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+              <polyline points="10 17 15 12 10 7"></polyline>
+              <line x1="3" y1="12" x2="15" y2="12"></line>
+            </svg>
+          </button>
+          {error && <p className="login-error-msg">{error}</p>}
+        </form>
       </div>
+      <style jsx>{`
+        .login-bg-wrapper {
+          position: fixed;
+          inset: 0;
+          width: 100vw;
+          height: 100vh;
+          min-height: 100vh;
+          z-index: 0;
+          overflow: hidden;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .login-bg-image {
+          position: absolute;
+          inset: 0;
+          width: 100vw;
+          height: 100vh;
+          background: url('/background1.jpg') center center / cover no-repeat;
+          z-index: 1;
+        }
+        .login-bg-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(120deg, rgba(4,8,9,0.82) 0%, rgba(31,118,125,0.82) 100%);
+          z-index: 2;
+        }
+        .login-center-panel {
+          position: relative;
+          z-index: 3;
+          min-width: 340px;
+          max-width: 400px;
+          width: 100%;
+          margin: 0 auto;
+          border-radius: 18px;
+          box-shadow: 0 4px 32px 0 #000a, 0 0 0 2px var(--neon, #40e0d0);
+          background: rgba(16, 32, 36, 0.82);
+          backdrop-filter: blur(12px) saturate(1.2);
+          padding: 2.5rem 2rem 2rem 2rem;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+        .login-form {
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+        }
+        .login-title {
+          text-align: center;
+          font-size: 2rem;
+          font-weight: 800;
+          color: var(--accent, #fa7a20);
+          margin-bottom: 0.5rem;
+        }
+        .login-subtitle {
+          text-align: center;
+          color: var(--neon, #40e0d0);
+          margin-bottom: 1.5rem;
+          font-size: 1.1rem;
+        }
+        .login-label {
+          color: var(--neon, #40e0d0);
+          font-weight: 600;
+          margin-bottom: .5rem;
+          display: block;
+        }
+        .login-input {
+          width: 100%;
+          background: var(--field, #012b2b);
+          color: var(--text, #fff);
+          border: 1.5px solid var(--neon, #40e0d0);
+          border-radius: var(--r-sm, 8px);
+          padding: .75rem 1rem;
+          font-size: 1rem;
+        }
+        .login-submit-btn {
+          margin-top: 0.5rem;
+        }
+        .login-error-msg {
+          color: #ff4d4f;
+          font-weight: 600;
+          text-align: center;
+          margin-top: 1rem;
+        }
+        @media (max-width: 600px) {
+          .login-center-panel {
+            min-width: 0;
+            max-width: 98vw;
+            padding: 1.5rem 0.5rem;
+          }
+        }
+      `}</style>
     </div>
   );
 }

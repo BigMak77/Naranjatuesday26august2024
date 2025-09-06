@@ -13,8 +13,9 @@ export default function AboutPage() {
           <div className="about-content-wrapper">
             {/* Back to Home Link */}
             <div className="about-back-link">
-              <Link href="/" className="about-back-link-text">
-                ← Back to Home
+              <Link href="/" className="neon-btn neon-btn-orange" aria-label="Back to homepage" style={{ display: "inline-flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: "1.08rem" }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                Back to Home
               </Link>
             </div>
             {/* Content Card */}
@@ -37,7 +38,7 @@ export default function AboutPage() {
             <div className="about-contact">
               <p className="about-contact-text">
                 Want to know more?{" "}
-                <Link href="/contact-us" className="about-contact-link">
+                <Link href="/homepage/contact-us" className="about-contact-link">
                   Get in touch
                 </Link>{" "}
                 with us!

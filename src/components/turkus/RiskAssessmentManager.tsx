@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
-import { FiClipboard, FiEdit2, FiUserPlus } from "react-icons/fi";
+import { FiClipboard, FiUserPlus } from "react-icons/fi";
 import NeonForm from "@/components/NeonForm";
 import NeonTable from "@/components/NeonTable";
 import NeonPanel from "@/components/NeonPanel";
@@ -139,18 +139,11 @@ export default function RiskAssessmentManager() {
         </h2>
         <NeonIconButton
           variant="add"
-          icon={<FiEdit2 />}
           title="Create New"
           onClick={() => {
             setMode("create");
             setSelectedId(null);
           }}
-        />
-        <NeonIconButton
-          variant="view"
-          title="View All"
-          icon={<FiClipboard />}
-          onClick={() => setMode("list")}
         />
       </div>
 
@@ -171,16 +164,14 @@ export default function RiskAssessmentManager() {
                 <NeonIconButton
                   variant="edit"
                   title="Amend"
-                  icon={<FiEdit2 />}
                   onClick={() => {
                     setMode("edit");
                     setSelectedId(risk.id);
                   }}
                 />
                 <NeonIconButton
-                  variant="view"
+                  variant="assign"
                   title="Assign"
-                  icon={<FiUserPlus />}
                   onClick={() => {
                     setMode("assign");
                     setSelectedId(risk.id);

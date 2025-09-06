@@ -1,9 +1,7 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React from "react";
 import Link from "next/link";
-import useSWR from "swr";
-import { supabase } from "@/lib/supabase-client";
 import {
   FiUsers,
   FiPlus,
@@ -24,6 +22,7 @@ import {
   FiUserCheck,
   FiClock,
 } from "react-icons/fi";
+import MainHeader from "@/components/ui/MainHeader";
 
 /*********************************
  * Types
@@ -41,50 +40,6 @@ interface DashboardSection {
   icon: React.ReactNode; // large icon for card header
   primary: DashboardAction; // main click target for the card
   actions?: DashboardAction[]; // secondary icon-only actions
-}
-
-/*********************************
- * Data fetching
- *********************************/
-const fetchCompliance = async () => {
-  const { data, error } = await supabase
-    .from("user_compliance_dashboard")
-    .select("completed_items,total_items");
-  if (error) throw error;
-  return data as { completed_items: number; total_items: number }[];
-};
-
-function useCompliance() {
-  const { data, error, isLoading } = useSWR(
-    "user_compliance_dashboard",
-    fetchCompliance,
-    {
-      revalidateOnFocus: false,
-      shouldRetryOnError: true,
-    }
-  );
-
-  const stats = useMemo(() => {
-    if (!data || data.length === 0) {
-      return { avg: null as number | null, lowCount: 0 };
-    }
-    let percentSum = 0;
-    let counted = 0;
-    let low = 0;
-    for (const row of data) {
-      const total = row.total_items || 0;
-      if (total > 0) {
-        const p = (row.completed_items / total) * 100;
-        percentSum += p;
-        counted += 1;
-        if (p < 70) low += 1;
-      }
-    }
-    const avg = counted ? Number((percentSum / counted).toFixed(1)) : null;
-    return { avg, lowCount: low };
-  }, [data]);
-
-  return { ...stats, isLoading, error };
 }
 
 /*********************************
@@ -434,10 +389,12 @@ function FeatureCard({
  * Page
  *********************************/
 export default function DashboardPage() {
-  const { avg, lowCount, isLoading, error } = useCompliance();
-
   return (
     <>
+      <MainHeader
+        title="Admin Dashboard"
+        subtitle="Quick access to modules, documents, roles, and health & safety"
+      />
       {/* Cards */}
       <section aria-label="Dashboard shortcuts" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "1rem", marginTop: "1rem" }}>
         {/* Quick-create card */}
@@ -447,17 +404,10 @@ export default function DashboardPage() {
             <span className="neon-feature-card-title">Create Auth User</span>
           </div>
         </Link>
-
         {SECTIONS.map((s) => (
           <FeatureCard key={s.key} title={s.title} icon={s.icon} primary={s.primary} actions={s.actions} />
         ))}
       </section>
-
-      {error && (
-        <p role="alert" className="neon-feature-card-text" style={{ marginTop: "0.75rem", color: "#ffd2d2" }}>
-          Failed to load compliance data.
-        </p>
-      )}
     </>
   );
 }

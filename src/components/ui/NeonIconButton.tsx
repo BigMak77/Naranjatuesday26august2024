@@ -21,6 +21,7 @@ import {
   FiRefreshCw,
   FiCheckSquare,
   FiServer,
+  FiUserPlus,
 } from "react-icons/fi";
 
 const ICONS = {
@@ -112,4 +113,23 @@ export default function NeonIconButton(p: Props) {
       </button>
     );
   }
+}
+
+export interface NeonAddPeopleButtonProps {
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
+  title?: string;
+}
+
+export function NeonAddPeopleButton({ onClick, title = "Add People" }: NeonAddPeopleButtonProps) {
+  return (
+    <button
+      className="neon-btn neon-btn-add-people"
+      title={title}
+      aria-label={title}
+      onClick={onClick}
+      type="button"
+    >
+      <FiUserPlus />
+    </button>
+  );
 }

@@ -52,22 +52,22 @@ export default function TrainingModuleManager() {
     {
       key: "add",
       label: "",
-      icon: <FiPlus className="training-module-manager-tab-icon" />,
+      icon: <FiPlus />,
     },
     {
       key: "view",
       label: "",
-      icon: <FiClipboard className="training-module-manager-tab-icon" />,
+      icon: <FiClipboard />,
     },
     {
       key: "assign",
       label: "",
-      icon: <FiSend className="training-module-manager-tab-icon" />,
+      icon: <FiSend />,
     },
     {
       key: "archive",
       label: "",
-      icon: <FiHelpCircle className="training-module-manager-tab-icon" />,
+      icon: <FiHelpCircle />,
     },
   ];
 
@@ -112,31 +112,35 @@ export default function TrainingModuleManager() {
     : null;
 
   return (
-    <div className="training-module-manager-container">
+    <div className="neon-panel">
       <MainHeader title="Training Module Manager" subtitle="Add, view, assign, and archive training modules" />
       <FolderTabs
-        tabs={tabList}
+        tabs={tabList.map(tab => ({
+          ...tab,
+          icon: React.cloneElement(tab.icon, { className: undefined }) // Remove custom icon class
+        }))}
         activeTab={activeTab}
         onChange={(tabKey) => {
           setActiveTab(tabKey as typeof activeTab);
           setSelectedModule(null);
         }}
       />
-      <div className="training-module-manager-tab-spacer" />
+      {/* Spacer for visual separation */}
+      <div style={{ height: 24 }} />
       {activeTab === "add" && (
-        <div className="training-module-manager-tab-content">
+        <div>
           <AddModuleTab onSuccess={() => setActiveTab("view")} />
         </div>
       )}
       {activeTab === "view" && (
-        <div className="training-module-manager-tab-content">
-          <div className="training-module-manager-search-row">
+        <div>
+          <div style={{ marginBottom: 16 }}>
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search modules..."
-              className="training-module-manager-search-input"
+              className="neon-input"
             />
           </div>
           <NeonTable
@@ -151,16 +155,14 @@ export default function TrainingModuleManager() {
               ...m,
               status: m.is_archived ? "Archived" : "Active",
               actions: (
-                <div className="training-module-manager-actions-row">
-                  <NeonIconButton
-                    variant="edit"
-                    icon={<FiEdit />}
-                    title="Edit Module"
-                    onClick={() =>
-                      (window.location.href = `/admin/modules/edit/${m.id}`)
-                    }
-                  />
-                </div>
+                <NeonIconButton
+                  variant="edit"
+                  icon={<FiEdit />}
+                  title="Edit Module"
+                  onClick={() =>
+                    (window.location.href = `/admin/modules/edit/${m.id}`)
+                  }
+                />
               ),
             }))}
           />
@@ -170,19 +172,19 @@ export default function TrainingModuleManager() {
         </div>
       )}
       {activeTab === "assign" && (
-        <div className="training-module-manager-tab-content">
+        <div>
           <AssignModuleTab />
         </div>
       )}
       {activeTab === "archive" && (
-        <div className="training-module-manager-tab-content">
-          <div className="training-module-manager-search-row">
+        <div>
+          <div style={{ marginBottom: 16 }}>
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search modules to archive..."
-              className="training-module-manager-search-input"
+              className="neon-input"
             />
           </div>
           <NeonTable
@@ -197,34 +199,32 @@ export default function TrainingModuleManager() {
               .map((m) => ({
                 ...m,
                 archive: (
-                  <div className="training-module-manager-actions-row">
-                    <NeonIconButton
-                      variant="archive"
-                      icon={<FiArchive />}
-                      title="Archive Module"
-                      onClick={() => setSelectedModule(m)}
-                    />
-                  </div>
+                  <NeonIconButton
+                    variant="archive"
+                    icon={<FiArchive />}
+                    title="Archive Module"
+                    onClick={() => setSelectedModule(m)}
+                  />
                 ),
               }))}
           />
           {selectedModule && (
-            <div className="training-module-manager-archive-confirm">
-              <h2 className="training-module-manager-archive-title">
+            <div>
+              <h2 style={{ color: "var(--neon)", fontWeight: 700, fontSize: "1.25rem" }}>
                 Archive Module
               </h2>
-              <p className="training-module-manager-archive-desc">
+              <p style={{ marginBottom: 12 }}>
                 Are you sure you want to archive{" "}
-                <span className="training-module-manager-archive-module-name">
+                <span style={{ color: "var(--accent)", fontWeight: 600 }}>
                   {selectedModule.name}
                 </span>
                 ? This action cannot be undone.
               </p>
-              <div className="training-module-manager-archive-actions">
+              <div style={{ display: "flex", gap: 12 }}>
                 <NeonIconButton
                   variant="archive"
                   icon={
-                    <FiArchive className="training-module-manager-btn-archive-icon" />
+                    <FiArchive />
                   }
                   title="Archive"
                   onClick={async () => {

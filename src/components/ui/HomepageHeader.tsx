@@ -36,7 +36,7 @@ type GlobalHeaderProps = {
   fullBleed?: boolean;
 };
 
-export default function GlobalHeader({
+export default function HomepageHeader({
   logoPriority = false,
   navLinks,
   fullBleed = true,
@@ -45,7 +45,7 @@ export default function GlobalHeader({
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [turkusDropdownOpen, setTurkusDropdownOpen] = useState(false);
-  const [signingOut, setSigningOut] = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false);
   const handleTurkusDropdown = () => setTurkusDropdownOpen((open) => !open);
 
   const dashboardHref = useMemo(() => {
@@ -96,18 +96,20 @@ export default function GlobalHeader({
   }, [user]);
 
   async function handleSignOut() {
-    setSigningOut(true);
-    setMenuOpen(false);
+    await supabase.auth.signOut();
+    // Optional: hard refresh or route to login
+    // window.location.href = "/login";
+  }
+
+  // Add login handler
+  async function handleSignIn() {
+    setLoginLoading(true);
     try {
-      await supabase.auth.signOut();
-    } catch (e) {
-      // Optionally log error
+      window.location.href = "/homepage/login";
+    } finally {
+      // In case redirect fails, re-enable button after 2s
+      setTimeout(() => setLoginLoading(false), 2000);
     }
-    // Use Next.js router for navigation to avoid race conditions
-    if (typeof window !== "undefined") {
-      window.location.replace("/homepage/login");
-    }
-    // If using useRouter, prefer router.replace("/homepage/login");
   }
 
   return (
@@ -134,7 +136,7 @@ export default function GlobalHeader({
             />
           </Link>
 
-          {/* Center: Quick links (signed-in) */}
+          {/* Center: Quick links (signed-in only) */}
           {!loading && user && (
             <nav className={styles.nav} aria-label="Primary">
               {links.map((l) =>
@@ -212,28 +214,30 @@ export default function GlobalHeader({
             </nav>
           )}
 
-          {/* Search Bar */}
-          <form
-            role="search"
-            aria-label="Site search"
-            style={{ marginLeft: 24, marginRight: 24 }}
-            onSubmit={(e) => e.preventDefault()}
-          >
-            <div style={{ display: "flex", alignItems: "center" }}>
-              <span className={styles.searchIcon} aria-hidden="true">
-                <FiSearch />
-              </span>
-              <input
-                id="global-header-search"
-                className={styles.searchBar}
-                type="search"
-                placeholder="Search..."
-                autoComplete="off"
-                name="search"
-                style={{ marginLeft: 0 }}
-              />
-            </div>
-          </form>
+          {/* Search Bar (signed-in only) */}
+          {!loading && user && (
+            <form
+              role="search"
+              aria-label="Site search"
+              style={{ marginLeft: 24, marginRight: 24 }}
+              onSubmit={(e) => e.preventDefault()}
+            >
+              <div style={{ display: "flex", alignItems: "center" }}>
+                <span className={styles.searchIcon} aria-hidden="true">
+                  <FiSearch />
+                </span>
+                <input
+                  id="global-header-search"
+                  className={styles.searchBar}
+                  type="search"
+                  placeholder="Search..."
+                  autoComplete="off"
+                  name="search"
+                  style={{ marginLeft: 0 }}
+                />
+              </div>
+            </form>
+          )}
 
           {/* Right: Auth area */}
           <div className={styles.right}>
@@ -244,15 +248,36 @@ export default function GlobalHeader({
             )}
 
             {!loading && !user && (
-              <Link
-                href="/login"
-                className={styles.loginBtn}
-                aria-label="Log in"
-                prefetch
+              <button
+                className={`neon-btn neon-btn-orange ${styles.loginBtn}`}
+                aria-label="Log in to your account"
+                onClick={handleSignIn}
+                type="button"
+                disabled={loginLoading}
+                tabIndex={0}
+                style={{
+                  minWidth: 100,
+                  position: "relative",
+                  background: "var(--orange, #ff8800)",
+                  color: "#fff",
+                  border: "none",
+                  boxShadow: "0 0 8px 2px rgba(255,136,0,0.25)",
+                  fontWeight: 600,
+                }}
               >
-                <FiLogIn aria-hidden="true" />
-                <span className={styles.hideSm}>Log In</span>
-              </Link>
+                {loginLoading ? (
+                  <span
+                    className="spinner"
+                    aria-label="Logging in..."
+                    style={{ marginRight: 8 }}
+                  />
+                ) : (
+                  <FiLogIn aria-hidden="true" style={{ marginRight: 8 }} />
+                )}
+                <span className={styles.hideSm}>
+                  {loginLoading ? "Logging in..." : "Log In"}
+                </span>
+              </button>
             )}
 
             {!loading && user && (
@@ -325,7 +350,6 @@ export default function GlobalHeader({
                       role="menuitem"
                       className={styles.menuItemDanger}
                       onClick={handleSignOut}
-                      disabled={signingOut}
                     >
                       <FiLogOut aria-hidden="true" />
                       Sign out
@@ -335,13 +359,15 @@ export default function GlobalHeader({
               </div>
             )}
 
-            {/* Siren button */}
-            <a
-              className="neon-btn neon-btn-danger neon-btn-square"
-              href="/turkus/issues/add"
-            >
-              <FiAlertOctagon />
-            </a>
+            {/* Siren button (signed-in only) */}
+            {!loading && user && (
+              <a
+                className="neon-btn neon-btn-danger neon-btn-square"
+                href="/turkus/issues/add"
+              >
+                <FiAlertOctagon />
+              </a>
+            )}
           </div>
         </div>
       </header>

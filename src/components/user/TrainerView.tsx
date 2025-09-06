@@ -15,6 +15,8 @@ import {
   FiAward,
   FiFilter,
   FiAlertOctagon,
+  FiCheckSquare,
+  FiActivity,
 } from "react-icons/fi";
 import { createClient } from "@supabase/supabase-js";
 import SignaturePad from "react-signature-canvas";
@@ -22,6 +24,7 @@ import NeonTable from "../NeonTable";
 import NeonForm from "../NeonForm";
 import NeonPanel from "../NeonPanel";
 import Image from "next/image";
+import MainHeader from "@/components/ui/MainHeader";
 
 // ==========================
 // Types
@@ -483,6 +486,10 @@ export default function TrainerRecordingPage({
 
   return (
     <div className="after-hero global-content">
+      <MainHeader
+        title="Trainer View"
+        subtitle="Record, assign, and review training for users"
+      />
       <h2 className="flex items-center gap-2 text-2xl font-semibold mb-4">
         <FiUsers className="text-[var(--neon,#40E0D0)]" aria-hidden /> Record
         Training
@@ -522,36 +529,44 @@ export default function TrainerRecordingPage({
             header: "Actions",
             accessor: "actions",
             render: (_, row) => (
-              <div style={{ textAlign: 'center' }}>
+              <div className="flex items-center justify-center gap-2">
                 <button
                   className="neon-btn neon-btn-utility neon-btn-global"
                   onClick={() => openLog(row as UserRow)}
                   title="Log a training session"
                   aria-label="Log session"
                   type="button"
-                  style={{ margin: '0 8px' }}
                 >
                   <FiUserPlus />
                 </button>
                 <button
-                  className="neon-btn neon-btn-utility neon-btn-global"
+                  className="neon-btn neon-btn-history neon-btn-utility neon-btn-global"
                   onClick={() => openHistory(row as UserRow)}
                   title="View training history"
                   aria-label="History"
                   type="button"
-                  style={{ margin: '0 8px' }}
                 >
-                  <FiArchive />
+                  <FiClock />
                 </button>
                 <button
-                  className="neon-btn neon-btn-utility neon-btn-global"
+                  className="neon-btn neon-btn-assign neon-btn-utility neon-btn-global"
                   onClick={() => onOpenSection?.((row as UserRow).id, "assign")}
                   title="Assign training"
                   aria-label="Assign"
                   type="button"
-                  style={{ margin: '0 8px' }}
                 >
-                  <FiClock />
+                  <FiCheckSquare />
+                </button>
+                <button
+                  className="neon-btn neon-btn-activity neon-btn-utility neon-btn-global"
+                  onClick={() => {
+                    /* TODO: add handler for activity if needed */
+                  }}
+                  title="Training activity"
+                  aria-label="Activity"
+                  type="button"
+                >
+                  <FiActivity />
                 </button>
                 <button
                   className="neon-btn neon-btn-cert neon-btn-square neon-btn-utility"
@@ -559,7 +574,6 @@ export default function TrainerRecordingPage({
                   title="Certificates & status"
                   aria-label="Certs"
                   type="button"
-                  style={{ margin: '0 8px' }}
                 >
                   <FiAward />
                 </button>
@@ -569,7 +583,6 @@ export default function TrainerRecordingPage({
                   title="Raise an issue"
                   aria-label="Raise an issue"
                   type="button"
-                  style={{ margin: '0 8px' }}
                 >
                   <FiAlertOctagon />
                 </button>

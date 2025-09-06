@@ -111,7 +111,7 @@ select{
 .neon-input {
   width: 100%;
   background: var(--field);
-  color: var(--text);
+  color: var (--text);
   border: 1.5px solid var(--neon);
   border-radius: 8px;
   padding: .85rem 1.1rem;
@@ -157,17 +157,15 @@ select{
 .neon-btn-square:last-child {
   margin-right: 0;
 }
+/* ENFORCE ALL BUTTON ICONS WHITE */
 .neon-btn svg,
-.neon-btn-square svg {
-  width: 20px;
-  height: 20px;
-  color: #fff;
-  stroke: #fff;
-  fill: none;
-  stroke-width: 2px;
-  vertical-align: middle;
-  display: inline-block;
+.neon-btn-square svg,
+button svg {
+  color: #fff !important;
+  stroke: #fff !important;
+  fill: none !important;
 }
+/* Remove all variant-specific button icon color overrides */
 .neon-btn:hover,
 .neon-btn-square:hover {
   background: var(--neon);
@@ -191,15 +189,9 @@ select{
   background: #efb123 !important;
   color: #012b2b !important;
 }
-.neon-btn-assign svg {
-  color: #012b2b !important;
-}
 
 .neon-btn-view {
   background: #82c8e5 !important;
-  color: #012b2b !important;
-}
-.neon-btn-view svg {
   color: #012b2b !important;
 }
 
@@ -207,23 +199,14 @@ select{
   background: #cd5c5c !important;
   color: #fff !important;
 }
-.neon-btn-delete svg {
-  color: #fff !important;
-}
 
 .neon-btn-save {
   background: #16a34a !important;
   color: #fff !important;
 }
-.neon-btn-save svg {
-  color: #fff !important;
-}
 
 .neon-btn-confirm {
   background: #0e7c3a !important;
-  color: #fff !important;
-}
-.neon-btn-confirm svg {
   color: #fff !important;
 }
 
@@ -232,43 +215,24 @@ select{
   background: #222 !important;
   color: #fff !important;
 }
-.neon-btn-next svg,
-.neon-btn-back svg {
-  color: #fff !important;
-}
 
 .neon-btn-view-archive {
   background: #000 !important;
   color: #fff !important;
-}
-.neon-btn-view-archive svg {
-  color: #fff !important;
-  stroke: #fff !important;
 }
 
 .neon-btn-archive {
   background: #000 !important;
   color: #fff !important;
 }
-.neon-btn-archive svg {
-  color: #fff !important;
-  stroke: #fff !important;
-}
 
 .neon-btn-edit {
   background: #083ddb !important;
   color: #fff !important;
 }
-.neon-btn-edit svg {
-  color: #fff !important;
-  stroke: #fff !important;
-}
 
 .neon-btn-add {
   background: #14532d !important;
-  color: #fff !important;
-}
-.neon-btn-add svg {
   color: #fff !important;
 }
 
@@ -276,9 +240,50 @@ select{
   background: #32cd32 !important; /* lime green */
   color: #fff !important;
 }
-.neon-btn-review svg {
+
+.neon-btn-add-people {
+  background: #16a34a !important; /* vibrant green */
   color: #fff !important;
-  stroke: #fff !important;
+}
+
+.neon-btn-leavers {
+  background: #6d0101 !important;
+  color: #fff !important;
+}
+
+.neon-btn-corner-down-right {
+  background: #5d6152 !important;
+  color: #012b2b !important;
+  border-radius: 8px;
+  box-shadow: 0 0 1px #40e0d0;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  min-height: 30px;
+  max-width: 30px;
+  max-height: 30px;
+  padding: 0;
+  cursor: pointer;
+  transition: background .2s, color .2s, box-shadow .2s, transform .06s;
+}
+.neon-btn-corner-down-right:hover {
+  background: #2edbd0 !important;
+  color: #012b2b !important;
+  box-shadow: 0 2px 12px #40e0d0;
+}
+
+.neon-btn-history {
+  background: #a084e8 !important; /* light purple */
+  color: #fff !important;
+}
+
+.neon-btn-activity {
+  background: #14532d !important; /* dark green */
+  color: #fff !important;
 }
 
 /* Button group utility for consistent spacing */
@@ -411,6 +416,16 @@ select{
   .neon-table-toolbar .neon-table-toolbar-pagination {
     justify-content: flex-start;
   }
+}
+
+/* Ensure .neon-table-icon SVGs are always 18x18px */
+.neon-table-icon {
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  max-width: 18px !important;
+  max-height: 18px !important;
 }
 
 /* ================== User Profile (safe; no 100vw) ================== */
@@ -597,95 +612,390 @@ select{
   box-shadow: 0 0 16px #fff, 0 0 4px var(--accent);
 }
 
-/* ================== Container Utility ================== */
-.container {
-  max-width: 1300px;
-  margin-inline: auto;
-  width: 100%;
-  box-sizing: border-box;
+/* ================== NeonDualListbox styling for consistent theme */
+.neon-duallistbox {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 2rem;
+  background: var(--accent);
+  border: 1.5px solid var(--neon);
+  border-radius: 12px;
+  box-shadow: 0 0 8px var(--neon);
+  padding: 1.5rem;
+  color: var(--text);
+  margin-left: auto;
+  margin-right: auto;
+  width: fit-content;
+  max-width: 100%;
 }
-
-.standards-modal-wide {
-  min-width: 1000px;
-  width: 100%;
-  margin: 0 auto;
-}
-
-/* Placeholder header and subheader styles for main content */
-.main-header {
-  font-size: 2.5rem;
+.neon-duallistbox-title {
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--neon);
   margin-bottom: 0.5rem;
 }
-.main-subheader {
-  font-size: 1.25rem;
-  font-weight: 400;
+.neon-duallistbox-list {
+  background: var(--field);
+  border: 1px solid var(--neon);
+  border-radius: 8px;
+  min-height: 180px;
+  list-style: none; /* Remove bullets if using <ul>/<li> */
+  margin: 0;
+  padding: 0.75rem 0.5rem;
+  box-shadow: 0 0 4px var(--neon);
   color: var(--text);
-  margin-bottom: 2rem;
-  opacity: 0.85;
 }
-
-/* ===== content-controls: 2-col filters + actions on the right ===== */
-.content-controls {
-  display: grid;
-  grid-template-columns: 1fr 1fr;   /* filters | actions */
-  gap: 1.25rem;
-  align-items: end;
-  margin-bottom: 0rem;
+.neon-duallistbox-list-item {
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 0.25rem;
+  cursor: pointer;
+  list-style: none; /* Remove bullets if using <li> */
+  outline: none;    /* Remove default focus outline unless you want it */
+  transition: background 0.18s;
 }
-
-/* ensure the left side is a 2-col grid */
-.content-controls .controls-left {
-  display: grid !important;
-  grid-template-columns: 1fr 1fr !important; /* Both columns flexible and equal width */
-  gap: 1rem; /* Add gap between the two filter/search columns */
-  align-items: end;
+.neon-duallistbox-list-item.selected {
+  background: var(--accent);
+  color: #012b2b;
 }
-
-/* span Search across both filter columns */
-.content-controls .control.search {
-  position: relative;
-  grid-column: 1 / -1;  /* make Search full width under the two cols */
+.neon-duallistbox-list-item:hover {
+  background: var(--muted);
 }
-
-.content-controls .control { min-width: 220px; width: 100%; }
-
-/* Section select with inline edit button */
-.content-controls .section-picker {
-  display: grid;
-  grid-template-columns: 1fr auto; /* select | edit button */
-  gap: .5rem;
+.neon-duallistbox-actions {
+  display: flex;
+  flex-direction: row;
   align-items: center;
-  width: 100%; /* Ensure container fills parent column */
+  justify-content: center;
+  gap: 0.75rem;
+  margin: 0 1rem;
+}
+.neon-duallistbox-btn {
+  background: var(--neon);
+  color: #012b2b;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 0 4px var(--neon);
+  transition: background 0.18s, color 0.18s;
+}
+.neon-duallistbox-btn:disabled {
+  background: #222;
+  color: #888;
+  cursor: not-allowed;
+}
+.neon-duallistbox-panel {
+  max-width: 300px;
+  min-width: 300px;
+  width: 100%;
+}
+.neon-duallistbox-panel .neon-input[type="search"] {
+  margin-bottom: 0.75rem !important;
+}
+@media (max-width: 400px) {
+  .neon-duallistbox {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 1rem;
+  }
 }
 
-/* result count under search, right aligned */
-.content-controls .match-count {
-  position: absolute;
-  right: 0;
-  bottom: -1.6rem;
-  opacity: .9;
+.neon-duallistbox-flex {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: center;
+  gap: 2rem;
+  position: relative;
 }
 
-/* actions block on the right */
-.content-controls .controls-right {
+.neon-duallistbox-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  font-size: 1rem;
+  color: var(--text); /* Use standard text color */
+}
+.neon-duallistbox-pagination span {
+  min-width: 48px;
+  text-align: center;
+  color: var (--text); /* Use standard text color */
+}
+
+.profile-name-input {
+  max-width: 400px !important;
+}
+.profile-description-input {
+  max-width: 600px !important;
+}
+
+/* ================== Role Assignment Widget ================== */
+.neon-roleassign-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.neon-roleassign-search {
+  flex: 1 1 0%;
+  min-width: 0;
+  max-width: 350px;
+}
+
+.neon-roleassign-toggle {
+  min-width: 40px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  border-radius: 6px;
+}
+
+.neon-roleassign-toggle .neon-icon {
+  font-size: 1.25em;
+}
+
+.neon-roleassign-list {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.neon-roleassign-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.neon-roleassign-checkbox-label .neon-checkbox {
+  margin-right: 0.5rem;
+}
+
+.neon-roleassign-role-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+  display: inline-block;
+}
+
+.neon-roleassign-empty {
+  text-align: center;
+  color: var(--neon-fg-muted, #888);
+  padding: 1rem 0;
+  font-size: 1rem;
+}
+
+/* ================== Assignment Selector Widget ================== */
+.neon-assign-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.neon-assign-search {
+  flex: 1 1 0%;
+  min-width: 0;
+  max-width: 350px;
+}
+
+.neon-assign-filter {
+  max-width: 200px;
+}
+
+.neon-assign-section {
+  margin-bottom: 1.5rem;
+}
+
+.neon-assign-toggle {
+  min-width: 40px;
+  min-height: 40px;
   display: inline-flex;
-  gap: .6rem;
-  justify-self: end;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
 }
 
-/* Responsive: stack to one column below 900px (adjust if you like) */
-@media (max-width: 900px) {
-  .content-controls { grid-template-columns: 1fr; }
-  .content-controls .controls-right { justify-self: start; }
-  .content-controls .controls-left { grid-template-columns: 1fr; }
-  .content-controls .control.search { grid-column: auto; }
-  .content-controls .match-count { position: static; margin-top: .4rem; }
+.neon-assign-section-label {
+  font-weight: 500;
+  font-size: 1rem;
+  margin-left: 0.25rem;
 }
 
-input[type="search"],
-input[type="text"].search,
-.neon-table-toolbar .neon-table-toolbar-search input[type="search"] {
-  margin-bottom: 0 !important;
+.neon-assign-list {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.neon-assign-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.neon-assign-label-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+  display: inline-block;
+}
+
+.neon-assign-empty {
+  text-align: center;
+  color: var(--neon-fg-muted, #888);
+  padding: 1rem 0;
+  font-size: 1rem;
+}
+
+/* ================== Neon Modal Styles ================== */
+.neon-modal-overlay {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.neon-modal {
+  background: #181c24;
+  border-radius: 12px;
+  box-shadow: 0 4px 32px 0 #000a;
+  min-width: 320px;
+  max-width: 95vw;
+  width: 400px;
+  padding: 0;
+  overflow: hidden;
+  color: var(--neon-fg, #fff);
+}
+.neon-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem 0.5rem 1.25rem;
+  border-bottom: 1px solid #222a;
+}
+.neon-modal-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.neon-btn-close {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0 0.5rem;
+  line-height: 1;
+}
+.neon-modal-content {
+  padding: 1rem 1.25rem 1.25rem 1.25rem;
+}
+.neon-list-select {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.neon-btn-list {
+  background: none;
+  border: none;
+  color: var(--neon-fg, #fff);
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: background 0.15s;
+  cursor: pointer;
+}
+.neon-btn-list:hover, .neon-btn-list:focus {
+  background: var(--accent, #0ea5e9);
+  color: #fff;
+}
+
+/* ================== Footer Link Styles ================== */
+footer a,
+.footer__link,
+.footer__legalLinks a {
+  color: #fff !important;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  transition: text-decoration-color 0.2s, color 0.2s;
+}
+footer a:visited,
+.footer__link:visited,
+.footer__legalLinks a:visited {
+  color: #fff !important;
+}
+footer a:hover,
+.footer__link:hover,
+.footer__legalLinks a:hover {
+  color: #fff !important;
+  text-decoration-color: #fff;
+}
+footer a:active,
+.footer__link:active,
+.footer__legalLinks a:active {
+  color: #fff !important;
+}
+
+/* ================== Footer Social Icon Styles ================== */
+footer .footer__icon,
+footer .footer__icon svg {
+  color: #fa7a20 !important;
+  stroke: #fa7a20 !important;
+  fill: none !important;
+  background: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+  opacity: 1 !important;
+  /* Remove any inherited muted color */
+}
+footer .footer__icon * {
+  color: #fa7a20 !important;
+  stroke: #fa7a20 !important;
+  fill: none !important;
+  background: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+  opacity: 1 !important;
+}
+footer .footer__icon:visited,
+footer .footer__icon svg:visited {
+  color: #fa7a20 !important;
+  stroke: #fa7a20 !important;
+}
+footer .footer__icon:hover,
+footer .footer__icon:focus {
+  color: #fa7a20 !important;
+  stroke: #fa7a20 !important;
+}
+footer .footer__icon:hover *,
+footer .footer__icon:focus * {
+  color: #fa7a20 !important;
+  stroke: #fa7a20 !important;
+}
+
+/* Remove muted color from social icons in the footer */
+footer .footer__icon,
+footer .footer__icon svg {
+  --muted: initial !important;
 }

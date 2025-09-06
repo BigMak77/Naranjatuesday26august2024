@@ -13,29 +13,13 @@ import {
 import Image from "next/image";
 import GlobalFooter from "@/components/GlobalFooter";
 import NeonIconButton from "@/components/ui/NeonIconButton";
+import HomepageHeader from "@/components/ui/HomepageHeader";
 
 export default function HomePage() {
   return (
     <main className="homepage" aria-label="Homepage">
+      <HomepageHeader />
       {/* JSON-LD for better SEO */}
-      <Script
-        type="application/ld+json"
-        id="org-jsonld"
-        strategy="afterInteractive"
-      >
-        {JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "Organization",
-          name: "Naranja — Training & Compliance for Food Manufacturing",
-          url: "https://your-domain.example",
-          logo: "https://your-domain.example/logo.png",
-          sameAs: [
-            "https://www.linkedin.com/company/your-company",
-            "https://x.com/your-company",
-          ],
-        })}
-      </Script>
-
       {/* Full-width hero panel */}
       <div
         className="homepage-fullwidth-panel"
@@ -389,7 +373,7 @@ export default function HomePage() {
         </div>
 
         {/* Add Log In button below main content */}
-        <div style={{ display: "flex", justifyContent: "center", marginTop: "2.5rem" }}>
+        {/* <div style={{ display: "flex", justifyContent: "center", marginTop: "2.5rem" }}>
           <Link href="/homepage/login" aria-label="Log In" className="neon-btn neon-btn-primary neon-btn-square">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -408,10 +392,10 @@ export default function HomePage() {
               <line x1="3" y1="12" x2="15" y2="12"></line>
             </svg>
           </Link>
-        </div>
+        </div> */}
 
         {/* Add Raise an Issue button */}
-        <div style={{ display: "flex", justifyContent: "center", marginTop: "1.5rem" }}>
+        {/* <div style={{ display: "flex", justifyContent: "center", marginTop: "1.5rem" }}>
           <a
             className="neon-btn neon-btn-primary neon-btn-square"
             href="/raise-issue"
@@ -434,7 +418,7 @@ export default function HomePage() {
               <line x1="12" y1="17" x2="12" y2="17"></line>
             </svg>
           </a>
-        </div>
+        </div> */}
 
         <NeonIconButton variant="add" icon={<FiPlus />} title="Add" />
 
@@ -660,24 +644,24 @@ const FEATURES = [
     Icon: FiFileText,
     title: "SOPs & Policies",
     text: "Create, assign, and manage controlled documents with acknowledgments & audit trail.",
-    href: "/homepage/about/sops-policies",
+    href: "/homepage/sops-policies",
   },
   {
     Icon: FiLayers,
     title: "Turkus",
     text: "Your single source of truth: versioned docs, linked to modules and roles.",
-    href: "/homepage/about/turkus",
+    href: "/homepage/turkus",
   },
   {
     Icon: FiAlertTriangle,
     title: "Risk Assessments",
     text: "Assign and track risk controls with evidence, sign-off, and reminders.",
-    href: "/homepage/about/managing-risks",
+    href: "/homepage/managing-risks",
   },
   {
     Icon: FiPlayCircle,
     title: "Instructional Media",
     text: "Embed videos and visuals straight into training to boost retention.",
-    href: "/homepage/about/instructional-media",
+    href: "/homepage/instructional-media",
   },
 ];

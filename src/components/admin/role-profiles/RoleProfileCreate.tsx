@@ -11,6 +11,7 @@ import BehaviourSelectorWidget from "./widgets/BehaviourSelectorWidget";
 import AssignmentSelectorWidget from "./widgets/AssignmentSelectorWidget";
 import { FiArrowLeft, FiArrowRight, FiSave } from "react-icons/fi";
 import NeonDualListbox from "@/components/ui/NeonDualListbox";
+import AssignTargetModal from "./widgets/AssignTargetModal";
 
 const steps = [
   { label: "Modules" },
@@ -50,6 +51,17 @@ export default function RoleProfileCreate({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [modules, setModules] = useState<{ id: string; label: string }[]>([]);
+  const [assignTargetModal, setAssignTargetModal] = useState<null | 'department' | 'role' | 'user'>(null);
+
+  // Handler for when a target is selected in the modal
+  function handleAssignTargetModalSelect(item: { id: string, label: string }) {
+    if (!assignTargetModal) return;
+    setSelectedAssignments((prev) => [
+      ...prev,
+      { type: assignTargetModal, id: item.id, label: item.label },
+    ]);
+    setAssignTargetModal(null);
+  }
 
   // ---------- Prefill when editing ----------
   useEffect(() => {
@@ -164,6 +176,11 @@ export default function RoleProfileCreate({
 
   const handleNext = () => setStep((s) => Math.min(s + 1, steps.length - 1));
   const handleBack = () => setStep((s) => Math.max(s - 1, 0));
+
+  const handleAssignTargetSelect = (assignment: { type: TargetType; id: string; label: string }) => {
+    setSelectedAssignments((prev) => [...prev, assignment]);
+    setAssignTargetModal(null);
+  };
 
   // ---------- Save via one API call ----------
   const handleSave = async () => {
@@ -345,116 +362,183 @@ export default function RoleProfileCreate({
       <ContentHeader title="Create Role Profile" />
 
       <NeonPanel className="neon-panel-lg">
-        <div className="mt-8 pt-6">
-          <div className="mb-6">
-            <div className="neon-flex items-center gap-2 text-lg font-bold">
-              Step {step + 1} of {steps.length}: {steps[step].label}
-            </div>
-            <div className="mt-2 neon-flex gap-2">
-              {steps.map((s, i) => (
-                <div
-                  key={s.label}
-                  className={`h-2 w-8 rounded-full ${i <= step ? "neon-progress" : "neon-progress-inactive"}`}
-                />
-              ))}
-            </div>
+        <div>
+          {/* Stepper styled like AssignModuleTab */}
+          <div className="neon-flex items-center gap-2 text-base font-bold mb-6">
+            <StepDot active={step === 0} label="1) Modules" />
+            <span>—</span>
+            <StepDot active={step === 1} label="2) Documents" />
+            <span>—</span>
+            <StepDot active={step === 2} label="3) Behaviours" />
+            <span>—</span>
+            <StepDot active={step === 3} label="4) Assignments" />
           </div>
 
-          {step === 0 && (
-            <>
-              <div className="mb-6">
-                <label className="neon-form-title">Profile Name</label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="neon-input w-full"
-                  placeholder="Enter profile name"
-                />
-              </div>
-              <div className="mb-6">
-                <label className="neon-form-title">Description</label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="neon-input w-full"
-                  placeholder="Enter description"
-                />
-              </div>
-              <div className="mb-6">
-                <NeonDualListbox
-                  items={modules}
-                  selected={selectedModules}
-                  onChange={setSelectedModules}
-                  titleLeft="Available Modules"
-                  titleRight="Selected Modules"
-                />
-              </div>
-            </>
-          )}
-
-          <div className="mb-6">
-            {step === 1 && (
-              <DocumentSelectorWidget
-                selectedDocuments={selectedDocuments}
-                onChange={setSelectedDocuments}
-              />
+          {/* Step content container using global spacing */}
+          <div className="neon-flex flex-col gap-6">
+            {step === 0 && (
+              <>
+                <div>
+                  <label className="neon-form-title">Profile Name</label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="neon-input w-full profile-name-input"
+                    placeholder="Enter profile name"
+                  />
+                </div>
+                <div>
+                  <label className="neon-form-title">Description</label>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="neon-input w-full profile-description-input"
+                    placeholder="Enter description"
+                  />
+                </div>
+                <div>
+                  <NeonDualListbox
+                    items={modules}
+                    selected={selectedModules}
+                    onChange={setSelectedModules}
+                    titleLeft="Modules to add to role profile"
+                    titleRight="Remove modules from role profile"
+                  />
+                </div>
+              </>
             )}
-            {step === 2 && (
-              <BehaviourSelectorWidget
-                selectedBehaviours={selectedBehaviours}
-                onChange={setSelectedBehaviours}
-              />
-            )}
-            {step === 3 && (
-              <AssignmentSelectorWidget
-                selectedAssignments={selectedAssignments}
-                onChange={setSelectedAssignments}
-              />
-            )}
-          </div>
 
-          {error && (
-            <div className="neon-message neon-message-error mb-4">{error}</div>
-          )}
+            <div>
+              {step === 1 && (
+                <DocumentSelectorWidget
+                  selectedDocuments={selectedDocuments}
+                  onChange={setSelectedDocuments}
+                />
+              )}
+              {step === 2 && (
+                <BehaviourSelectorWidget
+                  selectedBehaviours={selectedBehaviours}
+                  onChange={setSelectedBehaviours}
+                />
+              )}
+              {step === 3 && (
+                <div>
+                  <label className="neon-form-title mb-2 block">
+                    Select to add this profile to:
+                  </label>
+                  <div className="neon-assign-targets-row">
+                    <button
+                      type="button"
+                      className="neon-btn neon-assign-target-btn"
+                      onClick={() => setAssignTargetModal('department')}
+                    >
+                      Department
+                    </button>
+                    <button
+                      type="button"
+                      className="neon-btn neon-assign-target-btn"
+                      onClick={() => setAssignTargetModal('role')}
+                    >
+                      Role
+                    </button>
+                    <button
+                      type="button"
+                      className="neon-btn neon-assign-target-btn"
+                      onClick={() => setAssignTargetModal('user')}
+                    >
+                      User
+                    </button>
+                  </div>
+                  {assignTargetModal && (
+                    <AssignTargetModal
+                      type={assignTargetModal}
+                      onClose={() => setAssignTargetModal(null)}
+                      onSelect={handleAssignTargetModalSelect}
+                    />
+                  )}
+                  {/* Optionally, show current assignments below */}
+                  {/* <AssignmentSelectorWidget
+                    selectedAssignments={selectedAssignments}
+                    onChange={setSelectedAssignments}
+                  /> */}
+                </div>
+              )}
+            </div>
 
-          <div className="neon-flex gap-4 justify-between">
-            <button
-              className="neon-btn neon-btn-danger neon-btn-icon"
-              onClick={step === 0 ? onCancel : handleBack}
-              type="button"
-              aria-label={step === 0 ? "Cancel" : "Back"}
-              data-tooltip={step === 0 ? "Cancel" : "Back"}
-              disabled={saving}
-            >
-              <FiArrowLeft />
-            </button>
-            {step < steps.length - 1 ? (
+            {error && (
+              <div className="neon-message neon-message-error mb-4">{error}</div>
+            )}
+
+            {/* Button row using global flex and gap */}
+            <div className="neon-flex gap-4 justify-between mt-4">
               <button
-                className="neon-btn neon-btn-next neon-btn-icon"
-                onClick={handleNext}
+                className="neon-btn neon-btn-danger neon-btn-icon"
+                onClick={step === 0 ? onCancel : handleBack}
                 type="button"
-                aria-label="Next"
-                data-tooltip="Next"
+                aria-label={step === 0 ? "Cancel" : "Back"}
+                data-tooltip={step === 0 ? "Cancel" : "Back"}
                 disabled={saving}
               >
-                <FiArrowRight />
+                <FiArrowLeft />
               </button>
-            ) : (
-              <button
-                className="neon-btn neon-btn-save neon-btn-icon"
-                onClick={handleSave}
-                type="button"
-                aria-label="Submit Role Profile"
-                data-tooltip="Submit Role Profile"
-                disabled={saving}
-              >
-                <FiSave />
-              </button>
-            )}
+              {step < steps.length - 1 ? (
+                <button
+                  className="neon-btn neon-btn-next neon-btn-icon"
+                  onClick={handleNext}
+                  type="button"
+                  aria-label="Next"
+                  data-tooltip="Next"
+                  disabled={saving}
+                >
+                  <FiArrowRight />
+                </button>
+              ) : (
+                <button
+                  className="neon-btn neon-btn-save neon-btn-icon"
+                  onClick={handleSave}
+                  type="button"
+                  aria-label="Submit Role Profile"
+                  data-tooltip="Submit Role Profile"
+                  disabled={saving}
+                >
+                  <FiSave />
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </NeonPanel>
     </>
+  );
+}
+
+// StepDot styled for consistency
+function StepDot({ active, label }: { active: boolean; label: string }) {
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 6,
+        padding: "4px 10px",
+        borderRadius: 999,
+        background: active
+          ? "var(--dot-active, rgba(0,0,0,0.2))"
+          : "var(--dot, rgba(0,0,0,0.08))",
+        fontWeight: active ? 600 : 500,
+      }}
+    >
+      <span
+        style={{
+          width: 8,
+          height: 8,
+          borderRadius: "50%",
+          background: active ? "var(--accent, #0ea5e9)" : "rgba(0,0,0,0.25)",
+          display: "inline-block",
+        }}
+      />
+      {label}
+    </span>
   );
 }

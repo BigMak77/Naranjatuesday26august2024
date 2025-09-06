@@ -105,20 +105,18 @@ export default function AssignmentSelectorWidget({
   return (
     <NeonPanel className="neon-panel mt-6">
       <h3 className="neon-section-title">Assign To</h3>
-
-      <input
-        type="text"
-        placeholder="Search users, roles, departments..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="neon-input"
-      />
-
-      <div className="neon-row">
+      <div className="neon-assign-controls mb-4">
+        <input
+          type="text"
+          placeholder="Search users, roles, departments..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="neon-input neon-assign-search"
+        />
         <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
-          className="neon-input"
+          className="neon-input neon-assign-filter"
         >
           <option value="">All Roles</option>
           {roles.map((r) => (
@@ -130,7 +128,7 @@ export default function AssignmentSelectorWidget({
         <select
           value={deptFilter}
           onChange={(e) => setDeptFilter(e.target.value)}
-          className="neon-input"
+          className="neon-input neon-assign-filter"
         >
           <option value="">All Departments</option>
           {departments.map((d) => (
@@ -140,108 +138,99 @@ export default function AssignmentSelectorWidget({
           ))}
         </select>
       </div>
-
-      {/* Departments */}
-      <div>
+      <div className="neon-assign-section">
         <button
           type="button"
-          className="neon-btn neon-section-toggle"
-          aria-label={showDepts ? "Hide Departments" : "Show Departments"}
+          className="neon-btn neon-assign-toggle"
+          aria-label={showDepts ? 'Hide Departments' : 'Show Departments'}
           onClick={() => setShowDepts((v) => !v)}
         >
-          {showDepts ? (
-            <span>
-              <FiMinus />
-            </span>
-          ) : (
-            <span>
-              <FiPlus />
-            </span>
-          )}
+          <span className="neon-icon" aria-hidden="true">
+            {showDepts ? <FiMinus /> : <FiPlus />}
+          </span>
+          <span className="neon-assign-section-label">Departments</span>
         </button>
         {showDepts && (
-          <div className="neon-grid">
-            {filteredDepts.map((d) => (
-              <label key={d.id} className="neon-checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={isSelected(d)}
-                  onChange={() => toggle(d)}
-                  className="neon-checkbox"
-                />
-                {d.label}
-              </label>
-            ))}
+          <div className="neon-assign-list">
+            {filteredDepts.length === 0 ? (
+              <div className="neon-assign-empty">No departments found.</div>
+            ) : (
+              filteredDepts.map((d) => (
+                <label key={d.id} className="neon-assign-checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={isSelected(d)}
+                    onChange={() => toggle(d)}
+                    className="neon-checkbox"
+                  />
+                  <span className="neon-assign-label-text">{d.label}</span>
+                </label>
+              ))
+            )}
           </div>
         )}
       </div>
-
-      {/* Roles */}
-      <div>
+      <div className="neon-assign-section">
         <button
           type="button"
-          className="neon-btn neon-section-toggle"
-          aria-label={showRoles ? "Hide Roles" : "Show Roles"}
+          className="neon-btn neon-assign-toggle"
+          aria-label={showRoles ? 'Hide Roles' : 'Show Roles'}
           onClick={() => setShowRoles((v) => !v)}
         >
-          {showRoles ? (
-            <span>
-              <FiMinus />
-            </span>
-          ) : (
-            <span>
-              <FiPlus />
-            </span>
-          )}
+          <span className="neon-icon" aria-hidden="true">
+            {showRoles ? <FiMinus /> : <FiPlus />}
+          </span>
+          <span className="neon-assign-section-label">Roles</span>
         </button>
         {showRoles && (
-          <div className="neon-grid">
-            {filteredRoles.map((r) => (
-              <label key={r.id} className="neon-checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={isSelected(r)}
-                  onChange={() => toggle(r)}
-                  className="neon-checkbox"
-                />
-                {r.label}
-              </label>
-            ))}
+          <div className="neon-assign-list">
+            {filteredRoles.length === 0 ? (
+              <div className="neon-assign-empty">No roles found.</div>
+            ) : (
+              filteredRoles.map((r) => (
+                <label key={r.id} className="neon-assign-checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={isSelected(r)}
+                    onChange={() => toggle(r)}
+                    className="neon-checkbox"
+                  />
+                  <span className="neon-assign-label-text">{r.label}</span>
+                </label>
+              ))
+            )}
           </div>
         )}
       </div>
-
-      {/* Users */}
-      <div>
+      <div className="neon-assign-section">
         <button
           type="button"
-          className="neon-btn neon-section-toggle neon-btn-square"
-          aria-label={showUsers ? "Hide Users" : "Show Users"}
+          className="neon-btn neon-assign-toggle"
+          aria-label={showUsers ? 'Hide Users' : 'Show Users'}
           onClick={() => setShowUsers((v) => !v)}
         >
-          {showUsers ? (
-            <span>
-              <FiMinus />
-            </span>
-          ) : (
-            <span>
-              <FiPlus />
-            </span>
-          )}
+          <span className="neon-icon" aria-hidden="true">
+            {showUsers ? <FiMinus /> : <FiPlus />}
+          </span>
+          <span className="neon-assign-section-label">Users</span>
         </button>
         {showUsers && (
-          <div className="neon-grid">
-            {filteredUsers.map((u) => (
-              <label key={u.id} className="neon-checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={isSelected(u)}
-                  onChange={() => toggle(u)}
-                  className="neon-checkbox"
-                />
-                {u.label}
-              </label>
-            ))}
+          <div className="neon-assign-list">
+            {filteredUsers.length === 0 ? (
+              <div className="neon-assign-empty">No users found.</div>
+            ) : (
+              filteredUsers.map((u) => (
+                <label key={u.id} className="neon-assign-checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={isSelected(u)}
+                    onChange={() => toggle(u)}
+                    className="neon-checkbox"
+                  />
+                  <span className="neon-assign-label-text">{u.label}</span>
+                </label>
+              ))
+            )}
           </div>
         )}
       </div>

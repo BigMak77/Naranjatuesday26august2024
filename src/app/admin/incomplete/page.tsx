@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase-client";
 import NeonTable from "@/components/NeonTable";
 import { FiSearch, FiUsers, FiLayers, FiBookOpen, FiPlus } from "react-icons/fi";
 import NeonIconButton from "@/components/ui/NeonIconButton";
+import MainHeader from "@/components/ui/MainHeader";
 
 interface IncompleteRecord {
   auth_id: string;
@@ -234,6 +235,10 @@ export default function IncompleteTrainingPage() {
   return (
     <div className="after-hero">
       <div className="global-content">
+        <MainHeader
+          title="Incomplete Training Assignments"
+          subtitle="View and filter users with incomplete modules and documents"
+        />
         <main className="page-main">
           {/* Compliance summary panel */}
           <div className="neon-panel" style={{ marginBottom: "2rem", background: "#0d3c47", color: "#fff", borderRadius: "18px", boxShadow: "0 2px 8px rgba(0,0,0,0.10)", padding: "2rem 2rem 1.5rem 2rem", display: "flex", alignItems: "center", gap: "2.5rem" }}>

@@ -14,6 +14,7 @@ import {
 import Link from "next/link";
 import NeonIconButton from "@/components/ui/NeonIconButton";
 import NeonDualListbox from "@/components/ui/NeonDualListbox";
+import MainHeader from '@/components/ui/MainHeader';
 
 interface Department {
   id: string;
@@ -307,11 +308,12 @@ export default function OrgChartPage() {
 
   return (
     <main className="org-chart-main neon-panel neon-form-padding">
+      <MainHeader
+        title="Organisation Chart"
+        subtitle="View, edit, and manage your organisation's departments and roles."
+      />
       <section className="org-chart-section">
         <div className="org-chart-container">
-          <h1 className="neon-form-title org-chart-page-title" style={{ marginBottom: '2rem', color: 'var(--neon)' }}>
-            <FiUsers style={{ marginRight: 8, verticalAlign: 'middle' }} /> Organisation Chart
-          </h1>
           <div className="org-chart-toolbar" style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
             <NeonIconButton variant="add" icon={<FiPlus />} title="Add Department" />
             <Link href="/admin/roles/add" className="neon-btn neon-btn-orgchart" title="Add Role" aria-label="Add Role">

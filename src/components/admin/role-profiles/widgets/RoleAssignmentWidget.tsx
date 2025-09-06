@@ -50,41 +50,43 @@ export default function RoleAssignmentWidget({
   return (
     <NeonPanel className="mt-6">
       <h3 className="neon-section-title">Assign Role Profile to Roles</h3>
-
-      <input
-        type="text"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder="Search roles..."
-        className="neon-input mb-4"
-      />
-
-      <button
-        type="button"
-        className="neon-btn neon-section-toggle mb-2"
-        data-tooltip={showRoles ? "Hide Roles" : "Show Roles"}
-        onClick={() => setShowRoles((prev) => !prev)}
-      >
-        {showRoles ? (
-          <span className="neon-icon">➖</span>
-        ) : (
-          <span className="neon-icon">➕</span>
-        )}
-      </button>
-
+      <div className="neon-roleassign-controls mb-4">
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search roles..."
+          className="neon-input neon-roleassign-search"
+        />
+        <button
+          type="button"
+          className="neon-btn neon-roleassign-toggle"
+          data-tooltip={showRoles ? 'Hide Roles' : 'Show Roles'}
+          onClick={() => setShowRoles((prev) => !prev)}
+          aria-label={showRoles ? 'Hide Roles' : 'Show Roles'}
+        >
+          <span className="neon-icon" aria-hidden="true">
+            {showRoles ? '➖' : '➕'}
+          </span>
+        </button>
+      </div>
       {showRoles && (
-        <div className="neon-grid mt-2">
-          {filteredRoles.map((role) => (
-            <label key={role.id} className="neon-checkbox-label">
-              <input
-                type="checkbox"
-                className="neon-checkbox"
-                checked={selectedRoles.includes(role.id)}
-                onChange={() => toggleRole(role.id)}
-              />
-              {role.title}
-            </label>
-          ))}
+        <div className="neon-roleassign-list">
+          {filteredRoles.length === 0 ? (
+            <div className="neon-roleassign-empty">No roles found.</div>
+          ) : (
+            filteredRoles.map((role) => (
+              <label key={role.id} className="neon-roleassign-checkbox-label">
+                <input
+                  type="checkbox"
+                  className="neon-checkbox"
+                  checked={selectedRoles.includes(role.id)}
+                  onChange={() => toggleRole(role.id)}
+                />
+                <span className="neon-roleassign-role-title">{role.title}</span>
+              </label>
+            ))
+          )}
         </div>
       )}
     </NeonPanel>

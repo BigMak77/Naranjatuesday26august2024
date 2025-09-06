@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
+import MainHeader from "@/components/ui/MainHeader";
 
 type Section = {
   id: string;
@@ -91,6 +92,10 @@ export default function StandardSectionPage() {
 
   return (
     <main className="standard-sections-page-wrapper">
+      <MainHeader
+        title="Standard Sections"
+        subtitle="Browse and filter compliance standard clauses and sections"
+      />
       <h1 className="standard-sections-title">Standard Sections</h1>
       <p className="standard-sections-desc">
         Below are the structured clauses and sub-clauses for each compliance

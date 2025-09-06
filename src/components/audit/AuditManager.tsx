@@ -13,6 +13,7 @@ import { supabase } from "@/lib/supabase-client";
 
 import NeonPanel from "@/components/NeonPanel";
 import FolderTabs from "@/components/FolderTabs";
+import MainHeader from "@/components/ui/MainHeader";
 
 import {
   FiPlus,
@@ -185,6 +186,10 @@ export default function AuditManager() {
     >
       <div className="audit-manager-content">
         <div className="audit-manager-inner">
+          <MainHeader
+            title="Audit Manager"
+            subtitle="Create, assign, and review audits and submissions"
+          />
           <FolderTabs
             tabs={tabs}
             activeTab={activeTab}

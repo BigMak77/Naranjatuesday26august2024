@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import Link from "next/link";
+import MainHeader from "@/components/ui/MainHeader";
 
 interface User {
   id: number;
@@ -66,14 +67,18 @@ export default function AdminUserListPage() {
     return matchesSearch && matchesDept && matchesStatus;
   });
 
-  if (loading) return <p className="p-6">Loading users...</p>;
-  if (error) return <p className="p-6 text-red-600">{error}</p>;
+  if (loading) return <p className="admin-users-loading">Loading users...</p>;
+  if (error) return <p className="admin-users-error">{error}</p>;
 
   return (
     <>
+      <MainHeader
+        title="Manage Users"
+        subtitle="View, filter, and manage user roles and status"
+      />
       <div className="admin-users-page-wrapper">
         <h1 className="admin-users-title">👥 Manage Users</h1>
-        <div className="admin-users-dashboard-links" style={{ marginBottom: '1.5rem' }}>
+        <div className="admin-users-dashboard-links">
           <Link href="/admin/roles" className="neon-btn neon-btn-orgchart" title="View Roles" aria-label="View Roles">
             View Roles
           </Link>
@@ -81,10 +86,7 @@ export default function AdminUserListPage() {
         {/* Filters */}
         <div className="admin-users-filters">
           <div className="admin-users-filters-row">
-            <div
-              className="neon-search-bar-wrapper"
-              style={{ flex: 1, minWidth: 220 }}
-            >
+            <div className="neon-search-bar-wrapper">
               <input
                 type="search"
                 placeholder="Search by name or email"
@@ -96,7 +98,7 @@ export default function AdminUserListPage() {
             <select
               value={filterDept}
               onChange={(e) => setFilterDept(e.target.value)}
-              className="neon-input w-auto"
+              className="neon-input admin-users-filter-select"
             >
               <option value="">All Departments</option>
               {departments.map((d) => (
@@ -108,7 +110,7 @@ export default function AdminUserListPage() {
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="neon-input w-auto"
+              className="neon-input admin-users-filter-select"
             >
               <option value="">All Statuses</option>
               <option value="active">Active</option>

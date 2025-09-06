@@ -406,7 +406,10 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
   // --- UI rendering ---------------------------------------------------------
   return (
     <NeonPanel className="w-full">
-      <MainHeader title="User Training Dashboard" subtitle={userFullName ? `Welcome, ${userFullName}` : undefined} />
+      <MainHeader
+        title="User Training Dashboard"
+        subtitle={userFullName ? `Welcome, ${userFullName}` : undefined}
+      />
       {loading ? (
         <p className="neon-success">Loading...</p>
       ) : error ? (
