@@ -17,12 +17,15 @@ import {
   FiArchive,
   FiChevronLeft,
   FiChevronRight,
-  FiUserX
+  FiUserX,
+  FiKey
 } from "react-icons/fi";
 import { useUser } from "@/lib/useUser";
 import OverlayDialog from '@/components/ui/OverlayDialog';
 import nationalities from '@/lib/nationalities.json';
 import MainHeader from "@/components/ui/MainHeader";
+import UserPermissionsManager from "@/components/user/UserPermissionsManager";
+import { PERMISSIONS, PermissionKey } from "@/types/userPermissions";
 
 interface User {
   id: string;
@@ -126,6 +129,27 @@ export default function UserManagementPanel() {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+
+  const [permissionsDialogOpen, setPermissionsDialogOpen] = useState(false);
+  const [permissionsUser, setPermissionsUser] = useState<User | null>(null);
+  const [permissions, setPermissions] = useState<PermissionKey[]>([]);
+
+  // Helper to open permissions dialog and fetch permissions
+  const handleOpenPermissions = async (user: User) => {
+    setPermissionsUser(user);
+    setPermissionsDialogOpen(true);
+    // Fetch permissions from Supabase
+    const { data, error } = await supabase
+      .from("users")
+      .select("permissions")
+      .eq("id", user.id)
+      .single();
+    if (!error && data && Array.isArray(data.permissions)) {
+      setPermissions(data.permissions as PermissionKey[]);
+    } else {
+      setPermissions([]);
+    }
+  };
 
   // Debug: log users and search value
   console.log('UserManagementPanel: users', users);
@@ -1189,6 +1213,14 @@ export default function UserManagementPanel() {
                   }}
                 />
               )}
+              {!isAddMode && selectedUser && (
+                <NeonIconButton
+                  variant="edit"
+                  icon={<FiKey />}
+                  title="Manage Permissions"
+                  onClick={() => handleOpenPermissions(selectedUser)}
+                />
+              )}
               <NeonIconButton
                 variant="save"
                 icon={saving ? <span className="neon-spinner" style={{ marginRight: 8 }} /> : <FiSave />}
@@ -1205,6 +1237,25 @@ export default function UserManagementPanel() {
                 className="neon-btn-close"
               />
             </div>
+          </OverlayDialog>
+
+          {/* Permissions Manager Dialog */}
+          <OverlayDialog
+            open={permissionsDialogOpen}
+            onClose={() => setPermissionsDialogOpen(false)}
+            ariaLabelledby="permissions-manager-title"
+          >
+            <div className="neon-form-title" id="permissions-manager-title" style={{ marginBottom: "1.25rem" }}>
+              Manage Permissions
+            </div>
+            {permissionsUser && (
+              <UserPermissionsManager users={[{
+                id: permissionsUser.id,
+                email: permissionsUser.email,
+                full_name: `${permissionsUser.first_name || ''} ${permissionsUser.last_name || ''}`.trim(),
+                permissions: permissions,
+              }]} />
+            )}
           </OverlayDialog>
 
           {/* Staged Bulk Assign Overlay */}

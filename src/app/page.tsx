@@ -118,48 +118,51 @@ export default function HomePage() {
           style={{
             width: "calc(100% - 4rem)",
             margin: "2rem auto",
-            background: "#0d3c47", // deep blue/dark turquoise
+            background: "#fa7a20", // lighter orange
             borderRadius: "18px",
             boxShadow: "0 4px 24px rgba(0,0,0,0.07)",
             padding: "1rem",
             boxSizing: "border-box",
             overflow: "hidden",
+            minHeight: "360px", // use minHeight instead of fixed height
+            height: "auto", // let content determine height
           }}
         >
           {/* Cards row */}
           <div
             className="homepage-cards-row"
             style={{
-              display: "flex",
-              gap: 0,
-              height: "320px",
-              minWidth: "calc(756px + 300px)",
+              display: "grid",
+              gridTemplateColumns: "400px 1fr", // reduce left card width
+              height: "260px", // reduce row height
+              minWidth: "700px",
               width: "100%",
               margin: "0 auto",
               position: "relative",
+              alignItems: "stretch",
+              gap: "1.5rem", // add gap between left and right cards
             }}
           >
             {/* Left card */}
             <div
               className="homepage-card-large"
               style={{
-                flex: "0 0 580px",
-                minWidth: "580px",
-                maxWidth: "580px",
-                background: "#159ca3", // darker turquoise
+                minWidth: "400px",
+                maxWidth: "400px",
+                background: "#05363a", // base darker turquoise
                 borderRadius: "14px",
-                paddingLeft: "2rem", // 2rem left padding
+                paddingLeft: "1.2rem",
                 paddingTop: 0,
                 paddingBottom: 0,
                 boxSizing: "border-box",
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "center",
-                alignItems: "flex-start", // left align horizontally
+                alignItems: "flex-start",
                 position: "relative",
                 zIndex: 1,
-                height: "100%",
-                color: "#fff", // white text for all content
+                height: "260px",
+                color: "#fff",
               }}
             >
               <h2
@@ -174,6 +177,8 @@ export default function HomePage() {
                 <FiAlertTriangle style={{ fontSize: "1.25em" }} />
                 The problem
               </h2>
+              {/* Add gap below header */}
+              <div style={{ height: "0.5rem" }} />
               <ul
                 style={{
                   margin: "0.75rem 0 0",
@@ -187,10 +192,11 @@ export default function HomePage() {
                 <li>No easy way to prove who’s trained on what</li>
                 <li>Audit scramble and risky gaps in compliance</li>
               </ul>
-
+              {/* Larger gap and a separator line between problem and solution */}
+              <hr style={{ width: "90%", border: 0, borderTop: "2px solid #fff", opacity: 0.18, margin: "1.5rem 0 1.2rem 0" }} />
               <h2
                 style={{
-                  margin: "1.25rem 0 0",
+                  margin: "0 0 0 0",
                   color: "#fff",
                   display: "flex",
                   alignItems: "center",
@@ -200,6 +206,8 @@ export default function HomePage() {
                 <FiFileText style={{ fontSize: "1.25em" }} />
                 Our solution
               </h2>
+              {/* Add gap below header */}
+              <div style={{ height: "0.5rem" }} />
               <ul
                 style={{
                   margin: "0.75rem 0 0",
@@ -219,31 +227,27 @@ export default function HomePage() {
             <div
               className="homepage-card-rights"
               style={{
-                flex: "1 1 0",
-                minWidth: "460px",
+                minWidth: "320px",
                 display: "grid",
                 gridTemplateRows: "repeat(4, 1fr)",
                 gap: "0.5rem",
-                position: "absolute",
-                top: "50%", // center vertically
-                left: "calc(580px - 2rem)", // overlap by 2rem over left card
-                width: "calc(100% - 580px + 2rem)",
+                alignItems: "stretch",
+                position: "static", // remove relative positioning
+                width: "100%",
                 zIndex: 2,
-                transform: "translateY(-50%)", // center vertically
+                height: "260px",
+                borderRadius: "14px",
+                padding: "0.5rem 0.5rem 0.5rem 0.5rem",
               }}
             >
               {FEATURES.map(({ Icon, title, text, href }, i) => {
-                const neonColors = ["#ffb347", "#19e6d9", "#4f8cff", "#ff5ad1"];
                 return (
                   <Link
                     key={title}
                     href={href}
                     className={`homepage-feature-card homepage-feature-card-${i}`}
                     style={{
-                      background: `linear-gradient(90deg, #159ca3 0%, #159ca3 80%, ${neonColors[i % neonColors.length]} 100%)`,
                       borderRadius: "14px",
-                      boxShadow:
-                        "0 2px 12px rgba(0,0,0,0.07), 0 1.5px 0 rgba(255,255,255,0.4) inset",
                       textDecoration: "none",
                       display: "flex",
                       flexDirection: "column",
@@ -253,6 +257,9 @@ export default function HomePage() {
                       color: "#222",
                       position: "relative",
                       overflow: "hidden",
+                      boxShadow: "none",
+                      border: "none", // Remove any border
+                      background: "none", // Remove any background
                     }}
                   >
                     {/* Title row with inline icon */}
@@ -290,6 +297,94 @@ export default function HomePage() {
               })}
             </div>
           </div>
+
+          {/* Metrics boxes row - 4 boxes underneath cards row */}
+          <div
+            className="homepage-metrics-row"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, 1fr)",
+              gap: "1.2rem",
+              marginTop: "1.5rem",
+              marginBottom: "0.5rem",
+              width: "100%",
+              minWidth: "700px",
+              alignItems: "stretch",
+            }}
+          >
+            <div
+              className="homepage-metric-box"
+              style={{
+                background: "#d6ffd6", // very light lime green for this box
+                borderRadius: "12px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
+                padding: "1.1rem 1rem 1rem 1.2rem",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-start",
+                justifyContent: "center",
+                minHeight: "80px",
+                border: "2.5px solid #4bb543", // darker lime green border
+              }}
+            >
+              <span style={{ fontSize: "1.7rem", fontWeight: 700, color: "#4bb543" }}>98%</span>
+              <span style={{ fontSize: "1.01rem", color: "#333", fontWeight: 500, marginTop: "0.2rem" }}>Training Completion</span>
+            </div>
+            <div
+              className="homepage-metric-box"
+              style={{
+                background: "#82c8e5", // updated color for this box
+                borderRadius: "12px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
+                padding: "1.1rem 1rem 1rem 1.2rem",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-start",
+                justifyContent: "center",
+                minHeight: "80px",
+                border: "2.5px solid #2176ae", // darker blue border
+              }}
+            >
+              <span style={{ fontSize: "1.7rem", fontWeight: 700, color: "#2176ae" }}>100%</span>
+              <span style={{ fontSize: "1.01rem", color: "#333", fontWeight: 500, marginTop: "0.2rem" }}>Audit Readiness</span>
+            </div>
+            <div
+              className="homepage-metric-box"
+              style={{
+                background: "#efb123", // updated color for this box
+                borderRadius: "12px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
+                padding: "1.1rem 1rem 1rem 1.2rem",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-start",
+                justifyContent: "center",
+                minHeight: "80px",
+                border: "2.5px solid #b34700", // add orange border to match 24/7
+              }}
+            >
+              <span style={{ fontSize: "1.7rem", fontWeight: 700, color: "#b34700" }}>24/7</span>
+              <span style={{ fontSize: "1.01rem", color: "#333", fontWeight: 500, marginTop: "0.2rem" }}>Access Anywhere</span>
+            </div>
+            <div
+              className="homepage-metric-box"
+              style={{
+                background: "#cd5c5c", // updated color for this box
+                borderRadius: "12px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
+                padding: "1.1rem 1rem 1rem 1.2rem",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-start",
+                justifyContent: "center",
+                minHeight: "80px",
+                border: "2.5px solid #8b2323", // darker red border
+              }}
+            >
+              <span style={{ fontSize: "1.7rem", fontWeight: 700, color: "#8b2323" }}>Zero</span>
+              <span style={{ fontSize: "1.01rem", color: "#333", fontWeight: 500, marginTop: "0.2rem" }}>Lost Documents</span>
+            </div>
+          </div>
         </div>
 
         {/* CTO Panel Section */}
@@ -298,7 +393,7 @@ export default function HomePage() {
           style={{
             width: "calc(100% - 4rem)",
             margin: "2rem auto 0 auto",
-            background: "#0d3c47", // deep blue/dark turquoise
+            background: "#05363a", // updated to requested base color
             borderRadius: "18px",
             boxShadow: "0 2px 16px rgba(0,0,0,0.10)",
             padding: "2.5rem 2rem 2rem 2rem",
@@ -321,11 +416,23 @@ export default function HomePage() {
           >
             <FiStar
               style={{
-                fontSize: "5.5rem",
+                fontSize: "6.5rem", // reduced size
+                minWidth: "100px",
+                minHeight: "100px",
+                maxWidth: "180px",
+                maxHeight: "180px",
                 color: "#ffb347",
                 filter:
-                  "drop-shadow(0 0 12px #ffb347) drop-shadow(0 0 8px #fff7e6)",
+                  "drop-shadow(0 0 48px #fff7b2) drop-shadow(0 0 32px #ffb347) drop-shadow(0 0 18px #fff7e6)", // strong yellow glow
                 animation: "homepage-cto-star-pulse 1.2s infinite alternate",
+                transition: "filter 0.3s, font-size 0.3s",
+                zIndex: 20,
+                position: "relative",
+                background: "none",
+                boxShadow: "none",
+                pointerEvents: "auto",
+                display: "block",
+                margin: "0 auto",
               }}
               aria-label="CTO Star Icon"
             />
@@ -371,54 +478,6 @@ export default function HomePage() {
             </blockquote>
           </div>
         </div>
-
-        {/* Add Log In button below main content */}
-        {/* <div style={{ display: "flex", justifyContent: "center", marginTop: "2.5rem" }}>
-          <Link href="/homepage/login" aria-label="Log In" className="neon-btn neon-btn-primary neon-btn-square">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="feather feather-log-in neon-icon"
-            >
-              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-              <polyline points="10 17 15 12 10 7"></polyline>
-              <line x1="3" y1="12" x2="15" y2="12"></line>
-            </svg>
-          </Link>
-        </div> */}
-
-        {/* Add Raise an Issue button */}
-        {/* <div style={{ display: "flex", justifyContent: "center", marginTop: "1.5rem" }}>
-          <a
-            className="neon-btn neon-btn-primary neon-btn-square"
-            href="/raise-issue"
-            aria-label="Raise an issue"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="feather feather-alert-triangle neon-icon"
-            >
-              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3l-8.47-14.14a2 2 0 0 0-3.42 0z"></path>
-              <line x1="12" y1="9" x2="12" y2="13"></line>
-              <line x1="12" y1="17" x2="12" y2="17"></line>
-            </svg>
-          </a>
-        </div> */}
 
         <NeonIconButton variant="add" icon={<FiPlus />} title="Add" />
 
@@ -488,151 +547,31 @@ export default function HomePage() {
             pointer-events: none;
             z-index: 2;
           }
-          .homepage-feature-card-0::after,
-          .homepage-feature-card-0::before {
-            background: linear-gradient(
-              90deg,
-              #159ca3 0%,
-              #159ca3 5%,
-              #ffb347 100%
-            );
-          }
-          .homepage-feature-card-1::after,
-          .homepage-feature-card-1::before {
-            background: linear-gradient(
-              90deg,
-              #159ca3 0%,
-              #159ca3 5%,
-              #19e6d9 100%
-            );
-          }
-          .homepage-feature-card-2::after,
-          .homepage-feature-card-2::before {
-            background: linear-gradient(
-              90deg,
-              #159ca3 0%,
-              #159ca3 5%,
-              #4f8cff 100%
-            );
-          }
-          .homepage-feature-card-3::after,
-          .homepage-feature-card-3::before {
-            background: linear-gradient(
-              90deg,
-              #159ca3 0%,
-              #159ca3 5%,
-              #ff5ad1 100%
-            );
-          }
-          .homepage-feature-card-0 .homepage-feature-card-right {
-            background: linear-gradient(
-              180deg,
-              #159ca3 0%,
-              #159ca3 5%,
-              #ffb347 100%
-            );
-          }
-          .homepage-feature-card-1 .homepage-feature-card-right {
-            background: linear-gradient(
-              180deg,
-              #159ca3 0%,
-              #159ca3 5%,
-              #19e6d9 100%
-            );
-          }
-          .homepage-feature-card-2 .homepage-feature-card-right {
-            background: linear-gradient(
-              180deg,
-              #159ca3 0%,
-              #159ca3 5%,
-              #4f8cff 100%
-            );
-          }
-          .homepage-feature-card-3 .homepage-feature-card-right {
-            background: linear-gradient(
-              180deg,
-              #159ca3 0%,
-              #159ca3 5%,
-              #ff5ad1 100%
-            );
-          }
-          /* Subtle glow and pulse on hover - use border neon color for each card */
-          .homepage-feature-card-0:hover {
-            box-shadow: 0 0 8px 2px #ffb347;
-            filter: brightness(1.03) drop-shadow(0 0 3px #ffb347);
-            animation: homepage-feature-card-pulse-0 1.1s infinite alternate;
-          }
-          .homepage-feature-card-1:hover {
-            box-shadow: 0 0 8px 2px #19e6d9;
-            filter: brightness(1.03) drop-shadow(0 0 3px #19e6d9);
-            animation: homepage-feature-card-pulse-1 1.1s infinite alternate;
-          }
-          .homepage-feature-card-2:hover {
-            box-shadow: 0 0 8px 2px #4f8cff;
-            filter: brightness(1.03) drop-shadow(0 0 3px #4f8cff);
-            animation: homepage-feature-card-pulse-2 1.1s infinite alternate;
-          }
-          .homepage-feature-card-3:hover {
-            box-shadow: 0 0 8px 2px #ff5ad1;
-            filter: brightness(1.03) drop-shadow(0 0 3px #ff5ad1);
-            animation: homepage-feature-card-pulse-3 1.1s infinite alternate;
-          }
+          /* Remove hover pulse and color effects */
+          .homepage-feature-card-0:hover,
+          .homepage-feature-card-1:hover,
+          .homepage-feature-card-2:hover,
+          .homepage-feature-card-3:hover,
           .homepage-feature-card-0:hover::after,
           .homepage-feature-card-0:hover::before,
-          .homepage-feature-card-0:hover .homepage-feature-card-right {
-            box-shadow: 0 0 4px 1px #ffb347;
-            filter: brightness(1.07);
-          }
+          .homepage-feature-card-0:hover .homepage-feature-card-right,
           .homepage-feature-card-1:hover::after,
           .homepage-feature-card-1:hover::before,
-          .homepage-feature-card-1:hover .homepage-feature-card-right {
-            box-shadow: 0 0 4px 1px #19e6d9;
-            filter: brightness(1.07);
-          }
+          .homepage-feature-card-1:hover .homepage-feature-card-right,
           .homepage-feature-card-2:hover::after,
           .homepage-feature-card-2:hover::before,
-          .homepage-feature-card-2:hover .homepage-feature-card-right {
-            box-shadow: 0 0 4px 1px #4f8cff;
-            filter: brightness(1.07);
-          }
+          .homepage-feature-card-2:hover .homepage-feature-card-right,
           .homepage-feature-card-3:hover::after,
           .homepage-feature-card-3:hover::before,
           .homepage-feature-card-3:hover .homepage-feature-card-right {
-            box-shadow: 0 0 4px 1px #ff5ad1;
-            filter: brightness(1.07);
+            box-shadow: none !important;
+            filter: none !important;
+            animation: none !important;
           }
-          @keyframes homepage-feature-card-pulse-0 {
-            0% {
-              box-shadow: 0 0 8px 2px #ffb347;
-            }
-            100% {
-              box-shadow: 0 0 8px 4px #ffb347;
-            }
-          }
-          @keyframes homepage-feature-card-pulse-1 {
-            0% {
-              box-shadow: 0 0 8px 2px #19e6d9;
-            }
-            100% {
-              box-shadow: 0 0 8px 4px #19e6d9;
-            }
-          }
-          @keyframes homepage-feature-card-pulse-2 {
-            0% {
-              box-shadow: 0 0 8px 2px #4f8cff;
-            }
-            100% {
-              box-shadow: 0 0 8px 4px #4f8cff;
-            }
-          }
-          @keyframes homepage-feature-card-pulse-3 {
-            0% {
-              box-shadow: 0 0 8px 2px #ff5ad1;
-            }
-            100% {
-              box-shadow: 0 0 8px 4px #ff5ad1;
-            }
-          }
+          @keyframes homepage-feature-card-pulse-0 {}
+          @keyframes homepage-feature-card-pulse-1 {}
+          @keyframes homepage-feature-card-pulse-2 {}
+          @keyframes homepage-feature-card-pulse-3 {}
         `}</style>
       </div>
     </main>
