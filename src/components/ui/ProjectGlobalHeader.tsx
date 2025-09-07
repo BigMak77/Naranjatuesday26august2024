@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useContext } from "react";
 import { useUser } from "@/lib/useUser";
 import { supabase } from "@/lib/supabase-client";
 import {
@@ -20,6 +20,7 @@ import {
 import styles from "@/components/ui/ProjectGlobalHeader.module.css";
 import MyProfileModal from "@/components/user/MyProfileModal";
 import Modal from "@/components/modal";
+import { RaiseIssueModalContext } from "@/context/RaiseIssueModalContext";
 
 type NavLink = {
   href: string;
@@ -46,6 +47,7 @@ export default function GlobalHeader({
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [turkusDropdownOpen, setTurkusDropdownOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const raiseIssueModalCtx = useContext(RaiseIssueModalContext);
   const handleTurkusDropdown = () => setTurkusDropdownOpen((open) => !open);
 
   const dashboardHref = useMemo(() => {
@@ -336,12 +338,13 @@ export default function GlobalHeader({
             )}
 
             {/* Siren button */}
-            <a
+            <Link
               className="neon-btn neon-btn-danger neon-btn-square"
-              href="/turkus/issues/add"
+              href="/turkus/issues/"
+              aria-label="Raise Issue"
             >
               <FiAlertOctagon />
-            </a>
+            </Link>
           </div>
         </div>
       </header>

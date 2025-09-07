@@ -12,6 +12,7 @@ export function useUser() {
     department_id: string;
     first_name?: string;
     last_name?: string;
+    receive_notifications?: boolean;
   } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -31,7 +32,7 @@ export function useUser() {
       const { data, error } = await supabase
         .from("users")
         .select(
-          "id, auth_id, access_level, department_id, first_name, last_name",
+          "id, auth_id, access_level, department_id, first_name, last_name, receive_notifications",
         )
         .eq("auth_id", authUser.id)
         .single();

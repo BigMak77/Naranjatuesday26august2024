@@ -8,6 +8,7 @@ import NeonIconButton from "../ui/NeonIconButton";
 import { FiX, FiDownload, FiCheck, FiCircle, FiAlertCircle } from "react-icons/fi";
 import jsPDF from "jspdf";
 import MainHeader from "../ui/MainHeader";
+import IssuesWidget from "@/components/issues/IssuesWidget";
 
 type ItemType = "module" | "document" | "behaviour";
 type Status = "assigned" | "opened" | "completed";
@@ -403,13 +404,16 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
     { header: "Action", accessor: "action" },
   ];
 
-  // --- UI rendering ---------------------------------------------------------
   return (
     <NeonPanel className="w-full">
       <MainHeader
-        title="User Training Dashboard"
-        subtitle={userFullName ? `Welcome, ${userFullName}` : undefined}
+        title="User Dashboard"
       />
+      <div style={{ margin: '24px 0' }}>
+        <h2 style={{ fontWeight: 700, fontSize: 18, marginBottom: 8 }}>Department Issues</h2>
+        <IssuesWidget />
+        <hr className="issues-widget-separator" />
+      </div>
       {loading ? (
         <p className="neon-success">Loading...</p>
       ) : error ? (

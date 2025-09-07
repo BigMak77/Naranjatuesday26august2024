@@ -57,6 +57,7 @@ interface User {
   is_leaver?: boolean;
   leaver_date?: string;
   leaver_reason?: string;
+  receive_notifications?: boolean;
 }
 
 // Helper to format date as UK style dd/mm/yy
@@ -219,6 +220,8 @@ export default function UserManagementPanel() {
             role_profile_name: rp?.find((x) => x.id === user.role_profile_id)?.name || "",
             role_title: role ? role.title : "—",
             department_name: department ? department.name : "—",
+            // Fix: ensure receive_notifications is strictly boolean
+            receive_notifications: user.receive_notifications === true,
           };
         });
         setUsers(usersWithNames);
@@ -295,7 +298,7 @@ export default function UserManagementPanel() {
     await supabase.from("users").update(updateObj).in("id", bulkSelectedUserIds);
     // Optionally, re-fetch users from supabase for consistency
     const { data: u } = await supabase.from("users").select("*, shift_id, role_profile_id");
-    setUsers(u || []);
+    setUsers(u || []); // Do not coerce receive_notifications here
     setBulkAssignOpen(false);
     setBulkAssignLoading(false);
     setBulkSelectedUserIds([]);
@@ -389,6 +392,7 @@ export default function UserManagementPanel() {
             is_leaver: cleanedUser.is_leaver ?? false,
             leaver_date: cleanedUser.leaver_date || null,
             leaver_reason: cleanedUser.leaver_reason || null,
+            receive_notifications: cleanedUser.receive_notifications ?? false,
           })
           .select()
           .single();
@@ -418,6 +422,7 @@ export default function UserManagementPanel() {
             is_leaver: cleanedUser.is_leaver ?? false,
             leaver_date: cleanedUser.leaver_date || null,
             leaver_reason: cleanedUser.leaver_reason || null,
+            receive_notifications: cleanedUser.receive_notifications ?? false,
           })
           .eq("id", cleanedUser.id);
         if (userErr) {
@@ -455,9 +460,10 @@ export default function UserManagementPanel() {
       is_first_aid: u.is_first_aid ? "true" : "false",
       is_trainer: u.is_trainer ? "true" : "false",
       start_date: u.start_date || "",
+      receive_notifications: u.receive_notifications ? "true" : "false",
     }));
     const csv = [
-      "id,email,first_name,last_name,department_id,role_id,access_level,phone,nationality,is_first_aid,is_trainer,start_date",
+      "id,email,first_name,last_name,department_id,role_id,access_level,phone,nationality,is_first_aid,is_trainer,start_date,receive_notifications",
       ...csvRows.map((row) =>
         Object.values(row)
           .map((val) => `"${String(val).replace(/"/g, '""')}"`)
@@ -488,6 +494,7 @@ export default function UserManagementPanel() {
         ...u,
         is_first_aid: u.is_first_aid === "true" || u.is_first_aid === true,
         is_trainer: u.is_trainer === "true" || u.is_trainer === true,
+        receive_notifications: u.receive_notifications === "true" || u.receive_notifications === true,
       }));
     } catch {
       setErrorMsg("CSV parse error. Please check your file format.");
@@ -593,6 +600,7 @@ export default function UserManagementPanel() {
                       is_first_aid: false,
                       is_trainer: false,
                       start_date: "",
+                      receive_notifications: false,
                     },
                     true,
                     (e?.currentTarget as HTMLElement) ?? null,
@@ -1180,6 +1188,27 @@ export default function UserManagementPanel() {
                     </div>
                   </div>
                 )}
+                {/* receive_notifications */}
+                <div>
+                  <label className="neon-label" htmlFor="receive-notifications-select" style={{ color: 'var(--neon-text, #fff)' }}>
+                    Receive Notifications
+                  </label>
+                  <select
+                    id="receive-notifications-select"
+                    className="neon-input"
+                    value={selectedUser.receive_notifications === true ? "true" : "false"}
+                    onChange={(e) =>
+                      setSelectedUser({
+                        ...selectedUser,
+                        receive_notifications: e.target.value === "true",
+                      })
+                    }
+                    style={{ color: 'var(--neon-text, #fff)' }}
+                  >
+                    <option value="false">No</option>
+                    <option value="true">Yes</option>
+                  </select>
+                </div>
 
                 {showSuccess && (
                   <div className="md:col-span-3 lg:col-span-3" style={{ gridColumn: "span 3", marginTop: "0.5rem" }}>
