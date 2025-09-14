@@ -119,6 +119,7 @@ export default function DashboardPage() {
         <DocumentsModulesResourcesWidget />
         <TurkusWidget />
         <HealthAndSafetyWidget />
+        <Link href="/tasks" className="neon-btn" style={{ marginTop: "1rem", textAlign: "center" }}>Go to Tasks</Link>
       </section>
     </>
   );

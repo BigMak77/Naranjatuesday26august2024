@@ -30,7 +30,7 @@ import SubmissionsTab from "@/components/audit/SubmissionsTab";
 import CreateAuditTab from "@/components/audit/CreateAuditTab";
 import AssignAuditTab from "@/components/audit/AssignAuditTab";
 import AssignedToTab from "@/components/audit/AssignedToTab";
-import AuditorsListWidget from "@/components/task/AuditorsListWidget";
+import AuditorsListWidget from "@/components/audit/AuditorsListWidget";
 import StandardsTab from "@/components/audit/StandardsTab";
 
 /* =========================================================
@@ -70,7 +70,7 @@ export default function AuditManager() {
   const params = useSearchParams();
 
   // Read tab from URL (?tab=assign etc.)
-  const tabFromUrl = (params.get("tab") as TabKey) || "create";
+  const tabFromUrl = (params?.get("tab") as TabKey) || "create";
   const [activeTab, setActiveTab] = useState<TabKey>(tabFromUrl);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -118,7 +118,7 @@ export default function AuditManager() {
   const handleTabChange = useCallback(
     (tab: TabKey) => {
       setActiveTab(tab);
-      const qs = new URLSearchParams(Array.from(params.entries()));
+      const qs = new URLSearchParams(Array.from((params ?? new URLSearchParams()).entries()));
       qs.set("tab", tab);
       router.replace(`?${qs.toString()}`);
     },

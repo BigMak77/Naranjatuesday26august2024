@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import NeonForm from "@/components/NeonForm";
 import NeonTable from "@/components/NeonTable";
-import MyTasksWidget from "@/components/task/MyTasksWidget";
 import { FiAlertCircle, FiClock } from "react-icons/fi";
 
 // Type definitions
@@ -213,7 +212,6 @@ export default function TurkusAssignmentsPage() {
                 </div>
               </div>
             </NeonForm>
-            <MyTasksWidget />
           </div>
           {loading ? (
             <p className="neon-success">Loading assignments...</p>

@@ -111,11 +111,10 @@ select{
 .neon-input {
   width: 100%;
   background: var(--field);
-  color: var (--text);
+  color: #fff !important;
   border: 1.5px solid var(--neon);
   border-radius: 8px;
   padding: .85rem 1.1rem;
-  ;
   font-size: 1rem;
   box-shadow: 0 0 8px var(--neon);
   transition: border-color .2s, box-shadow .2s, background-color .2s;
@@ -145,7 +144,7 @@ select{
   justify-content: center;
   padding: 0;
   border-radius: 8px;
-  background: var(--panel);
+  background: var (--panel);
   color: #fff;
   box-shadow: none; /* Remove neon blue glow from buttons */
   border: 0;
@@ -1086,4 +1085,34 @@ footer .footer__icon svg {
   box-shadow: 0 0 8px var(--neon);
   background: none;
 }
+
+/* ================== User Dashboard Section Title ================== */
+.user-dashboard-section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+
+/* ================== Dashboard Section Title ================== */
+.dashboard-section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+
+/* Flashing red dot animation */
+@keyframes flash {
+  0% { opacity: 1; }
+  100% { opacity: 0.3; }
+}
+.flashing-red-dot {
+  animation: flash 1s infinite alternate;
+}
+
+
+
 

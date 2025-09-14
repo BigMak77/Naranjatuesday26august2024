@@ -16,7 +16,7 @@ import ContentHeader from "@/components/headersandfooters/ContentHeader";
 export default function RoleProfileBuilderPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const profileId = searchParams.get("id");
+  const profileId = searchParams?.get("id") ?? "";
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");

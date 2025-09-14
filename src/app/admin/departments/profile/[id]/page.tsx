@@ -14,8 +14,13 @@ type Document = {
 };
 
 export default function DepartmentProfilePage() {
-  const { id } = useParams();
-  const departmentId = id as string;
+  const params = useParams();
+  const departmentId =
+    params && typeof params.id === "string"
+      ? params.id
+      : Array.isArray(params?.id)
+      ? params.id[0]
+      : "";
 
   const [departmentName, setDepartmentName] = useState("");
   const [modules, setModules] = useState<Module[]>([]);

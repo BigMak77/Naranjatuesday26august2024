@@ -23,7 +23,7 @@ import Modal from "@/components/modal";
 import { RaiseIssueModalContext } from "@/context/RaiseIssueModalContext";
 
 type NavLink = {
-  href: string;
+  href?: string;
   label: string;
   icon: React.ReactElement;
   dropdown?: { href: string; label: string }[];
@@ -71,12 +71,11 @@ export default function GlobalHeader({
         { href: dashboardHref, label: "Dashboard", icon: <FiHome /> },
         { href: "/hr/people/", label: "HR", icon: <FiUsers /> },
         {
-          href: "/turkus",
           label: "Turkus",
           icon: <FiFileText />,
           dropdown: [
             { href: "/turkus/audit", label: "Audit" },
-            { href: "/turkus/tasks", label: "Tasks" },
+            { href: "/tasks", label: "Tasks" },
             { href: "/turkus/issues", label: "Issues" },
             { href: "/turkus/documents", label: "Documents" },
           ],
@@ -139,78 +138,82 @@ export default function GlobalHeader({
           {/* Center: Quick links (signed-in) */}
           {!loading && user && (
             <nav className={styles.nav} aria-label="Primary">
-              {links.map((l) =>
-                l.dropdown ? (
-                  <div
-                    key={l.href}
-                    className={styles.navItemDropdown}
-                    style={{ position: "relative" }}
-                  >
-                    <button
-                      className={styles.navItem}
-                      type="button"
-                      style={{
-                        fontFamily: "inherit",
-                        fontWeight: "inherit",
-                        color: "inherit",
-                        background: "none",
-                        border: "none",
-                        padding: 0,
-                      }}
-                      aria-haspopup="menu"
-                      aria-expanded={turkusDropdownOpen}
-                      onClick={handleTurkusDropdown}
+              {links
+                .filter((l) => l.dropdown || l.href) // Only render links with href or dropdown
+                .map((l) =>
+                  l.dropdown ? (
+                    <div
+                      key={l.label}
+                      className={styles.navItemDropdown}
+                      style={{ position: "relative" }}
                     >
-                      <span className={styles.navIcon} aria-hidden="true">
-                        {l.icon}
-                      </span>
-                      <span className={styles.navText}>{l.label}</span>
-                      <FiChevronDown
-                        className={styles.chev}
-                        aria-hidden="true"
-                      />
-                    </button>
-                    {turkusDropdownOpen && (
-                      <div
-                        className={styles.menu}
-                        role="menu"
+                      <button
+                        className={styles.navItem}
+                        type="button"
                         style={{
-                          top: "100%",
-                          left: 0,
-                          minWidth: 180,
-                          position: "absolute",
-                          zIndex: 3002,
+                          fontFamily: "inherit",
+                          fontWeight: "inherit",
+                          color: "inherit",
+                          background: "none",
+                          border: "none",
+                          padding: 0,
                         }}
+                        aria-haspopup="menu"
+                        aria-expanded={turkusDropdownOpen}
+                        onClick={handleTurkusDropdown}
                       >
-                        {l.dropdown.map((d) => (
-                          <Link
-                            key={d.href}
-                            href={d.href}
-                            className={styles.menuItem}
-                            role="menuitem"
-                            prefetch
-                            onClick={() => setTurkusDropdownOpen(false)}
-                          >
-                            {d.label}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <Link
-                    key={l.href}
-                    href={l.href}
-                    className={styles.navItem}
-                    prefetch
-                  >
-                    <span className={styles.navIcon} aria-hidden="true">
-                      {l.icon}
-                    </span>
-                    <span className={styles.navText}>{l.label}</span>
-                  </Link>
-                )
-              )}
+                        <span className={styles.navIcon} aria-hidden="true">
+                          {l.icon}
+                        </span>
+                        <span className={styles.navText}>{l.label}</span>
+                        <FiChevronDown
+                          className={styles.chev}
+                          aria-hidden="true"
+                        />
+                      </button>
+                      {turkusDropdownOpen && (
+                        <div
+                          className={styles.menu}
+                          role="menu"
+                          style={{
+                            top: "100%",
+                            left: 0,
+                            minWidth: 180,
+                            position: "absolute",
+                            zIndex: 3002,
+                          }}
+                        >
+                          {l.dropdown.map((d) => (
+                            <Link
+                              key={d.href}
+                              href={d.href}
+                              className={styles.menuItem}
+                              role="menuitem"
+                              prefetch
+                              onClick={() => setTurkusDropdownOpen(false)}
+                            >
+                              {d.label}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    l.href && (
+                      <Link
+                        key={l.href}
+                        href={l.href}
+                        className={styles.navItem}
+                        prefetch
+                      >
+                        <span className={styles.navIcon} aria-hidden="true">
+                          {l.icon}
+                        </span>
+                        <span className={styles.navText}>{l.label}</span>
+                      </Link>
+                    )
+                  )
+                )}
             </nav>
           )}
 

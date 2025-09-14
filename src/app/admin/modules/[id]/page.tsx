@@ -22,7 +22,8 @@ interface Module {
 }
 
 export default function ModuleViewPage() {
-  const { id } = useParams<{ id: string }>();
+  const params = useParams();
+  const id = params?.id ?? "";
   const router = useRouter();
   const [module, setModule] = useState<Module | null>(null);
   const [loading, setLoading] = useState(true);
@@ -92,9 +93,7 @@ export default function ModuleViewPage() {
         <div className="admin-module-meta">
           Tags:{" "}
           <span>
-            {module.tags && module.tags.length > 0
-              ? module.tags.join(", ")
-              : "—"}
+            {module.tags && module.tags.length > 0 ? module.tags.join(", ") : "—"}
           </span>
         </div>
         <div className="admin-module-meta">

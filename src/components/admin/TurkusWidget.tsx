@@ -3,12 +3,6 @@ import Link from "next/link";
 
 const TURKUS_ACTIONS = [
   {
-    href: "/turkus/tasks/assign",
-    label: "Assign Turkus Task",
-    description: "Assign a new task to a Turkus team member.",
-    className: "neon-btn neon-btn-add",
-  },
-  {
     href: "/turkus/reports",
     label: "Turkus Reports",
     description: "View and analyze Turkus-related reports.",

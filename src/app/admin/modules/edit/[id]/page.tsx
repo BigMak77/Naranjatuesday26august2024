@@ -8,7 +8,8 @@ import NeonModuleForm, {
 
 export default function EditModulePage() {
   const router = useRouter();
-  const { id } = useParams<{ id: string }>();
+  const params = useParams();
+  const id = params?.id ?? "";
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);

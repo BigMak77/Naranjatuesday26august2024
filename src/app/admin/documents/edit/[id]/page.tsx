@@ -22,7 +22,8 @@ type DocumentType = {
 };
 
 export default function EditDocumentPage() {
-  const { id } = useParams<{ id: string }>();
+  const params = useParams();
+  const id = params?.id ?? "";
   const router = useRouter();
   const { user } = useUser();
 

@@ -25,8 +25,8 @@ export default function MyIssues() {
   useEffect(() => {
     const fetch = async () => {
       // TODO: Replace with your actual auth logic
-      const authData = { user: { user_metadata: { department_id: "" } } };
-      if (!authData?.user) {
+      const authData = { user: { user_metadata: { department_id: undefined } } };
+      if (!authData?.user || !authData.user.user_metadata?.department_id) {
         setIssues([]);
         setLoading(false);
         return;
@@ -35,7 +35,7 @@ export default function MyIssues() {
       const { data } = await supabase
         .from("issues")
         .select("id, title, priority, status, created_at, departments (name)")
-        .eq("department_id", authData.user.user_metadata?.department_id || "");
+        .eq("department_id", authData.user.user_metadata.department_id);
       setIssues(
         (data || []).map((issue) => ({
           id: Number(issue.id),
@@ -54,14 +54,13 @@ export default function MyIssues() {
     fetch();
   }, []);
   return (
-    <div className="p-5">
-      <h1 className="text-2xl font-bold mb-4">My Issues</h1>
-      <NeonIconButton variant="add" icon={<FiPlus />} title="Add Issue" />
+    <div>
+      <h1 className="dashboard-section-title">My Issues</h1>
       {loading ? (
         <div>Loading...</div>
       ) : issues.length === 0 ? (
-        <div className="flex items-center text-gray-500">
-          <FiAlertCircle className="mr-2" />
+        <div className="flex items-center">
+        
           No issues found.
         </div>
       ) : (
