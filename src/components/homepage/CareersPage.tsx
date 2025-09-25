@@ -1,342 +1,201 @@
 "use client";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
+import NeonTable from "@/components/NeonTable";
+import { supabase } from "@/lib/supabase-client";
+import OverlayDialog from "@/components/ui/OverlayDialog";
+import NeonIconButton, { NeonSubmitApplicationButton } from "../ui/NeonIconButton";
+import { FiX } from "react-icons/fi";
+import SuccessModal from "@/components/ui/SuccessModal";
 
-type Role = {
-  id: string;
-  title: string;
-  department: string;
-  location: string; // e.g., "London, UK", "Remote (UK/EU)"
-  commitment: "Full-time" | "Part-time" | "Contract" | "Internship";
-  description?: string; // short teaser
-  responsibilities?: string[];
-  requirements?: string[];
-  salaryRange?: string; // e.g., "£60–75k + equity"
-  remote?: boolean;
-  applyUrl?: string; // link to ATS or email mailto:
-  postedAt?: string; // ISO or human date
-};
+const TABLE_NAME = "vacancies"; // Updated to match your actual table name
 
-type CareersPageProps = {
-  companyName?: string;
-  heroTitle?: string;
-  heroSubtitle?: string;
-  values?: { title: string; text: string }[];
-  benefits?: { title: string; text: string }[];
-  roles: Role[];
-  orgAddress?: string; // for schema
-  orgUrl?: string; // for schema
-  orgLogoUrl?: string; // for schema
-  enableJobSchema?: boolean; // JSON-LD JobPosting
-  globalApplyCta?: { label: string; url: string };
-  contactEmail?: string; // fallback for mailto applications
-};
+// Remove the 'Apply' column from the columns array, it will be injected dynamically in the NeonTable below
+const columns = [
+  { header: "ID", accessor: "id" },
+  { header: "Title", accessor: "title" },
+  { header: "Department", accessor: "department" },
+  { header: "Location", accessor: "location" },
+  { header: "Commitment", accessor: "commitment" },
+  { header: "Posted", accessor: "posted_at", render: (value: unknown) => {
+      if (!value) return "";
+      const date = new Date(value as string);
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+  },
+];
 
-const CareersPage: React.FC<CareersPageProps> = ({
-  companyName = "Naranja",
-  heroTitle = "Build the future with Naranja",
-  heroSubtitle = "Join our team to create delightful products with real-world impact.",
-  values = [
-    { title: "Customer First", text: "We obsess over outcomes, not outputs." },
-    { title: "Ship & Improve", text: "We deliver value fast and iterate with data." },
-    { title: "Own It", text: "High trust, high autonomy, clear accountability." },
-  ],
-  benefits = [
-    { title: "Flexible work", text: "Hybrid & remote options across UK/EU." },
-    { title: "Time to recharge", text: "25+ days annual leave, plus paid wellness days." },
-    { title: "Growth budget", text: "Annual stipend for learning and conferences." },
-    { title: "Health & wellbeing", text: "Private healthcare and mental health support." },
-    { title: "Ownership", text: "Competitive salary with equity options." },
-  ],
-  roles,
-  orgAddress,
-  orgUrl,
-  orgLogoUrl,
-  enableJobSchema = true,
-  globalApplyCta,
-  contactEmail = "careers@naranja.example",
-}) => {
-  // ----- Filters -----
-  const departments = useMemo(
-    () => Array.from(new Set(roles.map((r) => r.department))).sort(),
-    [roles]
-  );
-  const locations = useMemo(
-    () => Array.from(new Set(roles.map((r) => r.location))).sort(),
-    [roles]
-  );
-  const commitments = ["Full-time", "Part-time", "Contract", "Internship"] as const;
+const CareersPage: React.FC = () => {
+  const [data, setData] = useState<Record<string, unknown>[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<Record<string, any> | null>(null);
 
-  const [q, setQ] = useState("");
-  const [dept, setDept] = useState<string>("All");
-  const [loc, setLoc] = useState<string>("All");
-  const [commit, setCommit] = useState<string>("All");
+  // Form state
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [cv, setCv] = useState<File | null>(null);
+  const [coverLetter, setCoverLetter] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const filtered = roles.filter((r) => {
-    const matchesQ =
-      !q ||
-      r.title.toLowerCase().includes(q.toLowerCase()) ||
-      (r.description || "").toLowerCase().includes(q.toLowerCase()) ||
-      (r.requirements || []).join(" ").toLowerCase().includes(q.toLowerCase()) ||
-      (r.responsibilities || []).join(" ").toLowerCase().includes(q.toLowerCase());
-    const matchesDept = dept === "All" || r.department === dept;
-    const matchesLoc = loc === "All" || r.location === loc;
-    const matchesCommit = commit === "All" || r.commitment === commit;
-    return matchesQ && matchesDept && matchesLoc && matchesCommit;
-  });
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      const { data, error } = await supabase.from(TABLE_NAME).select("*");
+      if (error) {
+        setError(error.message);
+        setData([]);
+      } else {
+        setData(data || []);
+      }
+      setLoading(false);
+    };
+    fetchData();
+  }, []);
 
-  // ----- JSON-LD (JobPosting) -----
-  const jobSchema = enableJobSchema
-    ? filtered.slice(0, 20).map((r) => ({
-        "@context": "https://schema.org",
-        "@type": "JobPosting",
-        title: r.title,
-        description:
-          (r.description || "") +
-          (r.responsibilities?.length
-            ? `<ul>${r.responsibilities.map((li) => `<li>${li}</li>`).join("")}</ul>`
-            : "") +
-          (r.requirements?.length
-            ? `<p><strong>Requirements</strong></p><ul>${r.requirements
-                .map((li) => `<li>${li}</li>`)
-                .join("")}</ul>`
-            : ""),
-        datePosted: r.postedAt || undefined,
-        employmentType: r.commitment.replace("-", ""),
-        hiringOrganization: {
-          "@type": "Organization",
-          name: companyName,
-          sameAs: orgUrl,
-          logo: orgLogoUrl,
+  const handleApply = (row: Record<string, any>) => {
+    setSelectedRole(row);
+    setModalOpen(true);
+    setName("");
+    setEmail("");
+    setCv(null);
+    setCoverLetter("");
+    setSubmitSuccess(false);
+    setSubmitError(null);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setSubmitError(null);
+    setSubmitSuccess(false);
+    try {
+      // 1. Upload CV to Supabase Storage (optional, skip if not needed)
+      let cvUrl = null;
+      if (cv) {
+        const fileExt = cv.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).slice(2)}.${fileExt}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage.from("applications-cv").upload(fileName, cv);
+        if (uploadError) throw new Error("CV upload failed: " + uploadError.message);
+        cvUrl = supabase.storage.from("applications-cv").getPublicUrl(fileName).data.publicUrl;
+      }
+      // 2. Insert application record into a new table (e.g. 'applications')
+      const { error: insertError } = await supabase.from("applications").insert([
+        {
+          name,
+          email,
+          cover_letter: coverLetter,
+          cv_url: cvUrl,
+          vacancy_id: selectedRole?.id,
+          vacancy_title: selectedRole?.title,
+          submitted_at: new Date().toISOString(),
         },
-        jobLocationType: r.remote ? "TELECOMMUTE" : undefined,
-        jobLocation: r.remote
-          ? undefined
-          : {
-              "@type": "Place",
-              address: {
-                "@type": "PostalAddress",
-                streetAddress: orgAddress || "",
-                addressLocality: r.location, // consider city-only if you want stricter schema
-                addressCountry: r.location.split(",").slice(-1)[0]?.trim() || "UK",
-              },
-            },
-        applicantLocationRequirements: r.remote
-          ? { "@type": "Country", name: "UK/EU" }
-          : undefined,
-        baseSalary: r.salaryRange
-          ? {
-              "@type": "MonetaryAmount",
-              currency: "GBP",
-              value: { "@type": "QuantitativeValue", value: undefined }, // range shown in text
-            }
-          : undefined,
-        validThrough: undefined, // add a closing date if you have one
-      }))
-    : [];
+      ]);
+      if (insertError) throw new Error(insertError.message);
+      setSubmitSuccess(true);
+    } catch (err: any) {
+      setSubmitError(err.message || "Submission failed");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) return <div>Loading…</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
-    <main className="careers" aria-labelledby="careers-title">
-      <header className="hero">
-        <h1 id="careers-title">{heroTitle}</h1>
-        <p className="sub">{heroSubtitle}</p>
-        {globalApplyCta && (
-          <p className="cta">
-            <a className="btn" href={globalApplyCta.url}>
-              {globalApplyCta.label}
-            </a>
-          </p>
-        )}
-      </header>
-
-      <section className="values" aria-labelledby="values-title">
-        <h2 id="values-title">Our values</h2>
-        <div className="grid">
-          {values.map((v) => (
-            <article key={v.title} className="card">
-              <h3>{v.title}</h3>
-              <p>{v.text}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="benefits" aria-labelledby="benefits-title">
-        <h2 id="benefits-title">Benefits</h2>
-        <div className="grid">
-          {benefits.map((b) => (
-            <article key={b.title} className="card">
-              <h3>{b.title}</h3>
-              <p>{b.text}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="open-roles" aria-labelledby="roles-title">
-        <div className="roles-header">
-          <h2 id="roles-title">Open roles</h2>
-        <div className="filters" role="search">
-            <input
-              aria-label="Search roles"
-              placeholder="Search roles (e.g., frontend, data)…"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-            />
-            <select
-              aria-label="Filter by department"
-              value={dept}
-              onChange={(e) => setDept(e.target.value)}
-            >
-              <option>All</option>
-              {departments.map((d) => (
-                <option key={d}>{d}</option>
-              ))}
-            </select>
-            <select
-              aria-label="Filter by location"
-              value={loc}
-              onChange={(e) => setLoc(e.target.value)}
-            >
-              <option>All</option>
-              {locations.map((l) => (
-                <option key={l}>{l}</option>
-              ))}
-            </select>
-            <select
-              aria-label="Filter by commitment"
-              value={commit}
-              onChange={(e) => setCommit(e.target.value)}
-            >
-              <option>All</option>
-              {commitments.map((c) => (
-                <option key={c}>{c}</option>
-              ))}
-            </select>
+    <main>
+      <img
+        src="/CareerCropped.jpeg"
+        alt="Careers at Naranja"
+        style={{ width: "100%", maxHeight: 320, objectFit: "cover", borderRadius: 12, marginBottom: 24 }}
+      />
+      <h1>Careers</h1>
+      <NeonTable
+        columns={[
+          ...columns,
+          {
+            header: "Apply",
+            accessor: "apply",
+            render: (_value: unknown, row: Record<string, any>) => (
+              <button
+                className="neon-btn"
+                onClick={() => {
+                  setSelectedRole(row);
+                  setModalOpen(true);
+                  setName("");
+                  setEmail("");
+                  setCv(null);
+                  setCoverLetter("");
+                  setSubmitSuccess(false);
+                  setSubmitError(null);
+                }}
+                type="button"
+              >
+                Apply here
+              </button>
+            ),
+            width: 120,
+          },
+        ]}
+        data={data}
+      />
+      {modalOpen && (
+        <OverlayDialog open={modalOpen} onClose={() => setModalOpen(false)} ariaLabelledby="apply-dialog-title">
+          <div className="neon-form-title" id="apply-dialog-title" style={{ marginBottom: "1.25rem" }}>
+            Apply for: {selectedRole?.title || "Role"}
           </div>
-        </div>
-
-        {filtered.length === 0 ? (
-          <p className="muted">
-            No roles match your filters. Try clearing them or check back soon.
-          </p>
-        ) : (
-          <ul className="role-list">
-            {filtered.map((r) => (
-              <li key={r.id} className="role">
-                <div className="role-head">
-                  <div>
-                    <h3 className="role-title">{r.title}</h3>
-                    <p className="role-meta">
-                      <span>{r.department}</span> • <span>{r.location}</span> •{" "}
-                      <span>{r.commitment}</span>
-                      {r.salaryRange ? (
-                        <>
-                          {" "}
-                          • <span>{r.salaryRange}</span>
-                        </>
-                      ) : null}
-                      {r.postedAt ? (
-                        <>
-                          {" "}
-                          • <span>Posted {r.postedAt}</span>
-                        </>
-                      ) : null}
-                    </p>
-                  </div>
-                  <div className="role-cta">
-                    <a
-                      className="btn"
-                      href={
-                        r.applyUrl ||
-                        `mailto:${contactEmail}?subject=Application: ${encodeURIComponent(
-                          r.title
-                        )}`
-                      }
-                    >
-                      Apply
-                    </a>
-                  </div>
-                </div>
-                {r.description && <p className="role-desc">{r.description}</p>}
-                {(r.responsibilities?.length || r.requirements?.length) && (
-                  <details>
-                    <summary>Details</summary>
-                    {r.responsibilities?.length ? (
-                      <>
-                        <h4>Responsibilities</h4>
-                        <ul className="bullets">
-                          {r.responsibilities.map((item, i) => (
-                            <li key={i}>{item}</li>
-                          ))}
-                        </ul>
-                      </>
-                    ) : null}
-                    {r.requirements?.length ? (
-                      <>
-                        <h4>Requirements</h4>
-                        <ul className="bullets">
-                          {r.requirements.map((item, i) => (
-                            <li key={i}>{item}</li>
-                          ))}
-                        </ul>
-                      </>
-                    ) : null}
-                  </details>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section className="inclusion" aria-labelledby="inclusion-title">
-        <h2 id="inclusion-title">Diversity, equity & inclusion</h2>
-        <p className="muted">
-          We’re an equal opportunity employer. We welcome applicants from all
-          backgrounds and identities. If you need reasonable adjustments during
-          the hiring process, email us at{" "}
-          <a href={`mailto:${contactEmail}`}>{contactEmail}</a>.
-        </p>
-      </section>
-
-      <section className="process" aria-labelledby="process-title">
-        <h2 id="process-title">Our hiring process</h2>
-        <ol className="timeline">
-          <li>
-            <strong>1. Apply</strong> — share your CV/portfolio or LinkedIn.
-          </li>
-          <li>
-            <strong>2. Intro call</strong> — 20–30 min with Talent/Manager.
-          </li>
-          <li>
-            <strong>3. Skills deep-dive</strong> — technical/role interview.
-          </li>
-          <li>
-            <strong>4. Practical exercise</strong> — time-boxed & paid where
-            applicable.
-          </li>
-          <li>
-            <strong>5. Team fit</strong> — meet future teammates and ask
-            questions.
-          </li>
-          <li>
-            <strong>6. Offer</strong> — we align on start date, compensation &
-            onboarding.
-          </li>
-        </ol>
-      </section>
-
-      {/* JSON-LD (robust @graph form: avoids touching per-item @context) */}
-      {enableJobSchema && jobSchema.length > 0 && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@graph": jobSchema.filter(Boolean),
-            }),
-          }}
-        />
+          {!submitSuccess && (
+            <form className="neon-form" onSubmit={handleSubmit}>
+              <label className="block mb-2">Full Name
+                <input className="neon-input" type="text" value={name} onChange={e => setName(e.target.value)} required />
+              </label>
+              <label className="block mb-2">Email
+                <input className="neon-input" type="email" value={email} onChange={e => setEmail(e.target.value)} required />
+              </label>
+              <label className="block mb-2">CV (PDF)
+                <input className="neon-input" type="file" accept=".pdf" onChange={e => setCv(e.target.files?.[0] || null)} required />
+              </label>
+              <label className="block mb-2">Cover Letter
+                <textarea className="neon-input" value={coverLetter} onChange={e => setCoverLetter(e.target.value)} rows={4} required />
+              </label>
+              {submitError && <div className="neon-error">{submitError}</div>}
+              <div className="neon-form-actions" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <button
+                  className="neon-btn neon-btn-submit-application"
+                  type="submit"
+                  disabled={submitting}
+                  title={submitting ? "Submitting…" : "Submit Application"}
+                  aria-label="Submit Application"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                </button>
+                <NeonIconButton
+                  variant="close"
+                  icon={<FiX />}
+                  title="Cancel"
+                  aria-label="Cancel"
+                  type="button"
+                  onClick={() => setModalOpen(false)}
+                  className="neon-btn-close"
+                />
+              </div>
+            </form>
+          )}
+          {submitSuccess && (
+            <SuccessModal
+              open={submitSuccess}
+              onClose={() => { setSubmitSuccess(false); setModalOpen(false); }}
+              message="Thank you for your application!"
+            />
+          )}
+        </OverlayDialog>
       )}
     </main>
   );

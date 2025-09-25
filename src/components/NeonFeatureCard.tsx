@@ -7,8 +7,9 @@ type NeonFeatureCardProps = {
   icon: React.ReactNode;
   title: string;
   text: string;
-  href: string;
-  children?: React.ReactNode; // <-- add children prop
+  href?: string; // Make href optional
+  children?: React.ReactNode;
+  className?: string;
 };
 
 export default function NeonFeatureCard({
@@ -18,9 +19,10 @@ export default function NeonFeatureCard({
   href,
   children,
   className,
-}: NeonFeatureCardProps & { className?: string }) {
+}: NeonFeatureCardProps) {
   const router = useRouter();
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!href) return;
     // Prevent navigation if clicking a child link/button
     if (
       e.target instanceof HTMLElement &&
@@ -28,21 +30,21 @@ export default function NeonFeatureCard({
     ) {
       return;
     }
-    if (href) router.push(href);
+    router.push(href);
   };
   return (
     <div
       className={["neon-feature-card", className].filter(Boolean).join(" ")}
-      tabIndex={0}
-      role="link"
+      tabIndex={href ? 0 : -1}
+      role={href ? "link" : undefined}
       aria-label={title}
-      onClick={handleClick}
-      onKeyDown={(e) => {
+      onClick={href ? handleClick : undefined}
+      onKeyDown={href ? (e) => {
         if ((e.key === "Enter" || e.key === " ") && href) {
           e.preventDefault();
           router.push(href);
         }
-      }}
+      } : undefined}
     >
       <div className="neon-feature-card-header">
         <span

@@ -1,11 +1,11 @@
 "use client";
-import MyIssues from "@/components/issues/MyIssues";
 
 export default function MyIssuesPage() {
   return (
     <div className="centered-content">
       <div className="my-issues-container">
-        <MyIssues />
+        {/* MyDepartmentIssues removed - no longer used */}
+        {/* You can add a replacement component or leave blank */}
       </div>
     </div>
   );

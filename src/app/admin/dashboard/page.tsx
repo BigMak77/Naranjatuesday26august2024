@@ -46,10 +46,6 @@ interface DashboardSection {
   actions?: DashboardAction[]; // secondary icon-only actions
 }
 
-/*********************************
- * Config (DRY)
- *********************************/
-const iconSize = 18;
 
 /*********************************
  * Helpers

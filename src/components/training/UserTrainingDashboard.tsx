@@ -30,7 +30,7 @@ interface Assignment {
   completed_at: string | null;
 }
 
-export default function UserTrainingDashboard({ authId }: { authId: string }) {
+export default function UserTrainingDashboard({ authId, completedDropdown }: { authId: string; completedDropdown?: boolean }) {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -391,6 +391,9 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
   );
   const completed = assignments.filter((a) => !!a.completed_at);
 
+  // Dropdown for completed training
+  const [selectedCompleted, setSelectedCompleted] = useState<string>("");
+
   const moduleColumns = [
     { header: "Name", accessor: "name" },
     {
@@ -495,6 +498,37 @@ export default function UserTrainingDashboard({ authId }: { authId: string }) {
           <h2 className="neon-section-title">Completed Training</h2>
           {completed.length === 0 ? (
             <p className="neon-info">No completed training yet.</p>
+          ) : completedDropdown ? (
+            <div style={{ marginBottom: 24 }}>
+              <select
+                className="neon-input"
+                value={selectedCompleted}
+                onChange={e => setSelectedCompleted(e.target.value)}
+                style={{ minWidth: 220 }}
+              >
+                <option value="">Select completed training…</option>
+                {completed.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.name} ({a.type}) — {fmt(a.completed_at)}
+                  </option>
+                ))}
+              </select>
+              {selectedCompleted && (
+                <div style={{ marginTop: 12 }}>
+                  <strong>Certificate:</strong>
+                  <NeonIconButton
+                    as="button"
+                    variant="download"
+                    title="Certificate"
+                    className="neon-btn-download"
+                    onClick={() => {
+                      const a = completed.find(x => x.id === selectedCompleted);
+                      if (a) handleDownloadCertificatePDFDirect(a);
+                    }}
+                  />
+                </div>
+              )}
+            </div>
           ) : (
             <div style={{ marginBottom: 24 }}>
               <NeonTable

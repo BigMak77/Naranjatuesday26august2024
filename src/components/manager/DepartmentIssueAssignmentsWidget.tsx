@@ -9,23 +9,7 @@ import NeonTable from "@/components/NeonTable";
 interface Assignment {
   id: string;
   title: string;
-  assigned_to: string;
-  assigned_at: string;
-  users?: {
-    auth_id: string;
-    first_name: string;
-    last_name: string;
-  };
-}
-
-interface RawAssignment {
-  id: string;
-  title: string;
-  assigned_to: string;
-  assigned_at: string;
-  users:
-    | { auth_id: string; first_name: string; last_name: string }[]
-    | { auth_id: string; first_name: string; last_name: string };
+  created_at: string;
 }
 
 export default function DepartmentIssueAssignmentsWidget() {
@@ -41,84 +25,51 @@ export default function DepartmentIssueAssignmentsWidget() {
       setLoading(true);
       setError(null);
 
+      // Only fetch unassigned issues for the department
       const { data, error } = await supabase
         .from("issues")
-        .select(
-          `
-          id,
-          title,
-          assigned_to,
-          assigned_at,
-          users:assigned_to (
-            auth_id,
-            first_name,
-            last_name
-          )
-        `,
-        )
+        .select("id, title, created_at")
         .eq("department_id", user.department_id)
-        .not("assigned_to", "is", null)
-        .order("assigned_at", { ascending: false });
+        .is("assigned_to", null)
+        .order("created_at", { ascending: false });
 
       if (error) {
-        console.error("Error loading assignments:", error);
-        setError("Failed to load assignments.");
+        console.error("Error loading unassigned issues:", error);
+        setError("Failed to load unassigned issues.");
       } else {
-        const mapped = (data || []).map((a: RawAssignment) => ({
-          id: a.id,
-          title: a.title,
-          assigned_to: a.assigned_to,
-          assigned_at: a.assigned_at,
-          users: Array.isArray(a.users) ? a.users[0] : a.users,
-        }));
-        setAssignments(mapped);
+        setAssignments(data || []);
       }
-
       setLoading(false);
     };
 
     fetchAssignments();
 
-    // Add a refresh interval
     const interval = setInterval(fetchAssignments, 15000); // 15 seconds
     return () => clearInterval(interval);
   }, [user]);
-
-  // Removed unused handleAssignUser function
 
   if (!user) return null;
 
   return (
     <>
       <h2 className="neon-section-title mb-4 flex items-center gap-2">
-        <FiUserPlus /> Issue Assignments
+        <FiUserPlus /> Unassigned Department Issues
       </h2>
-
       {loading ? (
         <p className="neon-info">Loading...</p>
       ) : error ? (
         <p className="neon-error">{error}</p>
       ) : assignments.length === 0 ? (
         <p className="neon-info">
-          No assigned issues found for your department.
+          No unassigned issues found for your department.
         </p>
       ) : (
         <NeonTable
           columns={[
-            { header: "Issue", accessor: "issue" },
-            { header: "Assigned To", accessor: "assigned_to" },
-            { header: "Assigned At", accessor: "assigned_at" },
+            { header: "Title", accessor: "title" },
+            { header: "Created At", accessor: "created_at", render: (_v, row) => typeof row.created_at === "string" ? new Date(row.created_at).toLocaleDateString("en-GB") : "—" },
           ]}
-          data={assignments.map((a) => ({
-            issue: a.title,
-            assigned_to: a.users
-              ? `${a.users.first_name ?? ""} ${a.users.last_name ?? ""}`.trim() ||
-                a.assigned_to
-              : a.assigned_to,
-            assigned_at: a.assigned_at
-              ? new Date(a.assigned_at).toLocaleDateString("en-GB")
-              : "",
-          }))}
+          data={assignments.map(a => ({ title: a.title, created_at: a.created_at }))}
         />
       )}
     </>

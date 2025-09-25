@@ -21,8 +21,8 @@ import {
   FiKey
 } from "react-icons/fi";
 import { useUser } from "@/lib/useUser";
-import OverlayDialog from '@/components/ui/OverlayDialog';
-import nationalities from '@/lib/nationalities.json';
+import OverlayDialog from "@/components/ui/OverlayDialog";
+import nationalities from "@/lib/nationalities.json";
 import MainHeader from "@/components/ui/MainHeader";
 import UserPermissionsManager from "@/components/user/UserPermissionsManager";
 import { PERMISSIONS, PermissionKey } from "@/types/userPermissions";
@@ -65,13 +65,13 @@ function formatDateUK(dateStr: string | undefined | null): string {
   if (!dateStr) return "—";
   const d = new Date(dateStr);
   if (isNaN(d.getTime())) return "—";
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
   const year = String(d.getFullYear()).slice(-2);
   return `${day}/${month}/${year}`;
 }
 
-// ---------------------- Main component (your logic kept) ----------------------
+// ---------------------- Main component ----------------------
 export default function UserManagementPanel() {
   useUser();
   const [users, setUsers] = useState<User[]>([]);
@@ -108,7 +108,7 @@ export default function UserManagementPanel() {
   useEffect(() => {
     if (!showBulkSelectColumn) return;
     function handleClickAway(e: MouseEvent) {
-      const table = document.getElementById('bulk-select-table');
+      const table = document.getElementById("bulk-select-table");
       // Check if click is inside table or floating message box
       if (
         (table && table.contains(e.target as Node)) ||
@@ -153,10 +153,11 @@ export default function UserManagementPanel() {
   };
 
   // Debug: log users and search value
-  console.log('UserManagementPanel: users', users);
-  console.log('UserManagementPanel: userSearch', userSearch);
+  console.log("UserManagementPanel: users", users);
+  console.log("UserManagementPanel: userSearch", userSearch);
+
   // Filtered users for table
-  const filteredUsers = users.filter(u => {
+  const filteredUsers = users.filter((u) => {
     // Always apply leavers filter
     if (showLeavers) {
       if (!u.is_leaver) return false;
@@ -198,13 +199,13 @@ export default function UserManagementPanel() {
           { data: d, error: deptErr },
           { data: r, error: roleErr },
           { data: s, error: shiftErr },
-          { data: rp, error: rpErr },
+          { data: rp, error: rpErr }
         ] = await Promise.all([
           supabase.from("users").select("*, shift_id, role_profile_id"),
           supabase.from("departments").select("id, name"),
           supabase.from("roles").select("id, title, department_id"),
           supabase.from("shift_patterns").select("id, name"),
-          supabase.from("role_profiles").select("id, name"),
+          supabase.from("role_profiles").select("id, name")
         ]);
         if (userErr || deptErr || roleErr || shiftErr || rpErr) {
           setErrorMsg("Failed to load data. Please check your connection and try again.");
@@ -221,7 +222,7 @@ export default function UserManagementPanel() {
             role_title: role ? role.title : "—",
             department_name: department ? department.name : "—",
             // Fix: ensure receive_notifications is strictly boolean
-            receive_notifications: user.receive_notifications === true,
+            receive_notifications: user.receive_notifications === true
           };
         });
         setUsers(usersWithNames);
@@ -290,11 +291,9 @@ export default function UserManagementPanel() {
       updateObj = { is_trainer: bulkTrainer };
     }
     // Optimistically update table before supabase call
-    setUsers(prevUsers => prevUsers.map(u =>
-      bulkSelectedUserIds.includes(u.id)
-        ? { ...u, ...updateObj }
-        : u
-    ));
+    setUsers((prevUsers) =>
+      prevUsers.map((u) => (bulkSelectedUserIds.includes(u.id) ? { ...u, ...updateObj } : u))
+    );
     await supabase.from("users").update(updateObj).in("id", bulkSelectedUserIds);
     // Optionally, re-fetch users from supabase for consistency
     const { data: u } = await supabase.from("users").select("*, shift_id, role_profile_id");
@@ -320,11 +319,9 @@ export default function UserManagementPanel() {
       updateFields = { is_trainer: bulkTrainer };
     }
     // Optimistically update table before supabase call
-    setUsers(prevUsers => prevUsers.map(u =>
-      bulkSelectedUserIds.includes(u.id)
-        ? { ...u, ...updateFields }
-        : u
-    ));
+    setUsers((prevUsers) =>
+      prevUsers.map((u) => (bulkSelectedUserIds.includes(u.id) ? { ...u, ...updateFields } : u))
+    );
     await supabase.from("users").update(updateFields).in("id", bulkSelectedUserIds);
     // Optionally, re-fetch users from supabase for consistency
     const { data: u } = await supabase.from("users").select("*, shift_id, role_profile_id");
@@ -350,7 +347,7 @@ export default function UserManagementPanel() {
     role_profile_id: user.role_profile_id || undefined,
     access_level: allowedAccessLevels.includes((user.access_level || "").trim())
       ? (user.access_level || "").trim()
-      : "User",
+      : "User"
   });
 
   const validateUser = (user: User) => {
@@ -392,7 +389,7 @@ export default function UserManagementPanel() {
             is_leaver: cleanedUser.is_leaver ?? false,
             leaver_date: cleanedUser.leaver_date || null,
             leaver_reason: cleanedUser.leaver_reason || null,
-            receive_notifications: cleanedUser.receive_notifications ?? false,
+            receive_notifications: cleanedUser.receive_notifications ?? false
           })
           .select()
           .single();
@@ -422,7 +419,7 @@ export default function UserManagementPanel() {
             is_leaver: cleanedUser.is_leaver ?? false,
             leaver_date: cleanedUser.leaver_date || null,
             leaver_reason: cleanedUser.leaver_reason || null,
-            receive_notifications: cleanedUser.receive_notifications ?? false,
+            receive_notifications: cleanedUser.receive_notifications ?? false
           })
           .eq("id", cleanedUser.id);
         if (userErr) {
@@ -460,15 +457,12 @@ export default function UserManagementPanel() {
       is_first_aid: u.is_first_aid ? "true" : "false",
       is_trainer: u.is_trainer ? "true" : "false",
       start_date: u.start_date || "",
-      receive_notifications: u.receive_notifications ? "true" : "false",
+      receive_notifications: u.receive_notifications ? "true" : "false"
     }));
     const csv = [
       "id,email,first_name,last_name,department_id,role_id,access_level,phone,nationality,is_first_aid,is_trainer,start_date,receive_notifications",
-      ...csvRows.map((row) =>
-        Object.values(row)
-          .map((val) => `"${String(val).replace(/"/g, '""')}"`)
-          .join(","),
-      ),
+      ...csvRows
+        .map((row) => Object.values(row).map((val) => `"${String(val).replace(/"/g, '""')}"`).join(","))
     ].join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
@@ -494,7 +488,7 @@ export default function UserManagementPanel() {
         ...u,
         is_first_aid: u.is_first_aid === "true" || u.is_first_aid === true,
         is_trainer: u.is_trainer === "true" || u.is_trainer === true,
-        receive_notifications: u.receive_notifications === "true" || u.receive_notifications === true,
+        receive_notifications: u.receive_notifications === "true" || u.receive_notifications === true
       }));
     } catch {
       setErrorMsg("CSV parse error. Please check your file format.");
@@ -513,28 +507,30 @@ export default function UserManagementPanel() {
 
   // Table columns: only show Select column if bulk assign is active
   const userTableColumns = [
-    ...(showBulkSelectColumn ? [
-      {
-        header: "Select",
-        accessor: "select",
-        render: (_: any, row: any) => (
-          <input
-            type="checkbox"
-            checked={bulkSelectedUserIds.includes(row.id)}
-            onChange={(e) => {
-              console.log('Checkbox changed for user:', row.id, 'checked:', e.target.checked);
-              if (e.target.checked) {
-                setBulkSelectedUserIds((prev) => [...prev, row.id]);
-              } else {
-                setBulkSelectedUserIds((prev) => prev.filter((id) => id !== row.id));
-              }
-            }}
-            aria-label={`Select user ${row.name}`}
-          />
-        ),
-        width: 40,
-      },
-    ] : []),
+    ...(showBulkSelectColumn
+      ? [
+          {
+            header: "Select",
+            accessor: "select",
+            render: (_: any, row: any) => (
+              <input
+                type="checkbox"
+                checked={bulkSelectedUserIds.includes(row.id)}
+                onChange={(e) => {
+                  console.log("Checkbox changed for user:", row.id, "checked:", e.target.checked);
+                  if (e.target.checked) {
+                    setBulkSelectedUserIds((prev) => [...prev, row.id]);
+                  } else {
+                    setBulkSelectedUserIds((prev) => prev.filter((id) => id !== row.id));
+                  }
+                }}
+                aria-label={`Select user ${row.name}`}
+              />
+            ),
+            width: 40
+          }
+        ]
+      : []),
     { header: "Name", accessor: "name", width: 120 },
     { header: "Department", accessor: "department_name", width: 120 },
     { header: "Role", accessor: "role_title", width: 120 },
@@ -544,7 +540,7 @@ export default function UserManagementPanel() {
     { header: "Email", accessor: "email", width: 140 },
     { header: "Start Date", accessor: "start_date", width: 120 },
     { header: "First Aid", accessor: "is_first_aid", width: 40 },
-    { header: "Trainer", accessor: "is_trainer", width: 80 },
+    { header: "Trainer", accessor: "is_trainer", width: 80 }
   ];
 
   if (loading)
@@ -563,24 +559,28 @@ export default function UserManagementPanel() {
   return (
     <>
       <MainHeader title="User Management" subtitle="Manage users, roles, and assignments" />
-      <div className="neon-table-panel container" style={{ justifyContent: 'flex-start', display: 'flex' }}>
-        <div style={{ position: 'relative', width: '100%' }}>
+      <div className="neon-table-panel container" style={{ justifyContent: "flex-start", display: "flex" }}>
+        <div style={{ position: "relative", width: "100%" }}>
           {/* Toolbar rendered above the table */}
-          <div className="neon-table-toolbar">
-            <div className="neon-table-toolbar-search">
+          <div className="neon-table-toolbar" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", padding: "0.75rem 1.25rem", background: "var(--accent)", borderRadius: 8, height: 64, minHeight: 64, maxHeight: 64, boxSizing: "border-box" }}>
+            <div className="neon-table-toolbar-search" style={{ flex: "1 1 0", minWidth: 0, maxWidth: "33.33%", display: "flex", alignItems: "center", height: "100%" }}>
+              {/* ...search input and count... */}
               <input
+                type="search"
                 id="user-table-search"
                 className="neon-input"
                 placeholder="Search users…"
                 value={userSearch}
                 onChange={e => setUserSearch(e.target.value)}
                 aria-describedby="user-table-count"
+                style={{ width: 150, minWidth: 150, maxWidth: 150, height: 32, margin: 0 }}
               />
-              <span id="user-table-count" className="match-count neon-label" aria-live="polite">
+              <span id="user-table-count" className="match-count neon-label" aria-live="polite" style={{ marginLeft: 12 }}>
                 Showing {filteredUsers.length} users
               </span>
             </div>
-            <div className="neon-table-toolbar-actions">
+            <div className="neon-table-toolbar-actions" style={{ flex: "1 1 0", minWidth: 0, maxWidth: "33.33%", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.75rem", height: "100%" }}>
+              {/* ...action buttons... */}
               <NeonIconButton
                 variant="add"
                 icon={<FiUserPlus />}
@@ -600,10 +600,10 @@ export default function UserManagementPanel() {
                       is_first_aid: false,
                       is_trainer: false,
                       start_date: "",
-                      receive_notifications: false,
+                      receive_notifications: false
                     },
                     true,
-                    (e?.currentTarget as HTMLElement) ?? null,
+                    (e?.currentTarget as HTMLElement) ?? null
                   );
                 }}
               />
@@ -654,57 +654,65 @@ export default function UserManagementPanel() {
                 }}
               />
             </div>
-            <div className="neon-pagination-toolbar" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginLeft: '2rem', height: 38 }}>
+            <div className="neon-table-toolbar-pagination" style={{ flex: "1 1 0", minWidth: 0, maxWidth: "33.33%", display: "flex", alignItems: "center", justifyContent: "flex-end", height: "100%" }}>
+              <label htmlFor="rows-per-page-select" className="neon-label" style={{ display: "inline-block", verticalAlign: "middle", minWidth: 22, textAlign: "right", margin: 0, padding: 0 }}>Rows:</label>
+              <select
+                id="rows-per-page-select"
+                value={pageSize}
+                onChange={e => setPageSize(Number(e.target.value))}
+                className="neon-input"
+                style={{ display: "inline-block", verticalAlign: "middle", minWidth: 28, width: 32, padding: "0 2px", margin: "0 1px", textAlign: "center" }}
+                aria-label="Rows per page"
+              >
+                {[10, 20, 50, 100].map(size => (
+                  <option key={size} value={size}>{size}</option>
+                ))}
+              </select>
               <NeonIconButton
                 icon={<FiChevronLeft />}
                 title="Previous Page"
                 variant="back"
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                style={{ minWidth: 40 }}
+                style={{ minWidth: 24, display: "inline-block", verticalAlign: "middle", margin: "0 1px" }}
               />
-              <span style={{ minWidth: 80 }}>Page {currentPage} of {totalPages}</span>
               <NeonIconButton
                 icon={<FiChevronRight />}
                 title="Next Page"
                 variant="next"
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                style={{ minWidth: 40 }}
+                style={{ minWidth: 24, display: "inline-block", verticalAlign: "middle", margin: "0 1px" }}
               />
-              <div style={{ display: 'flex', alignItems: 'middle', height: 38, padding: 0 }}>
-                <span style={{ marginRight: 4 }}>Rows:</span>
-                <select className="neon-input" value={pageSize} onChange={e => { setPageSize(Number(e.target.value)); setCurrentPage(1); }} style={{ width: 60, height: 32, verticalAlign: 'middle', padding: 0 }}>
-                  {[10, 20, 50, 100].map(size => (
-                    <option key={size} value={size}>{size}</option>
-                  ))}
-                </select>
-              </div>
+              <span className="neon-label" style={{ marginLeft: 4, verticalAlign: "middle", display: "inline-block" }}>
+                {currentPage} / {totalPages}
+              </span>
             </div>
           </div>
+
           {/* Table below toolbar */}
-          <div className="neon-table-scroll" style={{ justifyContent: 'flex-start', display: 'flex', position: 'relative' }}>
+          <div className="neon-table-scroll" style={{ justifyContent: "flex-start", display: "flex", position: "relative" }}>
             {showBulkSelectColumn && !bulkAssignOpen && (
               <div
                 ref={bulkSelectBoxRef}
                 style={{
-                  position: 'absolute',
-                  left: '50%',
+                  position: "absolute",
+                  left: "50%",
                   top: 0,
-                  transform: 'translateX(-50%)',
+                  transform: "translateX(-50%)",
                   zIndex: 20,
-                  background: '#222',
-                  color: '#fff',
+                  background: "#222",
+                  color: "#fff",
                   minWidth: 320,
-                  boxShadow: '0 2px 12px #000',
+                  boxShadow: "0 2px 12px #000",
                   borderRadius: 12,
-                  padding: '1rem 2rem',
-                  textAlign: 'center',
+                  padding: "1rem 2rem",
+                  textAlign: "center",
                   fontWeight: 700,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '1rem',
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "1rem"
                 }}
                 className="neon-label neon-bulk-assign-message"
               >
@@ -712,8 +720,8 @@ export default function UserManagementPanel() {
                 <button
                   className="neon-btn neon-btn-primary"
                   disabled={bulkSelectedUserIds.length === 0}
-                  style={{ marginTop: '0.5rem', width: 160 }}
-                  onClick={e => {
+                  style={{ marginTop: "0.5rem", width: 160 }}
+                  onClick={(e) => {
                     e.stopPropagation(); // Prevent click-away from firing
                     setBulkAssignOpen(true); // Now open modal
                     setShowBulkSelectColumn(false); // Hide select column
@@ -724,9 +732,9 @@ export default function UserManagementPanel() {
                 </button>
               </div>
             )}
-            <div id="bulk-select-table" style={{ width: '100%' }}>
+            <div id="bulk-select-table" style={{ width: "100%" }}>
               <NeonTable
-                columns={userTableColumns.map(col => {
+                columns={userTableColumns.map((col) => {
                   if (col.header === "Select" && !showBulkSelectColumn) return { ...col, width: 0, render: () => null };
                   // Set explicit column widths for key columns
                   if (col.header === "Name") return { ...col, width: 180 };
@@ -777,14 +785,14 @@ export default function UserManagementPanel() {
                     email: user.email,
                     start_date: formatDateUK(user.start_date),
                     is_first_aid: user.is_first_aid ? (
-                      <FiCheck className="neon-table-icon" color="#39ff14" size={18} style={{ verticalAlign: 'middle' }} />
+                      <FiCheck className="neon-table-icon" color="#39ff14" size={18} style={{ verticalAlign: "middle" }} />
                     ) : (
-                      <FiX className="neon-table-icon" color="#ea1c1c" size={18} style={{ verticalAlign: 'middle' }} />
+                      <FiX className="neon-table-icon" color="#ea1c1c" size={18} style={{ verticalAlign: "middle" }} />
                     ),
                     is_trainer: user.is_trainer ? (
-                      <FiCheck className="neon-table-icon" color="#39ff14" size={18} style={{ verticalAlign: 'middle' }} />
+                      <FiCheck className="neon-table-icon" color="#39ff14" size={18} style={{ verticalAlign: "middle" }} />
                     ) : (
-                      <FiX className="neon-table-icon" color="#ea1c1c" size={18} style={{ verticalAlign: 'middle' }} />
+                      <FiX className="neon-table-icon" color="#ea1c1c" size={18} style={{ verticalAlign: "middle" }} />
                     ),
                     actions: (
                       <NeonIconButton
@@ -795,15 +803,16 @@ export default function UserManagementPanel() {
                           handleOpenDialog(user, false, (e?.currentTarget as HTMLElement) ?? null);
                         }}
                       />
-                    ),
+                    )
                   };
                 })}
               />
             </div>
           </div>
+
           {/* Show Next button below table when selecting users for bulk assign */}
           {showBulkSelectColumn && !bulkAssignOpen && (
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "1rem" }}>
               <button
                 className="neon-btn neon-btn-primary"
                 disabled={bulkSelectedUserIds.length === 0}
@@ -817,12 +826,9 @@ export default function UserManagementPanel() {
               </button>
             </div>
           )}
+
           {/* Overlaid dialog rendered via portal */}
-          <OverlayDialog
-            open={dialogOpen}
-            onClose={handleCloseDialog}
-            ariaLabelledby="user-editor-title"
-          >
+          <OverlayDialog open={dialogOpen} onClose={handleCloseDialog} ariaLabelledby="user-editor-title">
             <div className="neon-form-title" id="user-editor-title" style={{ marginBottom: "1.25rem" }}>
               {isAddMode ? "Add User" : "Edit User"}
             </div>
@@ -841,12 +847,12 @@ export default function UserManagementPanel() {
                   gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
                   gap: "1.5rem",
                   rowGap: "2rem",
-                  alignItems: "start",
+                  alignItems: "start"
                 }}
               >
                 {/* first_name */}
                 <div>
-                  <label className="neon-label" htmlFor="first-name-input" style={{ color: 'var(--neon-text, #fff)' }}>
+                  <label className="neon-label" htmlFor="first-name-input" style={{ color: "var(--neon-text, #fff)" }}>
                     First Name
                   </label>
                   <input
@@ -857,16 +863,16 @@ export default function UserManagementPanel() {
                     onChange={(e) =>
                       setSelectedUser({
                         ...selectedUser,
-                        first_name: e.target.value,
+                        first_name: e.target.value
                       })
                     }
                     placeholder="First Name"
-                    style={{ color: 'var(--neon-text, #fff)' }}
+                    style={{ color: "var(--neon-text, #fff)" }}
                   />
                 </div>
                 {/* last_name */}
                 <div>
-                  <label className="neon-label" htmlFor="last-name-input" style={{ color: 'var(--neon-text, #fff)' }}>
+                  <label className="neon-label" htmlFor="last-name-input" style={{ color: "var(--neon-text, #fff)" }}>
                     Last Name
                   </label>
                   <input
@@ -876,16 +882,16 @@ export default function UserManagementPanel() {
                     onChange={(e) =>
                       setSelectedUser({
                         ...selectedUser,
-                        last_name: e.target.value,
+                        last_name: e.target.value
                       })
                     }
                     placeholder="Last Name"
-                    style={{ color: 'var(--neon-text, #fff)' }}
+                    style={{ color: "var(--neon-text, #fff)" }}
                   />
                 </div>
                 {/* email */}
                 <div>
-                  <label className="neon-label" htmlFor="email-input" style={{ color: 'var(--neon-text, #fff)' }}>
+                  <label className="neon-label" htmlFor="email-input" style={{ color: "var(--neon-text, #fff)" }}>
                     Email
                   </label>
                   <input
@@ -895,18 +901,18 @@ export default function UserManagementPanel() {
                     onChange={(e) =>
                       setSelectedUser({
                         ...selectedUser,
-                        email: e.target.value,
+                        email: e.target.value
                       })
                     }
                     placeholder="Email"
                     inputMode="email"
                     autoComplete="email"
-                    style={{ color: 'var(--neon-text, #fff)' }}
+                    style={{ color: "var(--neon-text, #fff)" }}
                   />
                 </div>
                 {/* department_id */}
                 <div>
-                  <label className="neon-label" htmlFor="dept-select" style={{ color: 'var(--neon-text, #fff)' }}>
+                  <label className="neon-label" htmlFor="dept-select" style={{ color: "var(--neon-text, #fff)" }}>
                     Department
                   </label>
                   <select
@@ -917,10 +923,10 @@ export default function UserManagementPanel() {
                       setSelectedUser({
                         ...selectedUser,
                         department_id: e.target.value,
-                        role_id: "", // Reset role when department changes
+                        role_id: "" // Reset role when department changes
                       });
                     }}
-                    style={{ color: 'var(--neon-text, #fff)' }}
+                    style={{ color: "var(--neon-text, #fff)" }}
                   >
                     <option value="">Select Department</option>
                     {departments.map((d) => (
@@ -932,7 +938,7 @@ export default function UserManagementPanel() {
                 </div>
                 {/* role_id */}
                 <div>
-                  <label className="neon-label" htmlFor="role-select" style={{ color: 'var(--neon-text, #fff)' }}>
+                  <label className="neon-label" htmlFor="role-select" style={{ color: "var(--neon-text, #fff)" }}>
                     Role
                   </label>
                   <select
@@ -942,11 +948,11 @@ export default function UserManagementPanel() {
                     onChange={(e) =>
                       setSelectedUser({
                         ...selectedUser,
-                        role_id: e.target.value,
+                        role_id: e.target.value
                       })
                     }
                     disabled={!selectedUser.department_id}
-                    style={{ color: 'var(--neon-text, #fff)' }}
+                    style={{ color: "var(--neon-text, #fff)" }}
                   >
                     <option value="">Select Role</option>
                     {roles
@@ -960,7 +966,7 @@ export default function UserManagementPanel() {
                 </div>
                 {/* access_level */}
                 <div>
-                  <label className="neon-label" htmlFor="access-select" style={{ color: 'var(--neon-text, #fff)' }}>
+                  <label className="neon-label" htmlFor="access-select" style={{ color: "var(--neon-text, #fff)" }}>
                     Access Level
                   </label>
                   <select
@@ -970,10 +976,10 @@ export default function UserManagementPanel() {
                     onChange={(e) =>
                       setSelectedUser({
                         ...selectedUser,
-                        access_level: e.target.value,
+                        access_level: e.target.value
                       })
                     }
-                    style={{ color: 'var(--neon-text, #fff)' }}
+                    style={{ color: "var(--neon-text, #fff)" }}
                   >
                     <option value="User">User</option>
                     <option value="Manager">Manager</option>
@@ -982,7 +988,7 @@ export default function UserManagementPanel() {
                 </div>
                 {/* phone */}
                 <div>
-                  <label className="neon-label" htmlFor="phone-input" style={{ color: 'var(--neon-text, #fff)' }}>
+                  <label className="neon-label" htmlFor="phone-input" style={{ color: "var(--neon-text, #fff)" }}>
                     Phone
                   </label>
                   <input
@@ -992,18 +998,18 @@ export default function UserManagementPanel() {
                     onChange={(e) =>
                       setSelectedUser({
                         ...selectedUser,
-                        phone: e.target.value,
+                        phone: e.target.value
                       })
                     }
                     placeholder="Phone"
                     inputMode="tel"
                     autoComplete="tel"
-                    style={{ color: 'var(--neon-text, #fff)' }}
+                    style={{ color: "var(--neon-text, #fff)" }}
                   />
                 </div>
                 {/* nationality */}
                 <div>
-                  <label className="neon-label" htmlFor="nationality-select" style={{ color: 'var(--neon-text, #fff)' }}>
+                  <label className="neon-label" htmlFor="nationality-select" style={{ color: "var(--neon-text, #fff)" }}>
                     Nationality
                   </label>
                   <select
@@ -1013,10 +1019,10 @@ export default function UserManagementPanel() {
                     onChange={(e) =>
                       setSelectedUser({
                         ...selectedUser,
-                        nationality: e.target.value,
+                        nationality: e.target.value
                       })
                     }
-                    style={{ color: 'var(--neon-text, #fff)' }}
+                    style={{ color: "var(--neon-text, #fff)" }}
                   >
                     <option value="">Select Nationality</option>
                     {nationalities.map((nat: { name: string; flag: string }) => (
@@ -1028,7 +1034,7 @@ export default function UserManagementPanel() {
                 </div>
                 {/* is_first_aid */}
                 <div>
-                  <label className="neon-label" htmlFor="firstaid-select" style={{ color: 'var(--neon-text, #fff)' }}>
+                  <label className="neon-label" htmlFor="firstaid-select" style={{ color: "var(--neon-text, #fff)" }}>
                     First Aid
                   </label>
                   <select
@@ -1038,10 +1044,10 @@ export default function UserManagementPanel() {
                     onChange={(e) =>
                       setSelectedUser({
                         ...selectedUser,
-                        is_first_aid: e.target.value === "true",
+                        is_first_aid: e.target.value === "true"
                       })
                     }
-                    style={{ color: 'var(--neon-text, #fff)' }}
+                    style={{ color: "var(--neon-text, #fff)" }}
                   >
                     <option value="false">No</option>
                     <option value="true">Yes</option>
@@ -1049,7 +1055,7 @@ export default function UserManagementPanel() {
                 </div>
                 {/* is_trainer */}
                 <div>
-                  <label className="neon-label" htmlFor="trainer-select" style={{ color: 'var(--neon-text, #fff)' }}>
+                  <label className="neon-label" htmlFor="trainer-select" style={{ color: "var(--neon-text, #fff)" }}>
                     Trainer
                   </label>
                   <select
@@ -1059,10 +1065,10 @@ export default function UserManagementPanel() {
                     onChange={(e) =>
                       setSelectedUser({
                         ...selectedUser,
-                        is_trainer: e.target.value === "true",
+                        is_trainer: e.target.value === "true"
                       })
                     }
-                    style={{ color: 'var(--neon-text, #fff)' }}
+                    style={{ color: "var(--neon-text, #fff)" }}
                   >
                     <option value="false">No</option>
                     <option value="true">Yes</option>
@@ -1070,7 +1076,7 @@ export default function UserManagementPanel() {
                 </div>
                 {/* shift_id */}
                 <div>
-                  <label className="neon-label" htmlFor="shift-select" style={{ color: 'var(--neon-text, #fff)' }}>
+                  <label className="neon-label" htmlFor="shift-select" style={{ color: "var(--neon-text, #fff)" }}>
                     Shift
                   </label>
                   <select
@@ -1082,10 +1088,10 @@ export default function UserManagementPanel() {
                       setSelectedUser({
                         ...selectedUser,
                         shift_id: e.target.value,
-                        shift_name: selectedPattern ? selectedPattern.name : "",
+                        shift_name: selectedPattern ? selectedPattern.name : ""
                       });
                     }}
-                    style={{ color: 'var(--neon-text, #fff)' }}
+                    style={{ color: "var(--neon-text, #fff)" }}
                   >
                     <option value="">Select Shift</option>
                     {shiftPatterns?.map((s) => (
@@ -1097,7 +1103,7 @@ export default function UserManagementPanel() {
                 </div>
                 {/* start_date */}
                 <div>
-                  <label className="neon-label" htmlFor="startdate-input" style={{ color: 'var(--neon-text, #fff)' }}>
+                  <label className="neon-label" htmlFor="startdate-input" style={{ color: "var(--neon-text, #fff)" }}>
                     Start Date
                   </label>
                   <input
@@ -1108,16 +1114,16 @@ export default function UserManagementPanel() {
                     onChange={(e) =>
                       setSelectedUser({
                         ...selectedUser,
-                        start_date: e.target.value,
+                        start_date: e.target.value
                       })
                     }
                     placeholder="Start Date"
-                    style={{ color: 'var(--neon-text, #fff)' }}
+                    style={{ color: "var(--neon-text, #fff)" }}
                   />
                 </div>
                 {/* is_leaver */}
                 <div>
-                  <label className="neon-label" htmlFor="leaver-select" style={{ color: 'var(--neon-text, #fff)' }}>
+                  <label className="neon-label" htmlFor="leaver-select" style={{ color: "var(--neon-text, #fff)" }}>
                     Leaver
                   </label>
                   <select
@@ -1127,10 +1133,10 @@ export default function UserManagementPanel() {
                     onChange={(e) =>
                       setSelectedUser({
                         ...selectedUser,
-                        is_leaver: e.target.value === "true",
+                        is_leaver: e.target.value === "true"
                       })
                     }
-                    style={{ color: 'var(--neon-text, #fff)' }}
+                    style={{ color: "var(--neon-text, #fff)" }}
                   >
                     <option value="false">No</option>
                     <option value="true">Yes</option>
@@ -1139,7 +1145,7 @@ export default function UserManagementPanel() {
                 {/* leaver_reason (only show if is_leaver) */}
                 {selectedUser.is_leaver && (
                   <div>
-                    <label className="neon-label" htmlFor="leaver-reason-select" style={{ color: 'var(--neon-text, #fff)' }}>
+                    <label className="neon-label" htmlFor="leaver-reason-select" style={{ color: "var(--neon-text, #fff)" }}>
                       Leaver Reason
                     </label>
                     <select
@@ -1149,10 +1155,10 @@ export default function UserManagementPanel() {
                       onChange={(e) =>
                         setSelectedUser({
                           ...selectedUser,
-                          leaver_reason: e.target.value,
+                          leaver_reason: e.target.value
                         })
                       }
-                      style={{ color: 'var(--neon-text, #fff)' }}
+                      style={{ color: "var(--neon-text, #fff)" }}
                     >
                       <option value="">Select Reason</option>
                       <option value="Resignation">Resignation</option>
@@ -1166,7 +1172,7 @@ export default function UserManagementPanel() {
                 {/* leaver_date */}
                 {selectedUser.is_leaver && (
                   <div>
-                    <label className="neon-label" htmlFor="leaver-date-input" style={{ color: 'var(--neon-text, #fff)' }}>
+                    <label className="neon-label" htmlFor="leaver-date-input" style={{ color: "var(--neon-text, #fff)" }}>
                       Leaver Date
                     </label>
                     <input
@@ -1177,11 +1183,11 @@ export default function UserManagementPanel() {
                       onChange={(e) =>
                         setSelectedUser({
                           ...selectedUser,
-                          leaver_date: e.target.value,
+                          leaver_date: e.target.value
                         })
                       }
                       placeholder="Leaver Date"
-                      style={{ color: 'var(--neon-text, #fff)' }}
+                      style={{ color: "var(--neon-text, #fff)" }}
                     />
                     <div style={{ marginTop: "0.5rem", color: "var(--neon-text, #fff)" }}>
                       {formatDateUK(selectedUser.leaver_date)}
@@ -1190,7 +1196,11 @@ export default function UserManagementPanel() {
                 )}
                 {/* receive_notifications */}
                 <div>
-                  <label className="neon-label" htmlFor="receive-notifications-select" style={{ color: 'var(--neon-text, #fff)' }}>
+                  <label
+                    className="neon-label"
+                    htmlFor="receive-notifications-select"
+                    style={{ color: "var(--neon-text, #fff)" }}
+                  >
                     Receive Notifications
                   </label>
                   <select
@@ -1200,10 +1210,10 @@ export default function UserManagementPanel() {
                     onChange={(e) =>
                       setSelectedUser({
                         ...selectedUser,
-                        receive_notifications: e.target.value === "true",
+                        receive_notifications: e.target.value === "true"
                       })
                     }
-                    style={{ color: 'var(--neon-text, #fff)' }}
+                    style={{ color: "var(--neon-text, #fff)" }}
                   >
                     <option value="false">No</option>
                     <option value="true">Yes</option>
@@ -1224,7 +1234,7 @@ export default function UserManagementPanel() {
                 display: "flex",
                 gap: "1rem",
                 justifyContent: "flex-end",
-                marginTop: "2rem",
+                marginTop: "2rem"
               }}
             >
               {/* Register as Leaver button, only if not already a leaver */}
@@ -1237,7 +1247,7 @@ export default function UserManagementPanel() {
                     setSelectedUser({
                       ...selectedUser!,
                       is_leaver: true,
-                      leaver_date: new Date().toISOString().slice(0, 10),
+                      leaver_date: new Date().toISOString().slice(0, 10)
                     });
                   }}
                 />
@@ -1278,12 +1288,16 @@ export default function UserManagementPanel() {
               Manage Permissions
             </div>
             {permissionsUser && (
-              <UserPermissionsManager users={[{
-                id: permissionsUser.id,
-                email: permissionsUser.email,
-                full_name: `${permissionsUser.first_name || ''} ${permissionsUser.last_name || ''}`.trim(),
-                permissions: permissions,
-              }]} />
+              <UserPermissionsManager
+                users={[
+                  {
+                    id: permissionsUser.id,
+                    email: permissionsUser.email,
+                    full_name: `${permissionsUser.first_name || ""} ${permissionsUser.last_name || ""}`.trim(),
+                    permissions: permissions
+                  }
+                ]}
+              />
             )}
           </OverlayDialog>
 
@@ -1296,15 +1310,27 @@ export default function UserManagementPanel() {
               {/* Step 2: Configure assignment (now first step in modal) */}
               {bulkAssignStep === 2 && (
                 <div style={{ marginBottom: "2rem" }}>
-                  <div className="neon-label" style={{ marginBottom: "1rem" }}>What would you like to bulk assign?</div>
+                  <div className="neon-label" style={{ marginBottom: "1rem" }}>
+                    What would you like to bulk assign?
+                  </div>
                   <div style={{ display: "flex", gap: "1rem" }}>
-                    <button className="neon-btn" onClick={() => { setBulkAssignType("role"); setBulkAssignStep(3); }}>Department/Role</button>
-                    <button className="neon-btn" onClick={() => { setBulkAssignType("shift"); setBulkAssignStep(3); }}>Shift</button>
-                    <button className="neon-btn" onClick={() => { setBulkAssignType("first_aid"); setBulkAssignStep(3); }}>First Aid</button>
-                    <button className="neon-btn" onClick={() => { setBulkAssignType("trainer"); setBulkAssignStep(3); }}>Trainer</button>
+                    <button className="neon-btn" onClick={() => { setBulkAssignType("role"); setBulkAssignStep(3); }}>
+                      Department/Role
+                    </button>
+                    <button className="neon-btn" onClick={() => { setBulkAssignType("shift"); setBulkAssignStep(3); }}>
+                      Shift
+                    </button>
+                    <button className="neon-btn" onClick={() => { setBulkAssignType("first_aid"); setBulkAssignStep(3); }}>
+                      First Aid
+                    </button>
+                    <button className="neon-btn" onClick={() => { setBulkAssignType("trainer"); setBulkAssignStep(3); }}>
+                      Trainer
+                    </button>
                   </div>
                   <div className="neon-panel-actions" style={{ display: "flex", gap: "1rem", justifyContent: "flex-end", marginTop: "2rem" }}>
-                    <button className="neon-btn" onClick={handleBulkAssignCancel}>Cancel</button>
+                    <button className="neon-btn" onClick={handleBulkAssignCancel}>
+                      Cancel
+                    </button>
                   </div>
                 </div>
               )}
@@ -1322,74 +1348,99 @@ export default function UserManagementPanel() {
                     <strong>Selected users:</strong> {bulkSelectedUserIds.length}
                     {bulkSelectedUserIds.length > 0 && (
                       <ul style={{ margin: "0.5rem 0 0 1rem", padding: 0, listStyle: "disc" }}>
-                        {users.filter(u => bulkSelectedUserIds.includes(u.id)).slice(0, 5).map(u => (
-                          <li key={u.id}>{`${u.first_name || ""} ${u.last_name || ""}`.trim() || u.email}</li>
-                        ))}
+                        {users
+                          .filter((u) => bulkSelectedUserIds.includes(u.id))
+                          .slice(0, 5)
+                          .map((u) => (
+                            <li key={u.id}>{`${u.first_name || ""} ${u.last_name || ""}`.trim() || u.email}</li>
+                          ))}
                         {bulkSelectedUserIds.length > 5 && <li>...and {bulkSelectedUserIds.length - 5} more</li>}
                       </ul>
                     )}
                   </div>
                   {bulkAssignType === "role" && (
-                    <div className="neon-form-grid neon-form-padding" style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "1.5rem" }}>
+                    <div
+                      className="neon-form-grid neon-form-padding"
+                      style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "1.5rem" }}
+                    >
                       <div>
-                        <label className="neon-label" htmlFor="bulk-dept-select" style={{ color: 'var(--neon-text, #fff)' }}>Department</label>
+                        <label className="neon-label" htmlFor="bulk-dept-select" style={{ color: "var(--neon-text, #fff)" }}>
+                          Department
+                        </label>
                         <select
                           id="bulk-dept-select"
                           className="neon-input"
                           value={bulkDeptId}
-                          onChange={e => { setBulkDeptId(e.target.value); setBulkRoleId(""); }}
-                          style={{ color: 'var(--neon-text, #fff)' }}
+                          onChange={(e) => {
+                            setBulkDeptId(e.target.value);
+                            setBulkRoleId("");
+                          }}
+                          style={{ color: "var(--neon-text, #fff)" }}
                         >
                           <option value="">Select Department</option>
                           {departments.map((d) => (
-                            <option key={d.id} value={d.id}>{d.name}</option>
+                            <option key={d.id} value={d.id}>
+                              {d.name}
+                            </option>
                           ))}
                         </select>
                       </div>
                       <div>
-                        <label className="neon-label" htmlFor="bulk-role-select" style={{ color: 'var(--neon-text, #fff)' }}>Role</label>
+                        <label className="neon-label" htmlFor="bulk-role-select" style={{ color: "var(--neon-text, #fff)" }}>
+                          Role
+                        </label>
                         <select
                           id="bulk-role-select"
                           className="neon-input"
                           value={bulkRoleId}
-                          onChange={e => setBulkRoleId(e.target.value)}
+                          onChange={(e) => setBulkRoleId(e.target.value)}
                           disabled={!bulkDeptId}
-                          style={{ color: 'var(--neon-text, #fff)' }}
+                          style={{ color: "var(--neon-text, #fff)" }}
                         >
                           <option value="">Select Role</option>
-                          {roles.filter(r => r.department_id === bulkDeptId).map((r) => (
-                            <option key={r.id} value={r.id}>{r.title}</option>
-                          ))}
+                          {roles
+                            .filter((r) => r.department_id === bulkDeptId)
+                            .map((r) => (
+                              <option key={r.id} value={r.id}>
+                                {r.title}
+                              </option>
+                            ))}
                         </select>
                       </div>
                     </div>
                   )}
                   {bulkAssignType === "shift" && (
                     <div>
-                      <label className="neon-label" htmlFor="bulk-shift-select" style={{ color: 'var(--neon-text, #fff)' }}>Shift</label>
+                      <label className="neon-label" htmlFor="bulk-shift-select" style={{ color: "var(--neon-text, #fff)" }}>
+                        Shift
+                      </label>
                       <select
                         id="bulk-shift-select"
                         className="neon-input"
                         value={bulkShiftId}
-                        onChange={e => setBulkShiftId(e.target.value)}
-                        style={{ color: 'var(--neon-text, #fff)' }}
+                        onChange={(e) => setBulkShiftId(e.target.value)}
+                        style={{ color: "var(--neon-text, #fff)" }}
                       >
                         <option value="">Select Shift</option>
                         {shiftPatterns.map((s) => (
-                          <option key={s.id} value={s.id}>{s.name}</option>
+                          <option key={s.id} value={s.id}>
+                            {s.name}
+                          </option>
                         ))}
                       </select>
                     </div>
                   )}
                   {bulkAssignType === "first_aid" && (
                     <div>
-                      <label className="neon-label" htmlFor="bulk-firstaid-select" style={{ color: 'var(--neon-text, #fff)' }}>First Aid</label>
+                      <label className="neon-label" htmlFor="bulk-firstaid-select" style={{ color: "var(--neon-text, #fff)" }}>
+                        First Aid
+                      </label>
                       <select
                         id="bulk-firstaid-select"
                         className="neon-input"
                         value={bulkFirstAid ? "true" : "false"}
-                        onChange={e => setBulkFirstAid(e.target.value === "true")}
-                        style={{ color: 'var(--neon-text, #fff)' }}
+                        onChange={(e) => setBulkFirstAid(e.target.value === "true")}
+                        style={{ color: "var(--neon-text, #fff)" }}
                       >
                         <option value="false">No</option>
                         <option value="true">Yes</option>
@@ -1398,13 +1449,15 @@ export default function UserManagementPanel() {
                   )}
                   {bulkAssignType === "trainer" && (
                     <div>
-                      <label className="neon-label" htmlFor="bulk-trainer-select" style={{ color: 'var(--neon-text, #fff)' }}>Trainer</label>
+                      <label className="neon-label" htmlFor="bulk-trainer-select" style={{ color: "var(--neon-text, #fff)" }}>
+                        Trainer
+                      </label>
                       <select
                         id="bulk-trainer-select"
                         className="neon-input"
                         value={bulkTrainer ? "true" : "false"}
-                        onChange={e => setBulkTrainer(e.target.value === "true")}
-                        style={{ color: 'var(--neon-text, #fff)' }}
+                        onChange={(e) => setBulkTrainer(e.target.value === "true")}
+                        style={{ color: "var(--neon-text, #fff)" }}
                       >
                         <option value="false">No</option>
                         <option value="true">Yes</option>
@@ -1412,11 +1465,16 @@ export default function UserManagementPanel() {
                     </div>
                   )}
                   <div className="neon-panel-actions" style={{ display: "flex", gap: "1rem", justifyContent: "flex-end", marginTop: "2rem" }}>
-                    <button className="neon-btn" onClick={() => setBulkAssignStep(2)}>Back</button>
-                    <button className="neon-btn neon-btn-primary" onClick={() => setBulkAssignStep(4)} disabled={
-                      (bulkAssignType === "role" && (!bulkDeptId || !bulkRoleId)) ||
-                      (bulkAssignType === "shift" && !bulkShiftId)
-                    }>Next</button>
+                    <button className="neon-btn" onClick={() => setBulkAssignStep(2)}>
+                      Back
+                    </button>
+                    <button
+                      className="neon-btn neon-btn-primary"
+                      onClick={() => setBulkAssignStep(4)}
+                      disabled={(bulkAssignType === "role" && (!bulkDeptId || !bulkRoleId)) || (bulkAssignType === "shift" && !bulkShiftId)}
+                    >
+                      Next
+                    </button>
                   </div>
                 </div>
               )}
@@ -1427,15 +1485,29 @@ export default function UserManagementPanel() {
                     Confirm bulk assignment:
                   </div>
                   <div style={{ marginBottom: "1rem" }}>
-                    <strong>Assignment:</strong> {bulkAssignType === "role" ? `Department: ${departments.find(d => d.id === bulkDeptId)?.name || "—"}, Role: ${roles.find(r => r.id === bulkRoleId)?.title || "—"}` : bulkAssignType === "shift" ? `Shift: ${shiftPatterns.find(s => s.id === bulkShiftId)?.name || "—"}` : bulkAssignType === "first_aid" ? `First Aid: ${bulkFirstAid ? "Yes" : "No"}` : bulkAssignType === "trainer" ? `Trainer: ${bulkTrainer ? "Yes" : "No"}` : "—"}
+                    <strong>Assignment:</strong>{" "}
+                    {bulkAssignType === "role"
+                      ? `Department: ${departments.find((d) => d.id === bulkDeptId)?.name || "—"}, Role: ${
+                          roles.find((r) => r.id === bulkRoleId)?.title || "—"
+                        }`
+                      : bulkAssignType === "shift"
+                      ? `Shift: ${shiftPatterns.find((s) => s.id === bulkShiftId)?.name || "—"}`
+                      : bulkAssignType === "first_aid"
+                      ? `First Aid: ${bulkFirstAid ? "Yes" : "No"}`
+                      : bulkAssignType === "trainer"
+                      ? `Trainer: ${bulkTrainer ? "Yes" : "No"}`
+                      : "—"}
                   </div>
                   <div style={{ marginBottom: "1rem" }}>
                     <strong>Users:</strong> {bulkSelectedUserIds.length}
                     {bulkSelectedUserIds.length > 0 && (
                       <ul style={{ margin: "0.5rem 0 0 1rem", padding: 0, listStyle: "disc" }}>
-                        {users.filter(u => bulkSelectedUserIds.includes(u.id)).slice(0, 5).map(u => (
-                          <li key={u.id}>{`${u.first_name || ""} ${u.last_name || ""}`.trim() || u.email}</li>
-                        ))}
+                        {users
+                          .filter((u) => bulkSelectedUserIds.includes(u.id))
+                          .slice(0, 5)
+                          .map((u) => (
+                            <li key={u.id}>{`${u.first_name || ""} ${u.last_name || ""}`.trim() || u.email}</li>
+                          ))}
                         {bulkSelectedUserIds.length > 5 && <li>...and {bulkSelectedUserIds.length - 5} more</li>}
                       </ul>
                     )}

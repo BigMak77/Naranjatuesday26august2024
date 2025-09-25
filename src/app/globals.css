@@ -285,10 +285,39 @@ button svg {
   color: #fff !important;
 }
 
+.neon-btn-pen-tool {
+  background: #16a34a !important; /* vibrant green */
+  color: #fff !important;
+}
+.neon-btn-pen-tool:hover {
+  background: #22c55e !important; /* lighter green on hover */
+  color: #fff !important;
+}
+
 /* Button group utility for consistent spacing */
 .neon-btn-group {
   display: flex;
   gap: 6px;
+}
+
+.neon-btn-submit-application {
+  background: #19e68c !important;
+  color: #111 !important;
+  border: none !important;
+  box-shadow: none;
+  font-size: 1.2rem;
+  transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+  margin-right: 6px;
+}
+.neon-btn-submit-application:hover {
+  background: #22ff99 !important;
+  color: #111 !important;
+  box-shadow: 0 0 8px #19e68c99;
+}
+.neon-btn-submit-application svg {
+  color: #111 !important;
+  stroke: #111 !important;
+  margin-right: 0 !important;
 }
 
 /* ================== Tables ================== */
@@ -313,7 +342,7 @@ button svg {
 }
 .neon-table td {
   font-size: 1rem !important;
-  color: var(--text) !important;
+  color: var (--text) !important;
   text-align: center !important;
 }
 
@@ -322,23 +351,25 @@ button svg {
 .neon-table td {
   padding: 1.25rem 1.25rem !important;
 }
-
-/* Neon Table Toolbar: for search, pagination, and dropdown above NeonTable */
+/* Neon Table Toolbar: for search, actions, and pagination above NeonTable */
 .neon-table-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1.25rem;
-  
-  padding: 0.75rem 1.25rem; /* Increased vertical and horizontal padding for equal spacing */
-  background: var(--accent); /* orange background for visibility */
+
+  padding: 0.75rem 1.25rem;
+  background: var(--accent);
   border-radius: 8px;
+
   height: 64px;
   min-height: 64px;
   max-height: 64px;
+
   box-sizing: border-box;
 }
 
+/* Sections */
 .neon-table-toolbar .neon-table-toolbar-actions,
 .neon-table-toolbar .neon-table-toolbar-search,
 .neon-table-toolbar .neon-table-toolbar-pagination {
@@ -346,86 +377,124 @@ button svg {
   align-items: center;
 }
 
+/* Actions: buttons cluster */
 .neon-table-toolbar .neon-table-toolbar-actions {
   display: flex;
+  align-items: center;
   gap: 0.75rem;
 }
 
+/* Search region: flexible middle (or left) area */
 .neon-table-toolbar .neon-table-toolbar-search {
-  flex: none !important;
-  width: auto !important;
-  min-width: 0 !important;
-  max-width: none !important;
-  flex: 1;
+  flex: 1 1 auto;    /* grow and shrink as needed */
+  min-width: 0;      /* allow shrinking inside flex */
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0 !important;
-  margin: 0 !important;
+  padding: 0;
+  margin: 0;
   height: 100%;
 }
 
-/* --- NeonTable toolbar search input: absolutely fixed width, no flex, no shrink/grow --- */
-.neon-table-toolbar .neon-table-toolbar-search input[type="search"] {
-  width: 150px !important;
-  min-width: 150px !important;
-  max-width: 150px !important;
-  flex: none !important;
-  align-self: flex-start !important;
-  box-sizing: border-box !important;
-  padding-left: 0.5rem !important;
-  padding-right: 0 !important;
-  margin: 0 !important;
-  height: 32px !important;
-  display: block !important;
-  margin-bottom: 0 !important;
-  overflow: hidden !important;
-  box-shadow: none !important;
-  position: relative !important;
+/* Search input: fixed width, no flex growth */
+.neon-table-toolbar .neon-table-toolbar-search input {
+  width: 150px;
+  min-width: 150px;
+  max-width: 150px;
+
+  height: 32px;
+  flex: none;
+  align-self: center;
+  box-sizing: border-box;
+
+  padding-left: 0.5rem;
+  padding-right: 0;
+
+  margin: 0;
+  display: block;
+
+  box-shadow: none;
+  position: relative;
   z-index: 1;
 }
 
-.neon-table-toolbar .neon-table-toolbar-pagination > * {
-  margin: 0 !important;
-  vertical-align: middle !important;
-}
-
+/* Pagination area */
 .neon-table-toolbar .neon-table-toolbar-pagination {
   display: flex;
   align-items: center;
   gap: 0.75rem;
 }
 
-.neon-table-toolbar .neon-table-toolbar-dropdown {
-  min-width: 90px;
-  max-width: 90px;
-  width: 90px;
-  padding: 1px 8px !important;
+/* Normalize inner spacing for pagination controls */
+.neon-table-toolbar .neon-table-toolbar-pagination > * {
+  margin: 0;
+  vertical-align: middle;
 }
 
+/* Optional: fixed-width dropdown used in pagination or elsewhere */
+.neon-table-toolbar .neon-table-toolbar-dropdown {
+  width: 90px;
+  min-width: 90px;
+  max-width: 90px;
+  padding: 1px 8px;
+}
+
+/* Icons inside toolbar (SVGs) always 18x18 */
+.neon-table-icon {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  max-width: 18px;
+  max-height: 18px;
+}
+
+/* Responsive: stack vertically on narrow screens */
 @media (max-width: 900px) {
   .neon-table-toolbar {
     flex-direction: column;
     align-items: stretch;
     gap: 0.75rem;
+    height: auto;         /* let it grow when stacked */
+    min-height: 0;
+    max-height: none;
   }
+
   .neon-table-toolbar .neon-table-toolbar-actions {
     justify-content: flex-start;
   }
+
   .neon-table-toolbar .neon-table-toolbar-pagination {
     justify-content: flex-start;
   }
+
+  /* Search input can relax width on small screens if desired */
+  .neon-table-toolbar .neon-table-toolbar-search input {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+  }
 }
 
-/* Ensure .neon-table-icon SVGs are always 18x18px */
-.neon-table-icon {
-  width: 18px !important;
-  height: 18px !important;
-  min-width: 18px !important;
-  min-height: 18px !important;
-  max-width: 18px !important;
-  max-height: 18px !important;
+/* --- Optional helpers (safe defaults) --- */
+
+/* If .neon-input is used for inputs inside the toolbar, normalize height */
+.neon-table-toolbar .neon-input {
+  height: 32px;
+  line-height: 32px;
 }
+
+/* If you accidentally used .neon-pagination-toolbar in JSX, keep it styled */
+.neon-table-toolbar .neon-pagination-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.neon-table-toolbar .neon-pagination-toolbar > * {
+  margin: 0;
+  vertical-align: middle;
+}
+
 
 /* ================== User Profile (safe; no 100vw) ================== */
 .user-profile-card{

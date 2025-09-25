@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useUser } from "@/lib/useUser";
 import { supabase } from "@/lib/supabase-client";
 import {
@@ -17,7 +17,6 @@ import {
   FiAlertOctagon,
   FiSearch,
 } from "react-icons/fi";
-import styles from "@/components/ui/ProjectGlobalHeader.module.css";
 import MyProfileModal from "@/components/user/MyProfileModal";
 import Modal from "@/components/modal";
 
@@ -44,9 +43,20 @@ export default function HomepageHeader({
   const { user, loading } = useUser();
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
-  const [turkusDropdownOpen, setTurkusDropdownOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [loginLoading, setLoginLoading] = useState(false);
-  const handleTurkusDropdown = () => setTurkusDropdownOpen((open) => !open);
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      setOpenDropdown(null);
+      setMenuOpen(false);
+    }
+    if (openDropdown || menuOpen) {
+      document.addEventListener("mousedown", handleClick);
+      return () => document.removeEventListener("mousedown", handleClick);
+    }
+  }, [openDropdown, menuOpen]);
 
   const dashboardHref = useMemo(() => {
     if (!user || typeof user.access_level !== "string")
@@ -66,12 +76,12 @@ export default function HomepageHeader({
   const links: NavLink[] = useMemo(
     () =>
       navLinks ?? [
-        { href: dashboardHref, label: "Dashboard", icon: <FiHome /> },
-        { href: "/hr/people/", label: "HR", icon: <FiUsers /> },
+        { href: dashboardHref, label: "Dashboard", icon: <FiHome style={{ color: '#fff', fontSize: 18 }} /> },
+        { href: "/hr/people/", label: "HR", icon: <FiUsers style={{ color: '#fff', fontSize: 18 }} /> },
         {
           href: "/turkus",
           label: "Turkus",
-          icon: <FiFileText />,
+          icon: <FiFileText style={{ color: '#fff', fontSize: 18 }} />,
           dropdown: [
             { href: "/turkus/audit", label: "Audit" },
             { href: "/turkus/tasks", label: "Tasks" },
@@ -79,7 +89,7 @@ export default function HomepageHeader({
             { href: "/turkus/documents", label: "Documents" },
           ],
         },
-        { href: "/admin/incomplete", label: "Compliance", icon: <FiShield /> },
+        { href: "/admin/incomplete", label: "Compliance", icon: <FiShield style={{ color: '#fff', fontSize: 18 }} /> },
       ],
     [navLinks, dashboardHref],
   );
@@ -115,81 +125,97 @@ export default function HomepageHeader({
   return (
     <>
       <header
-        className={`${styles.header} ${fullBleed ? styles.fullBleed : ""}`}
+        style={{
+          width: "100%",
+          background: "linear-gradient(90deg, #1a237e 0%, #00bcd4 100%)",
+          boxShadow: "0 2px 16px 0 rgba(0,0,0,0.08)",
+          padding: fullBleed ? "0 0" : "0 32px",
+        }}
       >
-        <div className={styles.row}>
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          maxWidth: 1440,
+          margin: "0 auto",
+          padding: "0 32px",
+          height: 86,
+        }}>
           {/* Left: Logo */}
-          <Link
-            href="/"
-            aria-label="Go to homepage"
-            className={styles.logoLink}
-          >
+          <Link href="/" aria-label="Go to homepage" style={{ display: "flex", alignItems: "center" }}>
             <Image
               src="/logo2.png"
               alt="Naranja"
-              width={220} // Larger logo width
-              height={86} // Keep header height at 44px
+              width={220}
+              height={86}
               sizes="(max-width: 768px) 130px, 220px"
               priority={logoPriority}
-              className={styles.logoImg}
-              style={{ objectFit: "contain", height: "96px", width: "220px" }} // Ensure logo fits within header height
+              style={{ objectFit: "contain", height: "96px", width: "220px" }}
             />
           </Link>
 
           {/* Center: Quick links (signed-in only) */}
           {!loading && user && (
-            <nav className={styles.nav} aria-label="Primary">
+            <nav aria-label="Primary" style={{ display: "flex", gap: "1.5rem" }}>
               {links.map((l) =>
                 l.dropdown ? (
-                  <div
-                    key={l.href}
-                    className={styles.navItemDropdown}
-                    style={{ position: "relative" }}
-                  >
+                  <div key={l.href} style={{ position: "relative" }}>
                     <button
-                      className={styles.navItem}
                       type="button"
+                      aria-haspopup="menu"
+                      aria-expanded={openDropdown === l.href}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenDropdown(openDropdown === l.href ? null : l.href);
+                      }}
                       style={{
-                        fontFamily: "inherit",
-                        fontWeight: "inherit",
-                        color: "inherit",
                         background: "none",
                         border: "none",
+                        color: "#fff",
+                        font: "inherit",
+                        display: "flex",
+                        alignItems: "center",
+                        cursor: "pointer",
                         padding: 0,
+                        fontWeight: 600,
+                        fontSize: "1rem",
                       }}
-                      aria-haspopup="menu"
-                      aria-expanded={turkusDropdownOpen}
-                      onClick={handleTurkusDropdown}
                     >
-                      <span className={styles.navIcon} aria-hidden="true">
-                        {l.icon}
-                      </span>
-                      <span className={styles.navText}>{l.label}</span>
-                      <FiChevronDown
-                        className={styles.chev}
-                        aria-hidden="true"
-                      />
+                      <span style={{ marginRight: 6, width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center" }}>{l.icon}</span>
+                      <span>{l.label}</span>
+                      <FiChevronDown style={{ marginLeft: 6, color: "#fff", fontSize: 18 }} />
                     </button>
-                    {turkusDropdownOpen && (
+                    {openDropdown === l.href && (
                       <div
-                        className={styles.menu}
                         role="menu"
                         style={{
+                          position: "absolute",
                           top: "100%",
                           left: 0,
                           minWidth: 180,
-                          position: "absolute",
+                          background: "#ff8800",
+                          color: "#fff",
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
                           zIndex: 3002,
+                          borderRadius: 8,
+                          padding: "0.5rem 0",
                         }}
                       >
                         {l.dropdown.map((d) => (
                           <Link
                             key={d.href}
                             href={d.href}
-                            className={styles.menuItem}
                             role="menuitem"
+                            style={{
+                              display: "block",
+                              padding: "0.5rem 1.5rem",
+                              color: "#fff",
+                              textDecoration: "none",
+                              fontSize: "1rem",
+                              fontWeight: 500,
+                            }}
                             prefetch
-                            onClick={() => setTurkusDropdownOpen(false)}
+                            onClick={() => setOpenDropdown(null)}
                           >
                             {d.label}
                           </Link>
@@ -201,13 +227,20 @@ export default function HomepageHeader({
                   <Link
                     key={l.href}
                     href={l.href}
-                    className={styles.navItem}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      color: "#fff",
+                      textDecoration: "none",
+                      fontSize: "1rem",
+                      fontWeight: 600,
+                      padding: "0.5rem 1rem",
+                    }}
                     prefetch
                   >
-                    <span className={styles.navIcon} aria-hidden="true">
-                      {l.icon}
-                    </span>
-                    <span className={styles.navText}>{l.label}</span>
+                    <span style={{ width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center" }}>{l.icon}</span>
+                    <span>{l.label}</span>
                   </Link>
                 )
               )}
@@ -223,33 +256,40 @@ export default function HomepageHeader({
               onSubmit={(e) => e.preventDefault()}
             >
               <div style={{ display: "flex", alignItems: "center" }}>
-                <span className={styles.searchIcon} aria-hidden="true">
-                  <FiSearch />
+                <span style={{ marginRight: 8, color: "#fff", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <FiSearch style={{ color: "#fff", fontSize: 18 }} />
                 </span>
                 <input
                   id="global-header-search"
-                  className={styles.searchBar}
                   type="search"
                   placeholder="Search..."
                   autoComplete="off"
                   name="search"
-                  style={{ marginLeft: 0 }}
+                  style={{
+                    padding: "0.5rem 1rem",
+                    borderRadius: 6,
+                    border: "2px solid #00bcd4",
+                    fontSize: "1rem",
+                    background: "#222",
+                    color: "#fff",
+                    boxShadow: "0 0 8px 2px #00fff7",
+                  }}
                 />
               </div>
             </form>
           )}
 
           {/* Right: Auth area */}
-          <div className={styles.right}>
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             {loading && (
-              <span className={styles.status} aria-live="polite">
+              <span aria-live="polite" style={{ color: "#fff" }}>
                 Checking session…
               </span>
             )}
 
             {!loading && !user && (
               <button
-                className={`neon-btn neon-btn-orange ${styles.loginBtn}`}
+                className="neon-btn neon-btn-orange"
                 aria-label="Log in to your account"
                 onClick={handleSignIn}
                 type="button"
@@ -257,12 +297,17 @@ export default function HomepageHeader({
                 tabIndex={0}
                 style={{
                   minWidth: 100,
-                  position: "relative",
                   background: "var(--orange, #ff8800)",
                   color: "#fff",
                   border: "none",
                   boxShadow: "0 0 8px 2px rgba(255,136,0,0.25)",
                   fontWeight: 600,
+                  padding: "0.5rem 1.5rem",
+                  borderRadius: 8,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  fontSize: "1rem",
                 }}
               >
                 {loginLoading ? (
@@ -272,31 +317,64 @@ export default function HomepageHeader({
                     style={{ marginRight: 8 }}
                   />
                 ) : (
-                  <FiLogIn aria-hidden="true" style={{ marginRight: 8 }} />
+                  <FiLogIn aria-hidden="true" style={{ marginRight: 8, color: "#fff", fontSize: 18 }} />
                 )}
-                <span className={styles.hideSm}>
+                <span>
                   {loginLoading ? "Logging in..." : "Log In"}
                 </span>
               </button>
             )}
 
             {!loading && user && (
-              <div className={styles.userBlock}>
+              <div style={{ position: "relative" }}>
                 {/* User pill */}
                 <button
                   type="button"
-                  className={styles.userPill}
                   aria-haspopup="menu"
                   aria-expanded={menuOpen}
-                  onClick={() => setMenuOpen((s) => !s)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMenuOpen((s) => !s);
+                  }}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    background: "#ff8800",
+                    border: "2px solid #fff",
+                    borderRadius: 20,
+                    padding: "0.15rem 0.75rem",
+                    cursor: "pointer",
+                    font: "inherit",
+                    boxShadow: "0 0 8px 2px #ff8800",
+                  }}
                 >
                   {/* Avatar or fallback initials */}
-                  <span className={styles.avatarContainer}>
-                    <span className={styles.avatarFallback} aria-hidden="true">
+                  <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span
+                      style={{
+                        background: "#ff8800",
+                        color: "#fff",
+                        borderRadius: "50%",
+                        width: 32,
+                        height: 32,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontWeight: 700,
+                        fontSize: "1.1rem",
+                        border: "2px solid #fff",
+                        boxShadow: "0 0 8px 2px #ff8800",
+                      }}
+                      aria-hidden="true"
+                    >
                       {initials}
                     </span>
                     <span
-                      className={styles.userName}
+                      style={{
+                        fontWeight: 600,
+                        fontSize: "1rem",
+                        color: "#fff",
+                      }}
                       title={(
                         (user?.first_name ? user.first_name + " " : "") +
                         (user?.last_name ?? "")
@@ -308,23 +386,50 @@ export default function HomepageHeader({
                       ).trim()}
                     </span>
                   </span>
-                  <FiChevronDown className={styles.chev} aria-hidden="true" />
+                  <FiChevronDown style={{ marginLeft: 8, color: "#fff", fontSize: 18 }} aria-hidden="true" />
                 </button>
 
                 {/* User menu */}
                 {menuOpen && (
                   <div
-                    className={styles.menu}
                     role="menu"
                     aria-label="User menu"
+                    style={{
+                      position: "absolute",
+                      top: "110%",
+                      right: 0,
+                      minWidth: "180px",
+                      background: "#fa7a20", // orange background
+                      boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                      borderRadius: "8px",
+                      zIndex: 3002,
+                      marginTop: "8px",
+                      padding: "8px 0",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "4px",
+                    }}
                   >
                     <button
                       type="button"
                       role="menuitem"
-                      className={styles.menuItem}
                       onClick={() => {
                         setMenuOpen(false);
                         setProfileModalOpen(true);
+                      }}
+                      style={{
+                        display: "block",
+                        width: "100%",
+                        padding: "10px 24px",
+                        background: "none",
+                        border: "none",
+                        textAlign: "left",
+                        fontWeight: 400,
+                        fontSize: "16px",
+                        cursor: "pointer",
+                        borderRadius: "4px",
+                        transition: "background 0.2s",
+                        color: "#fff", // white text
                       }}
                     >
                       Profile
@@ -332,26 +437,86 @@ export default function HomepageHeader({
                     <Link
                       href="/account/security"
                       role="menuitem"
-                      className={styles.menuItem}
                       onClick={() => setMenuOpen(false)}
+                      style={{
+                        display: "block",
+                        padding: "10px 24px",
+                        textDecoration: "none",
+                        fontWeight: 400,
+                        fontSize: "16px",
+                        border: "none",
+                        background: "none",
+                        cursor: "pointer",
+                        borderRadius: "4px",
+                        transition: "background 0.2s",
+                        color: "#fff", // white text
+                      }}
                     >
                       Security
                     </Link>
                     <Link
                       href="/billing"
                       role="menuitem"
-                      className={styles.menuItem}
                       onClick={() => setMenuOpen(false)}
+                      style={{
+                        display: "block",
+                        padding: "10px 24px",
+                        textDecoration: "none",
+                        fontWeight: 400,
+                        fontSize: "16px",
+                        border: "none",
+                        background: "none",
+                        cursor: "pointer",
+                        borderRadius: "4px",
+                        transition: "background 0.2s",
+                        color: "#fff", // white text
+                      }}
                     >
                       Billing
+                    </Link>
+                    <Link
+                      href="/admin/utility/support/contact"
+                      role="menuitem"
+                      onClick={() => setMenuOpen(false)}
+                      style={{
+                        display: "block",
+                        padding: "10px 24px",
+                        textDecoration: "none",
+                        fontWeight: 400,
+                        fontSize: "16px",
+                        border: "none",
+                        background: "none",
+                        cursor: "pointer",
+                        borderRadius: "4px",
+                        transition: "background 0.2s",
+                        color: "#fff", // white text
+                      }}
+                      className="global-header-link"
+                    >
+                      Contact Support
                     </Link>
                     <button
                       type="button"
                       role="menuitem"
-                      className={styles.menuItemDanger}
                       onClick={handleSignOut}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        width: "100%",
+                        padding: "10px 24px",
+                        background: "none",
+                        border: "none",
+                        textAlign: "left",
+                        fontWeight: 500,
+                        fontSize: "16px",
+                        cursor: "pointer",
+                        borderRadius: "4px",
+                        transition: "background 0.2s",
+                        color: "#fff", // white text
+                      }}
                     >
-                      <FiLogOut aria-hidden="true" />
+                      <FiLogOut aria-hidden="true" style={{ fontSize: "18px", width: "20px", height: "20px", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "#fff" }} />
                       Sign out
                     </button>
                   </div>
@@ -364,8 +529,20 @@ export default function HomepageHeader({
               <a
                 className="neon-btn neon-btn-danger neon-btn-square"
                 href="/turkus/issues/add"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: 40,
+                  height: 40,
+                  background: "#d32f2f",
+                  color: "#fff",
+                  borderRadius: "50%",
+                  fontSize: "1.3rem",
+                  boxShadow: "0 0 8px 2px rgba(211,47,47,0.15)",
+                }}
               >
-                <FiAlertOctagon />
+                <FiAlertOctagon style={{ color: "#fff", fontSize: 18 }} />
               </a>
             )}
           </div>

@@ -13,13 +13,14 @@ type DocumentType = {
   id: string;
   title: string;
   reference_code?: string;
-  document_type: string;
+  document_type_id: string;
   section_id?: string;
   file_url?: string;
   notes?: string;
   standard_id?: string;
   current_version?: number;
 };
+type DocType = { id: string; name: string };
 
 export default function EditDocumentPage() {
   const params = useParams();
@@ -31,7 +32,7 @@ export default function EditDocumentPage() {
   const [document, setDocument] = useState<DocumentType | null>(null);
   const [title, setTitle] = useState("");
   const [referenceCode, setReferenceCode] = useState("");
-  const [documentType, setDocumentType] = useState("");
+  const [documentTypeId, setDocumentTypeId] = useState("");
   const [standardId, setStandardId] = useState("");
   const [sectionId, setSectionId] = useState("");
   const [notes, setNotes] = useState("");
@@ -39,6 +40,7 @@ export default function EditDocumentPage() {
 
   const [standards, setStandards] = useState<Standard[]>([]);
   const [sections, setSections] = useState<Section[]>([]);
+  const [documentTypes, setDocumentTypes] = useState<DocType[]>([]);
 
   // Add state for version confirmation modal
   const [showVersionModal, setShowVersionModal] = useState(false);
@@ -50,6 +52,12 @@ export default function EditDocumentPage() {
 
   useEffect(() => {
     const fetchData = async () => {
+      // Fetch document types
+      const { data: docTypes } = await supabase
+        .from("document_types")
+        .select("id, name");
+      setDocumentTypes(docTypes || []);
+
       const { data: doc, error } = await supabase
         .from("documents")
         .select("*")
@@ -63,7 +71,7 @@ export default function EditDocumentPage() {
       setDocument(doc);
       setTitle(doc.title);
       setReferenceCode(doc.reference_code || "");
-      setDocumentType(doc.document_type || "");
+      setDocumentTypeId(doc.document_type_id || "");
 
       const { data: stds } = await supabase
         .from("document_standard")
@@ -95,7 +103,7 @@ export default function EditDocumentPage() {
   // Function to handle edit submit
   const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !documentType) {
+    if (!title || !documentTypeId) {
       alert("Title and type are required.");
       return;
     }
@@ -104,7 +112,7 @@ export default function EditDocumentPage() {
       id: document?.id || "",
       title,
       reference_code: referenceCode || "",
-      document_type: documentType,
+      document_type_id: documentTypeId,
       section_id: sectionId || "",
       file_url: document?.file_url || "",
       notes,
@@ -150,7 +158,7 @@ export default function EditDocumentPage() {
           title: document?.title,
           reference_code: document?.reference_code,
           file_url: document?.file_url,
-          document_type: document?.document_type,
+          document_type_id: document?.document_type_id,
           notes: notes || null,
           change_summary: "Manual update via edit form",
           change_date: new Date().toISOString(),
@@ -249,14 +257,14 @@ export default function EditDocumentPage() {
             <label className="neon-label">Document Type *</label>
             <select
               className="neon-input"
-              value={documentType}
-              onChange={(e) => setDocumentType(e.target.value)}
+              value={documentTypeId}
+              onChange={(e) => setDocumentTypeId(e.target.value)}
               required
             >
               <option value="">Select type</option>
-              <option value="policy">Policy</option>
-              <option value="ssow">Safe System of Work (SSOW)</option>
-              <option value="work_instruction">Work Instruction</option>
+              {documentTypes.map((dt) => (
+                <option key={dt.id} value={dt.id}>{dt.name}</option>
+              ))}
             </select>
           </div>
           <div>

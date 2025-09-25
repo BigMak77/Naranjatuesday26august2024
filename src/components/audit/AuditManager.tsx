@@ -32,6 +32,7 @@ import AssignAuditTab from "@/components/audit/AssignAuditTab";
 import AssignedToTab from "@/components/audit/AssignedToTab";
 import AuditorsListWidget from "@/components/audit/AuditorsListWidget";
 import StandardsTab from "@/components/audit/StandardsTab";
+import AddAuditorWidget from "@/components/audit/AddAuditorWidget";
 
 /* =========================================================
    Shared context (optional for your child tabs to use)
@@ -231,7 +232,12 @@ export default function AuditManager() {
             {activeTab === "submissions" && <SubmissionsTab />}
             {activeTab === "questions" && <QuestionTab />}
             {activeTab === "assigned" && <AssignedToTab />}
-            {activeTab === "auditors" && <AuditorsListWidget />}
+            {activeTab === "auditors" && (
+              <>
+                <AddAuditorWidget onAdded={bumpRefresh} />
+                <AuditorsListWidget />
+              </>
+            )}
             {activeTab === "standards" && <StandardsTab />}
           </div>
         </div>

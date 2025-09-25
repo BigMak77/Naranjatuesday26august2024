@@ -22,6 +22,7 @@ import {
   FiCheckSquare,
   FiServer,
   FiUserPlus,
+  FiShare,
 } from "react-icons/fi";
 
 const ICONS = {
@@ -44,6 +45,7 @@ const ICONS = {
   close: <FiX />,
   assign: <FiCheckSquare style={{ color: "#d9ed92" }} />,
   viewArchive: <FiServer />,
+  submitApplication: <FiShare />, // new green submit application button
 } as const;
 
 type Variant = keyof typeof ICONS;
@@ -130,6 +132,29 @@ export function NeonAddPeopleButton({ onClick, title = "Add People" }: NeonAddPe
       type="button"
     >
       <FiUserPlus />
+    </button>
+  );
+}
+
+export interface NeonSubmitApplicationButtonProps {
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
+  title?: string;
+  disabled?: boolean;
+}
+
+export function NeonSubmitApplicationButton({ onClick, title = "Submit Application", disabled }: NeonSubmitApplicationButtonProps) {
+  return (
+    <button
+      className="neon-btn neon-btn-submit-application"
+      title={title}
+      aria-label={title}
+      onClick={onClick}
+      type="submit"
+      disabled={disabled}
+      style={{ background: "#19e68c", color: "#111", border: "none" }}
+    >
+      <FiShare style={{ marginRight: 8, verticalAlign: "middle" }} />
+      {title}
     </button>
   );
 }

@@ -12,11 +12,17 @@ import OverlayDialog from "@/components/ui/OverlayDialog";
 import NeonForm from "@/components/NeonForm";
 import MainHeader from "@/components/ui/MainHeader";
 
+interface DocumentType {
+  id: string;
+  name: string;
+}
+
 interface Document {
   id: string;
   title: string;
   section_id?: string | null;
-  document_type: "policy" | "ssow" | "work_instruction";
+  document_type_id?: string | null;
+  document_type_name?: string;
   created_at?: string;
   last_reviewed_at?: string;
   current_version?: number;
@@ -50,6 +56,7 @@ type ViewMode = "list" | "add" | "edit" | "archived";
 export default function DocumentManager() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [sections, setSections] = useState<Section[]>([]);
+  const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState("");
   const [filterSection, setFilterSection] = useState("");
@@ -91,23 +98,37 @@ export default function DocumentManager() {
     setColumnWidths((prev) => ({ ...prev, [accessor]: Math.max(60, newWidth) }));
   };
 
-  // Fetch docs + sections
+  // Fetch docs + sections + document types
   useEffect(() => {
     (async () => {
+      // Fetch documents (no join)
       const { data: docs, error: docsErr } = await supabase
         .from("documents")
-        .select(
-          "id, title, section_id, document_type, created_at, last_reviewed_at, current_version, reference_code, file_url, notes, archived, review_period_months",
-        );
+        .select("id, title, section_id, document_type_id, created_at, last_reviewed_at, current_version, reference_code, file_url, notes, archived, review_period_months");
       if (docsErr) console.error("Error fetching documents:", docsErr);
 
+      // Fetch sections
       const { data: secs, error: secsErr } = await supabase
         .from("standard_sections")
         .select("id, code, title, description, parent_section_id");
       if (secsErr) console.error("Error fetching sections:", secsErr);
 
-      setDocuments((docs || []).filter((doc) => !doc.archived));
+      // Fetch document types
+      const { data: docTypes, error: docTypesErr } = await supabase
+        .from("document_types")
+        .select("id, name");
+      if (docTypesErr) console.error("Error fetching document types:", docTypesErr);
+
+      // Map document type info into documents
+      const docTypesMap = Object.fromEntries((docTypes || []).map(dt => [dt.id, dt]));
+      setDocuments(
+        (docs || []).filter((doc) => !doc.archived).map((doc: any) => ({
+          ...doc,
+          document_type_name: docTypesMap[doc.document_type_id]?.name || "—",
+        }))
+      );
       setSections(secs || []);
+      setDocumentTypes(docTypes || []);
       setLoading(false);
     })();
   }, []);
@@ -116,7 +137,7 @@ export default function DocumentManager() {
     const q = search.trim().toLowerCase();
     return documents.filter((doc) => {
       const matchesSearch = !q || (doc.title || "").toLowerCase().includes(q);
-      const matchesType = !filterType || doc.document_type === (filterType as any);
+      const matchesType = !filterType || doc.document_type_id === filterType;
       const matchesSection = !filterSection || doc.section_id === filterSection;
       return matchesSearch && matchesType && matchesSection;
     });
@@ -189,7 +210,7 @@ export default function DocumentManager() {
         title: doc.title,
         reference_code: doc.reference_code,
         file_url: doc.file_url,
-        document_type: doc.document_type,
+        document_type_id: doc.document_type_id,
         notes: doc.notes || null,
         section_id: doc.section_id || null,
         created_at: doc.created_at || null,
@@ -314,9 +335,9 @@ export default function DocumentManager() {
               className="neon-select"
             >
               <option value="">All Types</option>
-              <option value="policy">Policy</option>
-              <option value="ssow">SSOW</option>
-              <option value="work_instruction">Work Instruction</option>
+              {documentTypes.map((dt) => (
+                <option key={dt.id} value={dt.id}>{dt.name}</option>
+              ))}
             </select>
           </div>
           <div className="control section-edit-inline">
@@ -344,7 +365,7 @@ export default function DocumentManager() {
       </section>
 
       {loading ? (
-        <p className="neon-loading">Loading...</p>
+        <p className="neon-loading">Loading…</p>
       ) : (
         <>
           <div className="document-section-table-wrapper neon-panel neon-form-padding">
@@ -452,29 +473,26 @@ export default function DocumentManager() {
                 )
                 .map((doc: Document) => {
                   const section = doc.section_id ? sectionsById[doc.section_id] : undefined;
-                  let typeIcon = null;
-                  if (doc.document_type === "policy") {
-                    typeIcon = <FiFileText size={20} className="neon-icon" title="Policy" />;
-                  } else if (doc.document_type === "ssow") {
-                    typeIcon = <FiClipboard size={20} className="neon-icon" title="SSOW" />;
-                  } else if (doc.document_type === "work_instruction") {
-                    typeIcon = <FiBookOpen size={20} className="neon-icon" title="Work Instruction" />;
-                  }
-                  // Calculate review due: last_reviewed_at + review_period_months (months)
-                  let reviewDue = "—";
-                  if (doc.last_reviewed_at && doc.review_period_months) {
-                    const d = new Date(doc.last_reviewed_at);
-                    d.setMonth(d.getMonth() + doc.review_period_months);
-                    reviewDue = d.toLocaleDateString("en-GB");
-                  }
+                  // Show document type name
                   return {
                     title: doc.title,
-                    document_type: <div className="document-type-icon-cell neon-label">{typeIcon}</div>,
+                    document_type: (
+                      <div className="document-type-cell neon-label">
+                        {doc.document_type_name || "—"}
+                      </div>
+                    ),
                     section: section ? `${section.code} – ${section.title}` : "—",
                     created: doc.created_at ? new Date(doc.created_at).toLocaleDateString("en-GB") : "—",
-                    review_due: <div className="document-review-due-cell neon-label">{reviewDue}</div>,
+                    review_due: (() => {
+                      let reviewDue = "—";
+                      if (doc.last_reviewed_at && doc.review_period_months) {
+                        const d = new Date(doc.last_reviewed_at);
+                        d.setMonth(d.getMonth() + doc.review_period_months);
+                        reviewDue = d.toLocaleDateString("en-GB");
+                      }
+                      return <div className="document-review-due-cell neon-label">{reviewDue}</div>;
+                    })(),
                     version: <div className="document-version-cell neon-label">{doc.current_version || "—"}</div>,
-                    // CHANGED: open edit dialog instead of <a href=...>
                     edit: (
                       <div className="document-edit-cell">
                         <NeonIconButton
@@ -539,7 +557,7 @@ export default function DocumentManager() {
               value={changeSummary}
               onChange={(e) => setChangeSummary(e.target.value)}
               className="neon-input mb-2"
-              placeholder="Describe why this document is being archived..."
+              placeholder="Describe why this document is being archived…"
               required
               rows={3}
               style={{ width: "100%" }}
@@ -652,7 +670,7 @@ export default function DocumentManager() {
           setEditStage(null);
         }}
       >
-        <div style={{ minWidth: 340, maxWidth: 420, padding: 24 }}>
+        <div style={{ minWidth: 340, maxWidth: '100vw', width: 850, display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
           <h2 className="neon-dialog-title" style={{ marginBottom: 16 }}>Edit Document</h2>
           {editStage === "archive" ? (
             <>
@@ -692,7 +710,7 @@ export default function DocumentManager() {
                   value={changeSummary}
                   onChange={(e) => setChangeSummary(e.target.value)}
                   className="neon-input mb-2"
-                  placeholder="Describe why this document is being archived..."
+                  placeholder="Describe why this document is being archived…"
                   required
                   rows={3}
                   style={{ width: "100%" }}
@@ -729,10 +747,10 @@ export default function DocumentManager() {
             </>
           ) : (
             <>
-              <p className="neon-label" style={{ marginBottom: 16 }}>
+              <p style={{ maxWidth: 800, margin: '0 auto 16px auto', textAlign: 'center', fontWeight: 500, fontSize: '1.08rem' }}>
                 Would you like to perform a <strong>Review</strong> (update last reviewed date), create a <strong>New Version</strong>, or <strong>Archive</strong> this document?
               </p>
-              <div style={{ display: 'flex', gap: 16 }}>
+              <div style={{ display: 'flex', gap: 16, width: '100%' }}>
                 <NeonIconButton
                   variant="refresh"
                   className="neon-btn-review"
@@ -744,14 +762,15 @@ export default function DocumentManager() {
                 />
                 <NeonIconButton
                   variant="edit"
-                  title="New Version (edit document)"
-                  aria-label="New Version"
+                  className="neon-btn-pen-tool"
+                  title="Create New Version"
+                  aria-label="Create New Version"
                   onClick={() => {
                     setShowEditStageModal(false);
                     setActiveDocId(editStageDocId);
                     setViewMode("edit");
                   }}
-                >New Version</NeonIconButton>
+                />
                 <NeonIconButton
                   variant="archive"
                   title="Archive document"
@@ -788,7 +807,8 @@ function DocumentForm({
   const [loading, setLoading] = useState<boolean>(!!id);
   const [error, setError] = useState("");
   const [title, setTitle] = useState("");
-  const [documentType, setDocumentType] = useState<Document["document_type"]>("policy");
+  const [documentTypeId, setDocumentTypeId] = useState<string>("");
+  const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
   const [sectionId, setSectionId] = useState<string>("");
   const [referenceCode, setReferenceCode] = useState("");
   const [fileUrl, setFileUrl] = useState("");
@@ -799,6 +819,11 @@ function DocumentForm({
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      // Fetch document types for dropdown
+      const { data: docTypes, error: docTypesErr } = await supabase
+        .from("document_types")
+        .select("id, name");
+      if (!cancelled && docTypes) setDocumentTypes(docTypes);
       if (!id) {
         setReviewPeriodMonths(12);
         setLastReviewAt(new Date().toISOString().slice(0, 10));
@@ -808,7 +833,7 @@ function DocumentForm({
       if (cancelled) return;
       if (error) { setError(error.message); setLoading(false); return; }
       setTitle(data.title || "");
-      setDocumentType(data.document_type || "policy");
+      setDocumentTypeId(data.document_type_id || "");
       setSectionId(data.section_id || "");
       setReferenceCode(data.reference_code || "");
       setFileUrl(data.file_url || "");
@@ -824,6 +849,7 @@ function DocumentForm({
     e.preventDefault();
     setError("");
     if (!title.trim()) { setError("Title is required"); return; }
+    if (!documentTypeId) { setError("Document type is required"); return; }
     setLoading(true);
 
     if (id) {
@@ -841,7 +867,7 @@ function DocumentForm({
         .from("documents")
         .update({
           title: title.trim(),
-          document_type: documentType,
+          document_type_id: documentTypeId,
           section_id: sectionId || null,
           reference_code: referenceCode || null,
           file_url: fileUrl || null,
@@ -879,7 +905,7 @@ function DocumentForm({
           title: previousDoc.title,
           reference_code: previousDoc.reference_code,
           file_url: previousDoc.file_url,
-          document_type: previousDoc.document_type,
+          document_type_id: previousDoc.document_type_id,
           notes: previousDoc.notes || null,
           section_id: previousDoc.section_id || null,
           created_at: previousDoc.created_at || null,
@@ -894,7 +920,7 @@ function DocumentForm({
         .from("documents")
         .insert({
           title: title.trim(),
-          document_type: documentType,
+          document_type_id: documentTypeId,
           section_id: sectionId || null,
           reference_code: referenceCode || null,
           file_url: fileUrl || null,
@@ -927,10 +953,11 @@ function DocumentForm({
       <input id="docTitle" className="neon-input mb-2" value={title} onChange={e=>setTitle(e.target.value)} required />
 
       <label className="neon-label" htmlFor="docType">Type</label>
-      <select id="docType" className="neon-select mb-2" value={documentType} onChange={e=>setDocumentType(e.target.value as Document["document_type"])}>
-        <option value="policy">Policy</option>
-        <option value="ssow">SSOW</option>
-        <option value="work_instruction">Work Instruction</option>
+      <select id="docType" className="neon-select mb-2" value={documentTypeId} onChange={e=>setDocumentTypeId(e.target.value)} required>
+        <option value="">— Select Type —</option>
+        {documentTypes.map(dt => (
+          <option key={dt.id} value={dt.id}>{dt.name}</option>
+        ))}
       </select>
 
       <label className="neon-label" htmlFor="docSection">Section</label>

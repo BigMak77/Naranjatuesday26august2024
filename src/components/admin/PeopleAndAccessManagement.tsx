@@ -15,12 +15,6 @@ const PEOPLE_ACTIONS = [
     className: "neon-btn neon-btn-view",
   },
   {
-    href: "/admin/trainers/add",
-    label: "Add Trainer",
-    description: "Register a new trainer for your organization.",
-    className: "neon-btn neon-btn-add",
-  },
-  {
     href: "/admin/leavers",
     label: "Manage Leavers",
     description: "View and process users who are leaving.",

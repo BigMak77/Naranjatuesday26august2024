@@ -10,27 +10,43 @@ type ArchivedDocument = {
   title: string;
   archived_version: string;
   file_url: string;
-  document_type: string;
+  document_type_id: string;
+  document_type_name?: string;
+  document_type_icon?: string | null;
   change_date: string;
   archived_by_auth_id: string;
 };
 
 export default function ArchivedDocumentsPage() {
   const [archivedDocs, setArchivedDocs] = useState<ArchivedDocument[]>([]);
+  const [documentTypes, setDocumentTypes] = useState<{ id: string; name: string; icon?: string | null }[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchArchived = async () => {
+      // Fetch document types for lookup
+      const { data: docTypes } = await supabase
+        .from("document_types")
+        .select("id, name, icon");
+      setDocumentTypes(docTypes || []);
+      // Fetch archived docs with join to document_types
       const { data, error } = await supabase
         .from("document_archive")
-        .select(
-          "id, document_id, title, archived_version, file_url, document_type, change_date, archived_by_auth_id",
-        )
+        .select(`
+          id, document_id, title, archived_version, file_url, document_type_id, change_date, archived_by_auth_id,
+          document_types:document_type_id (id, name, icon)
+        `)
         .order("change_date", { ascending: false });
       if (error) {
         setArchivedDocs([]);
       } else {
-        setArchivedDocs(data || []);
+        setArchivedDocs(
+          (data || []).map((doc: any) => ({
+            ...doc,
+            document_type_name: doc.document_types?.name || "—",
+            document_type_icon: doc.document_types?.icon || null,
+          }))
+        );
       }
       setLoading(false);
     };
@@ -68,17 +84,15 @@ export default function ArchivedDocumentsPage() {
               { header: "File", accessor: "file_url" },
             ]}
             data={archivedDocs.map((doc) => {
-              let typeIcon = null;
-              if (doc.document_type === "policy")
-                typeIcon = <FiFileText title="Policy" size={18} />;
-              else if (doc.document_type === "ssow")
-                typeIcon = <FiClipboard title="SSOW" size={18} />;
-              else if (doc.document_type === "work_instruction")
-                typeIcon = <FiBookOpen title="Work Instruction" size={18} />;
               return {
                 title: doc.title,
                 document_type: (
-                  <div className="archived-documents-type-cell">{typeIcon}</div>
+                  <div className="archived-documents-type-cell">
+                    {doc.document_type_icon && (
+                      <span className="doc-type-icon" dangerouslySetInnerHTML={{ __html: doc.document_type_icon }} style={{ marginRight: 6 }} />
+                    )}
+                    {doc.document_type_name || "—"}
+                  </div>
                 ),
                 archived_version: doc.archived_version,
                 change_date: doc.change_date

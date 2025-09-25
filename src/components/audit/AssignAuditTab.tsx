@@ -4,6 +4,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import NeonForm from "@/components/NeonForm";
+import OverlayDialog from "@/components/ui/OverlayDialog";
+import NeonIconButton from "@/components/ui/NeonIconButton";
 
 type AuditTemplate = {
   id: string;
@@ -31,6 +33,9 @@ export default function AssignAuditTab() {
   const [assignLoading, setAssignLoading] = useState(false);
   const [feedback, setFeedback] = useState<string>("");
 
+  const [showUserDialog, setShowUserDialog] = useState(false);
+  const [dialogUsers, setDialogUsers] = useState<UserRow[]>([]);
+
   // Load dropdown data
   useEffect(() => {
     (async () => {
@@ -38,7 +43,7 @@ export default function AssignAuditTab() {
       const [tpls, us, depts] = await Promise.all([
         supabase
           .from("audit_templates")
-          .select("id, title, name")
+          .select("id, title, description") // include 'description'
           .order("title", { ascending: true }),
         supabase
           .from("users")
@@ -217,28 +222,24 @@ export default function AssignAuditTab() {
 
         {/* Target: user OR department */}
         <div className="assign-audit-tab-row">
-          <select
-            value={userAuthId}
-            onChange={(e) => {
-              setUserAuthId(e.target.value);
-              setDepartmentId("");
-            }}
-            className="assign-audit-tab-input"
-            disabled={assignLoading}
-          >
-            <option value="">Assign to User</option>
-            {users.map((u) => (
-              <option key={u.auth_id} value={u.auth_id}>
-                {userLabel(u)}
-              </option>
-            ))}
-          </select>
-
+          {/* Assign to Department first */}
           <select
             value={departmentId}
-            onChange={(e) => {
+            onChange={async (e) => {
               setDepartmentId(e.target.value);
               setUserAuthId("");
+              // Show overlay dialog with users in department
+              if (e.target.value) {
+                const { data: deptUsers, error } = await supabase
+                  .from("users")
+                  .select("auth_id, email, first_name, last_name, department_id")
+                  .eq("department_id", e.target.value)
+                  .not("auth_id", "is", null);
+                if (!error && deptUsers) {
+                  setDialogUsers(deptUsers);
+                  setShowUserDialog(true);
+                }
+              }
             }}
             className="assign-audit-tab-input"
             disabled={assignLoading}
@@ -250,10 +251,57 @@ export default function AssignAuditTab() {
               </option>
             ))}
           </select>
+
+          {/* Assign to User (after department selection) */}
+          <select
+            value={userAuthId}
+            onChange={(e) => setUserAuthId(e.target.value)}
+            className="assign-audit-tab-input"
+            disabled={assignLoading || !departmentId}
+          >
+            <option value="">Assign to User</option>
+            {users
+              .filter((u) => !departmentId || u.department_id === departmentId)
+              .map((u) => (
+                <option key={u.auth_id} value={u.auth_id}>
+                  {userLabel(u)}
+                </option>
+              ))}
+          </select>
         </div>
 
+        {/* Overlay dialog for department users */}
+        <OverlayDialog open={showUserDialog} onClose={() => setShowUserDialog(false)}>
+          <h3>Select User in Department</h3>
+          {dialogUsers.map((u) => (
+            <label key={u.auth_id}>
+              <input
+                type="radio"
+                name="dialog-user-select"
+                value={u.auth_id}
+                checked={userAuthId === u.auth_id}
+                onChange={() => {
+                  setUserAuthId(u.auth_id);
+                  setShowUserDialog(false);
+                }}
+              />
+              {userLabel(u)}
+            </label>
+          ))}
+          <NeonIconButton
+            variant="cancel"
+            title="Cancel"
+            onClick={() => setShowUserDialog(false)}
+            className="neon-btn-close"
+          />
+        </OverlayDialog>
+
         {/* Due date */}
+        <label htmlFor="assign-audit-due-date" style={{ marginTop: 16, marginBottom: 4, display: 'block' }}>
+          Due date (when should this audit be completed by?)
+        </label>
         <input
+          id="assign-audit-due-date"
           type="date"
           value={scheduledFor}
           onChange={(e) => setScheduledFor(e.target.value)}
@@ -272,7 +320,7 @@ export default function AssignAuditTab() {
         )}
 
         {/* Tip when RLS blocks inserts */}
-        {/* <div className="mt-2 text-xs opacity-70">
+        {/* <div class="mt-2 text-xs opacity-70">
           If you see an insert error, ensure your RLS policy on <code>user_assignments</code> allows the current user to insert.
         </div> */}
       </NeonForm>

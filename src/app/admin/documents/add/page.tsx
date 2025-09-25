@@ -9,6 +9,7 @@ import Modal from "@/components/modal";
 type Std = { id: string; name: string };
 type Sec = { id: string; code: string; title: string };
 type Mod = { id: string; name: string };
+type DocType = { id: string; name: string };
 
 export default function AddDocumentPage() {
   const [title, setTitle] = useState("");
@@ -16,13 +17,12 @@ export default function AddDocumentPage() {
   const [notes, setNotes] = useState("");
   const [standardId, setStandardId] = useState("");
   const [sectionId, setSectionId] = useState("");
-  const [documentType, setDocumentType] = useState<
-    "policy" | "ssow" | "work_instruction" | ""
-  >("policy");
+  const [documentTypeId, setDocumentTypeId] = useState("");
   const [file, setFile] = useState<File | null>(null);
 
   const [standards, setStandards] = useState<Std[]>([]);
   const [sections, setSections] = useState<Sec[]>([]);
+  const [documentTypes, setDocumentTypes] = useState<DocType[]>([]);
 
   const [showModuleAttach, setShowModuleAttach] = useState(false);
   const [showModuleSelector, setShowModuleSelector] = useState(false);
@@ -71,6 +71,20 @@ export default function AddDocumentPage() {
     };
   }, [standardId]);
 
+  // Fetch document types
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const { data, error } = await supabase
+        .from("document_types")
+        .select("id, name");
+      if (!cancelled && !error) setDocumentTypes(data || []);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const selected = e.target.files?.[0] || null;
@@ -100,7 +114,7 @@ export default function AddDocumentPage() {
 
       try {
         // Required fields
-        if (!file || !title || !documentType) {
+        if (!file || !title || !documentTypeId) {
           alert("Title, file, and document type are required.");
           return;
         }
@@ -148,7 +162,7 @@ export default function AddDocumentPage() {
             title,
             reference_code: referenceCode || null,
             file_url: publicUrl,
-            document_type: documentType,
+            document_type_id: documentTypeId,
             section_id: sectionId || null,
             current_version: 1,
             review_period_months: 12,
@@ -195,7 +209,7 @@ export default function AddDocumentPage() {
         setSubmitting(false);
       }
     },
-    [documentType, file, notes, referenceCode, sectionId, submitting, title],
+    [documentTypeId, file, notes, referenceCode, sectionId, submitting, title],
   );
 
   return (
@@ -251,17 +265,15 @@ export default function AddDocumentPage() {
                 </label>
                 <select
                   id="doc-type"
-                  value={documentType}
-                  onChange={(e) =>
-                    setDocumentType(e.target.value as typeof documentType)
-                  }
+                  value={documentTypeId}
+                  onChange={(e) => setDocumentTypeId(e.target.value)}
                   className="neon-input"
                   required
                 >
                   <option value="">Select document type</option>
-                  <option value="policy">Policy</option>
-                  <option value="ssow">Safe System of Work (SSOW)</option>
-                  <option value="work_instruction">Work Instruction</option>
+                  {documentTypes.map((dt) => (
+                    <option key={dt.id} value={dt.id}>{dt.name}</option>
+                  ))}
                 </select>
               </div>
               {/* Standard + Section */}

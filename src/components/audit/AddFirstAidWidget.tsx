@@ -1,4 +1,4 @@
-// src/components/task/AddAuditorWidget.tsx
+// src/components/audit/AddFirstAidWidget.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase-client";
 import NeonIconButton from "@/components/ui/NeonIconButton";
 import { FiPlus } from "react-icons/fi";
 
-export default function AddAuditorWidget({
+export default function AddFirstAidWidget({
   onAdded,
 }: {
   onAdded?: () => void;
@@ -31,7 +31,7 @@ export default function AddAuditorWidget({
       });
   }, []);
 
-  // Fetch users for selected department (not archived, not already auditor)
+  // Fetch users for selected department (not archived, not already first aid)
   useEffect(() => {
     setUsers([]);
     setSelectedUsers([]);
@@ -39,15 +39,15 @@ export default function AddAuditorWidget({
     setLoading(true);
     supabase
       .from("users")
-      .select("id, first_name, last_name, is_auditor")
+      .select("id, first_name, last_name, is_first_aid")
       .eq("department_id", selectedDept)
       .eq("is_archived", false)
-      .eq("is_auditor", false)
+      .eq("is_first_aid", false)
       .order("first_name", { ascending: true })
       .then(({ data, error }) => {
         setLoading(false);
         if (error) setError("Failed to load users");
-        else setUsers((data || []).filter(u => !u.is_auditor));
+        else setUsers((data || []).filter(u => !u.is_first_aid));
       });
   }, [selectedDept]);
 
@@ -70,7 +70,7 @@ export default function AddAuditorWidget({
     setLoading(true);
     const { error: updateError } = await supabase
       .from("users")
-      .update({ is_auditor: true })
+      .update({ is_first_aid: true })
       .in("id", selectedUsers);
     setLoading(false);
     if (updateError) {
@@ -89,7 +89,7 @@ export default function AddAuditorWidget({
       className="neon-panel"
       style={{ maxWidth: 400 }}
     >
-      <h2 className="neon-section-title">Mark Users as Auditors</h2>
+      <h2 className="neon-section-title">Mark Users as First Aid</h2>
       <label className="neon-label" htmlFor="dept-select">Department</label>
       <select
         id="dept-select"
@@ -123,7 +123,7 @@ export default function AddAuditorWidget({
         </div>
       </div>
       {error && <p className="neon-error">{error}</p>}
-      {success && <p className="neon-success">Users marked as auditors!</p>}
+      {success && <p className="neon-success">Users marked as first aid!</p>}
       <button
         type="submit"
         className="neon-btn neon-btn-confirm"

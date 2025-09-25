@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import NeonPanel from "@/components/NeonPanel";
+import NeonIconButton from "@/components/ui/NeonIconButton";
 
 type TemplateRow = {
   id: string;
@@ -127,11 +128,9 @@ export default function ViewAuditTab() {
   );
 
   return (
-    <NeonPanel className="neon-panel-audit space-y-4">
+    <NeonPanel className="neon-panel-audit">
       <div className="flex items-center justify-between">
         <h3 className="neon-form-title drop-shadow-glow">Audit Templates</h3>
-        {/* Quick route to assignment tab if you want */}
-        {/* <button className="neon-link-audit" onClick={() => setActiveTab('assign')}>Go to Assign</button> */}
       </div>
 
       {err && <div className="text-red-400 text-sm">{err}</div>}
@@ -140,28 +139,32 @@ export default function ViewAuditTab() {
       ) : list.length === 0 ? (
         <div className="opacity-70 text-sm p-3">No audit templates found.</div>
       ) : (
-        <ul className="neon-list-audit space-y-4">
-          {list.map((tpl) => (
-            <li key={tpl.id} className="neon-list-item-audit">
-              <div className="neon-list-item-header">
-                <div>
-                  <h4 className="neon-list-item-title">{tpl.title}</h4>
-                  <p className="neon-list-item-meta">
-                    Version: {tpl.version} &nbsp;|&nbsp; Frequency:{" "}
-                    {tpl.frequency}
-                  </p>
-                </div>
-                <div className="neon-list-item-actions">
-                  <button
-                    type="button"
-                    className="neon-link-audit"
+        <table className="neon-table w-full">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Description</th>
+              <th>Version</th>
+              <th>Frequency</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {list.map((tpl) => (
+              <tr key={tpl.id}>
+                <td>{tpl.title}</td>
+                <td>{tpl.description}</td>
+                <td>{tpl.version}</td>
+                <td>{tpl.frequency}</td>
+                <td>
+                  <NeonIconButton
+                    variant="view"
+                    title={expanded === tpl.id ? "Hide Details" : "View Details"}
                     onClick={() => toggleExpand(tpl.id)}
-                  >
-                    {expanded === tpl.id ? "Hide Details" : "View Details"}
-                  </button>
-                  <button
-                    type="button"
-                    className="neon-link-archive"
+                  />
+                  <NeonIconButton
+                    variant="archive"
+                    title="Archive"
                     onClick={async () => {
                       const { error } = await supabase
                         .from("audit_templates")
@@ -170,45 +173,37 @@ export default function ViewAuditTab() {
                       if (error) {
                         alert("Failed to archive: " + error.message);
                       } else {
-                        setTemplates((prev) =>
-                          prev.filter((t) => t.id !== tpl.id),
-                        );
+                        setTemplates((prev) => prev.filter((t) => t.id !== tpl.id));
                         if (expanded === tpl.id) setExpanded(null);
                       }
                     }}
-                  >
-                    Archive
-                  </button>
-                </div>
-              </div>
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
 
-              {expanded === tpl.id && (
-                <div className="mt-4 pt-4 text-sm text-[#b2f1ec] space-y-2 neon-panel">
-                  {templates.find((t) => t.id === tpl.id)?.description && (
-                    <p>
-                      <strong>Description:</strong>{" "}
-                      {templates.find((t) => t.id === tpl.id)?.description}
-                    </p>
-                  )}
-
-                  <p className="opacity-80">
-                    <strong>Questions:</strong>
-                  </p>
-                  <ul className="list-disc list-inside space-y-1">
-                    {Array.isArray(questionsMap[tpl.id]) &&
-                    questionsMap[tpl.id].length > 0 ? (
-                      questionsMap[tpl.id].map((q, i) => (
-                        <li key={`${tpl.id}-${i}`}>{q}</li>
-                      ))
-                    ) : (
-                      <li className="opacity-70">No questions linked.</li>
-                    )}
-                  </ul>
-                </div>
-              )}
-            </li>
-          ))}
-        </ul>
+      {/* Expanded details row below the table */}
+      {expanded && (
+        <div className="mt-4 pt-4 text-sm text-[#b2f1ec] neon-panel">
+          {templates.find((t) => t.id === expanded)?.description && (
+            <p>
+              <strong>Description:</strong> {templates.find((t) => t.id === expanded)?.description}
+            </p>
+          )}
+          <p className="opacity-80">
+            <strong>Questions:</strong>
+          </p>
+          <ul className="list-disc list-inside space-y-1">
+            {Array.isArray(questionsMap[expanded]) && questionsMap[expanded].length > 0 ? (
+              questionsMap[expanded].map((q, i) => <li key={`${expanded}-${i}`}>{q}</li>)
+            ) : (
+              <li className="opacity-70">No questions linked.</li>
+            )}
+          </ul>
+        </div>
       )}
     </NeonPanel>
   );
