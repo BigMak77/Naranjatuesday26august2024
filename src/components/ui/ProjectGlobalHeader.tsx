@@ -103,6 +103,7 @@ export default function GlobalHeader({
             { href: "/admin/org-chart/", label: "Org Chart" },
             { href: "/admin/role-profiles/", label: "Role Profiles" },
             { href: "/admin/utility/", label: "Utilities" },
+            { href: "/manager/training/resources", label: "Training Resources" }, // Added here
           ],
         },
         {

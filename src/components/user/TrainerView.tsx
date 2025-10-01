@@ -25,6 +25,11 @@ import NeonForm from "../NeonForm";
 import NeonPanel from "../NeonPanel";
 import Image from "next/image";
 import MainHeader from "@/components/ui/MainHeader";
+import TrainingMaterialsManagerDialog from "@/components/training/TrainingMaterialsManagerDialog";
+import TrainingQuestionsSection from "../training/TrainingQuestionsSection";
+import TrainingQuestionForm from "../training/TrainingQuestionForm";
+import TrainingQuestionCategoriesTable from "../training/TrainingQuestionCategoriesTable";
+import TrainingQuestionCategory from "../training/TrainingQuestionCategory";
 
 // ==========================
 // Types
@@ -51,7 +56,7 @@ export type LogTrainingPayload = {
   assignment_id?: string | null;
 };
 
-export type Section = "log" | "history" | "assign" | "certs" | "profile";
+export type Section = "log" | "history" | "assign" | "certs" | "profile" | "questions" | "categories";
 
 export interface TrainerRecordingProps {
   users?: UserRow[];
@@ -206,15 +211,16 @@ const SignatureBox = React.memo(function SignatureBox({
   );
 });
 
-// ==========================
-// Component
-// ==========================
 export default function TrainerRecordingPage({
   onOpenSection,
 }: TrainerRecordingProps) {
   const [rows, setRows] = useState<UserRow[]>([]);
   const [depts, setDepts] = useState<Dept[]>([]);
   const [dept, setDept] = useState<string>("all");
+  const [materialsDialogOpen, setMaterialsDialogOpen] = useState(false);
+  const [modules, setModules] = useState<{ id: string; name: string }[]>([]);
+  const [section, setSection] = useState<Section>("log");
+  const [categoriesDialogOpen, setCategoriesDialogOpen] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -294,6 +300,14 @@ export default function TrainerRecordingPage({
         .filter((r) => !!r.auth_id);
 
       setRows(mapped);
+
+      // Fetch modules for question form
+      const { data: mods, error: modsErr } = await supabase
+        .from("modules")
+        .select("id, name")
+        .eq("is_archived", false)
+        .order("name", { ascending: true });
+      if (!modsErr && mods) setModules(mods);
     }
 
     fetchData();
@@ -485,311 +499,342 @@ export default function TrainerRecordingPage({
   };
 
   return (
-    <div className="after-hero global-content">
-      <MainHeader
-        title="Trainer View"
-        subtitle="Record, assign, and review training for users"
-      />
-      <h2 className="flex items-center gap-2 text-2xl font-semibold mb-4">
-        <FiUsers className="text-[var(--neon,#40E0D0)]" aria-hidden /> Record
-        Training
-      </h2>
+    <div className="after-hero global-content relative">
+      <TrainingMaterialsManagerDialog open={materialsDialogOpen} onClose={() => setMaterialsDialogOpen(false)} />
+      {/* Main content */}
+      <div className="flex-1 min-w-0">
+        <MainHeader
+          title="Trainer View"
+          subtitle="Record, assign, and review training for users"
+        />
+        <h2 className="flex items-center gap-2 text-2xl font-semibold mb-4">
+          <FiUsers className="text-[var(--neon,#40E0D0)]" aria-hidden /> Record
+          Training
+        </h2>
 
-      {/* Controls */}
-      <div className="grid gap-3 md:grid-cols-2 mb-4">
-        <label className="flex items-center gap-2 rounded-xl bg-[var(--field,#012b2b)] px-3 py-2 neon-panel">
-          <FiFilter aria-hidden />
-          <select
-            aria-label="Filter by department"
-            className="w-full bg-transparent outline-none"
-            value={dept}
-            onChange={(e) => setDept(e.target.value)}
-          >
-            <option value="all">All departments</option>
-            {depts.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-
-      {/* Table */}
-      <NeonTable
-        columns={[
-          { header: "Name", accessor: "name" },
-          { header: "Department", accessor: "departmentName" },
-          {
-            header: "Last training",
-            accessor: "lastTrainingDate",
-            render: (v) => formatDate(v as string),
-          },
-          {
-            header: "Actions",
-            accessor: "actions",
-            render: (_, row) => (
-              <div className="flex items-center justify-center gap-2">
-                <button
-                  className="neon-btn neon-btn-utility neon-btn-global"
-                  onClick={() => openLog(row as UserRow)}
-                  title="Log a training session"
-                  aria-label="Log session"
-                  type="button"
-                >
-                  <FiUserPlus />
-                </button>
-                <button
-                  className="neon-btn neon-btn-history neon-btn-utility neon-btn-global"
-                  onClick={() => openHistory(row as UserRow)}
-                  title="View training history"
-                  aria-label="History"
-                  type="button"
-                >
-                  <FiClock />
-                </button>
-                <button
-                  className="neon-btn neon-btn-assign neon-btn-utility neon-btn-global"
-                  onClick={() => onOpenSection?.((row as UserRow).id, "assign")}
-                  title="Assign training"
-                  aria-label="Assign"
-                  type="button"
-                >
-                  <FiCheckSquare />
-                </button>
-                <button
-                  className="neon-btn neon-btn-activity neon-btn-utility neon-btn-global"
-                  onClick={() => {
-                    /* TODO: add handler for activity if needed */
-                  }}
-                  title="Training activity"
-                  aria-label="Activity"
-                  type="button"
-                >
-                  <FiActivity />
-                </button>
-                <button
-                  className="neon-btn neon-btn-cert neon-btn-square neon-btn-utility"
-                  onClick={() => onOpenSection?.((row as UserRow).id, "certs")}
-                  title="Certificates & status"
-                  aria-label="Certs"
-                  type="button"
-                >
-                  <FiAward />
-                </button>
-                <button
-                  className="neon-btn neon-btn-danger neon-btn-utility"
-                  onClick={() => window.open("/raise-issue", "_blank")}
-                  title="Raise an issue"
-                  aria-label="Raise an issue"
-                  type="button"
-                >
-                  <FiAlertOctagon />
-                </button>
-              </div>
-            ),
-          },
-        ]}
-        data={filtered}
-      />
-
-      {/* Simple overlay + centered dialog */}
-      {openFor && (
-        <div
-          className="ui-dialog-overlay"
-          onClick={() => !busy && setOpenFor(null)}
-        >
-          <div
-            className="ui-dialog-content"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <NeonForm
-              title={`Log training • ${openFor.name} • ${openFor.departmentName}`}
-              submitLabel={busy ? "Saving…" : "Save log"}
-              onSubmit={(e) => {
-                e.preventDefault();
-                submitLog();
-              }}
-              onCancel={() => !busy && setOpenFor(null)}
+        {/* Controls */}
+        <div className="grid gap-3 md:grid-cols-2 mb-4">
+          <label className="flex items-center gap-2 rounded-xl bg-[var(--field,#012b2b)] px-3 py-2 neon-panel">
+            <FiFilter aria-hidden />
+            <select
+              aria-label="Filter by department"
+              className="w-full bg-transparent outline-none"
+              value={dept}
+              onChange={(e) => setDept(e.target.value)}
             >
-              <span className="font-body opacity-75 mb-2 block">
-                Today: {new Date().toLocaleDateString()}
-              </span>
+              <option value="all">All departments</option>
+              {depts.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
 
-              <label className="grid gap-1">
-                <span className="font-body opacity-80">Date</span>
-                <input
-                  type="date"
-                  className="neon-input"
-                  value={form.date}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, date: e.target.value }))
-                  }
-                  disabled={busy}
-                />
-              </label>
+        {/* Table */}
+        <NeonTable
+          columns={[
+            { header: "Name", accessor: "name" },
+            { header: "Department", accessor: "departmentName" },
+            {
+              header: "Last training",
+              accessor: "lastTrainingDate",
+              render: (v) => formatDate(v as string),
+            },
+            {
+              header: "Actions",
+              accessor: "actions",
+              render: (_, row) => (
+                <div className="flex items-center justify-center gap-2">
+                  <button
+                    className="neon-btn neon-btn-utility neon-btn-global"
+                    onClick={() => openLog(row as UserRow)}
+                    title="Log a training session"
+                    aria-label="Log session"
+                    type="button"
+                  >
+                    <FiUserPlus />
+                  </button>
+                  <button
+                    className="neon-btn neon-btn-history neon-btn-utility neon-btn-global"
+                    onClick={() => openHistory(row as UserRow)}
+                    title="View training history"
+                    aria-label="History"
+                    type="button"
+                  >
+                    <FiClock />
+                  </button>
+                  <button
+                    className="neon-btn neon-btn-assign neon-btn-utility neon-btn-global"
+                    onClick={() => onOpenSection?.((row as UserRow).id, "assign")}
+                    title="Assign training"
+                    aria-label="Assign"
+                    type="button"
+                  >
+                    <FiCheckSquare />
+                  </button>
+                  <button
+                    className="neon-btn neon-btn-activity neon-btn-utility neon-btn-global"
+                    onClick={() => {
+                      /* TODO: add handler for activity if needed */
+                    }}
+                    title="Training activity"
+                    aria-label="Activity"
+                    type="button"
+                  >
+                    <FiActivity />
+                  </button>
+                  <button
+                    className="neon-btn neon-btn-cert neon-btn-square neon-btn-utility"
+                    onClick={() => onOpenSection?.((row as UserRow).id, "certs")}
+                    title="Certificates & status"
+                    aria-label="Certs"
+                    type="button"
+                  >
+                    <FiAward />
+                  </button>
+                  <button
+                    className="neon-btn neon-btn-danger neon-btn-utility"
+                    onClick={() => window.open("/raise-issue", "_blank")}
+                    title="Raise an issue"
+                    aria-label="Raise an issue"
+                    type="button"
+                  >
+                    <FiAlertOctagon />
+                  </button>
+                </div>
+              ),
+            },
+          ]}
+          data={filtered}
+        />
 
-              <label className="grid gap-1">
-                <span className="font-body opacity-80">Duration (hours)</span>
-                <input
-                  type="number"
-                  min={0.5}
-                  step={0.5}
-                  className="neon-input"
-                  value={form.durationHours}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      durationHours: Number(e.target.value),
-                    }))
-                  }
-                  disabled={busy}
-                />
-              </label>
+        {/* Simple overlay + centered dialog */}
+        {openFor && (
+          <div
+            className="ui-dialog-overlay"
+            onClick={() => !busy && setOpenFor(null)}
+          >
+            <div
+              className="ui-dialog-content"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <NeonForm
+                title={`Log training • ${openFor.name} • ${openFor.departmentName}`}
+                submitLabel={busy ? "Saving…" : "Save log"}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  submitLog();
+                }}
+                onCancel={() => !busy && setOpenFor(null)}
+              >
+                <span className="font-body opacity-75 mb-2 block">
+                  Today: {new Date().toLocaleDateString()}
+                </span>
 
-              {assignments.length > 0 ? (
                 <label className="grid gap-1">
-                  <span className="font-body opacity-80">Module</span>
+                  <span className="font-body opacity-80">Date</span>
+                  <input
+                    type="date"
+                    className="neon-input"
+                    value={form.date}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, date: e.target.value }))
+                    }
+                    disabled={busy}
+                  />
+                </label>
+
+                <label className="grid gap-1">
+                  <span className="font-body opacity-80">Duration (hours)</span>
+                  <input
+                    type="number"
+                    min={0.5}
+                    step={0.5}
+                    className="neon-input"
+                    value={form.durationHours}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        durationHours: Number(e.target.value),
+                      }))
+                    }
+                    disabled={busy}
+                  />
+                </label>
+
+                {assignments.length > 0 ? (
+                  <label className="grid gap-1">
+                    <span className="font-body opacity-80">Module</span>
+                    <select
+                      className="neon-input"
+                      value={selectedModuleId}
+                      onChange={(e) => setSelectedModuleId(e.target.value)}
+                      disabled={busy}
+                    >
+                      {assignments.map((a) => (
+                        <option key={a.id} value={a.module_id}>
+                          {a.module_name
+                            ? a.module_name
+                            : `Module ID: ${a.module_id}`}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : (
+                  <label className="grid gap-1">
+                    <span className="font-body opacity-80">Module</span>
+                    <span className="font-body opacity-60">
+                      No modules assigned.
+                    </span>
+                  </label>
+                )}
+
+                <label className="grid gap-1">
+                  <span className="font-body opacity-80">Outcome</span>
                   <select
                     className="neon-input"
-                    value={selectedModuleId}
-                    onChange={(e) => setSelectedModuleId(e.target.value)}
+                    value={form.outcome}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        outcome: e.target.value as LogTrainingPayload["outcome"],
+                      }))
+                    }
                     disabled={busy}
                   >
-                    {assignments.map((a) => (
-                      <option key={a.id} value={a.module_id}>
-                        {a.module_name
-                          ? a.module_name
-                          : `Module ID: ${a.module_id}`}
-                      </option>
-                    ))}
+                    <option value="completed">Completed</option>
+                    <option value="needs-followup">Needs follow-up</option>
                   </select>
                 </label>
-              ) : (
+
                 <label className="grid gap-1">
-                  <span className="font-body opacity-80">Module</span>
-                  <span className="font-body opacity-60">
-                    No modules assigned.
-                  </span>
+                  <span className="font-body opacity-80">Notes</span>
+                  <textarea
+                    rows={4}
+                    className="neon-input"
+                    value={form.notes}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, notes: e.target.value }))
+                    }
+                    disabled={busy}
+                    placeholder="Key points covered, observed competency, follow-up actions…"
+                  />
                 </label>
-              )}
 
-              <label className="grid gap-1">
-                <span className="font-body opacity-80">Outcome</span>
-                <select
-                  className="neon-input"
-                  value={form.outcome}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      outcome: e.target.value as LogTrainingPayload["outcome"],
-                    }))
-                  }
-                  disabled={busy}
-                >
-                  <option value="completed">Completed</option>
-                  <option value="needs-followup">Needs follow-up</option>
-                </select>
-              </label>
+                {/* E-signature field */}
+                <div className="grid gap-2 mt-3">
+                  <span className="font-body opacity-80">
+                    E-signature (draw your signature below)
+                  </span>
+                  <SignatureBox
+                    disabled={busy}
+                    onChange={handleSignatureChange}
+                  />
+                  {form.signature && (
+                    <Image
+                      alt="Signature preview"
+                      src={form.signature}
+                      width={320}
+                      height={120}
+                      className="mt-1 w-[320px] h-[120px] object-contain bg-black/10 rounded"
+                      unoptimized
+                    />
+                  )}
+                </div>
+              </NeonForm>
+            </div>
+          </div>
+        )}
 
-              <label className="grid gap-1">
-                <span className="font-body opacity-80">Notes</span>
-                <textarea
-                  rows={4}
-                  className="neon-input"
-                  value={form.notes}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, notes: e.target.value }))
-                  }
-                  disabled={busy}
-                  placeholder="Key points covered, observed competency, follow-up actions…"
-                />
-              </label>
-
-              {/* E-signature field */}
-              <div className="grid gap-2 mt-3">
-                <span className="font-body opacity-80">
-                  E-signature (draw your signature below)
-                </span>
-                <SignatureBox
-                  disabled={busy}
-                  onChange={handleSignatureChange}
-                />
-                {form.signature && (
-                  <Image
-                    alt="Signature preview"
-                    src={form.signature}
-                    width={320}
-                    height={120}
-                    className="mt-1 w-[320px] h-[120px] object-contain bg-black/10 rounded"
-                    unoptimized
+        {/* History Modal */}
+        {historyFor && (
+          <div className="ui-dialog-overlay" onClick={() => setHistoryFor(null)}>
+            <div
+              className="ui-dialog-content"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <NeonPanel>
+                <h3 className="text-xl font-semibold mb-2">
+                  Training History – {historyFor.name}
+                </h3>
+                {historyBusy ? (
+                  <div className="text-center py-8 text-neon">Loading…</div>
+                ) : historyLogs.length === 0 ? (
+                  <div className="text-center py-8 opacity-70">
+                    No training logs found.
+                  </div>
+                ) : (
+                  <NeonTable
+                    columns={[
+                      { header: "Date", accessor: "date" },
+                      { header: "Topic", accessor: "topic" },
+                      { header: "Duration", accessor: "duration_hours" },
+                      { header: "Outcome", accessor: "outcome" },
+                      { header: "Notes", accessor: "notes" },
+                      {
+                        header: "Signature",
+                        accessor: "signature",
+                        render: (value) => {
+                          const sig = value as string | null;
+                          return sig ? (
+                            <Image
+                              src={sig}
+                              alt="Signature"
+                              width={96}
+                              height={48}
+                              className="w-24 h-12 object-contain bg-black/10 rounded"
+                              unoptimized
+                            />
+                          ) : (
+                            <span className="opacity-50">—</span>
+                          );
+                        },
+                      },
+                    ]}
+                    data={historyLogs}
                   />
                 )}
-              </div>
-            </NeonForm>
+                <button
+                  className="neon-btn neon-btn-secondary mt-4"
+                  style={{ marginTop: "1rem" }}
+                  onClick={() => setHistoryFor(null)}
+                >
+                  Close
+                </button>
+              </NeonPanel>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* History Modal */}
-      {historyFor && (
-        <div className="ui-dialog-overlay" onClick={() => setHistoryFor(null)}>
-          <div
-            className="ui-dialog-content"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <NeonPanel>
-              <h3 className="text-xl font-semibold mb-2">
-                Training History – {historyFor.name}
-              </h3>
-              {historyBusy ? (
-                <div className="text-center py-8 text-neon">Loading…</div>
-              ) : historyLogs.length === 0 ? (
-                <div className="text-center py-8 opacity-70">
-                  No training logs found.
-                </div>
-              ) : (
-                <NeonTable
-                  columns={[
-                    { header: "Date", accessor: "date" },
-                    { header: "Topic", accessor: "topic" },
-                    { header: "Duration", accessor: "duration_hours" },
-                    { header: "Outcome", accessor: "outcome" },
-                    { header: "Notes", accessor: "notes" },
-                    {
-                      header: "Signature",
-                      accessor: "signature",
-                      render: (value) => {
-                        const sig = value as string | null;
-                        return sig ? (
-                          <Image
-                            src={sig}
-                            alt="Signature"
-                            width={96}
-                            height={48}
-                            className="w-24 h-12 object-contain bg-black/10 rounded"
-                            unoptimized
-                          />
-                        ) : (
-                          <span className="opacity-50">—</span>
-                        );
-                      },
-                    },
-                  ]}
-                  data={historyLogs}
-                />
-              )}
-              <button
-                className="neon-btn neon-btn-secondary mt-4"
-                style={{ marginTop: "1rem" }}
-                onClick={() => setHistoryFor(null)}
-              >
-                Close
-              </button>
-            </NeonPanel>
+        {/* Training Questions Section */}
+        {section === "questions" && (
+          <div style={{ margin: 24 }}>
+            <h2>Training Questions</h2>
+            <TrainingQuestionCategoriesTable />
           </div>
-        </div>
-      )}
+        )}
+
+        {/* Training Categories Dialog Overlay */}
+        {categoriesDialogOpen && (
+          <div className="ui-dialog-overlay" onClick={() => setCategoriesDialogOpen(false)}>
+            <div className="ui-dialog-content" onClick={e => e.stopPropagation()}>
+              <NeonPanel>
+                <h2>Training Categories</h2>
+                <TrainingQuestionCategory />
+                <button
+                  className="neon-btn neon-btn-secondary mt-4"
+                  style={{ marginTop: "1rem" }}
+                  onClick={() => setCategoriesDialogOpen(false)}
+                >
+                  Close
+                </button>
+              </NeonPanel>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
