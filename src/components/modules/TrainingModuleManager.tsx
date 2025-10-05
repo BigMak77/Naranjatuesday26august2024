@@ -112,7 +112,7 @@ export default function TrainingModuleManager() {
     : null;
 
   return (
-    <div className="neon-panel">
+    <>
       <MainHeader title="Training Module Manager" subtitle="Add, view, assign, and archive training modules" />
       <FolderTabs
         tabs={tabList.map(tab => ({
@@ -260,6 +260,6 @@ export default function TrainingModuleManager() {
           )}
         </div>
       )}
-    </div>
+    </>
   );
 }

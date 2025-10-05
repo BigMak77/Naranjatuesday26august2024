@@ -11,6 +11,7 @@ import {
   FiSquare,
   FiPlus,
 } from "react-icons/fi";
+import SearchableDropdown from "@/components/SearchableDropdown";
 
 type UUID = string;
 
@@ -53,6 +54,9 @@ export default function AssignModuleWizard() {
   const [loading, setLoading] = useState(true);
   const [assigning, setAssigning] = useState(false);
   const [feedback, setFeedback] = useState<string>("");
+
+  // Success modal state
+  const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -206,6 +210,7 @@ If this persists, check Row Level Security policies on "user_assignments".`);
       setFeedback(
         `Assigned "${modules.find((m) => m.id === selectedModule)?.name ?? "Module"}" to ${rows.length} user(s).`,
       );
+      setShowSuccess(true);
       // Reset selections
       setSelectedDeptIds([]);
       setSelectedUserAuthIds([]);
@@ -218,6 +223,43 @@ If this persists, check Row Level Security policies on "user_assignments".`);
     }
   };
 
+  // Success modal overlay
+  const successModal = showSuccess && (
+    <div style={{
+      position: "fixed",
+      top: 0,
+      left: 0,
+      width: "100vw",
+      height: "100vh",
+      background: "rgba(0,0,0,0.32)",
+      zIndex: 2000,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+    }}>
+      <div style={{
+        background: "#232323",
+        borderRadius: 12,
+        padding: 36,
+        minWidth: 340,
+        maxWidth: 420,
+        boxShadow: "0 8px 32px rgba(0,0,0,0.22)",
+        textAlign: "center",
+      }}>
+        <h2 style={{ color: "var(--neon)", marginBottom: 12 }}>Success!</h2>
+        <div style={{ color: "#fff", marginBottom: 24, whiteSpace: "pre-line" }}>{feedback}</div>
+        <NeonIconButton
+          variant="add"
+          icon={<FiPlus />}
+          title="Close"
+          onClick={() => setShowSuccess(false)}
+        >
+          Close
+        </NeonIconButton>
+      </div>
+    </div>
+  );
+
   if (loading)
     return (
       <div className="neon-loading" style={{ padding: "1rem" }}>
@@ -226,265 +268,240 @@ If this persists, check Row Level Security policies on "user_assignments".`);
     );
 
   return (
-    <div className="neon-panel-module" style={{ display: "grid", gap: "1rem" }}>
-      <h3
-        className="neon-section-title"
-        style={{ display: "flex", alignItems: "center", gap: 8 }}
-      >
-        <NeonIconButton
-          variant="edit"
-          icon={<FiSend />}
-          title="Assign Training Module"
-        />
-        Bulk Assignment Wizard
-      </h3>
+    <>
+      {successModal}
+      <div className="neon-panel-module" style={{ display: "grid", gap: "1rem" }}>
+        <h3
+          className="neon-section-title"
+          style={{ display: "flex", alignItems: "center", gap: 8 }}
+        >
+          <NeonIconButton
+            variant="edit"
+            icon={<FiSend />}
+            title="Assign Training Module"
+          />
+          Bulk Assignment Wizard
+        </h3>
 
-      {/* Steps indicator */}
-      <div
-        style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 14 }}
-      >
-        <StepDot active={step === 1} label="1) Module" />
-        <div>—</div>
-        <StepDot active={step === 2} label="2) Departments" />
-        <div>—</div>
-        <StepDot active={step === 3} label="3) Users" />
-      </div>
-
-      {/* Step 1 */}
-      {step === 1 && (
-        <div style={{ display: "grid", gap: 8 }}>
-          <label className="neon-label">Select Module</label>
-          <select
-            className="neon-input"
-            value={selectedModule}
-            onChange={(e) => setSelectedModule(e.target.value)}
-          >
-            <option value="">-- Choose Module --</option>
-            {modules.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name}
-              </option>
-            ))}
-          </select>
-
-          <div
-            style={{
-              display: "flex",
-              gap: 8,
-              justifyContent: "flex-end",
-              marginTop: 8,
-            }}
-          >
-            <NeonIconButton
-              variant="next"
-              icon={<FiChevronRight />}
-              title="Next: choose departments"
-              onClick={() => setStep(2)}
-              disabled={!canGoNextFrom1}
-              aria-label="Next"
-            />
-          </div>
+        {/* Steps indicator */}
+        <div
+          style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 14 }}
+        >
+          <StepDot active={step === 1} label="1) Module" />
+          <div>—</div>
+          <StepDot active={step === 2} label="2) Departments" />
+          <div>—</div>
+          <StepDot active={step === 3} label="3) Users" />
         </div>
-      )}
 
-      {/* Step 2 */}
-      {step === 2 && (
-        <div style={{ display: "grid", gap: 8 }}>
-          <label className="neon-label">Select Department(s)</label>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-              gap: 8,
-              border: "1px solid var(--border, #2b2b2b)",
-              padding: 8,
-              borderRadius: 8,
-            }}
-          >
-            {departments.map((d, idx) => {
-              const id = d.id ?? null;
-              const checked = !!id && selectedDeptIds.includes(id);
-              return (
-                <label
-                  key={id ?? `dept-${idx}`}
-                  className="neon-checkbox"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    padding: 8,
-                    borderRadius: 8,
-                    cursor: id ? "pointer" : "not-allowed",
-                    opacity: id ? 1 : 0.5,
-                    background: checked ? "rgba(0,0,0,0.12)" : "transparent",
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    disabled={!id}
-                    checked={checked}
-                    onChange={() => id && toggleDept(id)}
-                  />
-                  <span>{d.name}</span>
-                </label>
-              );
-            })}
-          </div>
+        {/* Step 1 */}
+        {step === 1 && (
+          <div style={{ display: "grid", gap: 8 }}>
+            <label className="neon-label">Select Module</label>
+            <select
+              className="neon-input"
+              value={selectedModule}
+              onChange={(e) => setSelectedModule(e.target.value)}
+            >
+              <option value="">-- Choose Module --</option>
+              {modules.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name}
+                </option>
+              ))}
+            </select>
 
-          <div style={{ fontSize: 13, opacity: 0.8 }}>
-            {selectedDeptIds.length
-              ? `Selected ${selectedDeptIds.length} dept(s) containing ${deptUserCount} user(s).`
-              : "Pick at least one department to continue."}
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              gap: 8,
-              justifyContent: "space-between",
-              marginTop: 8,
-            }}
-          >
-            <NeonIconButton
-              variant="back"
-              icon={<FiChevronLeft />}
-              title="Back"
-              onClick={() => setStep(1)}
-              aria-label="Back"
-            />
-            <NeonIconButton
-              variant="next"
-              icon={<FiChevronRight />}
-              title="Next: choose users"
-              onClick={() => {
-                setSelectedUserAuthIds([]);
-                setStep(3);
+            <div
+              style={{
+                display: "flex",
+                gap: 8,
+                justifyContent: "flex-end",
+                marginTop: 8,
               }}
-              disabled={!canGoNextFrom2}
-              aria-label="Next"
-            />
+            >
+              <NeonIconButton
+                variant="next"
+                icon={<FiChevronRight />}
+                title="Next: choose departments"
+                onClick={() => setStep(2)}
+                disabled={!canGoNextFrom1}
+                aria-label="Next"
+              />
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Step 3 */}
-      {step === 3 && (
-        <div style={{ display: "grid", gap: 10 }}>
-          <div
-            style={{
-              display: "flex",
-              gap: 8,
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        {/* Step 2 */}
+        {step === 2 && (
+          <div style={{ display: "grid", gap: 8 }}>
+            <label className="neon-label">Select Department(s)</label>
+            <SearchableDropdown
+              options={departments.filter((d) => d.id).map((d) => ({
+                label: d.name,
+                value: d.id as string,
+              }))}
+              multi
+              value={selectedDeptIds}
+              onSelect={(vals) => {
+                setSelectedUserAuthIds([]); // reset user selection on dept change
+                setSelectedDeptIds(Array.isArray(vals) ? vals : [vals]);
+              }}
+              placeholder="Select department(s)..."
+            />
+            <div style={{ fontSize: 13, opacity: 0.8 }}>
+              {selectedDeptIds.length
+                ? `Selected ${selectedDeptIds.length} dept(s) containing ${deptUserCount} user(s).`
+                : "Pick at least one department to continue."}
+            </div>
+            <div
+              style={{
+                display: "flex",
+                gap: 8,
+                justifyContent: "space-between",
+                marginTop: 8,
+              }}
+            >
               <NeonIconButton
                 variant="back"
                 icon={<FiChevronLeft />}
                 title="Back"
-                onClick={() => setStep(2)}
+                onClick={() => setStep(1)}
                 aria-label="Back"
               />
-              <div style={{ fontSize: 13, opacity: 0.9 }}>
-                {filteredUsers.length} user(s) in selected department(s)
-              </div>
-            </div>
-            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
               <NeonIconButton
-                variant={allChecked ? "cancel" : "add"}
-                icon={allChecked ? <FiCheckSquare /> : <FiSquare />}
-                title={allChecked ? "Unselect all visible" : "Select all visible"}
-                onClick={toggleSelectAllVisible}
-                aria-label={allChecked ? "Unselect All" : "Select All"}
-              />
-              <input
-                className="neon-input"
-                placeholder="Search users…"
-                value={userSearch}
-                onChange={(e) => setUserSearch(e.target.value)}
-                style={{ width: 240 }}
+                variant="next"
+                icon={<FiChevronRight />}
+                title="Next: choose users"
+                onClick={() => {
+                  setSelectedUserAuthIds([]);
+                  setStep(3);
+                }}
+                disabled={!canGoNextFrom2}
+                aria-label="Next"
               />
             </div>
           </div>
+        )}
 
-          <div
-            style={{
-              border: "1px solid var(--border, #2b2b2b)",
-              borderRadius: 8,
-              maxHeight: 360,
-              overflow: "auto",
-              padding: 8,
-              display: "grid",
-              gap: 6,
-            }}
-          >
-            {filteredUsers.map((u, idx) => {
-              const deptName = u.department_id
-                ? departments.find((d) => d.id === u.department_id)?.name
-                : "No Dept";
-              const key = u.auth_id ?? u.id ?? `user-${idx}`;
-              const checked =
-                !!u.auth_id && selectedUserAuthIds.includes(u.auth_id);
-              return (
-                <label
-                  key={key}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "auto 1fr auto",
-                    alignItems: "center",
-                    gap: 10,
-                    padding: "8px 10px",
-                    borderRadius: 8,
-                    background: checked ? "rgba(0,0,0,0.12)" : "transparent",
-                    cursor: u.auth_id ? "pointer" : "not-allowed",
-                    opacity: u.auth_id ? 1 : 0.5,
-                  }}
-                >
+        {/* Step 3 */}
+        {step === 3 && (
+          <div style={{ display: "grid", gap: 10 }}>
+            <div
+              style={{
+                display: "flex",
+                gap: 8,
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <NeonIconButton
+                  variant="back"
+                  icon={<FiChevronLeft />}
+                  title="Back"
+                  onClick={() => setStep(2)}
+                  aria-label="Back"
+                />
+                <div style={{ fontSize: 13, opacity: 0.9 }}>
+                  {filteredUsers.length} user(s) in selected department(s)
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                {/* Select All Checkbox */}
+                <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 14, cursor: "pointer" }}>
                   <input
                     type="checkbox"
-                    checked={checked}
-                    disabled={!u.auth_id}
-                    onChange={() => toggleUser(u.auth_id)}
+                    checked={allChecked}
+                    onChange={toggleSelectAllVisible}
+                    style={{ marginRight: 4 }}
                   />
-                  <div style={{ display: "flex", flexDirection: "column" }}>
-                    <strong>{u.name}</strong>
-                    <span style={{ fontSize: 12, opacity: 0.8 }}>
-                      {deptName}
-                    </span>
-                  </div>
-                  <code style={{ fontSize: 11, opacity: 0.7 }}>
-                    {u.auth_id ?? "no auth_id"}
-                  </code>
+                  Select All
                 </label>
-              );
-            })}
-            {!filteredUsers.length && (
-              <div style={{ padding: 12, opacity: 0.8 }}>
-                No users match your filters.
+                <input
+                  className="neon-input"
+                  placeholder="Search users…"
+                  value={userSearch}
+                  onChange={(e) => setUserSearch(e.target.value)}
+                  style={{ width: 240 }}
+                />
               </div>
-            )}
-          </div>
+            </div>
 
-          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-            <NeonIconButton
-              variant="add"
-              icon={<FiPlus />}
-              title={assigning ? "Assigning…" : "Assign Module"}
-              onClick={handleAssign}
-              disabled={assigning || !canAssign}
-              aria-label="Assign Module"
-            />
-          </div>
-        </div>
-      )}
+            <div
+              style={{
+                border: "1px solid var(--border, #2b2b2b)",
+                borderRadius: 8,
+                maxHeight: 360,
+                overflow: "auto",
+                padding: 8,
+                display: "grid",
+                gap: 6,
+              }}
+            >
+              {filteredUsers.map((u, idx) => {
+                const deptName = u.department_id
+                  ? departments.find((d) => d.id === u.department_id)?.name
+                  : "No Dept";
+                const key = u.auth_id ?? u.id ?? `user-${idx}`;
+                const checked =
+                  !!u.auth_id && selectedUserAuthIds.includes(u.auth_id);
+                return (
+                  <label
+                    key={key}
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "auto 1fr",
+                      alignItems: "center",
+                      gap: 10,
+                      padding: "8px 10px",
+                      borderRadius: 8,
+                      background: checked ? "rgba(0,0,0,0.12)" : "transparent",
+                      cursor: u.auth_id ? "pointer" : "not-allowed",
+                      opacity: u.auth_id ? 1 : 0.5,
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      disabled={!u.auth_id}
+                      onChange={() => toggleUser(u.auth_id)}
+                    />
+                    <div style={{ display: "flex", flexDirection: "column" }}>
+                      <strong>{u.name}</strong>
+                      <span style={{ fontSize: 12, opacity: 0.8 }}>
+                        {deptName}
+                      </span>
+                    </div>
+                  </label>
+                );
+              })}
+              {!filteredUsers.length && (
+                <div style={{ padding: 12, opacity: 0.8 }}>
+                  No users match your filters.
+                </div>
+              )}
+            </div>
 
-      {feedback && (
-        <div className="neon-info" style={{ whiteSpace: "pre-line" }}>
-          {feedback}
-        </div>
-      )}
-    </div>
+            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+              <NeonIconButton
+                variant="add"
+                icon={<FiPlus />}
+                title={assigning ? "Assigning…" : "Assign Module"}
+                onClick={handleAssign}
+                disabled={assigning || !canAssign}
+                aria-label="Assign Module"
+              />
+            </div>
+          </div>
+        )}
+
+        {feedback && (
+          <div className="neon-info" style={{ whiteSpace: "pre-line" }}>
+            {feedback}
+          </div>
+        )}
+      </div>
+    </>
   );
 }
 

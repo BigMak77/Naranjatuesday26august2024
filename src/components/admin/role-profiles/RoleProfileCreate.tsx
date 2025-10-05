@@ -7,7 +7,6 @@ import ContentHeader from "@/components/headersandfooters/ContentHeader";
 import NeonPanel from "@/components/NeonPanel";
 
 import DocumentSelectorWidget from "./widgets/DocumentSelectorWidget";
-import BehaviourSelectorWidget from "./widgets/BehaviourSelectorWidget";
 import AssignmentSelectorWidget from "./widgets/AssignmentSelectorWidget";
 import { FiArrowLeft, FiArrowRight, FiSave } from "react-icons/fi";
 import NeonDualListbox from "@/components/ui/NeonDualListbox";
@@ -16,7 +15,6 @@ import AssignTargetModal from "./widgets/AssignTargetModal";
 const steps = [
   { label: "Modules" },
   { label: "Documents" },
-  { label: "Behaviours" },
   { label: "Assignments" },
 ];
 
@@ -33,7 +31,6 @@ export default function RoleProfileCreate({
     description: string;
     selectedModules: string[];
     selectedDocuments: string[];
-    selectedBehaviours: string[];
     selectedAssignments: { type: TargetType; id: string; label: string }[];
   }) => void;
   onCancel?: () => void;
@@ -44,7 +41,6 @@ export default function RoleProfileCreate({
   const [description, setDescription] = useState("");
   const [selectedModules, setSelectedModules] = useState<string[]>([]);
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
-  const [selectedBehaviours, setSelectedBehaviours] = useState<string[]>([]);
   const [selectedAssignments, setSelectedAssignments] = useState<
     { type: TargetType; id: string; label: string }[]
   >([]);
@@ -52,6 +48,7 @@ export default function RoleProfileCreate({
   const [error, setError] = useState("");
   const [modules, setModules] = useState<{ id: string; label: string }[]>([]);
   const [assignTargetModal, setAssignTargetModal] = useState<null | 'department' | 'role' | 'user'>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Handler for when a target is selected in the modal
   function handleAssignTargetModalSelect(item: { id: string, label: string }) {
@@ -87,7 +84,7 @@ export default function RoleProfileCreate({
         setName(profile.name || "");
         setDescription(profile.description || "");
 
-        const [mods, docs, behs, targets] = await Promise.all([
+        const [mods, docs, targets] = await Promise.all([
           supabase
             .from("role_profile_modules")
             .select("module_id")
@@ -95,10 +92,6 @@ export default function RoleProfileCreate({
           supabase
             .from("role_profile_documents")
             .select("document_id")
-            .eq("role_profile_id", profileId),
-          supabase
-            .from("role_profile_behaviours")
-            .select("behaviour_id")
             .eq("role_profile_id", profileId),
           supabase
             .from("role_profile_targets")
@@ -112,11 +105,6 @@ export default function RoleProfileCreate({
         );
         setSelectedDocuments(
           (docs.data ?? []).map((d: { document_id: string }) => d.document_id),
-        );
-        setSelectedBehaviours(
-          (behs.data ?? []).map(
-            (b: { behaviour_id: string }) => b.behaviour_id,
-          ),
         );
         setSelectedAssignments(
           (targets.data ?? []).map(
@@ -281,16 +269,6 @@ export default function RoleProfileCreate({
               origin_id: a.id,
             });
           });
-          selectedBehaviours.forEach((behaviour_id) => {
-            allCandidateAssignments.push({
-              auth_id: user.auth_id,
-              item_id: behaviour_id,
-              item_type: "behaviour",
-              assigned_at: now,
-              origin_type: a.type,
-              origin_id: a.id,
-            });
-          });
         }
       }
       // Query existing assignments for all relevant users/items/types
@@ -333,7 +311,6 @@ export default function RoleProfileCreate({
         description,
         selectedModules,
         selectedDocuments,
-        selectedBehaviours,
         selectedAssignments,
       });
 
@@ -342,12 +319,12 @@ export default function RoleProfileCreate({
         setDescription("");
         setSelectedModules([]);
         setSelectedDocuments([]);
-        setSelectedBehaviours([]);
         setSelectedAssignments([]);
         setStep(0);
       }
 
       toast.success("✅ Role profile saved and assignments materialized");
+      setShowSuccessModal(true);
     } catch (e) {
       setError((e as Error)?.message || "Failed to save role profile");
       toast.error((e as Error)?.message || "Failed to save role profile");
@@ -369,9 +346,7 @@ export default function RoleProfileCreate({
             <span>—</span>
             <StepDot active={step === 1} label="2) Documents" />
             <span>—</span>
-            <StepDot active={step === 2} label="3) Behaviours" />
-            <span>—</span>
-            <StepDot active={step === 3} label="4) Assignments" />
+            <StepDot active={step === 2} label="3) Assignments" />
           </div>
 
           {/* Step content container using global spacing */}
@@ -409,106 +384,114 @@ export default function RoleProfileCreate({
               </>
             )}
 
-            <div>
-              {step === 1 && (
-                <DocumentSelectorWidget
-                  selectedDocuments={selectedDocuments}
-                  onChange={setSelectedDocuments}
-                />
-              )}
-              {step === 2 && (
-                <BehaviourSelectorWidget
-                  selectedBehaviours={selectedBehaviours}
-                  onChange={setSelectedBehaviours}
-                />
-              )}
-              {step === 3 && (
-                <div>
-                  <label className="neon-form-title mb-2 block">
-                    Select to add this profile to:
-                  </label>
-                  <div className="neon-assign-targets-row">
-                    <button
-                      type="button"
-                      className="neon-btn neon-assign-target-btn"
-                      onClick={() => setAssignTargetModal('department')}
-                    >
-                      Department
-                    </button>
-                    <button
-                      type="button"
-                      className="neon-btn neon-assign-target-btn"
-                      onClick={() => setAssignTargetModal('role')}
-                    >
-                      Role
-                    </button>
-                    <button
-                      type="button"
-                      className="neon-btn neon-assign-target-btn"
-                      onClick={() => setAssignTargetModal('user')}
-                    >
-                      User
-                    </button>
-                  </div>
-                  {assignTargetModal && (
-                    <AssignTargetModal
-                      type={assignTargetModal}
-                      onClose={() => setAssignTargetModal(null)}
-                      onSelect={handleAssignTargetModalSelect}
-                    />
-                  )}
-                  {/* Optionally, show current assignments below */}
-                  {/* <AssignmentSelectorWidget
-                    selectedAssignments={selectedAssignments}
-                    onChange={setSelectedAssignments}
-                  /> */}
-                </div>
-              )}
-            </div>
-
-            {error && (
-              <div className="neon-message neon-message-error mb-4">{error}</div>
+            {step === 1 && (
+              <DocumentSelectorWidget
+                selectedDocuments={selectedDocuments}
+                onChange={setSelectedDocuments}
+              />
             )}
 
-            {/* Button row using global flex and gap */}
-            <div className="neon-flex gap-4 justify-between mt-4">
+            {step === 2 && (
+              <div>
+                <label className="neon-form-title mb-2 block">
+                  Select to add this profile to:
+                </label>
+                <div className="neon-assign-targets-row">
+                  <button
+                    type="button"
+                    className="neon-btn neon-assign-target-btn"
+                    onClick={() => setAssignTargetModal('department')}
+                  >
+                    Department
+                  </button>
+                  <button
+                    type="button"
+                    className="neon-btn neon-assign-target-btn"
+                    onClick={() => setAssignTargetModal('role')}
+                  >
+                    Role
+                  </button>
+                  <button
+                    type="button"
+                    className="neon-btn neon-assign-target-btn"
+                    onClick={() => setAssignTargetModal('user')}
+                  >
+                    User
+                  </button>
+                </div>
+                {assignTargetModal && (
+                  <AssignTargetModal
+                    type={assignTargetModal}
+                    onClose={() => setAssignTargetModal(null)}
+                    onSelect={handleAssignTargetModalSelect}
+                  />
+                )}
+                {/* Optionally, show current assignments below */}
+                {/* <AssignmentSelectorWidget
+                  selectedAssignments={selectedAssignments}
+                  onChange={setSelectedAssignments}
+                /> */}
+              </div>
+            )}
+          </div>
+
+          {error && (
+            <div className="neon-message neon-message-error mb-4">{error}</div>
+          )}
+
+          {/* Button row using global flex and gap */}
+          <div className="neon-flex gap-4 justify-between mt-4">
+            <button
+              className="neon-btn neon-btn-danger neon-btn-icon"
+              onClick={step === 0 ? onCancel : handleBack}
+              type="button"
+              aria-label={step === 0 ? "Cancel" : "Back"}
+              data-tooltip={step === 0 ? "Cancel" : "Back"}
+              disabled={saving}
+            >
+              <FiArrowLeft />
+            </button>
+            {step < steps.length - 1 ? (
               <button
-                className="neon-btn neon-btn-danger neon-btn-icon"
-                onClick={step === 0 ? onCancel : handleBack}
+                className="neon-btn neon-btn-next neon-btn-icon"
+                onClick={handleNext}
                 type="button"
-                aria-label={step === 0 ? "Cancel" : "Back"}
-                data-tooltip={step === 0 ? "Cancel" : "Back"}
+                aria-label="Next"
+                data-tooltip="Next"
+                disabled={saving || (step === 0 && !name.trim())}
+              >
+                <FiArrowRight />
+              </button>
+            ) : (
+              <button
+                className="neon-btn neon-btn-save neon-btn-icon"
+                onClick={handleSave}
+                type="button"
+                aria-label="Submit Role Profile"
+                data-tooltip="Submit Role Profile"
                 disabled={saving}
               >
-                <FiArrowLeft />
+                <FiSave />
               </button>
-              {step < steps.length - 1 ? (
-                <button
-                  className="neon-btn neon-btn-next neon-btn-icon"
-                  onClick={handleNext}
-                  type="button"
-                  aria-label="Next"
-                  data-tooltip="Next"
-                  disabled={saving}
-                >
-                  <FiArrowRight />
-                </button>
-              ) : (
-                <button
-                  className="neon-btn neon-btn-save neon-btn-icon"
-                  onClick={handleSave}
-                  type="button"
-                  aria-label="Submit Role Profile"
-                  data-tooltip="Submit Role Profile"
-                  disabled={saving}
-                >
-                  <FiSave />
-                </button>
-              )}
-            </div>
+            )}
           </div>
         </div>
       </NeonPanel>
+
+      {showSuccessModal && (
+        <div className="fixed inset-0 neon-modal-overlay flex items-center justify-center z-50">
+          <div className="neon-modal p-6 max-w-sm w-full text-center">
+            <h2 className="neon-modal-title mb-2">Role Profile Created</h2>
+            <p className="mb-4">Your role profile has been successfully created.</p>
+            <button
+              className="neon-btn neon-btn-save neon-btn-icon"
+              onClick={() => setShowSuccessModal(false)}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }

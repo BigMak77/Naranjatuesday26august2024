@@ -131,6 +131,17 @@ select{
   box-shadow:0 0 8px var(--neon); padding:2rem; color: var(--text);
 }
 
+/* NeonPanel: rounded corners and consistent panel style */
+.neon-panel {
+  background: var(--panel);
+  border: 1.5px solid var(--neon);
+  border-radius: 16px;
+  box-shadow: 0 0 8px var(--neon);
+  padding: 2rem;
+  color: var(--text);
+  transition: box-shadow 0.18s, transform 0.12s;
+}
+
 .neon-btn,
 .neon-btn-square {
   width: 30px;
@@ -294,28 +305,37 @@ button svg {
   color: #fff !important;
 }
 
-/* Button group utility for consistent spacing */
-.neon-btn-group {
-  display: flex;
-  gap: 6px;
+.neon-btn-globe {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  min-height: 30px;
+  max-width: 30px;
+  max-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 8px;
+  background: #16a34a; /* vibrant green */
+  color: #fff;
+  box-shadow: none;
+  border: 0;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.06s;
+  margin-right: 6px;
 }
-
-/* Vertical button group utility for stacking buttons vertically */
-.neon-btn-group-vertical {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.neon-btn-globe svg {
+  color: #fff !important;
+  stroke: #fff !important;
+  fill: none !important;
 }
-
-/* Override button margin for vertical stacking */
-.neon-btn,
-.neon-btn-square {
-  margin-right: 0;
-  margin-bottom: 8px;
+.neon-btn-globe:hover {
+  background: #22c55e;
+  box-shadow: 0 1px 8px 0 #16a34a;
 }
-.neon-btn:last-child,
-.neon-btn-square:last-child {
-  margin-bottom: 0;
+.neon-btn-globe:active {
+  transform: translateY(1px);
 }
 
 .neon-btn-submit-application {
@@ -336,6 +356,91 @@ button svg {
   color: #111 !important;
   stroke: #111 !important;
   margin-right: 0 !important;
+}
+
+.neon-btn-tool {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  min-height: 30px;
+  max-width: 30px;
+  max-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 8px;
+  background: #083ddb; /* dark blue */
+  color: #fff;
+  box-shadow: none;
+  border: 0;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.06s;
+  margin-right: 6px;
+}
+.neon-btn-tool svg {
+  color: #fff !important;
+  stroke: #fff !important;
+  fill: none !important;
+}
+.neon-btn-tool:hover {
+  background: #1856e2;
+  box-shadow: 0 1px 8px 0 #083ddb;
+}
+.neon-btn-tool:active {
+  transform: translateY(1px);
+}
+
+/* ================== Large Neon Icon Buttons ================== */
+.large-neon-icon-btn {
+  width: 60px;
+  height: 60px;
+  min-width: 60px;
+  min-height: 60px;
+  max-width: 60px;
+  max-height: 60px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #fff;
+  border: none;
+  box-shadow: 0 2px 12px 0 var(--neon, #40e0d0);
+  cursor: pointer;
+  transition: box-shadow 0.18s, transform 0.08s, background 0.18s;
+  padding: 0;
+}
+.large-neon-icon-btn:hover {
+  box-shadow: 0 4px 24px 0 var(--neon, #40e0d0);
+  background: #f0fdfa;
+  transform: scale(1.06);
+}
+.large-neon-icon-btn:active {
+  transform: scale(0.97);
+}
+.large-neon-icon-btn svg {
+  width: 40px !important;
+  height: 40px !important;
+  color: var(--neon, #40e0d0) !important;
+  stroke: var(--neon, #40e0d0) !important;
+  fill: none !important;
+  stroke-width: 2.5px !important;
+  display: block;
+}
+/* Example color override: orange icon */
+.large-neon-icon-btn.orange svg {
+  color: #fa7a20 !important;
+  stroke: #fa7a20 !important;
+}
+/* Example color override: green icon */
+.large-neon-icon-btn.green svg {
+  color: #16a34a !important;
+  stroke: #16a34a !important;
+}
+/* Example color override: blue icon */
+.large-neon-icon-btn.blue svg {
+  color: #0ea5e9 !important;
+  stroke: #0ea5e9 !important;
 }
 
 /* ================== Tables ================== */
@@ -367,7 +472,7 @@ button svg {
 /* Consistent padding for all neon-table cells */
 .neon-table th,
 .neon-table td {
-  padding: 1.25rem 1.25rem !important;
+  padding: 4px 6px !important;
 }
 /* Neon Table Toolbar: for search, actions, and pagination above NeonTable */
 .neon-table-toolbar {
@@ -705,7 +810,7 @@ button svg {
   justify-content: center;
   align-items: flex-start;
   gap: 2rem;
-  background: var(--accent);
+  background: var(--panel) !important;
   border: 1.5px solid var(--neon);
   border-radius: 12px;
   box-shadow: 0 0 8px var(--neon);

@@ -26,6 +26,7 @@ import nationalities from "@/lib/nationalities.json";
 import MainHeader from "@/components/ui/MainHeader";
 import UserPermissionsManager from "@/components/user/UserPermissionsManager";
 import { PERMISSIONS, PermissionKey } from "@/types/userPermissions";
+import SuccessModal from "../ui/SuccessModal";
 
 interface User {
   id: string;
@@ -156,31 +157,20 @@ export default function UserManagementPanel() {
   console.log("UserManagementPanel: users", users);
   console.log("UserManagementPanel: userSearch", userSearch);
 
-  // Filtered users for table
+  // Filter users based on search and leaver status
   const filteredUsers = users.filter((u) => {
-    // Always apply leavers filter
-    if (showLeavers) {
-      if (!u.is_leaver) return false;
-    } else {
-      if (u.is_leaver) return false;
-    }
-    // Only apply search filter if search box is not empty
-    if (userSearch.trim() !== "") {
-      const search = userSearch.toLowerCase();
-      const firstName = (u.first_name || "").toLowerCase();
-      const lastName = (u.last_name || "").toLowerCase();
-      const email = (u.email || "").toLowerCase();
-      const departmentName = (u.department_name || "").toLowerCase();
-      if (
-        !firstName.includes(search) &&
-        !lastName.includes(search) &&
-        !email.includes(search) &&
-        !departmentName.includes(search)
-      ) {
-        return false;
-      }
-    }
-    return true;
+    const search = userSearch.trim().toLowerCase();
+    if (!search) return showLeavers ? true : !u.is_leaver;
+    const department = departments.find((d) => d.id === u.department_id)?.name || "";
+    const role = roles.find((r) => r.id === u.role_id)?.title || "";
+    const shift = u.shift_name || "";
+    return (
+      (u.first_name || "").toLowerCase().includes(search) ||
+      (u.last_name || "").toLowerCase().includes(search) ||
+      department.toLowerCase().includes(search) ||
+      role.toLowerCase().includes(search) ||
+      shift.toLowerCase().includes(search)
+    ) && (showLeavers ? true : !u.is_leaver);
   });
   const totalPages = Math.max(1, Math.ceil(filteredUsers.length / pageSize));
   const pagedUsers = filteredUsers.slice((currentPage - 1) * pageSize, currentPage * pageSize);
@@ -211,17 +201,18 @@ export default function UserManagementPanel() {
           setErrorMsg("Failed to load data. Please check your connection and try again.");
           return;
         }
+        // Ensure access_level is always a string and present
         const usersWithNames = (u || []).map((user) => {
           const role = r?.find((role) => role.id === user.role_id);
           const department = d?.find((dept) => dept.id === user.department_id);
           return {
             ...user,
+            access_level: typeof user.access_level === "string" ? user.access_level : String(user.access_level ?? "User"),
             shift_name: s?.find((sp) => sp.id === user.shift_id)?.name || "",
             shift_id: user.shift_id || "",
             role_profile_name: rp?.find((x) => x.id === user.role_profile_id)?.name || "",
             role_title: role ? role.title : "—",
             department_name: department ? department.name : "—",
-            // Fix: ensure receive_notifications is strictly boolean
             receive_notifications: user.receive_notifications === true
           };
         });
@@ -229,8 +220,9 @@ export default function UserManagementPanel() {
         setDepartments(d || []);
         setRoles(r || []);
         setShiftPatterns(s || []);
-      } catch {
+      } catch (err) {
         setErrorMsg("Unexpected error loading users.");
+        console.error("[UserManagementPanel] Unexpected error loading users:", err);
       } finally {
         setLoading(false);
       }
@@ -295,12 +287,16 @@ export default function UserManagementPanel() {
       prevUsers.map((u) => (bulkSelectedUserIds.includes(u.id) ? { ...u, ...updateObj } : u))
     );
     await supabase.from("users").update(updateObj).in("id", bulkSelectedUserIds);
-    // Optionally, re-fetch users from supabase for consistency
-    const { data: u } = await supabase.from("users").select("*, shift_id, role_profile_id");
-    setUsers(u || []); // Do not coerce receive_notifications here
+    // Immediately refresh users from supabase for consistency
+    const { data: refreshedUsers } = await supabase.from("users").select("*, shift_id, role_profile_id");
+    setUsers(refreshedUsers || []);
+    setShowSuccess(true);
     setBulkAssignOpen(false);
     setBulkAssignLoading(false);
-    setBulkSelectedUserIds([]);
+    setTimeout(() => {
+      setShowSuccess(false);
+      // Optionally, scroll to top or focus table
+    }, 800);
   };
 
   const handleBulkAssignApply = async () => {
@@ -323,9 +319,10 @@ export default function UserManagementPanel() {
       prevUsers.map((u) => (bulkSelectedUserIds.includes(u.id) ? { ...u, ...updateFields } : u))
     );
     await supabase.from("users").update(updateFields).in("id", bulkSelectedUserIds);
-    // Optionally, re-fetch users from supabase for consistency
-    const { data: u } = await supabase.from("users").select("*, shift_id, role_profile_id");
-    setUsers(u || []);
+    // Immediately refresh users from supabase for consistency
+    const { data: refreshedUsers } = await supabase.from("users").select("*, shift_id, role_profile_id");
+    setUsers(refreshedUsers || []);
+    setShowSuccess(true);
     setBulkAssignOpen(false);
     setBulkAssignLoading(false);
     setBulkAssignStep(2); // Reset to config step
@@ -336,6 +333,9 @@ export default function UserManagementPanel() {
     setBulkFirstAid(false);
     setBulkTrainer(false);
     setBulkSelectedUserIds([]);
+    setTimeout(() => {
+      setShowSuccess(false);
+    }, 800);
   };
 
   const allowedAccessLevels = ["User", "Manager", "Admin"];
@@ -360,7 +360,10 @@ export default function UserManagementPanel() {
   };
 
   const handleSave = async () => {
-    if (!selectedUser) return;
+    if (!selectedUser) {
+      setErrorMsg("No user selected.");
+      return;
+    }
     if (!validateUser(selectedUser)) {
       // move focus to first missing
       if (!selectedUser.first_name?.trim()) firstNameRef.current?.focus();
@@ -430,12 +433,34 @@ export default function UserManagementPanel() {
         setUsers(users.map((u) => (u.id === cleanedUser.id ? { ...u, ...cleanedUser } : u)));
       }
       setShowSuccess(true);
+      // Optimistically update the table before re-fetching from supabase
+      if (isAddMode) {
+        setUsers((prev) => [...prev, cleanedUser]);
+      } else {
+        setUsers((prev) => prev.map((u) => (u.id === cleanedUser.id ? { ...u, ...cleanedUser } : u)));
+      }
+      // Immediately refresh users from supabase after save
+      const { data: refreshedUsers, error: fetchError } = await supabase.from("users").select("*, shift_id, role_profile_id");
+      if (fetchError) {
+        setErrorMsg("Failed to fetch users after save: " + fetchError.message);
+        setSaving(false);
+        return;
+      }
+      if (!refreshedUsers) {
+        setErrorMsg("No users returned from fetch after save.");
+        setSaving(false);
+        return;
+      }
+      // Debug: log the updated users
+      console.log("[handleSave] Refreshed users after save:", refreshedUsers);
+      setUsers(refreshedUsers);
       setTimeout(() => {
         setShowSuccess(false);
         handleCloseDialog();
       }, 800);
     } catch (err: any) {
       setErrorMsg("Unexpected error saving user." + (err?.message ? ` ${err.message}` : ""));
+      console.error("[handleSave] Unexpected error:", err);
     } finally {
       setSaving(false);
     }
@@ -559,6 +584,13 @@ export default function UserManagementPanel() {
   return (
     <>
       <MainHeader title="User Management" subtitle="Manage users, roles, and assignments" />
+      {/* Success Modal Overlay (replaced with shared SuccessModal) */}
+      <SuccessModal
+        open={showSuccess}
+        onClose={() => setShowSuccess(false)}
+        message="User saved successfully!"
+        autoCloseMs={1800}
+      />
       <div className="neon-table-panel container" style={{ justifyContent: "flex-start", display: "flex" }}>
         <div style={{ position: "relative", width: "100%" }}>
           {/* Toolbar rendered above the table */}
@@ -1219,12 +1251,6 @@ export default function UserManagementPanel() {
                     <option value="true">Yes</option>
                   </select>
                 </div>
-
-                {showSuccess && (
-                  <div className="md:col-span-3 lg:col-span-3" style={{ gridColumn: "span 3", marginTop: "0.5rem" }}>
-                    <p className="neon-success">✅ User saved successfully!</p>
-                  </div>
-                )}
               </div>
             )}
 

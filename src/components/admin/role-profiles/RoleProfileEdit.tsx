@@ -5,7 +5,6 @@ import { supabase } from "@/lib/supabase-client";
 import toast from "react-hot-toast";
 import ContentHeader from "@/components/headersandfooters/ContentHeader";
 import DocumentSelectorWidget from "./widgets/DocumentSelectorWidget";
-import BehaviourSelectorWidget from "./widgets/BehaviourSelectorWidget";
 import NeonIconButton from "../../ui/NeonIconButton";
 import { FiArrowLeft, FiArrowRight, FiSave, FiX } from "react-icons/fi";
 import NeonDualListbox from "@/components/ui/NeonDualListbox";
@@ -22,7 +21,6 @@ export default function RoleProfileEdit({
     description: string;
     selectedModules: string[];
     selectedDocuments: string[];
-    selectedBehaviours: string[];
     selectedRoles: string[];
   }) => void;
   onCancel?: () => void;
@@ -32,7 +30,6 @@ export default function RoleProfileEdit({
   const [description, setDescription] = useState("");
   const [selectedModules, setSelectedModules] = useState<string[]>([]);
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
-  const [selectedBehaviours, setSelectedBehaviours] = useState<string[]>([]);
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
 
   const [loading, setLoading] = useState(true);
@@ -42,7 +39,6 @@ export default function RoleProfileEdit({
   const [editNameDesc, setEditNameDesc] = useState<boolean | null>(null);
   const [editModules, setEditModules] = useState<boolean | null>(null);
   const [editDocuments, setEditDocuments] = useState<boolean | null>(null);
-  const [editBehaviours, setEditBehaviours] = useState<boolean | null>(null);
 
   const [modules, setModules] = useState<{ id: string; label: string }[]>([]);
   const [roles, setRoles] = useState<{ id: string; label: string }[]>([]);
@@ -78,17 +74,11 @@ export default function RoleProfileEdit({
         .eq("role_profile_id", roleProfileId);
       setSelectedDocuments((documents || []).map((d) => d.document_id));
 
-      const { data: behaviours } = await supabase
-        .from("role_profile_behaviours")
-        .select("behaviour_id")
-        .eq("role_profile_id", roleProfileId);
-      setSelectedBehaviours((behaviours || []).map((b) => b.behaviour_id));
-
       // Fetch all roles for dual listbox
       const { data: allRoles } = await supabase
         .from("roles")
-        .select("id, name");
-      setRoles((allRoles || []).map((r) => ({ id: r.id, label: r.name })));
+        .select("id, title");
+      setRoles((allRoles || []).map((r) => ({ id: r.id, label: r.title })));
 
       // Fetch selected roles
       const { data: assignments } = await supabase
@@ -150,21 +140,6 @@ export default function RoleProfileEdit({
     }
 
     await supabase
-      .from("role_profile_behaviours")
-      .delete()
-      .eq("role_profile_id", roleProfileId);
-    if (selectedBehaviours.length > 0) {
-      await supabase
-        .from("role_profile_behaviours")
-        .insert(
-          selectedBehaviours.map((behaviour_id) => ({
-            role_profile_id: roleProfileId,
-            behaviour_id,
-          })),
-        );
-    }
-
-    await supabase
       .from("role_profile_assignments")
       .delete()
       .eq("role_profile_id", roleProfileId);
@@ -187,7 +162,6 @@ export default function RoleProfileEdit({
       description,
       selectedModules,
       selectedDocuments,
-      selectedBehaviours,
       selectedRoles,
     });
   };
@@ -269,25 +243,6 @@ export default function RoleProfileEdit({
 
         {step === 3 && (
           <>
-            {editBehaviours === null ? (
-              <YesNoQuestion
-                question="Do you want to edit behaviours?"
-                onYes={() => setEditBehaviours(true)}
-                onNo={() => setEditBehaviours(false)}
-              />
-            ) : (
-              editBehaviours && (
-                <BehaviourSelectorWidget
-                  selectedBehaviours={selectedBehaviours}
-                  onChange={setSelectedBehaviours}
-                />
-              )
-            )}
-          </>
-        )}
-
-        {step === 4 && (
-          <>
             <NeonDualListbox
               items={roles}
               selected={selectedRoles}
@@ -309,7 +264,7 @@ export default function RoleProfileEdit({
             className="neon-btn-close"
           />
 
-          {step < 4 ? (
+          {step < 3 ? (
             <NeonIconButton
               variant="next"
               icon={<FiArrowRight />}

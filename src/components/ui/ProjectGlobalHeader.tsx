@@ -100,9 +100,11 @@ export default function GlobalHeader({
           dropdown: [
             { href: "/hr/people/", label: "People" },
             { href: "/admin/roles/add", label: "Roles" },
-            { href: "/admin/org-chart/", label: "Org Chart" },
+            { href: "/hr/structure/", label: "Structure" },
             { href: "/admin/role-profiles/", label: "Role Profiles" },
             { href: "/admin/utility/", label: "Utilities" },
+            { href: "/reports/", label: "Reports" },
+            { href: "/admin/modules/", label: "Modules" },
             { href: "/manager/training/resources", label: "Training Resources" }, // Added here
           ],
         },
@@ -154,7 +156,7 @@ export default function GlobalHeader({
         style={{
           width: "100%",
           background: "linear-gradient(118deg in oklab, #05363a 0%, #0a706a 48%, #16cbcf 100%)",
-          borderBottom: "1px solid #eaeaea",
+          borderBottom: "12px solid #fa7a20", // changed to orange
           boxSizing: "border-box",
           zIndex: 3000,
         }}
@@ -284,7 +286,11 @@ export default function GlobalHeader({
                                 transition: "background 0.2s",
                                 color: "#fff", // white text
                               }}
-                              onClick={() => setOpenDropdown(null)}
+                              onClick={(e) => {
+                                // For external links or new tabs, let browser handle
+                                if (d.href?.startsWith('http') || d.href?.startsWith('mailto:') || d.href?.startsWith('tel:') || e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
+                                setTimeout(() => setOpenDropdown(null), 80); // Slightly faster close for snappier feel
+                              }}
                             >
                               {d.label}
                             </Link>
