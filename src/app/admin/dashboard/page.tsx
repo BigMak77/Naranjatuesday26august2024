@@ -110,12 +110,20 @@ export default function DashboardPage() {
         title="Admin Dashboard"
         subtitle="Quick access to modules, documents, roles, and health & safety"
       />
-      <section aria-label="Dashboard widgets" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: "1.5rem", marginTop: "1.5rem" }}>
+      <section
+        aria-label="Dashboard widgets"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(4, 1fr)",
+          gap: "1.5rem",
+          marginTop: "1.5rem",
+          alignItems: "stretch",
+        }}
+      >
         <PeopleAndAccessManagement />
         <DocumentsModulesResourcesWidget />
         <TurkusWidget />
         <HealthAndSafetyWidget />
-        <Link href="/tasks" className="neon-btn" style={{ marginTop: "1rem", textAlign: "center" }}>Go to Tasks</Link>
       </section>
     </>
   );

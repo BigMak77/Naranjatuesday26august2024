@@ -1,24 +1,31 @@
 import React from "react";
 import Link from "next/link";
+import { FiUserPlus, FiShield, FiUserX, FiGrid } from "react-icons/fi";
 
 const PEOPLE_ACTIONS = [
   {
     href: "/admin/users/invite",
     label: "Invite User",
     description: "Send an invitation to a new user.",
-    className: "neon-btn neon-btn-add",
+    icon: <FiUserPlus />,
   },
   {
-    href: "/admin/roles",
-    label: "Manage Roles",
-    description: "Edit or assign user roles.",
-    className: "neon-btn neon-btn-view",
+    href: "/training/matrix",
+    label: "Training Matrix",
+    description: "View training via matrix (filterable).",
+    icon: <FiShield />,
   },
   {
-    href: "/admin/leavers",
-    label: "Manage Leavers",
-    description: "View and process users who are leaving.",
-    className: "neon-btn neon-btn-view",
+    href: "/hr/resource-manager",
+    label: "RESOURCES MANAGER",
+    description: "RESOURCE MANAGER ___ UNDER DEVELOPMENT.",
+    icon: <FiUserX />,
+  },
+  {
+    href: "/hr/structure",
+    label: "Manage Structure",
+    description: "View, add, and ammend departmnet roles & structures.",
+    icon: <FiGrid />,
   },
 ];
 
@@ -37,10 +44,13 @@ const PeopleAndAccessManagement: React.FC = () => {
         <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
           {PEOPLE_ACTIONS.map((action) => (
             <li key={action.href} style={{ display: "flex", alignItems: "center", gap: "1.25rem", marginBottom: 16 }}>
-              <Link href={action.href} className={action.className} style={{ minWidth: 160, textAlign: "center" }}>
-                {action.label}
+              <Link href={action.href} className="large-neon-icon-btn" style={{ minWidth: 60, minHeight: 60, justifyContent: "center" }}>
+                {React.cloneElement(action.icon, { style: { width: 40, height: 40, color: "var(--neon)" } })}
               </Link>
-              <span style={{ color: "#aaa", fontSize: 15 }}>{action.description}</span>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 12, color: "var(--neon)", marginBottom: 2 }}>{action.label}</div>
+                <span className="neon-muted" style={{ fontSize: 12 }}>{action.description}</span>
+              </div>
             </li>
           ))}
         </ul>

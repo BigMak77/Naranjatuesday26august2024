@@ -1,3 +1,4 @@
+"use client";
 import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import NeonPanel from "@/components/NeonPanel";
@@ -212,7 +213,7 @@ const TrainingMatrix: React.FC = () => {
               <tr>
                 <th
                   style={{
-                    border: "0.5px solid #00313a",
+                    border: "0.5px solidrgb(255, 255, 255)",
                     padding: 1,
                     background: "#00e0ff",
                     color: "#00313a",

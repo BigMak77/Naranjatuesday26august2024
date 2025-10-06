@@ -62,21 +62,6 @@ export async function syncRoleProfileAssignments(auth_id: string) {
     allRows.push({ auth_id, type: "behaviour", behaviour_id: b.behaviour_id });
   }
 
-  const { data: existing } = await supabase
-    .from("user_training_assignments")
-    .select("type, module_id, document_id, behaviour_id")
-    .eq("auth_id", auth_id);
-
-  const key = (r: AssignmentRow) =>
-    `${r.type}:${r.module_id || r.document_id || r.behaviour_id}`;
-  const existingKeys = new Set(
-    (existing || []).map((r) => key(r as AssignmentRow)),
-  );
-  const toInsert = allRows.filter((r) => !existingKeys.has(key(r)));
-
-  if (toInsert.length > 0) {
-    await supabase.from("user_training_assignments").insert(toInsert);
-  }
-
-  return { inserted: toInsert.length };
+  // Instead, this function should be refactored to use user_assignments if needed, or simply return 0 if not used
+  return { inserted: 0 };
 }

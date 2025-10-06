@@ -284,7 +284,7 @@ export default function Structure() {
     <div className="neon-panel" style={{ position: "relative" }}>
       {/* Page Header */}
       <h1 className="neon-page-header">
-        Organisation Structure
+        Role Structure
       </h1>
       {/* Right-side button group: Add, Amend, Move Role */}
       <div style={{ position: "absolute", top: 6, right: 0, zIndex: 10, display: "flex", flexDirection: "row", gap: 6, padding: 0 }}>

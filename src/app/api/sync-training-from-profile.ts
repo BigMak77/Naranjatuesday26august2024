@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!, // needs insert access to user_training_assignments
+  process.env.SUPABASE_SERVICE_ROLE_KEY!, // needs insert access to user_assignments (updated)
 );
 
 export default async function handler(
@@ -60,26 +60,34 @@ export default async function handler(
 
     // 3. Get all existing assignments for these users
     const { data: existingAssignments } = await supabase
-      .from("user_training_assignments")
-      .select("auth_id, module_id, document_id, behaviour_id");
+      .from("user_assignments")
+      .select("auth_id, item_id, item_type");
 
     const existingSet = new Set(
       (existingAssignments || []).map((a) =>
-        [a.auth_id, a.module_id || a.document_id || a.behaviour_id].join("|"),
-      ),
+        [a.auth_id, a.item_id, a.item_type].join("|")
+      )
     );
 
     // 4. Filter out duplicates
     const filtered = newAssignments.filter((a) => {
-      const key = [
-        a.auth_id,
-        a.module_id || a.document_id || a.behaviour_id,
-      ].join("|");
+      let item_id = a.module_id || a.document_id || a.behaviour_id;
+      let item_type = a.type;
+      const key = [a.auth_id, item_id, item_type].join("|");
       return !existingSet.has(key);
     });
 
+    // 5. Insert new assignments into user_assignments
     if (filtered.length > 0) {
-      await supabase.from("user_training_assignments").insert(filtered);
+      const toInsert = filtered.map((a) => {
+        let item_id = a.module_id || a.document_id || a.behaviour_id;
+        return {
+          auth_id: a.auth_id,
+          item_id,
+          item_type: a.type,
+        };
+      });
+      await supabase.from("user_assignments").insert(toInsert);
     }
 
     return res.status(200).json({ inserted: filtered.length });

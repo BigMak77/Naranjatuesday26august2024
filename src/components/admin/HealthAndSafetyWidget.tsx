@@ -1,30 +1,31 @@
 import React from "react";
 import Link from "next/link";
+import { FiFileText, FiAlertTriangle, FiClipboard, FiFolder } from "react-icons/fi";
 
 const HS_ACTIONS = [
   {
     href: "/turkus/health-safety/policies",
     label: "View Policies",
     description: "Browse all health & safety policies.",
-    className: "neon-btn neon-btn-view",
+    icon: <FiFileText />,
   },
   {
     href: "/turkus/health-safety/assessments",
     label: "Risk Assessments",
     description: "View and manage risk assessments.",
-    className: "neon-btn neon-btn-view",
+    icon: <FiClipboard />,
   },
   {
     href: "/turkus/health-safety/incidents",
     label: "Report Incident",
     description: "Report a new health & safety incident.",
-    className: "neon-btn neon-btn-add",
+    icon: <FiAlertTriangle />,
   },
   {
     href: "/turkus/health-safety/resources",
     label: "Resources",
     description: "Access health & safety resources.",
-    className: "neon-btn neon-btn-view",
+    icon: <FiFolder />,
   },
 ];
 
@@ -39,10 +40,13 @@ const HealthAndSafetyWidget: React.FC = () => {
         <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
           {HS_ACTIONS.map((action) => (
             <li key={action.href} style={{ display: "flex", alignItems: "center", gap: "1.25rem", marginBottom: 16 }}>
-              <Link href={action.href} className={action.className} style={{ minWidth: 160, textAlign: "center" }}>
-                {action.label}
+              <Link href={action.href} className="large-neon-icon-btn" style={{ minWidth: 60, minHeight: 60, justifyContent: "center" }}>
+                {React.cloneElement(action.icon, { style: { width: 40, height: 40, color: "var(--neon)" } })}
               </Link>
-              <span style={{ color: "#aaa", fontSize: 15 }}>{action.description}</span>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 12, color: "var(--neon)", marginBottom: 2 }}>{action.label}</div>
+                <span className="neon-muted" style={{ fontSize: 12 }}>{action.description}</span>
+              </div>
             </li>
           ))}
         </ul>

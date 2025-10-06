@@ -19,8 +19,8 @@ export default function SuccessModal({
   open,
   onClose,
   title = "Success",
-  message = "Done!",
-  autoCloseMs,
+  message = "Thank you, your changes have been added to NARANJA",
+  autoCloseMs = 3000, // 3 seconds default
   inlineFallback = false,
   zIndexBase = 999999,
 }: Props) {
@@ -85,16 +85,18 @@ export default function SuccessModal({
         ref={panelRef}
         onMouseDown={(e) => e.stopPropagation()}
         style={{
-          background: "#fff",
+          background: "#073642", // dark teal
           width: "min(520px, 92vw)",
           borderRadius: 12,
           boxShadow: "0 20px 40px rgba(0,0,0,0.25)",
           padding: 24,
           outline: "none",
+          border: "3px solid #ff8800", // orange border
+          color: "#fff", // white text
         }}
       >
-        <h2 id="success-title" style={{ margin: 0, fontSize: 20, fontWeight: 700 }}>{title}</h2>
-        <p style={{ marginTop: 10, marginBottom: 20, lineHeight: 1.5 }}>{message}</p>
+        <h2 id="success-title" style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#fff" }}>{title}</h2>
+        <p style={{ marginTop: 10, marginBottom: 20, lineHeight: 1.5, color: "#fff" }}>{message}</p>
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
           <button
             onClick={onClose}

@@ -156,7 +156,7 @@ export default function GlobalHeader({
         style={{
           width: "100%",
           background: "linear-gradient(118deg in oklab, #05363a 0%, #0a706a 48%, #16cbcf 100%)",
-          borderBottom: "12px solid #fa7a20", // changed to orange
+          borderBottom: "12px solid #fa7a20",
           boxSizing: "border-box",
           zIndex: 3000,
         }}
@@ -176,6 +176,7 @@ export default function GlobalHeader({
           <Link
             href="/"
             aria-label="Go to homepage"
+            className="neon-text"
             style={{
               display: "flex",
               alignItems: "center",
@@ -204,7 +205,7 @@ export default function GlobalHeader({
               aria-label="Primary"
               style={{
                 display: "flex",
-                gap: "8px", // Space between nav items
+                gap: "8px",
                 alignItems: "center",
                 flex: 1,
                 justifyContent: "left",
@@ -226,30 +227,31 @@ export default function GlobalHeader({
                     >
                       <button
                         type="button"
+                        className="sidebar-action"
                         style={{
                           display: "flex",
                           alignItems: "center",
                           gap: "8px",
                           fontFamily: "inherit",
-                          fontWeight: 500,
+                          fontWeight: 700,
                           background: "none",
                           border: "none",
                           padding: "10px 18px",
                           borderRadius: "8px",
                           cursor: "pointer",
                           transition: "background 0.2s",
-                          color: "#fff", // force white text for dropdown button
-                          fontSize: "17px", // match nav link size
+                          color: "#fff",
+                          fontSize: "14px",
                         }}
                         aria-haspopup="menu"
                         aria-expanded={openDropdown === l.label}
                         onClick={() => setOpenDropdown(openDropdown === l.label ? null : l.label)}
                       >
                         <span style={{ width: "20px", height: "20px", display: "flex", alignItems: "center", justifyContent: "center" }} aria-hidden="true">
-                          {l.icon && React.cloneElement(l.icon, { style: { fontSize: "18px", color: "#fff" } })}
+                          {l.icon && React.cloneElement(l.icon, { style: { fontSize: "16px", color: "#fff" } })}
                         </span>
-                        <span style={{ fontSize: "17px", fontWeight: 500 }}>{l.label}</span>
-                        <FiChevronDown style={{ fontSize: "18px", width: "20px", height: "20px", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "#fff" }} aria-hidden="true" />
+                        <span style={{ fontSize: "14px", fontWeight: 700 }}>{l.label}</span>
+                        <FiChevronDown style={{ fontSize: "16px", width: "20px", height: "20px", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "#fff" }} aria-hidden="true" />
                       </button>
                       {openDropdown === l.label && (
                         <div
@@ -259,7 +261,7 @@ export default function GlobalHeader({
                             top: "100%",
                             left: 0,
                             minWidth: "180px",
-                            background: "#fa7a20", // orange background
+                            background: "#fa7a20",
                             boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
                             borderRadius: "8px",
                             zIndex: 3002,
@@ -273,23 +275,22 @@ export default function GlobalHeader({
                               href={d.href}
                               role="menuitem"
                               prefetch
-                              className={d.className || "global-header-link"}
+                              className={d.className || "global-header-link neon-text"}
                               style={{
                                 display: "block",
                                 padding: "10px 24px",
                                 textDecoration: "none",
                                 fontWeight: 400,
-                                fontSize: "16px", // slightly larger for dropdown
+                                fontSize: "12px",
                                 border: "none",
                                 background: "none",
                                 cursor: "pointer",
                                 transition: "background 0.2s",
-                                color: "#fff", // white text
+                                color: "#fff",
                               }}
                               onClick={(e) => {
-                                // For external links or new tabs, let browser handle
                                 if (d.href?.startsWith('http') || d.href?.startsWith('mailto:') || d.href?.startsWith('tel:') || e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
-                                setTimeout(() => setOpenDropdown(null), 80); // Slightly faster close for snappier feel
+                                setTimeout(() => setOpenDropdown(null), 80);
                               }}
                             >
                               {d.label}
@@ -304,23 +305,24 @@ export default function GlobalHeader({
                         key={l.href}
                         href={l.href}
                         prefetch
+                        className="global-header-link neon-text"
                         style={{
                           display: "flex",
                           alignItems: "center",
                           gap: "8px",
                           textDecoration: "none",
-                          fontWeight: 500,
-                          fontSize: "17px", // slightly larger for visibility
-                          padding: "10px 18px", // more touch area
+                          fontWeight: 700,
+                          fontSize: "14px",
+                          padding: "10px 18px",
                           borderRadius: "8px",
                           transition: "background 0.2s",
-                          color: "#fff", // force white text for nav links
+                          color: "#fff",
                         }}
                       >
                         <span style={{ width: "20px", height: "20px", display: "flex", alignItems: "center", justifyContent: "center" }} aria-hidden="true">
-                          {l.icon && React.cloneElement(l.icon, { style: { fontSize: "18px", color: "#fff" } })}
+                          {l.icon && React.cloneElement(l.icon, { style: { fontSize: "16px", color: "#fff" } })}
                         </span>
-                        <span style={{ fontSize: "17px", fontWeight: 500 }}>{l.label}</span>
+                        <span style={{ fontSize: "14px", fontWeight: 700 }}>{l.label}</span>
                       </Link>
                     )
                   )
@@ -334,9 +336,9 @@ export default function GlobalHeader({
             aria-label="Site search"
             className="global-header-search-form"
             style={{
-              display: "flex", // ensure icon and input are inline
-              alignItems: "center", // vertical alignment
-              gap: "8px", // space between icon and input
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
               margin: 0,
               padding: 0,
               border: "none",
@@ -397,7 +399,7 @@ export default function GlobalHeader({
                   border: "none",
                   cursor: "pointer",
                   transition: "background 0.2s",
-                  color: "#fff", // force white text
+                  color: "#fff",
                 }}
               >
                 <FiLogIn aria-hidden="true" style={{ fontSize: "18px", width: "20px", height: "20px", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "#fff" }} />
@@ -417,10 +419,10 @@ export default function GlobalHeader({
                     display: "flex",
                     alignItems: "center",
                     gap: "12px",
-                    background: "#fa7a20", // orange background for full button
+                    background: "#fa7a20",
                     borderRadius: "24px",
-                    padding: "0.5rem 0.5rem", // reduced padding inside the button
-                    border: "2px solid #fff", // white border for full button
+                    padding: "0.5rem 0.5rem",
+                    border: "2px solid #fff",
                     cursor: "pointer",
                     fontWeight: 500,
                     fontSize: "16px",
@@ -439,7 +441,7 @@ export default function GlobalHeader({
                       alignItems: "center",
                       justifyContent: "center",
                       fontWeight: 700,
-                      fontSize: "12px", // reduced to 12px
+                      fontSize: "12px",
                       marginRight: "8px",
                       color: "#fff",
                       border: "2px solid #fff",
@@ -450,7 +452,7 @@ export default function GlobalHeader({
                     {initials}
                   </span>
                   <span
-                    style={{ fontWeight: 500, fontSize: "12px", color: "#fff" }} // reduced to 12px
+                    style={{ fontWeight: 500, fontSize: "12px", color: "#fff" }}
                     title={(
                       (user?.first_name ? user.first_name + " " : "") +
                       (user?.last_name ?? "")
@@ -474,7 +476,7 @@ export default function GlobalHeader({
                       top: "110%",
                       right: 0,
                       minWidth: "180px",
-                      background: "#fa7a20", // orange background
+                      background: "#fa7a20",
                       boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
                       borderRadius: "8px",
                       zIndex: 3002,
@@ -504,7 +506,7 @@ export default function GlobalHeader({
                         cursor: "pointer",
                         borderRadius: "4px",
                         transition: "background 0.2s",
-                        color: "#fff", // white text
+                        color: "#fff",
                       }}
                     >
                       Profile
@@ -524,7 +526,7 @@ export default function GlobalHeader({
                         cursor: "pointer",
                         borderRadius: "4px",
                         transition: "background 0.2s",
-                        color: "#fff", // white text
+                        color: "#fff",
                       }}
                     >
                       Security
@@ -544,7 +546,7 @@ export default function GlobalHeader({
                         cursor: "pointer",
                         borderRadius: "4px",
                         transition: "background 0.2s",
-                        color: "#fff", // white text
+                        color: "#fff",
                       }}
                     >
                       Billing
@@ -564,7 +566,7 @@ export default function GlobalHeader({
                         cursor: "pointer",
                         borderRadius: "4px",
                         transition: "background 0.2s",
-                        color: "#fff", // white text
+                        color: "#fff",
                       }}
                       className="global-header-link"
                     >
@@ -590,7 +592,7 @@ export default function GlobalHeader({
                         borderRadius: "4px",
                         opacity: signingOut ? 0.6 : 1,
                         transition: "background 0.2s",
-                        color: "#fff", // white text
+                        color: "#fff",
                       }}
                     >
                       <FiLogOut aria-hidden="true" style={{ fontSize: "18px", width: "20px", height: "20px", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "#fff" }} />
@@ -605,9 +607,8 @@ export default function GlobalHeader({
             <Link
               href="/turkus/issues/"
               aria-label="Raise Issue"
-              className="global-header-siren-btn" // use global class for styling
+              className="global-header-siren-btn"
               style={{
-                // Remove most inline styles, keep only what is unique
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",

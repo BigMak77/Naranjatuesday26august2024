@@ -28,23 +28,6 @@ function detectTypeByExt(name: string): MaterialType | "audio" {
   return "document";
 }
 
-const btnBase: React.CSSProperties = {
-  width: "100%",
-  padding: "16px 16px",
-  fontWeight: 700,
-  background: "#40e0d0",
-  color: "#012b2b",
-  border: 0,
-  borderRadius: 10,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: 10,
-  fontSize: 18,
-  boxShadow: "0 2px 8px #0002",
-  cursor: "pointer",
-};
-
 interface TrainingMaterialsManagerProps {
   showAddQuestion?: boolean;
   onCloseAddQuestion?: () => void;
@@ -215,7 +198,7 @@ const TrainingMaterialsManager: React.FC<TrainingMaterialsManagerProps> = ({ sho
       <div style={{ display: "flex", gap: 12, padding: "16px 24px", alignItems: "center" }}>
         <button
           onClick={() => setDialogOpen(true)}
-          style={{ ...btnBase, width: "auto", padding: "10px 16px" }}
+          className="sidebar-action"
           aria-haspopup="dialog"
           aria-expanded={dialogOpen}
         >
@@ -223,7 +206,7 @@ const TrainingMaterialsManager: React.FC<TrainingMaterialsManagerProps> = ({ sho
         </button>
         <button
           type="button"
-          style={{ ...btnBase, width: "auto", padding: "10px 16px" }}
+          className="sidebar-action"
           onClick={() => setShowAddQuestion(true)}
         >
           Add Training Question
@@ -233,29 +216,22 @@ const TrainingMaterialsManager: React.FC<TrainingMaterialsManagerProps> = ({ sho
       <div style={pageWrap}>
         {/* MAIN */}
         <div style={main}>
-          <h2 style={{ fontSize: 28, fontWeight: 700, marginBottom: 16 }}>Training Materials Manager</h2>
+          <h2 className="neon-heading" style={{ marginBottom: 16 }}>Training Materials Manager</h2>
 
           <div style={{ marginBottom: 32 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ fontSize: 22, fontWeight: 600 }}>Materials</h3>
+              <h3 className="neon-modal-title">Materials</h3>
               <button
                 type="button"
+                className="sidebar-action"
                 onClick={() => setShowAddMaterial(true)}
-                style={{
-                  padding: "6px 16px",
-                  fontWeight: 600,
-                  background: "#40e0d0",
-                  color: "#012b2b",
-                  border: 0,
-                  borderRadius: 6,
-                }}
               >
                 Add Material
               </button>
             </div>
 
             {filteredMaterials.length === 0 ? (
-              <div style={{ opacity: 0.7, margin: "16px 0" }}>No materials yet.</div>
+              <div className="neon-muted" style={{ margin: "16px 0" }}>No materials yet.</div>
             ) : (
               <>
                 <NeonTable
@@ -264,37 +240,23 @@ const TrainingMaterialsManager: React.FC<TrainingMaterialsManagerProps> = ({ sho
                 />
 
                 {/* Pagination controls */}
-                <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 16 }}>
+                <div className="neon-duallistbox-pagination" style={{ justifyContent: "center", gap: 8, marginTop: 16 }}>
                   <button
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={page === 1}
-                    style={{
-                      padding: "6px 14px",
-                      borderRadius: 6,
-                      border: 0,
-                      background: "#eee",
-                      color: "#333",
-                      fontWeight: 600,
-                      cursor: page === 1 ? "not-allowed" : "pointer",
-                    }}
+                    className="sidebar-action"
+                    style={{ width: "auto", padding: "6px 14px" }}
                   >
                     Prev
                   </button>
-                  <span style={{ alignSelf: "center", fontWeight: 600 }}>
+                  <span style={{ alignSelf: "center" }} className="font-xs">
                     Page {page} of {totalPages}
                   </span>
                   <button
                     onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                     disabled={page === totalPages}
-                    style={{
-                      padding: "6px 14px",
-                      borderRadius: 6,
-                      border: 0,
-                      background: "#eee",
-                      color: "#333",
-                      fontWeight: 600,
-                      cursor: page === totalPages ? "not-allowed" : "pointer",
-                    }}
+                    className="sidebar-action"
+                    style={{ width: "auto", padding: "6px 14px" }}
                   >
                     Next
                   </button>
@@ -308,7 +270,7 @@ const TrainingMaterialsManager: React.FC<TrainingMaterialsManagerProps> = ({ sho
       {/* Browse & Filter dialog */}
       <OverlayDialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
         <div style={{ padding: 24, minWidth: 600, maxWidth: 1100 }}>
-          <h3 style={{ fontSize: 22, fontWeight: 600, marginBottom: 16 }}>All Training Materials</h3>
+          <h3 className="neon-modal-title" style={{ marginBottom: 16 }}>All Training Materials</h3>
           <div style={{ display: "flex", gap: 16, marginBottom: 18, alignItems: "center" }}>
             <input
               type="text"
@@ -318,7 +280,8 @@ const TrainingMaterialsManager: React.FC<TrainingMaterialsManagerProps> = ({ sho
                 setSearch(e.target.value);
                 setDialogPage(1);
               }}
-              style={{ padding: 8, borderRadius: 6, border: "1px solid #ccc", minWidth: 180 }}
+              className="neon-input"
+              style={{ minWidth: 180 }}
             />
             <select
               value={typeFilter}
@@ -326,7 +289,8 @@ const TrainingMaterialsManager: React.FC<TrainingMaterialsManagerProps> = ({ sho
                 setTypeFilter(e.target.value);
                 setDialogPage(1);
               }}
-              style={{ padding: 8, borderRadius: 6, border: "1px solid #ccc", minWidth: 120 }}
+              className="neon-input"
+              style={{ minWidth: 120 }}
             >
               <option value="">All Types</option>
               <option value="document">Document</option>
@@ -338,15 +302,8 @@ const TrainingMaterialsManager: React.FC<TrainingMaterialsManagerProps> = ({ sho
                 setShowAddMaterial(true);
                 setDialogOpen(false);
               }}
-              style={{
-                padding: "8px 18px",
-                fontWeight: 600,
-                background: "#40e0d0",
-                color: "#012b2b",
-                border: 0,
-                borderRadius: 6,
-                marginLeft: "auto",
-              }}
+              className="sidebar-action"
+              style={{ width: "auto", padding: "8px 18px", marginLeft: "auto" }}
             >
               + Add Material
             </button>
@@ -358,37 +315,23 @@ const TrainingMaterialsManager: React.FC<TrainingMaterialsManagerProps> = ({ sho
           />
 
           {/* Pagination controls for dialog */}
-          <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 16 }}>
+          <div className="neon-duallistbox-pagination" style={{ justifyContent: "center", gap: 8, marginTop: 16 }}>
             <button
               onClick={() => setDialogPage((p) => Math.max(1, p - 1))}
               disabled={dialogPage === 1}
-              style={{
-                padding: "6px 14px",
-                borderRadius: 6,
-                border: 0,
-                background: "#eee",
-                color: "#333",
-                fontWeight: 600,
-                cursor: dialogPage === 1 ? "not-allowed" : "pointer",
-              }}
+              className="sidebar-action"
+              style={{ width: "auto", padding: "6px 14px" }}
             >
               Prev
             </button>
-            <span style={{ alignSelf: "center", fontWeight: 600 }}>
+            <span style={{ alignSelf: "center" }} className="font-xs">
               Page {dialogPage} of {dialogTotalPages}
             </span>
             <button
               onClick={() => setDialogPage((p) => Math.min(dialogTotalPages, p + 1))}
               disabled={dialogPage === dialogTotalPages}
-              style={{
-                padding: "6px 14px",
-                borderRadius: 6,
-                border: 0,
-                background: "#eee",
-                color: "#333",
-                fontWeight: 600,
-                cursor: dialogPage === dialogTotalPages ? "not-allowed" : "pointer",
-              }}
+              className="sidebar-action"
+              style={{ width: "auto", padding: "6px 14px" }}
             >
               Next
             </button>
@@ -396,15 +339,8 @@ const TrainingMaterialsManager: React.FC<TrainingMaterialsManagerProps> = ({ sho
 
           <button
             onClick={() => setDialogOpen(false)}
-            style={{
-              marginTop: 24,
-              padding: "6px 16px",
-              fontWeight: 600,
-              background: "#c75c00",
-              color: "#fff",
-              border: 0,
-              borderRadius: 6,
-            }}
+            className="sidebar-action"
+            style={{ width: "auto", padding: "6px 16px", background: "#c75c00", color: "#fff", marginTop: 24 }}
           >
             Close
           </button>
@@ -417,14 +353,15 @@ const TrainingMaterialsManager: React.FC<TrainingMaterialsManagerProps> = ({ sho
           onSubmit={handleUploadMaterial}
           style={{ background: "#fff", border: "2px solid #40e0d0", borderRadius: 8, padding: 24, minWidth: 340 }}
         >
-          <h4 style={{ marginBottom: 16 }}>Add New Material</h4>
+          <h4 className="neon-modal-title" style={{ marginBottom: 16 }}>Add New Material</h4>
           <label style={{ display: "block", marginBottom: 12 }}>
             Title
             <input
               type="text"
               value={newMaterialTitle}
               onChange={(e) => setNewMaterialTitle(e.target.value)}
-              style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #ccc", marginTop: 4 }}
+              className="neon-input"
+              style={{ marginTop: 4 }}
               required
             />
           </label>
@@ -433,7 +370,8 @@ const TrainingMaterialsManager: React.FC<TrainingMaterialsManagerProps> = ({ sho
             <input
               type="file"
               onChange={(e) => setNewMaterialFile(e.target.files?.[0] || null)}
-              style={{ width: "100%", marginTop: 4 }}
+              className="neon-input"
+              style={{ marginTop: 4 }}
               required
             />
           </label>
@@ -442,14 +380,16 @@ const TrainingMaterialsManager: React.FC<TrainingMaterialsManagerProps> = ({ sho
             <button
               type="submit"
               disabled={uploading}
-              style={{ padding: "6px 16px", fontWeight: 600, background: "#40e0d0", color: "#012b2b", border: 0, borderRadius: 6 }}
+              className="sidebar-action"
+              style={{ width: "auto", padding: "6px 16px" }}
             >
               {uploading ? "Uploading…" : "Upload"}
             </button>
             <button
               type="button"
               onClick={() => setShowAddMaterial(false)}
-              style={{ padding: "6px 16px", fontWeight: 600, background: "#eee", color: "#333", border: 0, borderRadius: 6 }}
+              className="sidebar-action"
+              style={{ width: "auto", padding: "6px 16px", background: "#eee", color: "#333" }}
             >
               Cancel
             </button>

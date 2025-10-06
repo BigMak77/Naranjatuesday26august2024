@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
-import BehaviourIcon from "./BehaviourIcon";
+import BehaviourIcon from "../../BehaviourIcon";
 
 export interface Behaviour {
   id: string;

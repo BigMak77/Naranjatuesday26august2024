@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase-client";
 import toast from "react-hot-toast";
 import ContentHeader from "@/components/headersandfooters/ContentHeader";
 import NeonPanel from "@/components/NeonPanel";
+import { getChildDepartments } from "@/lib/getChildDepartments";
 
 import DocumentSelectorWidget from "./widgets/DocumentSelectorWidget";
 import AssignmentSelectorWidget from "./widgets/AssignmentSelectorWidget";
@@ -241,10 +242,12 @@ export default function RoleProfileCreate({
           if (roleErr) throw roleErr;
           userRows = roleUsers ?? [];
         } else if (a.type === "department") {
+          // --- Hierarchical department assignment ---
+          const deptIds = await getChildDepartments(a.id); // includes root
           const { data: deptUsers, error: deptErr } = await supabase
             .from("users")
             .select("auth_id")
-            .eq("department_id", a.id);
+            .in("department_id", deptIds);
           if (deptErr) throw deptErr;
           userRows = deptUsers ?? [];
         }
