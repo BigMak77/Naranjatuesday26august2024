@@ -129,15 +129,15 @@ export default function ViewAuditTab() {
 
   return (
     <NeonPanel className="neon-panel-audit">
-      <div className="flex items-center justify-between">
-        <h3 className="neon-form-title drop-shadow-glow">Audit Templates</h3>
+      <div className="audit-header-row">
+        <h3 className="audit-title">Audit Templates</h3>
       </div>
 
-      {err && <div className="text-red-400 text-sm">{err}</div>}
+      {err && <div className="audit-error-row">{err}</div>}
       {loading ? (
-        <div className="opacity-80 text-sm p-3">Loading…</div>
+        <div className="audit-loading-row">Loading…</div>
       ) : list.length === 0 ? (
-        <div className="opacity-70 text-sm p-3">No audit templates found.</div>
+        <div className="audit-empty-row">No audit templates found.</div>
       ) : (
         <table className="neon-table w-full">
           <thead>

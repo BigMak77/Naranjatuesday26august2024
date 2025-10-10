@@ -75,45 +75,7 @@ export default function AuditManager() {
   const [activeTab, setActiveTab] = useState<TabKey>(tabFromUrl);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // Fetch counts in-line (inside main component)
-  const [assignments, setAssignments] = useState<number | null>(null);
-  const [incomplete, setIncomplete] = useState<number | null>(null);
-  const [submissions, setSubmissions] = useState<number | null>(null);
-  const [statsError, setStatsError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchCounts = async () => {
-      setStatsError(null);
-      try {
-        const { count: uaAll } = await supabase
-          .from("user_assignments")
-          .select("id", { count: "exact", head: true })
-          .eq("item_type", "audit");
-        const { count: uaOpen } = await supabase
-          .from("user_assignments")
-          .select("id", { count: "exact", head: true })
-          .eq("item_type", "audit")
-          .is("completed_at", null);
-        setAssignments(uaAll ?? 0);
-        setIncomplete(uaOpen ?? 0);
-      } catch (e: unknown) {
-        setAssignments(null);
-        setIncomplete(null);
-        setStatsError(
-          e instanceof Error ? e.message : "Failed to read assignments",
-        );
-      }
-      try {
-        const { count: subs } = await supabase
-          .from("audit_submissions")
-          .select("id", { count: "exact", head: true });
-        setSubmissions(subs ?? 0);
-      } catch {
-        setSubmissions(null);
-      }
-    };
-    fetchCounts();
-  }, []);
+  // Remove stats state and effect
 
   // Keep URL in sync when tab changes
   const handleTabChange = useCallback(
@@ -196,35 +158,7 @@ export default function AuditManager() {
             activeTab={activeTab}
             onChange={(tabKey) => handleTabChange(tabKey as TabKey)}
           />
-
-          {/* Stats bar in-line, with custom backgrounds and spacing */}
-          <div className="flex gap-3 mb-3">
-            <NeonPanel className="bg-orange-100">
-              <div className="flex items-center justify-between py-2 px-3">
-                <span className="opacity-70 mr-4">Audit assignments</span>
-                <strong className="text-lg">{assignments ?? "—"}</strong>
-              </div>
-            </NeonPanel>
-            <NeonPanel className="bg-blue-100">
-              <div className="flex items-center justify-between py-2 px-3">
-                <span className="opacity-70 mr-4">Incomplete</span>
-                <strong className="text-lg">{incomplete ?? "—"}</strong>
-              </div>
-            </NeonPanel>
-            <NeonPanel className="bg-green-100">
-              <div className="flex items-center justify-between py-2 px-3">
-                <span className="opacity-70 mr-4">Submissions</span>
-                <strong className="text-lg">{submissions ?? "—"}</strong>
-              </div>
-            </NeonPanel>
-            {statsError && (
-              <div className="text-xs text-red-400 self-center">
-                Stats error: {statsError}
-              </div>
-            )}
-          </div>
-
-          {/* Render selected tab */}
+          {/* Removed stats bar here */}
           <div key={activeTab}>
             {activeTab === "create" && <CreateAuditTab />}
             {activeTab === "view" && <ViewAuditTab />}

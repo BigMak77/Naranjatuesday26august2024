@@ -27,6 +27,7 @@ import MainHeader from "@/components/ui/MainHeader";
 import UserPermissionsManager from "@/components/user/UserPermissionsManager";
 import { PERMISSIONS, PermissionKey } from "@/types/userPermissions";
 import SuccessModal from "../ui/SuccessModal";
+import UserCSVImport from "./UserCSVImport";
 
 interface User {
   id: string;
@@ -43,7 +44,6 @@ interface User {
   status?: string;
   nationality?: string;
   document_path?: string;
-  role_profile_id?: string;
   is_archived?: boolean;
   last_updated_at?: string;
   is_anonymous?: boolean;
@@ -54,11 +54,11 @@ interface User {
   is_trainer?: boolean;
   shift_id?: string;
   shift_name?: string;
-  role_profile_name?: string;
   is_leaver?: boolean;
   leaver_date?: string;
   leaver_reason?: string;
   receive_notifications?: boolean;
+  employee_number?: string;
 }
 
 // Helper to format date as UK style dd/mm/yy
@@ -188,16 +188,14 @@ export default function UserManagementPanel() {
           { data: u, error: userErr },
           { data: d, error: deptErr },
           { data: r, error: roleErr },
-          { data: s, error: shiftErr },
-          { data: rp, error: rpErr }
+          { data: s, error: shiftErr }
         ] = await Promise.all([
-          supabase.from("users").select("*, shift_id, role_profile_id"),
+          supabase.from("users").select("*, shift_id"),
           supabase.from("departments").select("id, name"),
           supabase.from("roles").select("id, title, department_id"),
-          supabase.from("shift_patterns").select("id, name"),
-          supabase.from("role_profiles").select("id, name")
+          supabase.from("shift_patterns").select("id, name")
         ]);
-        if (userErr || deptErr || roleErr || shiftErr || rpErr) {
+        if (userErr || deptErr || roleErr || shiftErr) {
           setErrorMsg("Failed to load data. Please check your connection and try again.");
           return;
         }
@@ -210,7 +208,6 @@ export default function UserManagementPanel() {
             access_level: typeof user.access_level === "string" ? user.access_level : String(user.access_level ?? "User"),
             shift_name: s?.find((sp) => sp.id === user.shift_id)?.name || "",
             shift_id: user.shift_id || "",
-            role_profile_name: rp?.find((x) => x.id === user.role_profile_id)?.name || "",
             role_title: role ? role.title : "—",
             department_name: department ? department.name : "—",
             receive_notifications: user.receive_notifications === true
@@ -228,6 +225,24 @@ export default function UserManagementPanel() {
       }
     };
     load();
+  }, []);
+
+  useEffect(() => {
+    async function fetchUsersAndShifts() {
+      const { data: usersData } = await supabase.from("users").select("*");
+      const { data: shiftPatternsData } = await supabase.from("shift_patterns").select("*");
+      // Map shift name to each user
+      const usersWithShiftName = (usersData || []).map((user: any) => {
+        const shift = (shiftPatternsData || []).find((s: any) => s.id === user.shift_id);
+        return {
+          ...user,
+          shift_name: shift ? shift.name : "—"
+        };
+      });
+      setUsers(usersWithShiftName);
+      setShiftPatterns(shiftPatternsData || []);
+    }
+    fetchUsersAndShifts();
   }, []);
 
   const handleOpenDialog = (user: User, addMode = false, opener?: HTMLElement | null) => {
@@ -288,7 +303,7 @@ export default function UserManagementPanel() {
     );
     await supabase.from("users").update(updateObj).in("id", bulkSelectedUserIds);
     // Immediately refresh users from supabase for consistency
-    const { data: refreshedUsers } = await supabase.from("users").select("*, shift_id, role_profile_id");
+    const { data: refreshedUsers } = await supabase.from("users").select("*, shift_id");
     setUsers(refreshedUsers || []);
     setShowSuccess(true);
     setBulkAssignOpen(false);
@@ -303,6 +318,7 @@ export default function UserManagementPanel() {
     if (bulkSelectedUserIds.length === 0) return;
     setBulkAssignLoading(true);
     let updateFields: Record<string, any> = {};
+    let affectedAuthIds: string[] = [];
     if (bulkAssignType === "role") {
       if (!bulkDeptId || !bulkRoleId) return;
       updateFields = { department_id: bulkDeptId, role_id: bulkRoleId };
@@ -320,8 +336,22 @@ export default function UserManagementPanel() {
     );
     await supabase.from("users").update(updateFields).in("id", bulkSelectedUserIds);
     // Immediately refresh users from supabase for consistency
-    const { data: refreshedUsers } = await supabase.from("users").select("*, shift_id, role_profile_id");
+    const { data: refreshedUsers } = await supabase.from("users").select("*");
     setUsers(refreshedUsers || []);
+    // Assignment syncing for bulk role changes
+    if (bulkAssignType === "role") {
+      // Get auth_ids for affected users
+      affectedAuthIds = (refreshedUsers || [])
+        .filter((u: any) => bulkSelectedUserIds.includes(u.id) && u.auth_id)
+        .map((u: any) => u.auth_id);
+      if (affectedAuthIds.length > 0) {
+        await fetch("/api/sync-training-from-profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ role_id: bulkRoleId, auth_ids: affectedAuthIds }),
+        });
+      }
+    }
     setShowSuccess(true);
     setBulkAssignOpen(false);
     setBulkAssignLoading(false);
@@ -344,7 +374,6 @@ export default function UserManagementPanel() {
     department_id: user.department_id || undefined,
     role_id: user.role_id || undefined,
     shift_id: user.shift_id || undefined,
-    role_profile_id: user.role_profile_id || undefined,
     access_level: allowedAccessLevels.includes((user.access_level || "").trim())
       ? (user.access_level || "").trim()
       : "User"
@@ -384,7 +413,6 @@ export default function UserManagementPanel() {
             access_level: cleanedUser.access_level,
             phone: cleanedUser.phone,
             shift_id: cleanedUser.shift_id,
-            role_profile_id: cleanedUser.role_profile_id,
             nationality: cleanedUser.nationality,
             is_first_aid: cleanedUser.is_first_aid ?? false,
             is_trainer: cleanedUser.is_trainer ?? false,
@@ -414,7 +442,6 @@ export default function UserManagementPanel() {
             access_level: cleanedUser.access_level,
             phone: cleanedUser.phone,
             shift_id: cleanedUser.shift_id,
-            role_profile_id: cleanedUser.role_profile_id,
             nationality: cleanedUser.nationality,
             is_first_aid: cleanedUser.is_first_aid ?? false,
             is_trainer: cleanedUser.is_trainer ?? false,
@@ -432,6 +459,22 @@ export default function UserManagementPanel() {
         }
         setUsers(users.map((u) => (u.id === cleanedUser.id ? { ...u, ...cleanedUser } : u)));
       }
+      // After saving, if adding a new user and they have a role_id and auth_id, sync assignments
+      if (isAddMode && cleanedUser.role_id && cleanedUser.auth_id) {
+        await fetch("/api/sync-training-from-profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ role_id: cleanedUser.role_id, auth_ids: [cleanedUser.auth_id] }),
+        });
+      }
+      // Also sync assignments after any update if user has role_id and auth_id
+      if (!isAddMode && cleanedUser.role_id && cleanedUser.auth_id) {
+        await fetch("/api/sync-training-from-profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ role_id: cleanedUser.role_id, auth_ids: [cleanedUser.auth_id] }),
+        });
+      }
       setShowSuccess(true);
       // Optimistically update the table before re-fetching from supabase
       if (isAddMode) {
@@ -440,7 +483,7 @@ export default function UserManagementPanel() {
         setUsers((prev) => prev.map((u) => (u.id === cleanedUser.id ? { ...u, ...cleanedUser } : u)));
       }
       // Immediately refresh users from supabase after save
-      const { data: refreshedUsers, error: fetchError } = await supabase.from("users").select("*, shift_id, role_profile_id");
+      const { data: refreshedUsers, error: fetchError } = await supabase.from("users").select("*, shift_id");
       if (fetchError) {
         setErrorMsg("Failed to fetch users after save: " + fetchError.message);
         setSaving(false);
@@ -500,36 +543,6 @@ export default function UserManagementPanel() {
     URL.revokeObjectURL(url);
   };
 
-  // CSV Upload handler (unchanged)
-  const handleImportUsers = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const text = await file.text();
-    let usersToImport: Record<string, any>[] = [];
-    try {
-      const csvParse = (await import("csv-parse/sync")).parse;
-      usersToImport = csvParse(text, { columns: true, skip_empty_lines: true });
-      usersToImport = usersToImport.map((u) => ({
-        ...u,
-        is_first_aid: u.is_first_aid === "true" || u.is_first_aid === true,
-        is_trainer: u.is_trainer === "true" || u.is_trainer === true,
-        receive_notifications: u.receive_notifications === "true" || u.receive_notifications === true
-      }));
-    } catch {
-      setErrorMsg("CSV parse error. Please check your file format.");
-      return;
-    }
-    try {
-      await supabase.from("users").upsert(usersToImport, { onConflict: "id" });
-      const { data: u } = await supabase.from("users").select("*");
-      setUsers(u || []);
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 1000);
-    } catch (err: any) {
-      setErrorMsg("Failed to import users. " + (err.message || ""));
-    }
-  };
-
   // Table columns: only show Select column if bulk assign is active
   const userTableColumns = [
     ...(showBulkSelectColumn
@@ -556,11 +569,11 @@ export default function UserManagementPanel() {
           }
         ]
       : []),
+    { header: "Emp#", accessor: "employee_number", width: 80 },
     { header: "Name", accessor: "name", width: 120 },
     { header: "Department", accessor: "department_name", width: 120 },
     { header: "Role", accessor: "role_title", width: 120 },
     { header: "Access", accessor: "access_level", width: 80 },
-    { header: "Role Profile", accessor: "role_profile_name", width: 80 },
     { header: "Shift", accessor: "shift_name", width: 80 },
     { header: "Email", accessor: "email", width: 140 },
     { header: "Start Date", accessor: "start_date", width: 120 },
@@ -645,22 +658,44 @@ export default function UserManagementPanel() {
                 variant="download"
                 onClick={handleExportUsers}
               />
-              <label style={{ display: "inline-block" }}>
-                <NeonIconButton
-                  icon={<FiUpload />}
-                  title="Upload Users CSV"
-                  variant="upload"
-                  as="button"
-                  onClick={() => fileInputRef.current?.click()}
-                />
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".csv"
-                  style={{ display: "none" }}
-                  onChange={handleImportUsers}
-                />
-              </label>
+              {/* Upload button removed as requested */}
+              <input
+                type="file"
+                ref={fileInputRef}
+                style={{ display: "none" }}
+                accept=".csv"
+                onChange={e => {
+                  // handle file upload logic here, e.g. pass to UserCSVImport or your handler
+                  // Example: if (e.target.files?.[0]) handleCSVFile(e.target.files[0]);
+                }}
+              />
+              <UserCSVImport
+                onImport={async (usersToImport: User[]) => {
+                  // Clean and validate imported users
+                  const validUsers = usersToImport
+                    .map(cleanUserFields)
+                    .filter(validateUser);
+                  if (validUsers.length === 0) {
+                    setErrorMsg("No valid users to import. Please check your CSV.");
+                    return;
+                  }
+                  try {
+                    await supabase.from("users").upsert(validUsers, { onConflict: "id" });
+                    const { data: u } = await supabase.from("users").select("*");
+                    setUsers(u || []);
+                    setShowSuccess(true);
+                    setTimeout(() => setShowSuccess(false), 1000);
+                    if (validUsers.length < usersToImport.length) {
+                      setErrorMsg(`Imported ${validUsers.length} users. ${usersToImport.length - validUsers.length} were skipped due to missing required fields.`);
+                    } else {
+                      setErrorMsg("");
+                    }
+                  } catch (err: any) {
+                    setErrorMsg("Failed to import users. " + (err.message || ""));
+                  }
+                }}
+                onError={setErrorMsg}
+              />
               <NeonIconButton
                 icon={<FiUserX />}
                 title={showLeavers ? "Hide Leavers" : "Show Leavers"}
@@ -773,7 +808,6 @@ export default function UserManagementPanel() {
                   if (col.header === "Department") return { ...col, width: 140 };
                   if (col.header === "Role") return { ...col, width: 140 };
                   if (col.header === "Access") return { ...col, width: 80 };
-                  if (col.header === "Role Profile") return { ...col, width: 80 };
                   if (col.header === "Shift") return { ...col, width: 80 };
                   if (col.header === "Email") return { ...col, width: 200 };
                   if (col.header === "Start Date") return { ...col, width: 120 };
@@ -785,6 +819,7 @@ export default function UserManagementPanel() {
                   const department = departments.find((d) => d.id === user.department_id);
                   const role = roles.find((r) => r.id === user.role_id);
                   return {
+                    employee_number: user.employee_number || "—",
                     id: user.id,
                     name: (
                       <span
@@ -812,7 +847,6 @@ export default function UserManagementPanel() {
                     role_title: role ? role.title : "—",
                     status: user.status || "—",
                     access_level: user.access_level,
-                    role_profile_name: user.role_profile_name || "—",
                     shift_name: user.shift_name || "—",
                     email: user.email,
                     start_date: formatDateUK(user.start_date),

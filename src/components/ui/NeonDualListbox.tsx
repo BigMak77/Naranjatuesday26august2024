@@ -1,9 +1,8 @@
 import React, { useState } from "react";
-import NeonPanel from "@/components/NeonPanel";
 import { FiChevronRight, FiChevronLeft, FiChevronLeft as FiPageLeft, FiChevronRight as FiPageRight, FiCornerDownRight, FiCornerDownLeft } from "react-icons/fi";
 
 export interface NeonDualListboxProps {
-  items: { id: string; label: string }[];
+  items?: { id: string; label: string }[]; // Make items optional
   selected: string[];
   onChange: (selected: string[]) => void;
   titleLeft?: string;
@@ -20,12 +19,20 @@ export function getSelectedModuleObjects(
 const PAGE_SIZE = 8;
 
 export default function NeonDualListbox({
-  items,
+  items = [], // Default to empty array
   selected,
   onChange,
   titleLeft = "Available",
   titleRight = "Selected",
-}: NeonDualListboxProps) {
+  className = "",
+}: {
+  items?: { id: string; label: string }[]; // Make items optional
+  selected: string[];
+  onChange: (next: string[]) => void;
+  titleLeft?: string;
+  titleRight?: string;
+  className?: string;
+}) {
   const [highlightedLeft, setHighlightedLeft] = useState<string[]>([]);
   const [highlightedRight, setHighlightedRight] = useState<string[]>([]);
   const [searchLeft, setSearchLeft] = useState("");
@@ -36,11 +43,11 @@ export default function NeonDualListbox({
   const available = items.filter((i) => !selected.includes(i.id));
   const selectedItems = items.filter((i) => selected.includes(i.id));
 
-  const filteredAvailable = available.filter((item) =>
-    item.label.toLowerCase().includes(searchLeft.toLowerCase())
+  const filteredAvailable = available.filter(
+    (item) => item && item.label && item.label.toLowerCase().includes(searchLeft.toLowerCase())
   );
-  const filteredSelected = selectedItems.filter((item) =>
-    item.label.toLowerCase().includes(searchRight.toLowerCase())
+  const filteredSelected = selectedItems.filter(
+    (item) => item && item.label && item.label.toLowerCase().includes(searchRight.toLowerCase())
   );
 
   // Pagination logic
@@ -63,139 +70,142 @@ export default function NeonDualListbox({
   };
 
   return (
-    <NeonPanel className="neon-duallistbox">
-      <div className="neon-duallistbox-flex">
-        <div className="neon-duallistbox-panel">
-          <div className="neon-duallistbox-title">{titleLeft}</div>
-          <input
-            className="neon-input"
-            type="search"
-            placeholder="Search..."
-            value={searchLeft}
-            onChange={(e) => setSearchLeft(e.target.value)}
-            aria-label="Search available"
-          />
-          <ul className="neon-duallistbox-list">
-            {pagedAvailable.map((item) => (
-              <li
-                key={item.id}
-                className={
-                  "neon-duallistbox-list-item" +
-                  (highlightedLeft.includes(item.id) ? " selected" : "")
-                }
-                onClick={() =>
-                  setHighlightedLeft((hl) =>
-                    hl.includes(item.id)
-                      ? hl.filter((id) => id !== item.id)
-                      : [...hl, item.id],
-                  )
-                }
-                tabIndex={0}
-              >
-                {item.label}
-              </li>
-            ))}
-          </ul>
-          <div className="neon-duallistbox-pagination">
-            <button
-              className="neon-btn neon-btn-square"
-              onClick={() => setPageLeft((p) => Math.max(0, p - 1))}
-              disabled={pageLeft === 0}
-              aria-label="Previous page"
-              type="button"
+    <div style={{ display: "grid", gridTemplateColumns: "300px 40px 300px", gap: 2 }}>
+      <div className="neon-duallistbox-panel" style={{ padding: 0 }}>
+        <div className="neon-duallistbox-title" style={{ marginBottom: 1 }}>{titleLeft}</div>
+        <input
+          className="neon-input"
+          type="search"
+          placeholder="Search..."
+          value={searchLeft}
+          onChange={(e) => setSearchLeft(e.target.value)}
+          aria-label="Search available"
+          style={{ marginBottom: 1 }}
+        />
+        <ul className="neon-duallistbox-list" style={{ minHeight: 200, marginBottom: 2, padding: 0 }}>
+          {pagedAvailable.map((item) => (
+            <li
+              key={item.id}
+              className={
+                "neon-duallistbox-list-item" +
+                (highlightedLeft.includes(item.id) ? " selected" : "")
+              }
+              onClick={() =>
+                setHighlightedLeft((hl) =>
+                  hl.includes(item.id)
+                    ? hl.filter((id) => id !== item.id)
+                    : [...hl, item.id],
+                )
+              }
+              tabIndex={0}
+              style={{ padding: "3px 5px", borderRadius: 2, marginBottom: 1 }}
             >
-              <FiPageLeft />
-            </button>
-            <span>
-              {pageLeft + 1} / {totalPagesLeft}
-            </span>
-            <button
-              className="neon-btn neon-btn-square"
-              onClick={() => setPageLeft((p) => Math.min(totalPagesLeft - 1, p + 1))}
-              disabled={pageLeft >= totalPagesLeft - 1}
-              aria-label="Next page"
-              type="button"
-            >
-              <FiPageRight />
-            </button>
-          </div>
-        </div>
-        <div className="neon-duallistbox-actions">
+              {item.label}
+            </li>
+          ))}
+        </ul>
+        <div className="neon-duallistbox-pagination" style={{ marginBottom: 1 }}>
           <button
-            className="neon-btn neon-btn-corner-down-right neon-btn-square"
-            onClick={moveRight}
-            disabled={highlightedLeft.length === 0}
-            aria-label="Add selected"
+            className="neon-btn neon-btn-square"
+            onClick={() => setPageLeft((p) => Math.max(0, p - 1))}
+            disabled={pageLeft === 0}
+            aria-label="Previous page"
             type="button"
           >
-            <FiCornerDownRight />
+            <FiPageLeft />
           </button>
+          <span>
+            {pageLeft + 1} / {totalPagesLeft}
+          </span>
           <button
-            className="neon-btn neon-btn-corner-down-right neon-btn-square"
-            onClick={moveLeft}
-            disabled={highlightedRight.length === 0}
-            aria-label="Remove selected"
+            className="neon-btn neon-btn-square"
+            onClick={() => setPageLeft((p) => Math.min(totalPagesLeft - 1, p + 1))}
+            disabled={pageLeft >= totalPagesLeft - 1}
+            aria-label="Next page"
             type="button"
           >
-            <FiCornerDownLeft />
+            <FiPageRight />
           </button>
-        </div>
-        <div className="neon-duallistbox-panel">
-          <div className="neon-duallistbox-title">{titleRight}</div>
-          <input
-            className="neon-input"
-            type="search"
-            placeholder="Search..."
-            value={searchRight}
-            onChange={(e) => setSearchRight(e.target.value)}
-            aria-label="Search selected"
-          />
-          <ul className="neon-duallistbox-list">
-            {pagedSelected.map((item) => (
-              <li
-                key={item.id}
-                className={
-                  "neon-duallistbox-list-item" +
-                  (highlightedRight.includes(item.id) ? " selected" : "")
-                }
-                onClick={() =>
-                  setHighlightedRight((hl) =>
-                    hl.includes(item.id)
-                      ? hl.filter((id) => id !== item.id)
-                      : [...hl, item.id],
-                  )
-                }
-                tabIndex={0}
-              >
-                {item.label}
-              </li>
-            ))}
-          </ul>
-          <div className="neon-duallistbox-pagination">
-            <button
-              className="neon-btn neon-btn-square"
-              onClick={() => setPageRight((p) => Math.max(0, p - 1))}
-              disabled={pageRight === 0}
-              aria-label="Previous page"
-              type="button"
-            >
-              <FiPageLeft />
-            </button>
-            <span>
-              {pageRight + 1} / {totalPagesRight}
-            </span>
-            <button
-              className="neon-btn neon-btn-square"
-              onClick={() => setPageRight((p) => Math.min(totalPagesRight - 1, p + 1))}
-              disabled={pageRight >= totalPagesRight - 1}
-              aria-label="Next page"
-              type="button"
-            >
-              <FiPageRight />
-            </button>
-          </div>
         </div>
       </div>
-    </NeonPanel>
+      <div className="neon-duallistbox-actions" style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: 2, padding: 0 }}>
+        <button
+          className="neon-btn neon-btn-corner-down-right neon-btn-square"
+          onClick={moveRight}
+          disabled={highlightedLeft.length === 0}
+          aria-label="Add selected"
+          type="button"
+          style={{ marginBottom: 1 }}
+        >
+          <FiCornerDownRight />
+        </button>
+        <button
+          className="neon-btn neon-btn-corner-down-right neon-btn-square"
+          onClick={moveLeft}
+          disabled={highlightedRight.length === 0}
+          aria-label="Remove selected"
+          type="button"
+        >
+          <FiCornerDownLeft />
+        </button>
+      </div>
+      <div className="neon-duallistbox-panel right" style={{ padding: 0 }}>
+        <div className="neon-duallistbox-title" style={{ marginBottom: 1 }}>{titleRight}</div>
+        <input
+          className="neon-input"
+          type="search"
+          placeholder="Search..."
+          value={searchRight}
+          onChange={(e) => setSearchRight(e.target.value)}
+          aria-label="Search selected"
+          style={{ marginBottom: 1, background: '#2a3d4d', color: '#fff' }}
+        />
+        <ul className="neon-duallistbox-list" style={{ minHeight: 200, marginBottom: 2, padding: 0 }}>
+          {pagedSelected.map((item) => (
+            <li
+              key={item.id}
+              className={
+                "neon-duallistbox-list-item" +
+                (highlightedRight.includes(item.id) ? " selected" : "")
+              }
+              onClick={() =>
+                setHighlightedRight((hl) =>
+                  hl.includes(item.id)
+                    ? hl.filter((id) => id !== item.id)
+                    : [...hl, item.id],
+                )
+              }
+              tabIndex={0}
+              style={{ padding: "3px 5px", borderRadius: 2, marginBottom: 1 }}
+            >
+              {item.label}
+            </li>
+          ))}
+        </ul>
+        <div className="neon-duallistbox-pagination" style={{ marginBottom: 1 }}>
+          <button
+            className="neon-btn neon-btn-square"
+            onClick={() => setPageRight((p) => Math.max(0, p - 1))}
+            disabled={pageRight === 0}
+            aria-label="Previous page"
+            type="button"
+          >
+            <FiPageLeft />
+          </button>
+          <span>
+            {pageRight + 1} / {totalPagesRight}
+          </span>
+          <button
+            className="neon-btn neon-btn-square"
+            onClick={() => setPageRight((p) => Math.min(totalPagesRight - 1, p + 1))}
+            disabled={pageRight >= totalPagesRight - 1}
+            aria-label="Next page"
+            type="button"
+          >
+            <FiPageRight />
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

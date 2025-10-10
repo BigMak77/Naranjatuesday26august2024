@@ -13,12 +13,10 @@ import {
 import Image from "next/image";
 import GlobalFooter from "@/components/GlobalFooter";
 import NeonIconButton from "@/components/ui/NeonIconButton";
-import HomepageHeader from "@/components/ui/HomepageHeader";
 
 export default function HomePage() {
   return (
     <main className="homepage" aria-label="Homepage">
-      <HomepageHeader />
       {/* JSON-LD for better SEO */}
       {/* Full-width hero panel */}
       <div
@@ -243,7 +241,7 @@ export default function HomePage() {
               {FEATURES.map(({ Icon, title, text, href }, i) => {
                 return (
                   <Link
-                    key={title}
+                    key={href || i}
                     href={href}
                     className={`homepage-feature-card homepage-feature-card-${i}`}
                     style={{

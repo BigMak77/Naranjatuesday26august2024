@@ -19,7 +19,7 @@ export default function NeonPanel({
       className={`neon-panel ${className}`.trim()}
       style={{
         backgroundColor: bgColor || undefined,
-        boxShadow: glowColor ? `0 0 12px ${glowColor}` : undefined,
+        boxShadow: glowColor ? `0 0 8px ${glowColor}` : undefined,
       }}
     >
       {children}
