@@ -32,7 +32,47 @@ export async function POST(req: NextRequest) {
     const old_role_id = user.role_id;
     console.log(`User ${user.first_name} ${user.last_name}: ${old_role_id} → ${new_role_id}`);
 
-    // 2. Remove ALL existing assignments for this user
+    // 2. Preserve completed training before removing assignments
+    const { data: completedAssignments, error: completedError } = await supabase
+      .from("user_assignments")
+      .select("item_id, item_type, completed_at")
+      .eq("auth_id", user.auth_id)
+      .not("completed_at", "is", null);
+
+    if (completedError) {
+      console.error("Error fetching completed assignments:", completedError);
+      return NextResponse.json({ 
+        error: "Failed to fetch completed assignments", 
+        details: completedError 
+      }, { status: 500 });
+    }
+
+    // Save completions to permanent table
+    if (completedAssignments && completedAssignments.length > 0) {
+      const completionRecords = completedAssignments.map(assignment => ({
+        auth_id: user.auth_id,
+        item_id: assignment.item_id,
+        item_type: assignment.item_type,
+        completed_at: assignment.completed_at,
+        completed_by_role_id: old_role_id
+      }));
+
+      const { error: saveCompletionsError } = await supabase
+        .from("user_training_completions")
+        .upsert(completionRecords, { 
+          onConflict: 'auth_id,item_id,item_type',
+          ignoreDuplicates: true 
+        });
+
+      if (saveCompletionsError) {
+        console.warn("Failed to save training completions:", saveCompletionsError);
+        // Don't fail the entire operation, but log it
+      } else {
+        console.log(`✅ Preserved ${completedAssignments.length} training completions`);
+      }
+    }
+
+    // 3. Remove ALL existing assignments for this user
     const { count: removedCount, error: removeError } = await supabase
       .from("user_assignments")
       .delete({ count: "exact" })
@@ -87,16 +127,45 @@ export async function POST(req: NextRequest) {
     });
     const uniqueAssignments = Array.from(assignmentMap.values());
 
-    // 6. Create new assignments for this user
-    const newAssignments = uniqueAssignments.map(a => ({
-      auth_id: user.auth_id,
-      item_id: a.document_id || a.module_id,
-      item_type: a.type,
-      assigned_at: new Date().toISOString()
-    }));
+    // 6. Get existing completions for this user
+    const { data: existingCompletions, error: completionsError } = await supabase
+      .from("user_training_completions")
+      .select("item_id, item_type, completed_at")
+      .eq("auth_id", user.auth_id);
+
+    if (completionsError) {
+      console.warn("Failed to fetch existing completions:", completionsError);
+    }
+
+    // Create a map of completed items for quick lookup
+    const completionMap = new Map();
+    (existingCompletions || []).forEach(completion => {
+      const key = `${completion.item_id}|${completion.item_type}`;
+      completionMap.set(key, completion.completed_at);
+    });
+
+    // 7. Create new assignments for this user, restoring completion dates where applicable
+    const newAssignments = uniqueAssignments.map(a => {
+      const itemId = a.document_id || a.module_id;
+      const completionKey = `${itemId}|${a.type}`;
+      const existingCompletion = completionMap.get(completionKey);
+      
+      return {
+        auth_id: user.auth_id,
+        item_id: itemId,
+        item_type: a.type,
+        assigned_at: new Date().toISOString(),
+        // Restore completion date if user previously completed this training
+        completed_at: existingCompletion || null
+      };
+    });
 
     let addedCount = 0;
+    let restoredCompletions = 0;
     if (newAssignments.length > 0) {
+      // Count how many completions we're restoring
+      restoredCompletions = newAssignments.filter(a => a.completed_at).length;
+      
       const { count, error: insertError } = await supabase
         .from("user_assignments")
         .insert(newAssignments, { count: "exact" });
@@ -112,7 +181,7 @@ export async function POST(req: NextRequest) {
       addedCount = count || 0;
     }
 
-    console.log(`✅ Added ${addedCount} new assignments`);
+    console.log(`✅ Added ${addedCount} new assignments (${restoredCompletions} with restored completion dates)`);
 
     // 7. Log the role change for audit
     const { error: logError } = await supabase
@@ -137,6 +206,7 @@ export async function POST(req: NextRequest) {
       new_role_id,
       assignments_removed: removedCount || 0,
       assignments_added: addedCount,
+      completions_restored: restoredCompletions,
       user_name: `${user.first_name} ${user.last_name}`
     });
 

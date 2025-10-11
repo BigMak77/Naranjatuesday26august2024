@@ -156,7 +156,7 @@ export default function GlobalHeader({
         style={{
           width: "100%",
           background: "linear-gradient(118deg in oklab, #05363a 0%, #0a706a 48%, #16cbcf 100%)",
-          borderBottom: "12px solid #fa7a20",
+          borderBottom: "6px solid #fa7a20",
           boxSizing: "border-box",
           zIndex: 3000,
         }}

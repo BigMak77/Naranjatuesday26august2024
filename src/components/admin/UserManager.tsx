@@ -9,6 +9,7 @@ import ManagerStructure from "@/components/structure/ManagerStructure";
 import RotaByDepartment from "@/components/people/RotaByDepartment";
 import Rota from "@/components/people/Rota";
 import NeonIconButton from "@/components/ui/NeonIconButton";
+import RoleModuleDocumentAssignment from "@/components/roles/RoleModuleDocumentAssignment";
 
 const tabs: Tab[] = [
   { key: "users", label: "Users", icon: <FiUsers /> },
@@ -248,7 +249,7 @@ const UserManager: React.FC = () => {
           )
         )}
         {activeTab === "roles" && (
-          <div className="user-manager-placeholder">Roles tab placeholder</div>
+          <RoleModuleDocumentAssignment />
         )}
         {activeTab === "departments" && (
           <div className="user-manager-structure">

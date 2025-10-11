@@ -1201,40 +1201,102 @@ footer a:active,
 }
 
 /* ================== Footer Social Icon Styles ================== */
-footer .footer__icon,
-footer .footer__icon svg {
-  color: #fa7a20 !important;
-  stroke: #fa7a20 !important;
-  fill: none !important;
-  background: none !important;
-  box-shadow: none !important;
-  filter: none !important;
-  opacity: 1 !important;
-  /* Remove any inherited muted color */
-}
-footer .footer__icon * {
-  color: #fa7a20 !important;
-  stroke: #fa7a20 !important;
-  fill: none !important;
+/* Remove the global overrides - let brand colors show through */
+footer .footer__icon {
   background: none !important;
   box-shadow: none !important;
   filter: none !important;
   opacity: 1 !important;
 }
-footer .footer__icon:visited,
-footer .footer__icon svg:visited {
-  color: #fa7a20 !important;
-  stroke: #fa7a20 !important;
+
+/* LinkedIn brand color */
+footer .footer__icon--linkedin,
+footer .footer__icon--linkedin svg,
+footer .footer__icon--linkedin * {
+  color: #0A66C2 !important;
+  stroke: none !important;
+  fill: #0A66C2 !important;
 }
-footer .footer__icon:hover,
-footer .footer__icon:focus {
-  color: #fa7a20 !important;
-  stroke: #fa7a20 !important;
+footer .footer__icon--linkedin:hover,
+footer .footer__icon--linkedin:hover svg,
+footer .footer__icon--linkedin:hover * {
+  color: #004182 !important;
+  fill: #004182 !important;
 }
-footer .footer__icon:hover *,
-footer .footer__icon:focus * {
-  color: #fa7a20 !important;
-  stroke: #fa7a20 !important;
+
+/* X (Twitter) brand color */
+footer .footer__icon--x,
+footer .footer__icon--x svg,
+footer .footer__icon--x * {
+  color: #000000 !important;
+  stroke: none !important;
+  fill: #000000 !important;
+}
+footer .footer__icon--x:hover,
+footer .footer__icon--x:hover svg,
+footer .footer__icon--x:hover * {
+  color: #333333 !important;
+  fill: #333333 !important;
+}
+
+/* YouTube brand color */
+footer .footer__icon--youtube,
+footer .footer__icon--youtube svg,
+footer .footer__icon--youtube * {
+  color: #FF0000 !important;
+  stroke: none !important;
+  fill: #FF0000 !important;
+}
+footer .footer__icon--youtube:hover,
+footer .footer__icon--youtube:hover svg,
+footer .footer__icon--youtube:hover * {
+  color: #CC0000 !important;
+  fill: #CC0000 !important;
+}
+
+/* Facebook brand color */
+footer .footer__icon--facebook,
+footer .footer__icon--facebook svg,
+footer .footer__icon--facebook * {
+  color: #1877F2 !important;
+  stroke: none !important;
+  fill: #1877F2 !important;
+}
+footer .footer__icon--facebook:hover,
+footer .footer__icon--facebook:hover svg,
+footer .footer__icon--facebook:hover * {
+  color: #166FE5 !important;
+  fill: #166FE5 !important;
+}
+
+/* Instagram brand color */
+footer .footer__icon--instagram,
+footer .footer__icon--instagram svg,
+footer .footer__icon--instagram * {
+  color: #E4405F !important;
+  stroke: none !important;
+  fill: #E4405F !important;
+}
+footer .footer__icon--instagram:hover,
+footer .footer__icon--instagram:hover svg,
+footer .footer__icon--instagram:hover * {
+  color: #C13584 !important;
+  fill: #C13584 !important;
+}
+
+/* Email brand color */
+footer .footer__icon--email,
+footer .footer__icon--email svg,
+footer .footer__icon--email * {
+  color: #EA4335 !important;
+  stroke: none !important;
+  fill: #EA4335 !important;
+}
+footer .footer__icon--email:hover,
+footer .footer__icon--email:hover svg,
+footer .footer__icon--email:hover * {
+  color: #C5221F !important;
+  fill: #C5221F !important;
 }
 
 /* Remove muted color from social icons in the footer */

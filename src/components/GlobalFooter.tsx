@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { FaLinkedin, FaEnvelope } from "react-icons/fa";
-import { FiX } from "react-icons/fi";
+import { FaLinkedin, FaEnvelope, FaXTwitter } from "react-icons/fa6";
+import { SiLinkedin, SiX, SiYoutube, SiFacebook, SiInstagram } from "react-icons/si";
 
 const NAV = [
   { title: "Product", items: [
@@ -54,28 +54,52 @@ export default function GlobalFooter() {
               href="https://www.linkedin.com/company/naranja"
               rel="noopener noreferrer"
               aria-label="LinkedIn"
-              className="footer__icon"
+              className="footer__icon footer__icon--linkedin"
               title="LinkedIn"
-              style={{ color: '#fa7a20', stroke: '#fa7a20' }} // force orange
             >
-              <FaLinkedin aria-hidden />
+              <SiLinkedin aria-hidden />
             </a>
             <a
               href="https://x.com/naranjateam"
               rel="noopener noreferrer"
               aria-label="X (Twitter)"
-              className="footer__icon"
+              className="footer__icon footer__icon--x"
               title="X (Twitter)"
-              style={{ color: '#fa7a20', stroke: '#fa7a20' }} // force orange
             >
-              <FiX aria-hidden />
+              <SiX aria-hidden />
+            </a>
+            <a
+              href="https://www.youtube.com/@naranja"
+              rel="noopener noreferrer"
+              aria-label="YouTube"
+              className="footer__icon footer__icon--youtube"
+              title="YouTube"
+            >
+              <SiYoutube aria-hidden />
+            </a>
+            <a
+              href="https://www.facebook.com/naranja"
+              rel="noopener noreferrer"
+              aria-label="Facebook"
+              className="footer__icon footer__icon--facebook"
+              title="Facebook"
+            >
+              <SiFacebook aria-hidden />
+            </a>
+            <a
+              href="https://www.instagram.com/naranja"
+              rel="noopener noreferrer"
+              aria-label="Instagram"
+              className="footer__icon footer__icon--instagram"
+              title="Instagram"
+            >
+              <SiInstagram aria-hidden />
             </a>
             <a
               href="mailto:support@naranja.co.uk"
               aria-label="Email"
-              className="footer__icon"
+              className="footer__icon footer__icon--email"
               title="Email"
-              style={{ color: '#fa7a20', stroke: '#fa7a20' }} // force orange
             >
               <FaEnvelope aria-hidden />
             </a>
@@ -113,7 +137,7 @@ export default function GlobalFooter() {
         .globalFooter {
           background: var(--panel, #0d3c47);
           color: var(--text, #fff);
-          border-top: 1px solid rgba(255,255,255,.06);
+          border-top: 4px solid #fa7a20;
           box-shadow: 0 -2px 8px rgba(0,0,0,.1);
         }
         .footer__inner {
@@ -138,8 +162,8 @@ export default function GlobalFooter() {
         .footer__icon:hover { transform: translateY(-1px); }
         .footer__icon:focus-visible { outline: 2px solid #fff; outline-offset: 2px; border-radius: 999px; }
 
-        .footer__nav { display: grid; gap: 1.25rem 2rem; grid-template-columns: repeat(2, minmax(160px,1fr)); }
-        @media (min-width: 740px) { .footer__nav { grid-template-columns: repeat(3, minmax(160px,1fr)); } }
+        .footer__nav { display: grid; gap: 1rem 1.5rem; grid-template-columns: repeat(2, minmax(180px,1fr)); }
+        @media (min-width: 740px) { .footer__nav { grid-template-columns: repeat(3, minmax(180px,1fr)); } }
         .footer__group { display: grid; gap: .5rem; }
         .footer__groupTitle { margin: 0; font-size: .86rem; text-transform: uppercase; letter-spacing: .12em; color: #fff; }
         .footer__list { list-style: none; margin: 0; padding: 0; display: grid; gap: .35rem; }
@@ -156,6 +180,67 @@ export default function GlobalFooter() {
           font-size: .92rem; color: #fff;
         }
         .footer__legalLinks { list-style: none; padding: 0; margin: 0; display: flex; gap: 1rem; flex-wrap: wrap; }
+        
+        /* Brand colors for social media icons */
+        .footer__icon--linkedin, .footer__icon--linkedin svg, .footer__icon--linkedin * {
+          color: #0A66C2 !important;
+          stroke: none !important;
+          fill: #0A66C2 !important;
+        }
+        .footer__icon--linkedin:hover, .footer__icon--linkedin:hover svg, .footer__icon--linkedin:hover * {
+          color: #004182 !important;
+          fill: #004182 !important;
+        }
+        
+        .footer__icon--x, .footer__icon--x svg, .footer__icon--x * {
+          color: #000000 !important;
+          stroke: none !important;
+          fill: #000000 !important;
+        }
+        .footer__icon--x:hover, .footer__icon--x:hover svg, .footer__icon--x:hover * {
+          color: #333333 !important;
+          fill: #333333 !important;
+        }
+        
+        .footer__icon--youtube, .footer__icon--youtube svg, .footer__icon--youtube * {
+          color: #FF0000 !important;
+          stroke: none !important;
+          fill: #FF0000 !important;
+        }
+        .footer__icon--youtube:hover, .footer__icon--youtube:hover svg, .footer__icon--youtube:hover * {
+          color: #CC0000 !important;
+          fill: #CC0000 !important;
+        }
+        
+        .footer__icon--facebook, .footer__icon--facebook svg, .footer__icon--facebook * {
+          color: #1877F2 !important;
+          stroke: none !important;
+          fill: #1877F2 !important;
+        }
+        .footer__icon--facebook:hover, .footer__icon--facebook:hover svg, .footer__icon--facebook:hover * {
+          color: #166FE5 !important;
+          fill: #166FE5 !important;
+        }
+        
+        .footer__icon--instagram, .footer__icon--instagram svg, .footer__icon--instagram * {
+          color: #E4405F !important;
+          stroke: none !important;
+          fill: #E4405F !important;
+        }
+        .footer__icon--instagram:hover, .footer__icon--instagram:hover svg, .footer__icon--instagram:hover * {
+          color: #C13584 !important;
+          fill: #C13584 !important;
+        }
+        
+        .footer__icon--email, .footer__icon--email svg, .footer__icon--email * {
+          color: #EA4335 !important;
+          stroke: none !important;
+          fill: #EA4335 !important;
+        }
+        .footer__icon--email:hover, .footer__icon--email:hover svg, .footer__icon--email:hover * {
+          color: #C5221F !important;
+          fill: #C5221F !important;
+        }
       `}</style>
     </footer>
   );

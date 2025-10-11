@@ -1,5 +1,15 @@
 import { useState } from 'react';
 
+/**
+ * AssignmentSyncButtons - Manual assignment sync controls
+ * 
+ * NOTE: This component has been removed from the dashboard as automatic
+ * role assignment sync is now integrated into UserManagementPanel.
+ * 
+ * This component is kept for emergency maintenance and troubleshooting purposes.
+ * It can be manually imported and used when needed for data cleanup or debugging.
+ */
+
 interface AssignmentSyncButtonsProps {
   userId?: string;
   onComplete?: (result: any) => void;
