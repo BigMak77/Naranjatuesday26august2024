@@ -27,6 +27,7 @@ import PeopleAndAccessManagement from "@/components/admin/PeopleAndAccessManagem
 import TurkusWidget from "@/components/admin/TurkusWidget";
 import HealthAndSafetyWidget from "@/components/admin/HealthAndSafetyWidget";
 import DocumentsModulesResourcesWidget from "@/components/admin/DocumentsModulesResourcesWidget";
+import AssignmentSyncButtons from "@/components/AssignmentSyncButtons";
 
 /*********************************
  * Types
@@ -122,6 +123,7 @@ export default function DashboardPage() {
       >
         <PeopleAndAccessManagement />
         <DocumentsModulesResourcesWidget />
+        <AssignmentSyncButtons />
         <TurkusWidget />
         <HealthAndSafetyWidget />
       </section>

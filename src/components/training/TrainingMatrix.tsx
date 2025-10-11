@@ -35,9 +35,14 @@ const TrainingMatrix: React.FC = () => {
 
   const [departments, setDepartments] = useState<{ id: string; name: string }[]>([]);
   const [roles, setRoles] = useState<{ id: string; title: string; department_id?: string }[]>([]);
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [refreshInterval, setRefreshInterval] = useState(30); // seconds
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   useEffect(() => {
     let isMounted = true;
+    let intervalId: NodeJS.Timeout | null = null;
 
     async function fetchData() {
       setLoading(true);
@@ -148,6 +153,7 @@ const TrainingMatrix: React.FC = () => {
             }))
             .filter((r: any) => r.id !== "" && r.title),
         ]);
+        setLastUpdated(new Date());
       } catch (err: any) {
         console.error("Unexpected error loading matrix:", err);
         if (isMounted) setFatalError("Unexpected error loading data. See console for details.");
@@ -156,11 +162,25 @@ const TrainingMatrix: React.FC = () => {
       }
     }
 
+    // Initial fetch
     fetchData();
+
+    // Set up auto-refresh if enabled
+    if (autoRefresh) {
+      intervalId = setInterval(() => {
+        if (isMounted) {
+          fetchData();
+        }
+      }, refreshInterval * 1000);
+    }
+
     return () => {
       isMounted = false;
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
     };
-  }, []);
+  }, [autoRefresh, refreshInterval, refreshTrigger]);
 
   // Map (user, item) -> assignment, for both modules and documents
   const assignmentMap = useMemo(() => {
@@ -231,18 +251,37 @@ const TrainingMatrix: React.FC = () => {
           boxSizing: "border-box",
         }}
       >
-        <h2
-          style={{
-            margin: 0,
-            marginBottom: 10,
-            fontWeight: 700,
-            color: "#ffffff",
-            fontSize: 24,
-            letterSpacing: 0.5,
-          }}
-        >
-          Training Matrix
-        </h2>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <h2
+            style={{
+              margin: 0,
+              fontWeight: 700,
+              color: "#ffffff",
+              fontSize: 24,
+              letterSpacing: 0.5,
+            }}
+          >
+            Training Matrix
+          </h2>
+          
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
+            {loading && (
+              <div style={{ color: "#00e0ff", fontSize: 12, fontWeight: 500 }}>
+                Updating...
+              </div>
+            )}
+            {lastUpdated && (
+              <div style={{ color: "#ccc", fontSize: 11 }}>
+                Last updated: {lastUpdated.toLocaleTimeString()}
+              </div>
+            )}
+            {autoRefresh && (
+              <div style={{ color: "#27ae60", fontSize: 11 }}>
+                Auto-refresh: {refreshInterval}s
+              </div>
+            )}
+          </div>
+        </div>
 
         <div style={{ display: "flex", gap: 16, marginBottom: 12, alignItems: "flex-start" }}>
           <select value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value)}>
@@ -278,6 +317,47 @@ const TrainingMatrix: React.FC = () => {
             onChange={(e) => setNameFilter(e.target.value)}
             style={{ padding: 6, borderRadius: 4, border: "1px solid #ccc", minWidth: 180 }}
           />
+
+          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 6, color: "#fff", fontSize: 14 }}>
+              <input
+                type="checkbox"
+                checked={autoRefresh}
+                onChange={(e) => setAutoRefresh(e.target.checked)}
+                style={{ margin: 0 }}
+              />
+              Auto-refresh
+            </label>
+
+            {autoRefresh && (
+              <select
+                value={refreshInterval}
+                onChange={(e) => setRefreshInterval(Number(e.target.value))}
+                style={{ padding: 4, borderRadius: 4, border: "1px solid #ccc", fontSize: 12 }}
+              >
+                <option value={10}>10s</option>
+                <option value={30}>30s</option>
+                <option value={60}>1m</option>
+                <option value={300}>5m</option>
+              </select>
+            )}
+
+            <button
+              style={{ 
+                padding: "4px 12px", 
+                borderRadius: 4, 
+                background: "#27ae60", 
+                color: "#fff", 
+                fontWeight: 600, 
+                border: "none", 
+                cursor: "pointer",
+                fontSize: 12
+              }}
+              onClick={() => setRefreshTrigger(prev => prev + 1)}
+            >
+              Refresh Now
+            </button>
+          </div>
 
           <button
             style={{ padding: "6px 16px", borderRadius: 4, background: "#00e0ff", color: "#00313a", fontWeight: 700, border: "none", cursor: "pointer" }}

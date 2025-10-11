@@ -57,6 +57,30 @@ export default function RoleModuleDocumentAssignment() {
     fetchData();
   }, []);
 
+  const fetchRoleAssignments = async (roleId: string) => {
+    if (!roleId) return;
+    
+    // Fetch existing assignments for this role
+    const { data: roleAssignments } = await supabase
+      .from("role_assignments")
+      .select("item_id, type")
+      .eq("role_id", roleId);
+    
+    if (roleAssignments) {
+      const modules = roleAssignments
+        .filter(a => a.type === "module")
+        .map(a => a.item_id);
+      const documents = roleAssignments
+        .filter(a => a.type === "document")
+        .map(a => a.item_id);
+      
+      setAssignments(prev => ({
+        ...prev,
+        [roleId]: { modules, documents }
+      }));
+    }
+  };
+
   const handleModuleChange = (roleId: string, selected: string[]) => {
     setAssignments((prev) => ({
       ...prev,
@@ -81,16 +105,45 @@ export default function RoleModuleDocumentAssignment() {
   const handleSave = async (roleId: string) => {
     // Save assignments for modules and documents using role_assignments table
     const { modules: modIds = [], documents: docIds = [] } = assignments[roleId] || {};
-    // Upsert module assignments
-    const moduleRows = modIds.map((module_id) => ({ role_id: roleId, module_id, type: "module" }));
-    // Upsert document assignments
-    const documentRows = docIds.map((document_id) => ({ role_id: roleId, document_id, type: "document" }));
-    const allRows = [...moduleRows, ...documentRows];
-    const { error: assignmentError } = await supabase.from("role_assignments").upsert(allRows);
-    if (assignmentError) {
-      alert("Error saving assignments: " + assignmentError.message);
-      console.error("Supabase assignment upsert error:", assignmentError);
+    
+    // First, clear existing assignments for this role to avoid conflicts
+    const { error: deleteError } = await supabase
+      .from("role_assignments")
+      .delete()
+      .eq("role_id", roleId);
+    
+    if (deleteError) {
+      alert("Error clearing existing assignments: " + deleteError.message);
+      console.error("Supabase delete error:", deleteError);
       return;
+    }
+    
+    // Only insert new assignments if there are any
+    if (modIds.length > 0 || docIds.length > 0) {
+      // Insert module assignments - include both new item_id and legacy columns for compatibility
+      const moduleRows = modIds.map((item_id: string) => ({ 
+        role_id: roleId, 
+        item_id, 
+        module_id: item_id, // Legacy column for constraint compatibility
+        document_id: null,  // Legacy column for constraint compatibility
+        type: "module" 
+      }));
+      // Insert document assignments - include both new item_id and legacy columns for compatibility
+      const documentRows = docIds.map((item_id: string) => ({ 
+        role_id: roleId, 
+        item_id, 
+        module_id: null,    // Legacy column for constraint compatibility
+        document_id: item_id, // Legacy column for constraint compatibility
+        type: "document" 
+      }));
+      const allRows = [...moduleRows, ...documentRows];
+      const { error: assignmentError } = await supabase.from("role_assignments").insert(allRows);
+      
+      if (assignmentError) {
+        alert("Error saving assignments: " + assignmentError.message);
+        console.error("Supabase assignment insert error:", assignmentError);
+        return;
+      }
     }
     // Fetch all users with matching role_id
     const { data: users } = await supabase.from("users").select("auth_id").eq("role_id", roleId);
@@ -201,7 +254,10 @@ export default function RoleModuleDocumentAssignment() {
           Select a role:
           <select
             value={selectedRoleId}
-            onChange={e => setSelectedRoleId(e.target.value)}
+            onChange={e => {
+              setSelectedRoleId(e.target.value);
+              fetchRoleAssignments(e.target.value);
+            }}
             className="neon-input"
           >
             <option value="">-- Choose a role --</option>

@@ -96,24 +96,7 @@ export default function SuccessModal({
         }}
       >
         <h2 id="success-title" style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#fff" }}>{title}</h2>
-        <p style={{ marginTop: 10, marginBottom: 20, lineHeight: 1.5, color: "#fff" }}>{message}</p>
-        <div style={{ display: "flex", justifyContent: "flex-end" }}>
-          <button
-            onClick={onClose}
-            style={{
-              appearance: "none",
-              border: "none",
-              borderRadius: 8,
-              padding: "10px 16px",
-              fontSize: 14,
-              cursor: "pointer",
-              background: "#16a34a",
-              color: "#fff",
-            }}
-          >
-            OK
-          </button>
-        </div>
+        <p style={{ marginTop: 10, marginBottom: 0, lineHeight: 1.5, color: "#fff" }}>{message}</p>
       </div>
     </div>
   );

@@ -318,7 +318,6 @@ export default function UserManagementPanel() {
     if (bulkSelectedUserIds.length === 0) return;
     setBulkAssignLoading(true);
     let updateFields: Record<string, any> = {};
-    let affectedAuthIds: string[] = [];
     if (bulkAssignType === "role") {
       if (!bulkDeptId || !bulkRoleId) return;
       updateFields = { department_id: bulkDeptId, role_id: bulkRoleId };
@@ -330,6 +329,13 @@ export default function UserManagementPanel() {
     } else if (bulkAssignType === "trainer") {
       updateFields = { is_trainer: bulkTrainer };
     }
+
+    // For role changes, capture original roles before updating
+    const originalUserRoles = bulkAssignType === "role" 
+      ? users.filter(u => bulkSelectedUserIds.includes(u.id))
+          .map(u => ({ user_id: u.id, old_role_id: u.role_id }))
+      : [];
+
     // Optimistically update table before supabase call
     setUsers((prevUsers) =>
       prevUsers.map((u) => (bulkSelectedUserIds.includes(u.id) ? { ...u, ...updateFields } : u))
@@ -338,18 +344,30 @@ export default function UserManagementPanel() {
     // Immediately refresh users from supabase for consistency
     const { data: refreshedUsers } = await supabase.from("users").select("*");
     setUsers(refreshedUsers || []);
+    
     // Assignment syncing for bulk role changes
-    if (bulkAssignType === "role") {
-      // Get auth_ids for affected users
-      affectedAuthIds = (refreshedUsers || [])
-        .filter((u: any) => bulkSelectedUserIds.includes(u.id) && u.auth_id)
-        .map((u: any) => u.auth_id);
-      if (affectedAuthIds.length > 0) {
-        await fetch("/api/sync-training-from-profile", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ role_id: bulkRoleId, auth_ids: affectedAuthIds }),
-        });
+    if (bulkAssignType === "role" && originalUserRoles.length > 0) {
+      // Process each user's role change individually for proper logging
+      for (const userRole of originalUserRoles) {
+        try {
+          const syncResponse = await fetch("/api/update-user-role-assignments", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+              user_id: userRole.user_id,
+              new_role_id: bulkRoleId,
+              old_role_id: userRole.old_role_id
+            }),
+          });
+          if (!syncResponse.ok) {
+            console.warn(`Failed to sync role assignments for user ${userRole.user_id}:`, await syncResponse.text());
+          } else {
+            const syncResult = await syncResponse.json();
+            console.log(`Role assignments synced for user ${userRole.user_id}:`, syncResult);
+          }
+        } catch (syncErr) {
+          console.warn(`Error syncing role assignments for user ${userRole.user_id}:`, syncErr);
+        }
       }
     }
     setShowSuccess(true);
@@ -400,6 +418,11 @@ export default function UserManagementPanel() {
     }
     setSaving(true);
     const cleanedUser = cleanUserFields(selectedUser);
+    
+    // Detect role change for existing users
+    const originalUser = users.find(u => u.id === cleanedUser.id);
+    const roleChanged = !isAddMode && originalUser && originalUser.role_id !== cleanedUser.role_id;
+    
     try {
       if (isAddMode) {
         const { error: userErr, data: newUser } = await supabase
@@ -430,6 +453,26 @@ export default function UserManagementPanel() {
           return;
         }
         setUsers([...users, newUser as User]);
+        
+        // For new users with a role, sync their training assignments
+        if (cleanedUser.role_id && newUser?.id) {
+          try {
+            const syncResponse = await fetch("/api/update-user-role-assignments", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ 
+                user_id: newUser.id,
+                new_role_id: cleanedUser.role_id,
+                old_role_id: null // No old role for new users
+              }),
+            });
+            if (!syncResponse.ok) {
+              console.warn("Failed to sync role assignments for new user:", await syncResponse.text());
+            }
+          } catch (syncErr) {
+            console.warn("Error syncing role assignments for new user:", syncErr);
+          }
+        }
       } else {
         const { error: userErr } = await supabase
           .from("users")
@@ -458,22 +501,29 @@ export default function UserManagementPanel() {
           return;
         }
         setUsers(users.map((u) => (u.id === cleanedUser.id ? { ...u, ...cleanedUser } : u)));
-      }
-      // After saving, if adding a new user and they have a role_id and auth_id, sync assignments
-      if (isAddMode && cleanedUser.role_id && cleanedUser.auth_id) {
-        await fetch("/api/sync-training-from-profile", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ role_id: cleanedUser.role_id, auth_ids: [cleanedUser.auth_id] }),
-        });
-      }
-      // Also sync assignments after any update if user has role_id and auth_id
-      if (!isAddMode && cleanedUser.role_id && cleanedUser.auth_id) {
-        await fetch("/api/sync-training-from-profile", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ role_id: cleanedUser.role_id, auth_ids: [cleanedUser.auth_id] }),
-        });
+        
+        // If the user's role changed, update their training assignments
+        if (roleChanged && cleanedUser.id) {
+          try {
+            const syncResponse = await fetch("/api/update-user-role-assignments", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ 
+                user_id: cleanedUser.id,
+                new_role_id: cleanedUser.role_id,
+                old_role_id: originalUser?.role_id || null
+              }),
+            });
+            if (!syncResponse.ok) {
+              console.warn("Failed to sync role assignments for user role change:", await syncResponse.text());
+            } else {
+              const syncResult = await syncResponse.json();
+              console.log("Role assignments synced successfully:", syncResult);
+            }
+          } catch (syncErr) {
+            console.warn("Error syncing role assignments for user role change:", syncErr);
+          }
+        }
       }
       setShowSuccess(true);
       // Optimistically update the table before re-fetching from supabase

@@ -8,7 +8,7 @@ const supabase = createClient(
 
 export async function POST(req: NextRequest) {
   try {
-    const { role_id } = await req.json();
+    const { role_id, user_id, remove_old_assignments = false } = await req.json();
 
     if (!role_id) {
       return NextResponse.json({ error: "Missing role_id" }, { status: 400 });
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     // 2. Get all users with this role_id
     const { data: usersWithRole, error: userFetchError } = await supabase
       .from("users")
-      .select("auth_id")
+      .select("auth_id, id")
       .eq("role_id", role_id);
     if (userFetchError) {
       console.error("User fetch error:", userFetchError);
@@ -50,58 +50,66 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No users found with this role_id" }, { status: 404 });
     }
     const auth_ids = usersWithRole.map(u => u.auth_id);
+    const user_ids = usersWithRole.map(u => u.id);
 
-    // 3. Build assignment records
+    // 3. Build assignment records for user_assignments table
     const newAssignments = [];
-    for (const auth_id of auth_ids) {
+    for (let i = 0; i < usersWithRole.length; i++) {
+      const user = usersWithRole[i];
       for (const a of assignments) {
-        if (a.type === "module" && a.module_id) {
-          newAssignments.push({ auth_id, module_id: a.module_id, type: "module" });
-        }
-        if (a.type === "document" && a.document_id) {
-          newAssignments.push({ auth_id, document_id: a.document_id, type: "document" });
-        }
-        // If you support behaviours, add here
+        const item_id = a.document_id || a.module_id;
+        newAssignments.push({ 
+          auth_id: user.auth_id, 
+          item_id: item_id,
+          item_type: a.type,
+          role_assignment_id: a.id, // Track which role_assignment created this user_assignment
+          assigned_at: new Date().toISOString()
+        });
       }
     }
 
     // 4. Get all existing assignments for these users
     const { data: existingAssignments } = await supabase
       .from("user_assignments")
-      .select("auth_id, item_id, item_type");
+      .select("auth_id, role_assignment_id")
+      .in("auth_id", auth_ids);
 
     const existingSet = new Set(
-      (existingAssignments || []).map((a) => [a.auth_id, a.item_id, a.item_type].join("|"))
+      (existingAssignments || []).map((a) => {
+        return [a.auth_id, a.role_assignment_id].join("|");
+      })
     );
 
-    // 5. Filter out duplicates
+    // 5. Filter out duplicates based on role_assignment_id
     const filtered = newAssignments.filter((a) => {
-      let item_id = a.module_id || a.document_id;
-      let item_type = a.type;
-      const key = [a.auth_id, item_id, item_type].join("|");
+      const key = [a.auth_id, a.role_assignment_id].join("|");
       return !existingSet.has(key);
     });
 
     console.log("Filtered assignments to insert:", filtered);
+    console.log(`About to insert ${filtered.length} assignments`);
 
-    // 6. Insert new assignments into user_assignments
+    // 6. Insert new assignments
     if (filtered.length > 0) {
-      const toInsert = filtered.map((a) => {
-        let item_id = a.module_id || a.document_id;
-        return {
-          auth_id: a.auth_id,
-          item_id,
-          item_type: a.type,
-        };
-      });
-      const { error: insertError } = await supabase.from("user_assignments").insert(toInsert);
+      const { error: insertError } = await supabase
+        .from("user_assignments")
+        .insert(filtered);
+      
       if (insertError) {
         console.error("Insert error:", insertError);
         return NextResponse.json({ error: "Insert failed", details: insertError }, { status: 500 });
       }
+      
+      console.log(`Successfully inserted ${filtered.length} assignments`);
+    } else {
+      console.log("No assignments to insert (all filtered out)");
     }
 
-    return NextResponse.json({ inserted: filtered.length });
+    return NextResponse.json({ 
+      inserted: filtered.length,
+      total_assignments: assignments.length,
+      users_affected: usersWithRole.length 
+    });
   } catch (err) {
     console.error("Sync error:", err);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });

@@ -35,5 +35,5 @@
     ".next/types/**/*.ts"
     // Removed postcss.config.mjs from TS include
   ],
-  "exclude": ["node_modules", "supabase/functions"]
+  "exclude": ["node_modules", "supabase/functions", "examples"]
 }
