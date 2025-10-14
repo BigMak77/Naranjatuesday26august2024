@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/lib/supabase-client";
+import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
 /* ===========================
    Types
@@ -284,10 +285,56 @@ export default function Structure() {
     <div className="neon-panel" style={{ position: "relative" }}>
       {/* Page Header */}
       <h1 className="neon-page-header">
-        Role Structure
+        Department Structure
       </h1>
+
+      {/* Description and Toggle Row */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 16,
+        marginBottom: 32
+      }}>
+        <p className="neon-text" style={{ margin: 0, fontSize: 12 }}>
+          View your organisation's hierarchical department structure with roles and employee counts
+        </p>
+
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8
+        }}>
+          <span style={{ fontSize: 12, color: '#fff', whiteSpace: 'nowrap' }}>Department</span>
+          <button
+            onClick={() => window.location.href = '/hr/structure/manager-structure'}
+            style={{
+              width: 44,
+              height: 24,
+              background: '#22c55e',
+              border: 'none',
+              borderRadius: 12,
+              position: 'relative',
+              cursor: 'pointer',
+              transition: 'background 0.2s'
+            }}
+          >
+            <div style={{
+              position: 'absolute',
+              left: 3,
+              top: 3,
+              width: 18,
+              height: 18,
+              background: '#fff',
+              borderRadius: '50%',
+              transition: 'left 0.2s'
+            }} />
+          </button>
+          <span style={{ fontSize: 12, color: '#9ca3af', whiteSpace: 'nowrap' }}>Manager</span>
+        </div>
+      </div>
+
       {/* Right-side button group: Add, Amend, Move Role */}
-      <div style={{ position: "absolute", top: 6, right: 0, zIndex: 10, display: "flex", flexDirection: "row", gap: 6, padding: 0 }}>
+      <div style={{ position: "absolute", top: 16, right: 16, zIndex: 10, display: "flex", flexDirection: "row", gap: 8 }}>
         <AddDepartmentButton onAdded={() => {}} />
         <AddRoleButton departments={departments} onAdded={() => {}} />
         <AmendDepartmentButton departments={tree} />
@@ -374,19 +421,21 @@ function AmendDepartmentButton({ departments }: { departments: TreeNode[] }) {
 
   return (
     <>
-      <button
-        className="neon-btn-globe"
-        aria-label="Amend department structure"
-        onClick={() => setOpen(true)}
-        type="button"
-      >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none"/>
-          <ellipse cx="12" cy="12" rx="7" ry="10" stroke="currentColor" strokeWidth="1.5" fill="none"/>
-          <ellipse cx="12" cy="12" rx="10" ry="4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
-          <line x1="2" y1="12" x2="22" y2="12" stroke="currentColor" strokeWidth="1.5"/>
-        </svg>
-      </button>
+      <CustomTooltip text="Amend department structure">
+        <button
+          className="neon-btn"
+          aria-label="Amend department structure"
+          onClick={() => setOpen(true)}
+          type="button"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none"/>
+            <ellipse cx="12" cy="12" rx="7" ry="10" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+            <ellipse cx="12" cy="12" rx="10" ry="4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+            <line x1="2" y1="12" x2="22" y2="12" stroke="currentColor" strokeWidth="1.5"/>
+          </svg>
+        </button>
+      </CustomTooltip>
       {open && (
         <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "#0008", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setOpen(false)}>
           <div style={{ background: "#23232e", padding: 24, borderRadius: 12, minWidth: 320, position: "relative" }} onClick={e => e.stopPropagation()}>
@@ -405,8 +454,10 @@ function AmendDepartmentButton({ departments }: { departments: TreeNode[] }) {
             </div>
             {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
             {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
-            <button disabled={loading} style={{ background: "#ff9900", color: "#fff", border: "none", borderRadius: 6, padding: "6px 16px", fontWeight: 600, marginRight: 8, opacity: loading ? 0.6 : 1 }} onClick={handleSubmit}>Submit</button>
-            <button style={{ background: "#444", color: "#fff", border: "none", borderRadius: 6, padding: "6px 16px", fontWeight: 600 }} onClick={() => setOpen(false)}>Cancel</button>
+            <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
+              <button disabled={loading} className="neon-btn-confirm" style={{ opacity: loading ? 0.6 : 1 }} onClick={handleSubmit}>Submit</button>
+              <button className="neon-btn-back" onClick={() => setOpen(false)}>Cancel</button>
+            </div>
           </div>
         </div>
       )}
@@ -456,17 +507,19 @@ function RoleAmendButton({ departments, roles }: { departments: Department[], ro
 
   return (
     <>
-      <button
-        className="neon-btn-tool"
-        aria-label="Move role to new department"
-        onClick={() => setOpen(true)}
-        type="button"
-      >
-        {/* Tool/Wrench Icon SVG */}
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M22 19.3l-6.1-6.1a7 7 0 0 1-7.2-1.7A7 7 0 0 1 2.5 7.1a7 7 0 0 1 7.1-7.1c1.7 0 3.3.6 4.6 1.7l-2.1 2.1a3 3 0 0 0-4.2 4.2l2.1 2.1a3 3 0 0 0 4.2-4.2l2.1-2.1A7 7 0 0 1 22 7.1a7 7 0 0 1-1.7 7.2 7 7 0 0 1-1.7 7.2z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      </button>
+      <CustomTooltip text="Move role to new department">
+        <button
+          className="neon-btn"
+          aria-label="Move role to new department"
+          onClick={() => setOpen(true)}
+          type="button"
+        >
+          {/* Tool/Wrench Icon SVG */}
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22 19.3l-6.1-6.1a7 7 0 0 1-7.2-1.7A7 7 0 0 1 2.5 7.1a7 7 0 0 1 7.1-7.1c1.7 0 3.3.6 4.6 1.7l-2.1 2.1a3 3 0 0 0-4.2 4.2l2.1 2.1a3 3 0 0 0 4.2-4.2l2.1-2.1A7 7 0 0 1 22 7.1a7 7 0 0 1-1.7 7.2 7 7 0 0 1-1.7 7.2z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+      </CustomTooltip>
       {open && (
         <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "#0008", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setOpen(false)}>
           <div style={{ background: "#23232e", padding: 24, borderRadius: 12, minWidth: 320, position: "relative" }} onClick={e => e.stopPropagation()}>
@@ -485,8 +538,10 @@ function RoleAmendButton({ departments, roles }: { departments: Department[], ro
             </div>
             {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
             {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
-            <button disabled={loading} style={{ background: "#ff9900", color: "#fff", border: "none", borderRadius: 6, padding: "6px 16px", fontWeight: 600, marginRight: 8, opacity: loading ? 0.6 : 1 }} onClick={handleSubmit}>Submit</button>
-            <button style={{ background: "#444", color: "#fff", border: "none", borderRadius: 6, padding: "6px 16px", fontWeight: 600 }} onClick={() => setOpen(false)}>Cancel</button>
+            <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
+              <button disabled={loading} className="neon-btn-confirm" style={{ opacity: loading ? 0.6 : 1 }} onClick={handleSubmit}>Submit</button>
+              <button className="neon-btn-back" onClick={() => setOpen(false)}>Cancel</button>
+            </div>
           </div>
         </div>
       )}
@@ -555,20 +610,21 @@ function AddDepartmentButton({ onAdded }: { onAdded?: () => void }) {
 
   return (
     <>
-      <button
-        className="neon-btn-add"
-        aria-label="Add department"
-        style={{ marginRight: 0}}
-        onClick={() => setOpen(true)}
-        type="button"
-      >
-        {/* Neon Add Icon (plus in a circle) */}
-        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="11" cy="11" r="10" stroke="#00fff7" strokeWidth="2" fill="#1e1e28"/>
-          <line x1="11" y1="6" x2="11" y2="16" stroke="#00fff7" strokeWidth="2"/>
-          <line x1="6" y1="11" x2="16" y2="11" stroke="#00fff7" strokeWidth="2"/>
-        </svg>
-      </button>
+      <CustomTooltip text="Add department">
+        <button
+          className="neon-btn"
+          aria-label="Add department"
+          onClick={() => setOpen(true)}
+          type="button"
+        >
+          {/* Neon Add Icon (plus in a circle) */}
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="11" cy="11" r="10" stroke="#00fff7" strokeWidth="2" fill="#1e1e28"/>
+            <line x1="11" y1="6" x2="11" y2="16" stroke="#00fff7" strokeWidth="2"/>
+            <line x1="6" y1="11" x2="16" y2="11" stroke="#00fff7" strokeWidth="2"/>
+          </svg>
+        </button>
+      </CustomTooltip>
       {open && (
         <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "#0008", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setOpen(false)}>
           <div style={{ background: "#23232e", padding: 24, borderRadius: 12, minWidth: 320, position: "relative" }} onClick={e => e.stopPropagation()}>
@@ -583,8 +639,10 @@ function AddDepartmentButton({ onAdded }: { onAdded?: () => void }) {
               </select>
               {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
               {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
-              <button disabled={loading} style={{ background: "#00fff7", color: "#1e1e28", border: "none", borderRadius: 6, padding: "6px 16px", fontWeight: 600, marginRight: 8, opacity: loading ? 0.6 : 1 }} type="submit">Add</button>
-              <button style={{ background: "#444", color: "#fff", border: "none", borderRadius: 6, padding: "6px 16px", fontWeight: 600 }} onClick={() => setOpen(false)} type="button">Cancel</button>
+              <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
+                <button disabled={loading} className="neon-btn-save" style={{ opacity: loading ? 0.6 : 1 }} type="submit">Add</button>
+                <button className="neon-btn-back" onClick={() => setOpen(false)} type="button">Cancel</button>
+              </div>
             </form>
           </div>
         </div>
@@ -638,20 +696,21 @@ function AddRoleButton({ departments, onAdded }: { departments: Department[]; on
 
   return (
     <>
-      <button
-        className="neon-btn-add"
-        aria-label="Add role"
-        style={{ marginRight:0 }}
-        onClick={() => setOpen(true)}
-        type="button"
-      >
-        {/* Neon Add Icon (plus in a circle) */}
-        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="11" cy="11" r="10" stroke="#00fff7" strokeWidth="2" fill="#1e1e28"/>
-          <line x1="11" y1="6" x2="11" y2="16" stroke="#00fff7" strokeWidth="2"/>
-          <line x1="6" y1="11" x2="16" y2="11" stroke="#00fff7" strokeWidth="2"/>
-        </svg>
-      </button>
+      <CustomTooltip text="Add role">
+        <button
+          className="neon-btn"
+          aria-label="Add role"
+          onClick={() => setOpen(true)}
+          type="button"
+        >
+          {/* Neon Add Icon (plus in a circle) */}
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="11" cy="11" r="10" stroke="#00fff7" strokeWidth="2" fill="#1e1e28"/>
+            <line x1="11" y1="6" x2="11" y2="16" stroke="#00fff7" strokeWidth="2"/>
+            <line x1="6" y1="11" x2="16" y2="11" stroke="#00fff7" strokeWidth="2"/>
+          </svg>
+        </button>
+      </CustomTooltip>
       {open && (
         <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "#0008", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setOpen(false)}>
           <div style={{ background: "#23232e", padding: 24, borderRadius: 12, minWidth: 320, position: "relative" }} onClick={e => e.stopPropagation()}>
@@ -666,8 +725,10 @@ function AddRoleButton({ departments, onAdded }: { departments: Department[]; on
               </select>
               {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
               {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
-              <button disabled={loading} className="neon-btn-add" type="submit" style={{ marginRight: 8, opacity: loading ? 0.6 : 1 }}>Add</button>
-              <button className="neon-btn-globe" onClick={() => setOpen(false)} type="button">Cancel</button>
+              <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
+                <button disabled={loading} className="neon-btn-save" type="submit" style={{ opacity: loading ? 0.6 : 1 }}>Add</button>
+                <button className="neon-btn-back" onClick={() => setOpen(false)} type="button">Cancel</button>
+              </div>
             </form>
           </div>
         </div>
@@ -773,14 +834,15 @@ function RoleWithUsers({ roleId, roleTitle, departmentId }: { roleId: string; ro
                 ))}
               </ul>
             ) : null}
-            <button
-              className="neon-btn-globe"
-              style={{ marginTop: 18, float: "right" }}
-              onClick={() => setShowUsers(false)}
-              type="button"
-            >
-              Close
-            </button>
+            <div style={{ marginTop: 18, display: "flex", justifyContent: "flex-end" }}>
+              <button
+                className="neon-btn-back"
+                onClick={() => setShowUsers(false)}
+                type="button"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

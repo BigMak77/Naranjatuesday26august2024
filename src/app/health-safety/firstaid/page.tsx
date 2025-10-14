@@ -155,12 +155,13 @@ export default function FirstAidPage() {
               </>
             )}
           </button>
-          <button
+          {/* TODO: Add first aid reports page at /health-safety/firstaid/reports */}
+          {/* <button
             type="button"
             className="neon-btn neon-btn-reports first-aid-reports-btn"
             data-variant="reports"
             style={{ marginTop: "1rem" }}
-            onClick={() => (window.location.href = "/turkus/firstaid/reports")}
+            onClick={() => (window.location.href = "/health-safety/firstaid/reports")}
           >
             <span style={{ marginRight: "0.5em" }}>View Reports</span>
             <svg
@@ -181,7 +182,7 @@ export default function FirstAidPage() {
               <line x1="16" y1="17" x2="8" y2="17"></line>
               <line x1="10" y1="9" x2="8" y2="9"></line>
             </svg>
-          </button>
+          </button> */}
         </form>
       </div>
     </main>

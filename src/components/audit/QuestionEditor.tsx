@@ -1,8 +1,10 @@
 // components/QuestionEditor.tsx
+// Custom tooltips added to all buttons
 "use client";
 
 import { Question, Department } from "@/types";
 import { useState } from "react";
+import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
 type Props = {
   questions: Question[];
@@ -34,13 +36,15 @@ export default function QuestionEditor({
         Audit Questions
       </h2>
 
-      <button
-        type="button"
-        onClick={() => setShowBulkInput(!showBulkInput)}
-        className="question-editor-bulk-toggle"
-      >
-        {showBulkInput ? "Hide Bulk Input" : "Bulk Add Questions"}
-      </button>
+      <CustomTooltip text={showBulkInput ? "Hide bulk question input" : "Show bulk question input to add multiple questions at once"}>
+        <button
+          type="button"
+          onClick={() => setShowBulkInput(!showBulkInput)}
+          className="question-editor-bulk-toggle"
+        >
+          {showBulkInput ? "Hide Bulk Input" : "Bulk Add Questions"}
+        </button>
+      </CustomTooltip>
 
       {showBulkInput && (
         <div className="question-editor-bulk-wrapper">
@@ -51,17 +55,19 @@ export default function QuestionEditor({
             value={bulkText}
             onChange={(e) => setBulkText(e.target.value)}
           />
-          <button
-            type="button"
-            className="question-editor-bulk-add-btn"
-            onClick={() => {
-              bulkAddQuestions(bulkText);
-              setBulkText("");
-              setShowBulkInput(false);
-            }}
-          >
-            Add Questions
-          </button>
+          <CustomTooltip text="Add all questions from the text area">
+            <button
+              type="button"
+              className="question-editor-bulk-add-btn"
+              onClick={() => {
+                bulkAddQuestions(bulkText);
+                setBulkText("");
+                setShowBulkInput(false);
+              }}
+            >
+              Add Questions
+            </button>
+          </CustomTooltip>
         </div>
       )}
 
@@ -97,26 +103,30 @@ export default function QuestionEditor({
                 ))}
               </select>
               {questions.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => removeQuestion(q.id)}
-                  className="question-editor-remove-btn"
-                >
-                  Remove
-                </button>
+                <CustomTooltip text="Remove this question from the audit">
+                  <button
+                    type="button"
+                    onClick={() => removeQuestion(q.id)}
+                    className="question-editor-remove-btn"
+                  >
+                    Remove
+                  </button>
+                </CustomTooltip>
               )}
             </div>
           </div>
         ))}
       </div>
 
-      <button
-        type="button"
-        className="question-editor-add-btn"
-        onClick={addQuestion}
-      >
-        Add Question
-      </button>
+      <CustomTooltip text="Add a single new question">
+        <button
+          type="button"
+          className="question-editor-add-btn"
+          onClick={addQuestion}
+        >
+          Add Question
+        </button>
+      </CustomTooltip>
     </div>
   );
 }

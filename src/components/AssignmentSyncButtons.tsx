@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { CustomTooltip } from './ui/CustomTooltip';
 
 /**
  * AssignmentSyncButtons - Manual assignment sync controls
@@ -95,9 +96,11 @@ export default function AssignmentSyncButtons({ userId, onComplete }: Assignment
       <div className="space-y-4">
         {/* Scan Button */}
         <div className="flex items-center gap-4">
-          <Button onClick={handleScan} variant="secondary">
-            🔍 Scan for Legacy Assignments
-          </Button>
+          <CustomTooltip text="Scan for legacy assignment issues">
+            <Button onClick={handleScan} variant="secondary">
+              🔍 Scan for Legacy Assignments
+            </Button>
+          </CustomTooltip>
           {results?.scan && (
             <span className={`text-sm ${
               results.scan.problemUsers > 0 ? 'text-red-600' : 'text-green-600'
@@ -113,9 +116,11 @@ export default function AssignmentSyncButtons({ userId, onComplete }: Assignment
         {/* Single User Sync */}
         {userId && (
           <div className="flex items-center gap-4">
-            <Button onClick={handleSyncUser} variant="primary">
-              🔧 Fix This User's Assignments
-            </Button>
+            <CustomTooltip text="Fix this user's role assignments">
+              <Button onClick={handleSyncUser} variant="primary">
+                🔧 Fix This User's Assignments
+              </Button>
+            </CustomTooltip>
             {results?.['sync-assignments'] && (
               <span className="text-sm text-green-600">
                 ✅ User assignments synced successfully
@@ -126,9 +131,11 @@ export default function AssignmentSyncButtons({ userId, onComplete }: Assignment
 
         {/* Bulk Fix */}
         <div className="flex items-center gap-4">
-          <Button onClick={handleBulkFix} variant="danger">
-            🚨 Bulk Fix All Users
-          </Button>
+          <CustomTooltip text="Fix all users' role assignments (use carefully)">
+            <Button onClick={handleBulkFix} variant="danger">
+              🚨 Bulk Fix All Users
+            </Button>
+          </CustomTooltip>
           {results?.['bulk-fix'] && (
             <span className="text-sm text-green-600">
               ✅ Fixed {results['bulk-fix'].results?.fixed || 0} users

@@ -43,7 +43,7 @@ export default function TurkusHomePage() {
       title: "Health & Safety",
       icon: <FiShield size={iconSize} />,
       text: "Policies, incidents, and risk assessments.",
-      href: "/turkus/health-safety",
+      href: "/health-safety",
     },
     {
       title: "Issues",

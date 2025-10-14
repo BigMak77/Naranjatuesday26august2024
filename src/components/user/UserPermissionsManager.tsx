@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { PERMISSIONS, PermissionKey } from "@/types/userPermissions";
 import { supabase } from "@/lib/supabase-client";
+import SuccessModal from "@/components/ui/SuccessModal";
+import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
 interface User {
   id: string;
@@ -82,14 +84,16 @@ const UserPermissionsManager: React.FC<UserPermissionsManagerProps> = ({ users: 
                 <span className="neon-switch-text">{perm}</span>
               </label>
             ))}
-            <button
-              className="neon-btn neon-btn-save mt-4"
-              onClick={handleSave}
-              disabled={saving}
-              type="button"
-            >
-              {saving ? "Saving..." : "Save Permissions"}
-            </button>
+            <CustomTooltip text={saving ? "Saving permissions..." : "Save permission changes for this user"}>
+              <button
+                className="neon-btn neon-btn-save mt-4"
+                onClick={handleSave}
+                disabled={saving}
+                type="button"
+              >
+                {saving ? "Saving..." : "Save Permissions"}
+              </button>
+            </CustomTooltip>
           </div>
         )}
       </div>

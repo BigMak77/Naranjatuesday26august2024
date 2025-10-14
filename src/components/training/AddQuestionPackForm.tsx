@@ -1,7 +1,9 @@
+// Custom tooltips added to all buttons
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase-client";
 import OverlayDialog from "@/components/ui/OverlayDialog";
 import NeonPanel from "@/components/NeonPanel";
+import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
 export default function AddQuestionPackForm({ onSuccess }: { onSuccess?: () => void }) {
   const [form, setForm] = useState({
@@ -237,19 +239,25 @@ export default function AddQuestionPackForm({ onSuccess }: { onSuccess?: () => v
                 required={idx === 0 && selectedExisting.length === 0}
               />
               {questions.length > 1 && (
-                <button type="button" className="neon-btn neon-btn-icon neon-btn-danger" onClick={() => removeQuestionField(idx)}>
-                  <span className="neonicon-cancel" />
-                </button>
+                <CustomTooltip text="Remove this question field">
+                  <button type="button" className="neon-btn neon-btn-icon neon-btn-danger" onClick={() => removeQuestionField(idx)}>
+                    <span className="neonicon-cancel" />
+                  </button>
+                </CustomTooltip>
               )}
             </div>
           ))}
-          <button type="button" className="neon-btn neon-btn-icon neon-btn-primary" onClick={addQuestionField}>
-            <span className="neonicon-plus" /> Add Question
-          </button>
+          <CustomTooltip text="Add another question input field">
+            <button type="button" className="neon-btn neon-btn-icon neon-btn-primary" onClick={addQuestionField}>
+              <span className="neonicon-plus" /> Add Question
+            </button>
+          </CustomTooltip>
         </div>
-        <button className="neon-btn neon-btn-next" type="submit" disabled={loading}>
-          {loading ? "Adding…" : createdPackId ? "Add More from Category" : "Add Pack"}
-        </button>
+        <CustomTooltip text={loading ? "Creating question pack..." : createdPackId ? "Add questions from another category" : "Create the question pack"}>
+          <button className="neon-btn neon-btn-next" type="submit" disabled={loading}>
+            {loading ? "Adding…" : createdPackId ? "Add More from Category" : "Add Pack"}
+          </button>
+        </CustomTooltip>
       </form>
       {/* Add More Modal */}
       {showAddMore && (
@@ -258,8 +266,12 @@ export default function AddQuestionPackForm({ onSuccess }: { onSuccess?: () => v
             <h2 id="add-more-title">Add More Questions?</h2>
             <p>Would you like to add questions from another category to this pack?</p>
             <div style={{ display: 'flex', gap: 16, marginTop: 24 }}>
-              <button className="neon-btn neon-btn-primary" onClick={handleAddAnotherCategory}>Yes, add from another category</button>
-              <button className="neon-btn neon-btn-secondary" onClick={handleFinish}>No, finish</button>
+              <CustomTooltip text="Add questions from another category to this pack">
+                <button className="neon-btn neon-btn-primary" onClick={handleAddAnotherCategory}>Yes, add from another category</button>
+              </CustomTooltip>
+              <CustomTooltip text="Finish creating this question pack">
+                <button className="neon-btn neon-btn-secondary" onClick={handleFinish}>No, finish</button>
+              </CustomTooltip>
             </div>
           </NeonPanel>
         </OverlayDialog>
@@ -270,9 +282,11 @@ export default function AddQuestionPackForm({ onSuccess }: { onSuccess?: () => v
           <NeonPanel>
             <h2 id="success-title">Pack added!</h2>
             <div className="training-card training-badgePass">Question pack created successfully.</div>
-            <button className="neon-btn neon-btn-secondary mt-4" style={{ marginTop: "1rem" }} onClick={() => setSuccess(false)}>
-              Close
-            </button>
+            <CustomTooltip text="Close success message">
+              <button className="neon-btn neon-btn-secondary mt-4" style={{ marginTop: "1rem" }} onClick={() => setSuccess(false)}>
+                Close
+              </button>
+            </CustomTooltip>
           </NeonPanel>
         </OverlayDialog>
       )}

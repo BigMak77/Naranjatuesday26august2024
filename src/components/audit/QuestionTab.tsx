@@ -1,4 +1,5 @@
 // components/QuestionTab.tsx
+// Custom tooltip added to Add Question button
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
@@ -7,6 +8,7 @@ import QuestionEditor from "./QuestionEditor";
 import type { Question, Department } from "@/types";
 import NeonIconButton from "@/components/ui/NeonIconButton";
 import { FiPlus } from "react-icons/fi";
+import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
 export default function QuestionTab() {
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -174,7 +176,9 @@ export default function QuestionTab() {
         addQuestion={addQuestion}
         bulkAddQuestions={bulkAddQuestions}
       />
-      <NeonIconButton variant="add" icon={<FiPlus />} title="Add Question" onClick={addQuestion} className="neon-add-btn" />
+      <CustomTooltip text="Add a new audit question">
+        <NeonIconButton variant="add" icon={<FiPlus />} title="Add Question" onClick={addQuestion} className="neon-add-btn" />
+      </CustomTooltip>
     </div>
   );
 }

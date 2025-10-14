@@ -22,10 +22,13 @@ import {
   FiUserCheck,
   FiClock,
 } from "react-icons/fi";
+import { CustomTooltip } from "@/components/ui/CustomTooltip";
 import MainHeader from "@/components/ui/MainHeader";
+
+// Custom tooltip added
 import PeopleAndAccessManagement from "@/components/admin/PeopleAndAccessManagement";
 import TurkusWidget from "@/components/admin/TurkusWidget";
-import HealthAndSafetyWidget from "@/components/admin/HealthAndSafetyWidget";
+import HealthAndSafetyWidget from "@/components/healthsafety/HealthAndSafetyWidget";
 import DocumentsModulesResourcesWidget from "@/components/admin/DocumentsModulesResourcesWidget";
 
 /*********************************
@@ -83,16 +86,19 @@ function FeatureCard({
         <div className="neon-feature-card-children" aria-label={`${title} actions`}>
           {/* Use icon-only square buttons to respect your .neon-btn sizing */}
           {actions.map((a, i) => (
-            <Link
+            <CustomTooltip 
               key={`${title}-action-${i}`}
-              href={a.href}
-              className="neon-btn-square"
-              aria-label={a.ariaLabel || (typeof a.label === "string" ? a.label : undefined)}
-              title={a.ariaLabel || (typeof a.label === "string" ? a.label : undefined)}
+              text={a.ariaLabel || (typeof a.label === "string" ? a.label : "Action")}
             >
-              {/* Only render the leading icon to avoid clipped text inside 40x40 */}
-              {leadingIcon(a.label)}
-            </Link>
+              <Link
+                href={a.href}
+                className="neon-btn-square"
+                aria-label={a.ariaLabel || (typeof a.label === "string" ? a.label : undefined)}
+              >
+                {/* Only render the leading icon to avoid clipped text inside 40x40 */}
+                {leadingIcon(a.label)}
+              </Link>
+            </CustomTooltip>
           ))}
         </div>
       )}

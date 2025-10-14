@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase-client";
 import Papa from "papaparse";
 import OverlayDialog from "../ui/OverlayDialog";
 import NeonIconButton from "../ui/NeonIconButton";
+import { CustomTooltip } from "../ui/CustomTooltip";
 
 const AVAILABLE_COLUMNS = [
   "first_name",
@@ -153,11 +154,12 @@ const UserCSVImport: React.FC<UserCSVImportProps> = ({ onImport, onError }) => {
 
   return (
     <>
-      <NeonIconButton
-        variant="upload"
-        title="Upload Users CSV"
-        onClick={() => setModalOpen(true)}
-      />
+      <CustomTooltip text="Import users from CSV file">
+        <NeonIconButton
+          variant="upload"
+          onClick={() => setModalOpen(true)}
+        />
+      </CustomTooltip>
       <OverlayDialog open={modalOpen} onClose={() => setModalOpen(false)}>
         <div>
           <div style={{ marginBottom: 16 }}>
@@ -166,7 +168,9 @@ const UserCSVImport: React.FC<UserCSVImportProps> = ({ onImport, onError }) => {
           {step === 1 && (
             <div>
               <input type="file" accept=".csv" onChange={handleFileChange} />
-              <button onClick={handleParse} disabled={!csvFile}>Preview</button>
+              <CustomTooltip text="Preview CSV data before importing">
+                <button onClick={handleParse} disabled={!csvFile}>Preview</button>
+              </CustomTooltip>
             </div>
           )}
           {step === 2 && (
@@ -192,8 +196,12 @@ const UserCSVImport: React.FC<UserCSVImportProps> = ({ onImport, onError }) => {
                   </tbody>
                 </table>
               </div>
-              <button onClick={handleNextToColumns} style={{ marginTop: 16 }}>Next: Select Columns</button>
-              <button onClick={() => setStep(1)} style={{ marginLeft: 8 }}>Back</button>
+              <CustomTooltip text="Proceed to column selection">
+                <button onClick={handleNextToColumns} style={{ marginTop: 16 }}>Next: Select Columns</button>
+              </CustomTooltip>
+              <CustomTooltip text="Go back to file selection">
+                <button onClick={() => setStep(1)} style={{ marginLeft: 8 }}>Back</button>
+              </CustomTooltip>
             </div>
           )}
           {step === 3 && (
@@ -211,16 +219,22 @@ const UserCSVImport: React.FC<UserCSVImportProps> = ({ onImport, onError }) => {
                   </label>
                 ))}
               </div>
-              <button onClick={handleUpload} disabled={uploading || selectedColumns.length === 0}>
-                {uploading ? "Uploading..." : "Confirm & Upload"}
-              </button>
-              <button onClick={() => setStep(2)} style={{ marginLeft: 8 }}>Back</button>
+              <CustomTooltip text={uploading ? "Uploading users to database..." : "Confirm and upload selected data"}>
+                <button onClick={handleUpload} disabled={uploading || selectedColumns.length === 0}>
+                  {uploading ? "Uploading..." : "Confirm & Upload"}
+                </button>
+              </CustomTooltip>
+              <CustomTooltip text="Go back to preview">
+                <button onClick={() => setStep(2)} style={{ marginLeft: 8 }}>Back</button>
+              </CustomTooltip>
             </div>
           )}
           {step === 4 && (
             <div>
               {success && <div style={{ color: "green" }}>{success}</div>}
-              <button onClick={() => { setStep(1); setCsvFile(null); setParsedUsers([]); setSuccess(null); setSelectedColumns(AVAILABLE_COLUMNS); }}>Import Another</button>
+              <CustomTooltip text="Import another CSV file">
+                <button onClick={() => { setStep(1); setCsvFile(null); setParsedUsers([]); setSuccess(null); setSelectedColumns(AVAILABLE_COLUMNS); }}>Import Another</button>
+              </CustomTooltip>
             </div>
           )}
           {error && <div style={{ color: "red" }}>{error}</div>}

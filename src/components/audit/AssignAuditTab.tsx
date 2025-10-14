@@ -1,4 +1,5 @@
 // components/AssignAuditTab.tsx
+// Custom tooltip added to Cancel button
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -6,6 +7,7 @@ import { supabase } from "@/lib/supabase-client";
 import NeonForm from "@/components/NeonForm";
 import OverlayDialog from "@/components/ui/OverlayDialog";
 import NeonIconButton from "@/components/ui/NeonIconButton";
+import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
 type AuditTemplate = {
   id: string;
@@ -288,12 +290,14 @@ export default function AssignAuditTab() {
               {userLabel(u)}
             </label>
           ))}
-          <NeonIconButton
-            variant="cancel"
-            title="Cancel"
-            onClick={() => setShowUserDialog(false)}
-            className="neon-btn-close"
-          />
+          <CustomTooltip text="Cancel user selection and close dialog">
+            <NeonIconButton
+              variant="cancel"
+              title="Cancel"
+              onClick={() => setShowUserDialog(false)}
+              className="neon-btn-close"
+            />
+          </CustomTooltip>
         </OverlayDialog>
 
         {/* Due date */}

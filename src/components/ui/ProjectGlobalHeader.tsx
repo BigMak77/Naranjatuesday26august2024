@@ -154,6 +154,8 @@ export default function GlobalHeader({
       <header
         className="global-header"
         style={{
+          position: "sticky",
+          top: 0,
           width: "100%",
           background: "linear-gradient(118deg in oklab, #05363a 0%, #0a706a 48%, #16cbcf 100%)",
           borderBottom: "6px solid #fa7a20",

@@ -1,10 +1,12 @@
 // components/ViewAuditTab.tsx
+// Custom tooltips added to View and Archive buttons
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import NeonPanel from "@/components/NeonPanel";
 import NeonIconButton from "@/components/ui/NeonIconButton";
+import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
 type TemplateRow = {
   id: string;
@@ -157,27 +159,31 @@ export default function ViewAuditTab() {
                 <td>{tpl.version}</td>
                 <td>{tpl.frequency}</td>
                 <td>
-                  <NeonIconButton
-                    variant="view"
-                    title={expanded === tpl.id ? "Hide Details" : "View Details"}
-                    onClick={() => toggleExpand(tpl.id)}
-                  />
-                  <NeonIconButton
-                    variant="archive"
-                    title="Archive"
-                    onClick={async () => {
-                      const { error } = await supabase
-                        .from("audit_templates")
-                        .update({ archived: "yes" })
-                        .eq("id", tpl.id);
-                      if (error) {
-                        alert("Failed to archive: " + error.message);
-                      } else {
+                  <CustomTooltip text={expanded === tpl.id ? "Hide audit template details" : "View audit template details"}>
+                    <NeonIconButton
+                      variant="view"
+                      title={expanded === tpl.id ? "Hide Details" : "View Details"}
+                      onClick={() => toggleExpand(tpl.id)}
+                    />
+                  </CustomTooltip>
+                  <CustomTooltip text="Archive this audit template">
+                    <NeonIconButton
+                      variant="archive"
+                      title="Archive"
+                      onClick={async () => {
+                        const { error } = await supabase
+                          .from("audit_templates")
+                          .update({ archived: "yes" })
+                          .eq("id", tpl.id);
+                        if (error) {
+                          alert("Failed to archive: " + error.message);
+                        } else {
                         setTemplates((prev) => prev.filter((t) => t.id !== tpl.id));
                         if (expanded === tpl.id) setExpanded(null);
                       }
                     }}
                   />
+                  </CustomTooltip>
                 </td>
               </tr>
             ))}

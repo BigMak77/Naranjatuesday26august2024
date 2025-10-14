@@ -6,6 +6,9 @@ import NeonPanel from "@/components/NeonPanel";
 import { FiArchive, FiPlus } from "react-icons/fi";
 import { supabase } from "@/lib/supabase-client";
 import NeonIconButton from "@/components/ui/NeonIconButton";
+import { CustomTooltip } from "@/components/ui/CustomTooltip";
+
+// Custom tooltip added
 
 export interface Module {
   id: string;
@@ -167,22 +170,26 @@ export default function ArchiveModuleTab({
                       marginTop: "1.25rem",
                     }}
                   >
-                    <button
-                      className="btn-archive neon-btn neon-btn-archive"
-                      onClick={handleArchive}
-                      disabled={loading}
-                      autoFocus
-                    >
-                      <FiArchive />
-                      {/* Icon only, no label */}
-                    </button>
-                    <button
-                      className="neon-btn neon-btn-danger"
-                      onClick={closeDialog}
-                      disabled={loading}
-                    >
-                      {/* Icon only, no label */}
-                    </button>
+                    <CustomTooltip text="Archive this module">
+                      <button
+                        className="btn-archive neon-btn neon-btn-archive"
+                        onClick={handleArchive}
+                        disabled={loading}
+                        autoFocus
+                      >
+                        <FiArchive />
+                        {/* Icon only, no label */}
+                      </button>
+                    </CustomTooltip>
+                    <CustomTooltip text="Cancel">
+                      <button
+                        className="neon-btn neon-btn-danger"
+                        onClick={closeDialog}
+                        disabled={loading}
+                      >
+                        {/* Icon only, no label */}
+                      </button>
+                    </CustomTooltip>
                   </div>
                 </>
               )}

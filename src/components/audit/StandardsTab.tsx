@@ -1,4 +1,5 @@
 // components/audit/StandardsTab.tsx
+// Custom tooltips added to all buttons
 "use client";
 
 import { useEffect, useState } from "react";
@@ -8,6 +9,7 @@ import NeonTable from "@/components/NeonTable";
 import OverlayDialog from '@/components/ui/OverlayDialog';
 import NeonForm from '@/components/NeonForm';
 import NeonIconButton from '@/components/ui/NeonIconButton';
+import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
 // Type for standard_sections row
 interface StandardSection {
@@ -249,15 +251,17 @@ export default function StandardsTab() {
                         render: (_, row) => {
                           const section = row as unknown as StandardSection;
                           return (
-                            <NeonIconButton
-                              variant="edit"
-                              title="Edit section description"
-                              onClick={() => {
-                                setDescEditSection(section);
-                                setDescEditValue(section.description ?? "");
-                                setDescEditError(null);
-                              }}
-                            />
+                            <CustomTooltip text="Edit this section's description">
+                              <NeonIconButton
+                                variant="edit"
+                                title="Edit section description"
+                                onClick={() => {
+                                  setDescEditSection(section);
+                                  setDescEditValue(section.description ?? "");
+                                  setDescEditError(null);
+                                }}
+                              />
+                            </CustomTooltip>
                           );
                         },
                       },
@@ -268,14 +272,16 @@ export default function StandardsTab() {
                         render: (_, row) => {
                           const section = row as unknown as StandardSection;
                           return (
-                            <NeonIconButton
-                              variant="view"
-                              title="Manage questions for this section"
-                              onClick={() => {
-                                setSelectedHeaderId(section.id);
-                                setModalOpen(section.id);
-                              }}
-                            />
+                            <CustomTooltip text="Manage audit questions for this section">
+                              <NeonIconButton
+                                variant="view"
+                                title="Manage questions for this section"
+                                onClick={() => {
+                                  setSelectedHeaderId(section.id);
+                                  setModalOpen(section.id);
+                                }}
+                              />
+                            </CustomTooltip>
                           );
                         },
                       },
@@ -331,12 +337,16 @@ export default function StandardsTab() {
               />
               {descEditError && <div className="neon-error">{descEditError}</div>}
               <div style={{ marginTop: "1rem" }}>
-                <button type="submit" className="neon-btn neon-btn-save" disabled={descEditSaving}>
-                  {descEditSaving ? "Saving…" : "Save"}
-                </button>
-                <button type="button" className="neon-btn neon-btn-secondary" onClick={() => setDescEditSection(null)} disabled={descEditSaving} style={{ marginLeft: 8 }}>
-                  Cancel
-                </button>
+                <CustomTooltip text={descEditSaving ? "Saving description..." : "Save the section description"}>
+                  <button type="submit" className="neon-btn neon-btn-save" disabled={descEditSaving}>
+                    {descEditSaving ? "Saving…" : "Save"}
+                  </button>
+                </CustomTooltip>
+                <CustomTooltip text="Cancel editing and close dialog">
+                  <button type="button" className="neon-btn neon-btn-secondary" onClick={() => setDescEditSection(null)} disabled={descEditSaving} style={{ marginLeft: 8 }}>
+                    Cancel
+                  </button>
+                </CustomTooltip>
               </div>
             </form>
           </div>
@@ -360,16 +370,20 @@ export default function StandardsTab() {
                     style={{ flex: 1 }}
                   />
                   {idx === questions.length - 1 && (
-                    <NeonIconButton
-                      variant="add"
-                      title="Add another question"
-                      onClick={handleAddQuestionInput}
-                      style={{ marginLeft: 8 }}
-                    />
+                    <CustomTooltip text="Add another question input field">
+                      <NeonIconButton
+                        variant="add"
+                        title="Add another question"
+                        onClick={handleAddQuestionInput}
+                        style={{ marginLeft: 8 }}
+                      />
+                    </CustomTooltip>
                   )}
                 </div>
               ))}
-              <button type="submit" className="neon-btn neon-btn-save" style={{ marginTop: 8 }}>Add Questions</button>
+              <CustomTooltip text="Add all questions to this section">
+                <button type="submit" className="neon-btn neon-btn-save" style={{ marginTop: 8 }}>Add Questions</button>
+              </CustomTooltip>
             </form>
             <hr style={{ margin: "1rem 0" }} />
             <label className="neon-label">Existing Questions</label>
@@ -388,14 +402,18 @@ export default function StandardsTab() {
                     />
                   </div>
                 ))}
-                <button type="submit" className="neon-btn neon-btn-save" style={{ marginTop: 8 }}>Save Changes</button>
+                <CustomTooltip text="Save changes to existing questions">
+                  <button type="submit" className="neon-btn neon-btn-save" style={{ marginTop: 8 }}>Save Changes</button>
+                </CustomTooltip>
               </form>
             )}
             {formError && <div className="neon-error" style={{ marginTop: 8 }}>{formError}</div>}
             <div style={{ marginTop: "1rem" }}>
-              <button type="button" className="neon-btn neon-btn-secondary" onClick={() => setModalOpen(null)}>
-                Close
-              </button>
+              <CustomTooltip text="Close questions management dialog">
+                <button type="button" className="neon-btn neon-btn-secondary" onClick={() => setModalOpen(null)}>
+                  Close
+                </button>
+              </CustomTooltip>
             </div>
           </div>
         </OverlayDialog>

@@ -1,3 +1,4 @@
+// Custom tooltips added to all buttons for faster, more responsive tooltips
 "use client";
 
 import { useEffect, useState, useRef } from "react";
@@ -28,6 +29,7 @@ import UserPermissionsManager from "@/components/user/UserPermissionsManager";
 import { PERMISSIONS, PermissionKey } from "@/types/userPermissions";
 import SuccessModal from "../ui/SuccessModal";
 import UserCSVImport from "./UserCSVImport";
+import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
 interface User {
   id: string;
@@ -676,38 +678,42 @@ export default function UserManagementPanel() {
             </div>
             <div className="neon-table-toolbar-actions" style={{ flex: "1 1 0", minWidth: 0, maxWidth: "33.33%", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.75rem", height: "100%" }}>
               {/* ...action buttons... */}
-              <NeonIconButton
-                variant="add"
-                icon={<FiUserPlus />}
-                title="Add User"
-                onClick={(e: any) => {
-                  handleOpenDialog(
-                    {
-                      id: "",
-                      email: "",
-                      first_name: "",
-                      last_name: "",
-                      department_id: "",
-                      role_id: "",
-                      access_level: "User",
-                      phone: "",
-                      nationality: "",
-                      is_first_aid: false,
-                      is_trainer: false,
-                      start_date: "",
-                      receive_notifications: false
-                    },
-                    true,
-                    (e?.currentTarget as HTMLElement) ?? null
-                  );
-                }}
-              />
-              <NeonIconButton
-                icon={<FiDownload />}
-                title="Download Users CSV"
-                variant="download"
-                onClick={handleExportUsers}
-              />
+              <CustomTooltip text="Add new user to the system">
+                <NeonIconButton
+                  variant="add"
+                  icon={<FiUserPlus />}
+                  title="Add User"
+                  onClick={(e: any) => {
+                    handleOpenDialog(
+                      {
+                        id: "",
+                        email: "",
+                        first_name: "",
+                        last_name: "",
+                        department_id: "",
+                        role_id: "",
+                        access_level: "User",
+                        phone: "",
+                        nationality: "",
+                        is_first_aid: false,
+                        is_trainer: false,
+                        start_date: "",
+                        receive_notifications: false
+                      },
+                      true,
+                      (e?.currentTarget as HTMLElement) ?? null
+                    );
+                  }}
+                />
+              </CustomTooltip>
+              <CustomTooltip text="Export all users data to CSV file">
+                <NeonIconButton
+                  icon={<FiDownload />}
+                  title="Download Users CSV"
+                  variant="download"
+                  onClick={handleExportUsers}
+                />
+              </CustomTooltip>
               {/* Upload button removed as requested */}
               <input
                 type="file"
@@ -746,30 +752,34 @@ export default function UserManagementPanel() {
                 }}
                 onError={setErrorMsg}
               />
-              <NeonIconButton
-                icon={<FiUserX />}
-                title={showLeavers ? "Hide Leavers" : "Show Leavers"}
-                variant={showLeavers ? "archive" : "edit"}
-                className="neon-btn-leavers"
-                onClick={() => setShowLeavers((prev) => !prev)}
-              />
-              <NeonIconButton
-                icon={<FiEdit />}
-                title="Bulk Assign"
-                variant="edit"
-                onClick={() => {
-                  setShowBulkSelectColumn(true); // Show select column for user selection
-                  setBulkAssignOpen(false); // Modal should not open yet
-                  setBulkAssignStep(1); // Start at select users step
-                  setBulkAssignType("");
-                  setBulkDeptId("");
-                  setBulkRoleId("");
-                  setBulkShiftId("");
-                  setBulkFirstAid(false);
-                  setBulkTrainer(false);
-                  setBulkSelectedUserIds([]);
-                }}
-              />
+              <CustomTooltip text={showLeavers ? "Hide employees who have left" : "Show employees who have left"}>
+                <NeonIconButton
+                  icon={<FiUserX />}
+                  title={showLeavers ? "Hide Leavers" : "Show Leavers"}
+                  variant={showLeavers ? "archive" : "edit"}
+                  className="neon-btn-leavers"
+                  onClick={() => setShowLeavers((prev) => !prev)}
+                />
+              </CustomTooltip>
+              <CustomTooltip text="Assign roles, shifts, or permissions to multiple users at once">
+                <NeonIconButton
+                  icon={<FiEdit />}
+                  title="Bulk Assign"
+                  variant="edit"
+                  onClick={() => {
+                    setShowBulkSelectColumn(true); // Show select column for user selection
+                    setBulkAssignOpen(false); // Modal should not open yet
+                    setBulkAssignStep(1); // Start at select users step
+                    setBulkAssignType("");
+                    setBulkDeptId("");
+                    setBulkRoleId("");
+                    setBulkShiftId("");
+                    setBulkFirstAid(false);
+                    setBulkTrainer(false);
+                    setBulkSelectedUserIds([]);
+                  }}
+                />
+              </CustomTooltip>
             </div>
             <div className="neon-table-toolbar-pagination" style={{ flex: "1 1 0", minWidth: 0, maxWidth: "33.33%", display: "flex", alignItems: "center", justifyContent: "flex-end", height: "100%" }}>
               <label htmlFor="rows-per-page-select" className="neon-label" style={{ display: "inline-block", verticalAlign: "middle", minWidth: 22, textAlign: "right", margin: 0, padding: 0 }}>Rows:</label>
@@ -785,22 +795,26 @@ export default function UserManagementPanel() {
                   <option key={size} value={size}>{size}</option>
                 ))}
               </select>
-              <NeonIconButton
-                icon={<FiChevronLeft />}
-                title="Previous Page"
-                variant="back"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                style={{ minWidth: 24, display: "inline-block", verticalAlign: "middle", margin: "0 1px" }}
-              />
-              <NeonIconButton
-                icon={<FiChevronRight />}
-                title="Next Page"
-                variant="next"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                style={{ minWidth: 24, display: "inline-block", verticalAlign: "middle", margin: "0 1px" }}
-              />
+              <CustomTooltip text="Go to previous page">
+                <NeonIconButton
+                  icon={<FiChevronLeft />}
+                  title="Previous Page"
+                  variant="back"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  style={{ minWidth: 24, display: "inline-block", verticalAlign: "middle", margin: "0 1px" }}
+                />
+              </CustomTooltip>
+              <CustomTooltip text="Go to next page">
+                <NeonIconButton
+                  icon={<FiChevronRight />}
+                  title="Next Page"
+                  variant="next"
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  style={{ minWidth: 24, display: "inline-block", verticalAlign: "middle", margin: "0 1px" }}
+                />
+              </CustomTooltip>
               <span className="neon-label" style={{ marginLeft: 4, verticalAlign: "middle", display: "inline-block" }}>
                 {currentPage} / {totalPages}
               </span>
@@ -834,19 +848,21 @@ export default function UserManagementPanel() {
                 className="neon-label neon-bulk-assign-message"
               >
                 <span>Please select users for the bulk assign</span>
-                <button
-                  className="neon-btn neon-btn-primary"
-                  disabled={bulkSelectedUserIds.length === 0}
-                  style={{ marginTop: "0.5rem", width: 160 }}
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevent click-away from firing
-                    setBulkAssignOpen(true); // Now open modal
-                    setShowBulkSelectColumn(false); // Hide select column
-                    setBulkAssignStep(2); // Go to config step
-                  }}
-                >
-                  Next
-                </button>
+                <CustomTooltip text="Proceed to configure bulk assignments for selected users">
+                  <button
+                    className="neon-btn neon-btn-primary"
+                    disabled={bulkSelectedUserIds.length === 0}
+                    style={{ marginTop: "0.5rem", width: 160 }}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent click-away from firing
+                      setBulkAssignOpen(true); // Now open modal
+                      setShowBulkSelectColumn(false); // Hide select column
+                      setBulkAssignStep(2); // Go to config step
+                    }}
+                  >
+                    Next
+                  </button>
+                </CustomTooltip>
               </div>
             )}
             <div id="bulk-select-table" style={{ width: "100%" }}>
@@ -911,14 +927,16 @@ export default function UserManagementPanel() {
                       <FiX className="neon-table-icon" color="#ea1c1c" size={18} style={{ verticalAlign: "middle" }} />
                     ),
                     actions: (
-                      <NeonIconButton
-                        icon={<FiEdit />}
-                        title="Edit User"
-                        variant="edit"
-                        onClick={(e: any) => {
-                          handleOpenDialog(user, false, (e?.currentTarget as HTMLElement) ?? null);
-                        }}
-                      />
+                      <CustomTooltip text="Edit this user's details">
+                        <NeonIconButton
+                          icon={<FiEdit />}
+                          title="Edit User"
+                          variant="edit"
+                          onClick={(e: any) => {
+                            handleOpenDialog(user, false, (e?.currentTarget as HTMLElement) ?? null);
+                          }}
+                        />
+                      </CustomTooltip>
                     )
                   };
                 })}
@@ -929,17 +947,19 @@ export default function UserManagementPanel() {
           {/* Show Next button below table when selecting users for bulk assign */}
           {showBulkSelectColumn && !bulkAssignOpen && (
             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "1rem" }}>
-              <button
-                className="neon-btn neon-btn-primary"
-                disabled={bulkSelectedUserIds.length === 0}
-                onClick={() => {
-                  setBulkAssignOpen(true);
-                  setShowBulkSelectColumn(false); // Hide select column when modal opens
-                  setBulkAssignStep(2); // Start at config step
-                }}
-              >
-                Next
-              </button>
+              <CustomTooltip text="Proceed to configure bulk assignments for selected users">
+                <button
+                  className="neon-btn neon-btn-primary"
+                  disabled={bulkSelectedUserIds.length === 0}
+                  onClick={() => {
+                    setBulkAssignOpen(true);
+                    setShowBulkSelectColumn(false); // Hide select column when modal opens
+                    setBulkAssignStep(2); // Start at config step
+                  }}
+                >
+                  Next
+                </button>
+              </CustomTooltip>
             </div>
           )}
 
@@ -1349,42 +1369,50 @@ export default function UserManagementPanel() {
             >
               {/* Register as Leaver button, only if not already a leaver */}
               {!selectedUser?.is_leaver && (
-                <NeonIconButton
-                  variant="archive"
-                  icon={<FiArchive />}
-                  title="Register as Leaver"
-                  onClick={() => {
-                    setSelectedUser({
-                      ...selectedUser!,
-                      is_leaver: true,
-                      leaver_date: new Date().toISOString().slice(0, 10)
-                    });
-                  }}
-                />
+                <CustomTooltip text="Mark this user as having left the company">
+                  <NeonIconButton
+                    variant="archive"
+                    icon={<FiArchive />}
+                    title="Register as Leaver"
+                    onClick={() => {
+                      setSelectedUser({
+                        ...selectedUser!,
+                        is_leaver: true,
+                        leaver_date: new Date().toISOString().slice(0, 10)
+                      });
+                    }}
+                  />
+                </CustomTooltip>
               )}
               {!isAddMode && selectedUser && (
-                <NeonIconButton
-                  variant="edit"
-                  icon={<FiKey />}
-                  title="Manage Permissions"
-                  onClick={() => handleOpenPermissions(selectedUser)}
-                />
+                <CustomTooltip text="Manage user's system permissions and access levels">
+                  <NeonIconButton
+                    variant="edit"
+                    icon={<FiKey />}
+                    title="Manage Permissions"
+                    onClick={() => handleOpenPermissions(selectedUser)}
+                  />
+                </CustomTooltip>
               )}
-              <NeonIconButton
-                variant="save"
-                icon={saving ? <span className="neon-spinner" style={{ marginRight: 8 }} /> : <FiSave />}
-                title={saving ? "Saving..." : "Save Changes"}
-                onClick={handleSave}
-                disabled={saving}
-              />
-              <NeonIconButton
-                variant="close"
-                icon={<FiX />}
-                title="Cancel"
-                type="button"
-                onClick={handleCloseDialog}
-                className="neon-btn-close"
-              />
+              <CustomTooltip text={saving ? "Saving user changes..." : "Save all changes to this user"}>
+                <NeonIconButton
+                  variant="save"
+                  icon={saving ? <span className="neon-spinner" style={{ marginRight: 8 }} /> : <FiSave />}
+                  title={saving ? "Saving..." : "Save Changes"}
+                  onClick={handleSave}
+                  disabled={saving}
+                />
+              </CustomTooltip>
+              <CustomTooltip text="Cancel changes and close dialog">
+                <NeonIconButton
+                  variant="close"
+                  icon={<FiX />}
+                  title="Cancel"
+                  type="button"
+                  onClick={handleCloseDialog}
+                  className="neon-btn-close"
+                />
+              </CustomTooltip>
             </div>
           </OverlayDialog>
 
@@ -1424,23 +1452,33 @@ export default function UserManagementPanel() {
                     What would you like to bulk assign?
                   </div>
                   <div style={{ display: "flex", gap: "1rem" }}>
-                    <button className="neon-btn" onClick={() => { setBulkAssignType("role"); setBulkAssignStep(3); }}>
-                      Department/Role
-                    </button>
-                    <button className="neon-btn" onClick={() => { setBulkAssignType("shift"); setBulkAssignStep(3); }}>
-                      Shift
-                    </button>
-                    <button className="neon-btn" onClick={() => { setBulkAssignType("first_aid"); setBulkAssignStep(3); }}>
-                      First Aid
-                    </button>
-                    <button className="neon-btn" onClick={() => { setBulkAssignType("trainer"); setBulkAssignStep(3); }}>
-                      Trainer
-                    </button>
+                    <CustomTooltip text="Assign department and role to selected users">
+                      <button className="neon-btn" onClick={() => { setBulkAssignType("role"); setBulkAssignStep(3); }}>
+                        Department/Role
+                      </button>
+                    </CustomTooltip>
+                    <CustomTooltip text="Assign shift pattern to selected users">
+                      <button className="neon-btn" onClick={() => { setBulkAssignType("shift"); setBulkAssignStep(3); }}>
+                        Shift
+                      </button>
+                    </CustomTooltip>
+                    <CustomTooltip text="Set first aid status for selected users">
+                      <button className="neon-btn" onClick={() => { setBulkAssignType("first_aid"); setBulkAssignStep(3); }}>
+                        First Aid
+                      </button>
+                    </CustomTooltip>
+                    <CustomTooltip text="Set trainer status for selected users">
+                      <button className="neon-btn" onClick={() => { setBulkAssignType("trainer"); setBulkAssignStep(3); }}>
+                        Trainer
+                      </button>
+                    </CustomTooltip>
                   </div>
                   <div className="neon-panel-actions" style={{ display: "flex", gap: "1rem", justifyContent: "flex-end", marginTop: "2rem" }}>
-                    <button className="neon-btn" onClick={handleBulkAssignCancel}>
-                      Cancel
-                    </button>
+                    <CustomTooltip text="Cancel bulk assignment and close dialog">
+                      <button className="neon-btn" onClick={handleBulkAssignCancel}>
+                        Cancel
+                      </button>
+                    </CustomTooltip>
                   </div>
                 </div>
               )}
@@ -1575,16 +1613,20 @@ export default function UserManagementPanel() {
                     </div>
                   )}
                   <div className="neon-panel-actions" style={{ display: "flex", gap: "1rem", justifyContent: "flex-end", marginTop: "2rem" }}>
-                    <button className="neon-btn" onClick={() => setBulkAssignStep(2)}>
-                      Back
-                    </button>
-                    <button
-                      className="neon-btn neon-btn-primary"
-                      onClick={() => setBulkAssignStep(4)}
-                      disabled={(bulkAssignType === "role" && (!bulkDeptId || !bulkRoleId)) || (bulkAssignType === "shift" && !bulkShiftId)}
-                    >
-                      Next
-                    </button>
+                    <CustomTooltip text="Go back to assignment type selection">
+                      <button className="neon-btn" onClick={() => setBulkAssignStep(2)}>
+                        Back
+                      </button>
+                    </CustomTooltip>
+                    <CustomTooltip text="Proceed to confirmation screen">
+                      <button
+                        className="neon-btn neon-btn-primary"
+                        onClick={() => setBulkAssignStep(4)}
+                        disabled={(bulkAssignType === "role" && (!bulkDeptId || !bulkRoleId)) || (bulkAssignType === "shift" && !bulkShiftId)}
+                      >
+                        Next
+                      </button>
+                    </CustomTooltip>
                   </div>
                 </div>
               )}
@@ -1623,13 +1665,15 @@ export default function UserManagementPanel() {
                     )}
                   </div>
                   <div className="neon-panel-actions" style={{ display: "flex", gap: "1rem", justifyContent: "flex-end", marginTop: "2rem" }}>
-                    <NeonIconButton
-                      variant="save"
-                      icon={bulkAssignLoading ? <span className="neon-spinner" style={{ marginRight: 8 }} /> : <FiSave />}
-                      title={bulkAssignLoading ? "Assigning..." : "Confirm & Assign"}
-                      onClick={handleBulkAssignConfirm}
-                      disabled={bulkAssignLoading}
-                    />
+                    <CustomTooltip text={bulkAssignLoading ? "Processing bulk assignments..." : "Apply these assignments to all selected users"}>
+                      <NeonIconButton
+                        variant="save"
+                        icon={bulkAssignLoading ? <span className="neon-spinner" style={{ marginRight: 8 }} /> : <FiSave />}
+                        title={bulkAssignLoading ? "Assigning..." : "Confirm & Assign"}
+                        onClick={handleBulkAssignConfirm}
+                        disabled={bulkAssignLoading}
+                      />
+                    </CustomTooltip>
                   </div>
                 </div>
               )}

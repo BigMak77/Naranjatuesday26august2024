@@ -1,3 +1,4 @@
+// Custom tooltips added to all buttons
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -18,6 +19,7 @@ import { ViewModuleTab } from "@/components/modules/ViewModuleTab";
 import AssignModuleTab from "@/components/modules/AssignModuleTab";
 import NeonIconButton from "@/components/ui/NeonIconButton";
 import MainHeader from "../ui/MainHeader";
+import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
 import "@/components/folder-tabs-equal-width.css";
 
@@ -155,14 +157,16 @@ export default function TrainingModuleManager() {
               ...m,
               status: m.is_archived ? "Archived" : "Active",
               actions: (
-                <NeonIconButton
-                  variant="edit"
-                  icon={<FiEdit />}
-                  title="Edit Module"
-                  onClick={() =>
-                    (window.location.href = `/admin/modules/edit/${m.id}`)
-                  }
-                />
+                <CustomTooltip text="Edit this training module">
+                  <NeonIconButton
+                    variant="edit"
+                    icon={<FiEdit />}
+                    title="Edit Module"
+                    onClick={() =>
+                      (window.location.href = `/admin/modules/edit/${m.id}`)
+                    }
+                  />
+                </CustomTooltip>
               ),
             }))}
           />
@@ -199,12 +203,14 @@ export default function TrainingModuleManager() {
               .map((m) => ({
                 ...m,
                 archive: (
-                  <NeonIconButton
-                    variant="archive"
-                    icon={<FiArchive />}
-                    title="Archive Module"
-                    onClick={() => setSelectedModule(m)}
-                  />
+                  <CustomTooltip text="Archive this training module">
+                    <NeonIconButton
+                      variant="archive"
+                      icon={<FiArchive />}
+                      title="Archive Module"
+                      onClick={() => setSelectedModule(m)}
+                    />
+                  </CustomTooltip>
                 ),
               }))}
           />
@@ -221,40 +227,44 @@ export default function TrainingModuleManager() {
                 ? This action cannot be undone.
               </p>
               <div style={{ display: "flex", gap: 12 }}>
-                <NeonIconButton
-                  variant="archive"
-                  icon={
-                    <FiArchive />
-                  }
-                  title="Archive"
-                  onClick={async () => {
-                    setArchiveLoading(true);
-                    await supabase
-                      .from("modules")
-                      .update({
-                        is_archived: true,
-                        updated_at: new Date().toISOString(),
-                      })
-                      .eq("id", selectedModule.id);
-                    setModules((modules) =>
-                      modules.map((mod) =>
-                        mod.id === selectedModule.id
-                          ? { ...mod, is_archived: true }
-                          : mod,
-                      ),
-                    );
-                    setSelectedModule(null);
-                    setArchiveLoading(false);
-                  }}
-                  disabled={archiveLoading}
-                />
-                <NeonIconButton
-                  variant="cancel"
-                  icon={<span style={{ fontSize: "1.2em" }}>✖</span>}
-                  title="Cancel"
-                  onClick={() => setSelectedModule(null)}
-                  disabled={archiveLoading}
-                />
+                <CustomTooltip text={archiveLoading ? "Archiving module..." : "Confirm archive this module"}>
+                  <NeonIconButton
+                    variant="archive"
+                    icon={
+                      <FiArchive />
+                    }
+                    title="Archive"
+                    onClick={async () => {
+                      setArchiveLoading(true);
+                      await supabase
+                        .from("modules")
+                        .update({
+                          is_archived: true,
+                          updated_at: new Date().toISOString(),
+                        })
+                        .eq("id", selectedModule.id);
+                      setModules((modules) =>
+                        modules.map((mod) =>
+                          mod.id === selectedModule.id
+                            ? { ...mod, is_archived: true }
+                            : mod,
+                        ),
+                      );
+                      setSelectedModule(null);
+                      setArchiveLoading(false);
+                    }}
+                    disabled={archiveLoading}
+                  />
+                </CustomTooltip>
+                <CustomTooltip text="Cancel archiving">
+                  <NeonIconButton
+                    variant="cancel"
+                    icon={<span style={{ fontSize: "1.2em" }}>✖</span>}
+                    title="Cancel"
+                    onClick={() => setSelectedModule(null)}
+                    disabled={archiveLoading}
+                  />
+                </CustomTooltip>
               </div>
             </div>
           )}

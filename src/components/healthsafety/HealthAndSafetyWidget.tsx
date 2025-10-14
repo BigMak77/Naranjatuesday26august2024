@@ -4,25 +4,25 @@ import { FiFileText, FiAlertTriangle, FiClipboard, FiFolder } from "react-icons/
 
 const HS_ACTIONS = [
   {
-    href: "/turkus/health-safety/policies",
+    href: "/health-safety",
     label: "View Policies",
     description: "Browse all health & safety policies.",
     icon: <FiFileText />,
   },
   {
-    href: "/turkus/health-safety/assessments",
+    href: "/health-safety",
     label: "Risk Assessments",
     description: "View and manage risk assessments.",
     icon: <FiClipboard />,
   },
   {
-    href: "/turkus/health-safety/incidents",
+    href: "/health-safety",
     label: "Report Incident",
     description: "Report a new health & safety incident.",
     icon: <FiAlertTriangle />,
   },
   {
-    href: "/turkus/health-safety/resources",
+    href: "/health-safety",
     label: "Resources",
     description: "Access health & safety resources.",
     icon: <FiFolder />,
@@ -39,7 +39,7 @@ const HealthAndSafetyWidget: React.FC = () => {
         </p>
         <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
           {HS_ACTIONS.map((action) => (
-            <li key={action.href} style={{ display: "flex", alignItems: "center", gap: "1.25rem", marginBottom: 16 }}>
+            <li key={action.label} style={{ display: "flex", alignItems: "center", gap: "1.25rem", marginBottom: 16 }}>
               <Link href={action.href} className="large-neon-icon-btn" style={{ minWidth: 60, minHeight: 60, justifyContent: "center" }}>
                 {React.cloneElement(action.icon, { style: { width: 40, height: 40, color: "var(--neon)" } })}
               </Link>

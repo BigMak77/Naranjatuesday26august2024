@@ -10,7 +10,7 @@ import { FiChevronUp, FiChevronDown } from "react-icons/fi";
 import AddAuditorWidget from "@/components/audit/AddAuditorWidget";
 import AuditorsListWidget from "@/components/audit/AuditorsListWidget";
 import AddTrainerWidget from "@/components/audit/AddTrainerWidget";
-import AddFirstAidWidget from "@/components/audit/AddFirstAidWidget";
+import AddFirstAidWidget from "@/components/healthsafety/AddFirstAidWidget";
 
 export default function UtilityPage() {
   const [openDocTypes, setOpenDocTypes] = useState(true);

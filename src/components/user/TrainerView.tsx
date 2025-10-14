@@ -30,6 +30,7 @@ import TrainingQuestionsSection from "../training/TrainingQuestionsSection";
 import TrainingQuestionForm from "../training/TrainingQuestionForm";
 import TrainingQuestionCategoriesTable from "../training/TrainingQuestionCategoriesTable";
 import TrainingQuestionCategory from "../training/TrainingQuestionCategory";
+import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
 // ==========================
 // Types
@@ -189,15 +190,16 @@ const SignatureBox = React.memo(function SignatureBox({
     <div className="flex flex-col gap-2">
       <div className="inline-flex items-center gap-2">
         <div className="font-body opacity-80">Draw here</div>
-        <button
-          type="button"
-          onClick={handleClear}
-          disabled={disabled}
-          className="neon-btn neon-btn-danger"
-          title="Clear signature"
-        >
-          Clear
-        </button>
+        <CustomTooltip text="Clear signature">
+          <button
+            type="button"
+            onClick={handleClear}
+            disabled={disabled}
+            className="neon-btn neon-btn-danger neon-btn-global"
+          >
+            Clear
+          </button>
+        </CustomTooltip>
       </div>
 
       <SignaturePad
@@ -512,6 +514,35 @@ export default function TrainerRecordingPage({
           Training
         </h2>
 
+        {/* Training Management Actions */}
+        <div className="flex gap-2 mb-4 flex-wrap">
+          <CustomTooltip text="Manage training materials">
+            <button
+              className="neon-btn neon-btn-primary neon-btn-global"
+              onClick={() => setMaterialsDialogOpen(true)}
+            >
+              <FiArchive className="mr-2" />
+              Training Materials
+            </button>
+          </CustomTooltip>
+          <CustomTooltip text="Manage training questions">
+            <button
+              className="neon-btn neon-btn-secondary neon-btn-global"
+              onClick={() => setSection(section === "questions" ? "log" : "questions")}
+            >
+              Training Questions
+            </button>
+          </CustomTooltip>
+          <CustomTooltip text="Manage question categories">
+            <button
+              className="neon-btn neon-btn-secondary neon-btn-global"
+              onClick={() => setCategoriesDialogOpen(true)}
+            >
+              Question Categories
+            </button>
+          </CustomTooltip>
+        </div>
+
         {/* Controls */}
         <div className="grid gap-3 md:grid-cols-2 mb-4">
           <label className="flex items-center gap-2 rounded-xl bg-[var(--field,#012b2b)] px-3 py-2 neon-panel">
@@ -547,62 +578,66 @@ export default function TrainerRecordingPage({
               accessor: "actions",
               render: (_, row) => (
                 <div className="flex items-center justify-center gap-2">
-                  <button
-                    className="neon-btn neon-btn-utility neon-btn-global"
-                    onClick={() => openLog(row as UserRow)}
-                    title="Log a training session"
-                    aria-label="Log session"
-                    type="button"
-                  >
-                    <FiUserPlus />
-                  </button>
-                  <button
-                    className="neon-btn neon-btn-history neon-btn-utility neon-btn-global"
-                    onClick={() => openHistory(row as UserRow)}
-                    title="View training history"
-                    aria-label="History"
-                    type="button"
-                  >
-                    <FiClock />
-                  </button>
-                  <button
-                    className="neon-btn neon-btn-assign neon-btn-utility neon-btn-global"
-                    onClick={() => onOpenSection?.((row as UserRow).id, "assign")}
-                    title="Assign training"
-                    aria-label="Assign"
-                    type="button"
-                  >
-                    <FiCheckSquare />
-                  </button>
-                  <button
-                    className="neon-btn neon-btn-activity neon-btn-utility neon-btn-global"
-                    onClick={() => {
-                      /* TODO: add handler for activity if needed */
-                    }}
-                    title="Training activity"
-                    aria-label="Activity"
-                    type="button"
-                  >
-                    <FiActivity />
-                  </button>
-                  <button
-                    className="neon-btn neon-btn-cert neon-btn-square neon-btn-utility"
-                    onClick={() => onOpenSection?.((row as UserRow).id, "certs")}
-                    title="Certificates & status"
-                    aria-label="Certs"
-                    type="button"
-                  >
-                    <FiAward />
-                  </button>
-                  <button
-                    className="neon-btn neon-btn-danger neon-btn-utility"
-                    onClick={() => window.open("/raise-issue", "_blank")}
-                    title="Raise an issue"
-                    aria-label="Raise an issue"
-                    type="button"
-                  >
-                    <FiAlertOctagon />
-                  </button>
+                  <CustomTooltip text="Log a training session">
+                    <button
+                      className="neon-btn neon-btn-utility neon-btn-global"
+                      onClick={() => openLog(row as UserRow)}
+                      aria-label="Log session"
+                      type="button"
+                    >
+                      <FiUserPlus />
+                    </button>
+                  </CustomTooltip>
+                  <CustomTooltip text="View training history">
+                    <button
+                      className="neon-btn neon-btn-history neon-btn-utility neon-btn-global"
+                      onClick={() => openHistory(row as UserRow)}
+                      aria-label="History"
+                      type="button"
+                    >
+                      <FiClock />
+                    </button>
+                  </CustomTooltip>
+                  <CustomTooltip text="Assign training">
+                    <button
+                      className="neon-btn neon-btn-assign neon-btn-utility neon-btn-global"
+                      onClick={() => onOpenSection?.((row as UserRow).id, "assign")}
+                      aria-label="Assign"
+                      type="button"
+                    >
+                      <FiCheckSquare />
+                    </button>
+                  </CustomTooltip>
+                  <CustomTooltip text="View training activity">
+                    <button
+                      className="neon-btn neon-btn-activity neon-btn-utility neon-btn-global"
+                      onClick={() => onOpenSection?.((row as UserRow).id, "profile")}
+                      aria-label="Activity"
+                      type="button"
+                    >
+                      <FiActivity />
+                    </button>
+                  </CustomTooltip>
+                  <CustomTooltip text="View certificates & status">
+                    <button
+                      className="neon-btn neon-btn-cert neon-btn-square neon-btn-utility neon-btn-global"
+                      onClick={() => onOpenSection?.((row as UserRow).id, "certs")}
+                      aria-label="Certs"
+                      type="button"
+                    >
+                      <FiAward />
+                    </button>
+                  </CustomTooltip>
+                  <CustomTooltip text="Raise an issue">
+                    <button
+                      className="neon-btn neon-btn-danger neon-btn-utility neon-btn-global"
+                      onClick={() => window.open("/raise-issue", "_blank")}
+                      aria-label="Raise an issue"
+                      type="button"
+                    >
+                      <FiAlertOctagon />
+                    </button>
+                  </CustomTooltip>
                 </div>
               ),
             },
@@ -796,13 +831,15 @@ export default function TrainerRecordingPage({
                     data={historyLogs}
                   />
                 )}
-                <button
-                  className="neon-btn neon-btn-secondary mt-4"
-                  style={{ marginTop: "1rem" }}
-                  onClick={() => setHistoryFor(null)}
-                >
-                  Close
-                </button>
+                <CustomTooltip text="Close history dialog">
+                  <button
+                    className="neon-btn neon-btn-secondary neon-btn-global mt-4"
+                    style={{ marginTop: "1rem" }}
+                    onClick={() => setHistoryFor(null)}
+                  >
+                    Close
+                  </button>
+                </CustomTooltip>
               </NeonPanel>
             </div>
           </div>
@@ -823,13 +860,15 @@ export default function TrainerRecordingPage({
               <NeonPanel>
                 <h2>Training Categories</h2>
                 <TrainingQuestionCategory />
-                <button
-                  className="neon-btn neon-btn-secondary mt-4"
-                  style={{ marginTop: "1rem" }}
-                  onClick={() => setCategoriesDialogOpen(false)}
-                >
-                  Close
-                </button>
+                <CustomTooltip text="Close categories dialog">
+                  <button
+                    className="neon-btn neon-btn-secondary neon-btn-global mt-4"
+                    style={{ marginTop: "1rem" }}
+                    onClick={() => setCategoriesDialogOpen(false)}
+                  >
+                    Close
+                  </button>
+                </CustomTooltip>
               </NeonPanel>
             </div>
           </div>

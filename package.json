@@ -6,7 +6,7 @@
     "node": ">=18.18 <=20.x"
   },
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3000",
     "build": "next build --no-lint",
     "start": "next start",
     "lint": "next lint",
@@ -27,7 +27,8 @@
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/auth-helpers-react": "^0.5.0",
     "@supabase/ssr": "github:supabase/ssr",
-    "@supabase/supabase-js": "^2.50.4",
+    "@supabase/supabase-js": "^2.75.0",
+    "anthropic": "^0.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "csv-parse": "^6.1.0",

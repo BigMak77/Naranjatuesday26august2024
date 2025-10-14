@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 // Removed unused NeonFeatureCard import
-import RiskAssessmentManager from "@/components/turkus/RiskAssessmentManager";
+import RiskAssessmentManager from "@/components/healthsafety/RiskAssessmentManager";
 import {
   FiClipboard,
   FiAlertCircle,
@@ -12,18 +12,22 @@ import {
 import NeonForm from "@/components/NeonForm";
 import NeonPanel from "@/components/NeonPanel";
 import FolderTabs from "@/components/FolderTabs";
-import HealthSafetyPolicyManager from "@/components/turkus/HealthSafetyPolicyManager";
+import HealthSafetyPolicyManager from "@/components/healthsafety/HealthSafetyPolicyManager";
 // If the file is named 'NeonIconButton.tsx' and located in 'src/components', use:
 import NeonIconButton from "@/components/ui/NeonIconButton";
 // Or, if using absolute imports, ensure the file exists at 'src/components/NeonIconButton.tsx'
 import IncidentFormMinimal from "@/components/safety/IncidentFormMinimal";
 import type { MinimalIncidentForm } from "@/components/safety/IncidentFormMinimal";
 import MainHeader from "@/components/ui/MainHeader";
+import AddFirstAidDialog from "@/components/healthsafety/AddFirstAidDialog";
+import ViewFirstAidersDialog from "@/components/healthsafety/ViewFirstAidersDialog";
 
 export default function HealthSafetyManager() {
   const [activeTab, setActiveTab] = useState<
     "assessments" | "incidents" | "policies" | "firstaid"
   >("assessments");
+  const [showAddFirstAidDialog, setShowAddFirstAidDialog] = useState(false);
+  const [showViewFirstAidersDialog, setShowViewFirstAidersDialog] = useState(false);
 
   useEffect(() => {
     // Simulate fetching policies (replace with supabase or API call)
@@ -69,13 +73,47 @@ export default function HealthSafetyManager() {
           {activeTab === "firstaid" && (
             <NeonPanel>
               <h2 className="neon-form-title">
+                <FiHeart /> First Aid Management
+              </h2>
+
+              <div className="org-chart-header-actions" style={{ marginBottom: '1.5rem' }}>
+                <NeonIconButton
+                  variant="add"
+                  icon={<FiHeart />}
+                  title="Add First Aid Designation"
+                  onClick={() => setShowAddFirstAidDialog(true)}
+                />
                 <NeonIconButton
                   variant="view"
                   icon={<FiHeart />}
-                  title="First Aid"
-                  onClick={() => (window.location.href = "/firstaid/")}
+                  title="View Trained First Aiders"
+                  onClick={() => setShowViewFirstAidersDialog(true)}
                 />
-              </h2>
+                <NeonIconButton
+                  variant="view"
+                  icon={<FiHeart />}
+                  title="View All First Aiders"
+                  onClick={() => (window.location.href = "/health-safety/firstaid")}
+                />
+              </div>
+
+              <p className="neon-info">
+                Designate employees as first aid qualified by completing their training certification process.
+              </p>
+
+              <AddFirstAidDialog
+                open={showAddFirstAidDialog}
+                onClose={() => setShowAddFirstAidDialog(false)}
+                onAdded={() => {
+                  console.log("First aid designation added successfully");
+                  // Optionally refresh data or show success notification
+                }}
+              />
+
+              <ViewFirstAidersDialog
+                open={showViewFirstAidersDialog}
+                onClose={() => setShowViewFirstAidersDialog(false)}
+              />
             </NeonPanel>
           )}
         </main>

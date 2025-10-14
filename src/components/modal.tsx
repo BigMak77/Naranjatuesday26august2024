@@ -3,6 +3,9 @@
 import React, { useEffect, useRef } from "react";
 import { FiPlus } from "react-icons/fi";
 import NeonIconButton from "./ui/NeonIconButton";
+import { CustomTooltip } from "./ui/CustomTooltip";
+
+// Custom tooltip added
 
 type ModalProps = {
   open: boolean;
@@ -122,13 +125,15 @@ export default function Modal({
           ) : (
             <span />
           )}
-          <button
-            className="neon-btn neon-btn-close"
-            aria-label="Close"
-            onClick={onClose}
-          >
-            ×
-          </button>
+          <CustomTooltip text="Close modal">
+            <button
+              className="neon-btn neon-btn-close"
+              aria-label="Close"
+              onClick={onClose}
+            >
+              ×
+            </button>
+          </CustomTooltip>
         </div>
         <div>{children}</div>
         <NeonIconButton variant="add" icon={<FiPlus />} title="Add" />

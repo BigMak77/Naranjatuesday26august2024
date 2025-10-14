@@ -1,7 +1,9 @@
+// Custom tooltip added to Edit Task button
 "use client";
 
 import NeonIconButton from "@/components/ui/NeonIconButton";
 import MainHeader from "@/components/ui/MainHeader";
+import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
 interface TaskItemProps {
   task: {
@@ -27,12 +29,14 @@ export default function TaskItem({ task, onEdit }: TaskItemProps) {
             {task.area} · {task.frequency}
           </p>
         </div>
-        <NeonIconButton
-          variant="edit"
-          title="Amend Task"
-          onClick={() => onEdit(task.id)}
-          className="task-list-item-action"
-        />
+        <CustomTooltip text="Edit this task">
+          <NeonIconButton
+            variant="edit"
+            title="Amend Task"
+            onClick={() => onEdit(task.id)}
+            className="task-list-item-action"
+          />
+        </CustomTooltip>
       </li>
     </>
   );

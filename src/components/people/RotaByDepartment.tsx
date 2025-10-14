@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import NeonPanel from "@/components/NeonPanel";
 import NeonIconButton from "@/components/ui/NeonIconButton";
+import SuccessModal from "@/components/ui/SuccessModal";
+import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
 interface User {
   id: string;
@@ -101,13 +103,14 @@ export default function RotaByDepartment({ departmentId }: { departmentId: strin
                 <option key={d.id} value={d.id}>{d.name}</option>
               ))}
             </select>
-            <NeonIconButton
-              variant="back"
-              title="Back"
-              aria-label="Back"
-              onClick={() => window.location.href = "/reports"}
-              style={{ justifySelf: 'end' }}
-            />
+            <CustomTooltip text="Return to reports page">
+              <NeonIconButton
+                variant="back"
+                aria-label="Back"
+                onClick={() => window.location.href = "/reports"}
+                style={{ justifySelf: 'end' }}
+              />
+            </CustomTooltip>
           </div>
           <h2 className="neon-panel-title" style={{ marginBottom: 16 }}>
             {currentDepartment ? currentDepartment.name : "All Departments"}

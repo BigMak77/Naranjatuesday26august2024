@@ -37,18 +37,47 @@ export default function AddFirstAidWidget({
     setSelectedUsers([]);
     if (!selectedDept) return;
     setLoading(true);
-    supabase
-      .from("users")
-      .select("id, first_name, last_name, is_first_aid")
-      .eq("department_id", selectedDept)
-      .eq("is_archived", false)
-      .eq("is_first_aid", false)
-      .order("first_name", { ascending: true })
-      .then(({ data, error }) => {
+    
+    const fetchEligibleUsers = async () => {
+      try {
+        // Get users in department
+        const { data: deptUsers, error: userError } = await supabase
+          .from("users")
+          .select("id, first_name, last_name, auth_id")
+          .eq("department_id", selectedDept)
+          .eq("is_archived", false)
+          .order("first_name", { ascending: true });
+
+        if (userError) throw userError;
+
+        // Get existing first aid assignments
+        const FIRST_AID_MODULE_ID = "f1236b6b-ee01-4e68-9082-e2380b0fa600";
+        const authIds = deptUsers?.map(u => u.auth_id).filter(Boolean) || [];
+        const { data: assignments, error: assignmentError } = await supabase
+          .from("user_assignments")
+          .select("auth_id")
+          .eq("item_type", "module")
+          .eq("item_id", FIRST_AID_MODULE_ID)
+          .in("auth_id", authIds);
+
+        if (assignmentError) throw assignmentError;
+
+        const assignedAuthIds = new Set(assignments?.map(a => a.auth_id) || []);
+
+        // Filter out users who already have first aid assignments
+        const eligibleUsers = (deptUsers || []).filter(user => 
+          user.auth_id && !assignedAuthIds.has(user.auth_id)
+        );
+
+        setUsers(eligibleUsers);
+      } catch (error: any) {
+        setError("Failed to load users: " + error.message);
+      } finally {
         setLoading(false);
-        if (error) setError("Failed to load users");
-        else setUsers((data || []).filter(u => !u.is_first_aid));
-      });
+      }
+    };
+
+    fetchEligibleUsers();
   }, [selectedDept]);
 
   const handleCheckbox = (userId: string) => {
@@ -68,18 +97,48 @@ export default function AddFirstAidWidget({
       return;
     }
     setLoading(true);
-    const { error: updateError } = await supabase
-      .from("users")
-      .update({ is_first_aid: true })
-      .in("id", selectedUsers);
-    setLoading(false);
-    if (updateError) {
-      setError(updateError.message);
-    } else {
+    
+    try {
+      // Get auth_ids for selected users
+      const { data: usersWithAuth, error: userError } = await supabase
+        .from("users")
+        .select("id, auth_id")
+        .in("id", selectedUsers);
+
+      if (userError) throw userError;
+
+      // Create user assignments for first aid module
+      const FIRST_AID_MODULE_ID = "f1236b6b-ee01-4e68-9082-e2380b0fa600";
+      const assignments = usersWithAuth?.map(user => ({
+        auth_id: user.auth_id,
+        item_id: FIRST_AID_MODULE_ID,
+        item_type: "module" as const
+      })).filter(a => a.auth_id) || [];
+
+      // Add assigned_at and completed_at timestamps to all assignments
+      const completedAssignments = assignments.map(assignment => ({
+        ...assignment,
+        assigned_at: new Date().toISOString(), // When the assignment was made
+        completed_at: new Date().toISOString() // Mark as completed when designated
+      }));
+
+      const { error: assignmentError } = await supabase
+        .from("user_assignments")
+        .upsert(completedAssignments, { 
+          onConflict: "auth_id,item_id,item_type",
+          ignoreDuplicates: true 
+        });
+
+      if (assignmentError) throw assignmentError;
+
       setSuccess(true);
       setSelectedDept("");
       setSelectedUsers([]);
       if (onAdded) onAdded();
+    } catch (error: any) {
+      setError(error.message || "Failed to assign first aid roles");
+    } finally {
+      setLoading(false);
     }
   };
 

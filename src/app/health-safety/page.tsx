@@ -1,7 +1,7 @@
 // This file was moved from /manager/health-safety/page.tsx
 "use client";
 
-import HealthSafetyManager from "@/components/turkus/HealthSafetyManager";
+import HealthSafetyManager from "@/components/healthsafety/HealthSafetyManager";
 import { useEffect } from "react";
 import { supabase } from "@/lib/supabase-client";
 
