@@ -500,6 +500,253 @@ export default function TrainerRecordingPage({
     }
   };
 
+  // ==========================
+  // CSV Export/Import Functions
+  // ==========================
+  const downloadUserAssignmentsCSV = async () => {
+    try {
+      setBusy(true);
+      
+      // Fetch all user assignments with user and module/document details
+      const { data: userAssignments, error } = await supabase
+        .from("user_assignments")
+        .select(`
+          id,
+          auth_id,
+          item_id,
+          item_type,
+          assigned_at,
+          completed_at,
+          created_at
+        `)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching user assignments:", error);
+        alert("Failed to fetch user assignments");
+        return;
+      }
+
+      // Get user details
+      const { data: users, error: usersError } = await supabase
+        .from("users")
+        .select("id, auth_id, first_name, last_name, email, department_id");
+
+      if (usersError) {
+        console.error("Error fetching users:", usersError);
+      }
+
+      // Get modules
+      const { data: modulesList, error: modulesError } = await supabase
+        .from("modules")
+        .select("id, name");
+
+      if (modulesError) {
+        console.error("Error fetching modules:", modulesError);
+      }
+
+      // Get documents
+      const { data: documents, error: documentsError } = await supabase
+        .from("documents")
+        .select("id, title");
+
+      if (documentsError) {
+        console.error("Error fetching documents:", documentsError);
+      }
+
+      // Create lookup maps
+      const userMap = new Map(users?.map(u => [u.auth_id, u]) || []);
+      const moduleMap = new Map(modulesList?.map(m => [m.id, m]) || []);
+      const documentMap = new Map(documents?.map(d => [d.id, d]) || []);
+
+      // Prepare CSV data
+      const csvData = (userAssignments || []).map(assignment => {
+        const user = userMap.get(assignment.auth_id);
+        const userName = user ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : '';
+        const userEmail = user?.email || '';
+        
+        let itemName = '';
+        if (assignment.item_type === 'module') {
+          itemName = moduleMap.get(assignment.item_id)?.name || `Module ${assignment.item_id}`;
+        } else if (assignment.item_type === 'document') {
+          itemName = documentMap.get(assignment.item_id)?.title || `Document ${assignment.item_id}`;
+        }
+
+        return {
+          assignment_id: assignment.id,
+          user_auth_id: assignment.auth_id,
+          user_name: userName,
+          user_email: userEmail,
+          item_type: assignment.item_type,
+          item_id: assignment.item_id,
+          item_name: itemName,
+          assigned_at: assignment.assigned_at ? new Date(assignment.assigned_at).toISOString().split('T')[0] : '',
+          completed_at: assignment.completed_at ? new Date(assignment.completed_at).toISOString().split('T')[0] : '',
+          training_date: '', // Placeholder for manual entry
+          training_evidence: '', // Placeholder for manual entry
+          notes: '' // Placeholder for manual entry
+        };
+      });
+
+      // Convert to CSV
+      if (csvData.length === 0) {
+        alert("No user assignments found to export");
+        return;
+      }
+
+      const headers = Object.keys(csvData[0]);
+      const csvContent = [
+        headers.join(','),
+        ...csvData.map(row => 
+          headers.map(header => {
+            const value = row[header as keyof typeof row];
+            // Escape commas and quotes in CSV
+            return typeof value === 'string' && (value.includes(',') || value.includes('"')) 
+              ? `"${value.replace(/"/g, '""')}"` 
+              : value;
+          }).join(',')
+        )
+      ].join('\n');
+
+      // Download CSV
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `user_assignments_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      alert(`Successfully exported ${csvData.length} user assignments to CSV`);
+
+    } catch (error) {
+      console.error("Error downloading CSV:", error);
+      alert("Failed to download CSV");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleCSVUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'text/csv' && !file.name.endsWith('.csv')) {
+      alert('Please select a CSV file');
+      return;
+    }
+
+    try {
+      setBusy(true);
+      const text = await file.text();
+      const lines = text.split('\n').filter(line => line.trim());
+      
+      if (lines.length < 2) {
+        alert('CSV file appears to be empty or invalid');
+        return;
+      }
+
+      const headers = lines[0].split(',');
+      const dataRows = lines.slice(1);
+
+      // Validate headers
+      const requiredHeaders = ['assignment_id', 'user_auth_id', 'training_date', 'training_evidence'];
+      const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
+      
+      if (missingHeaders.length > 0) {
+        alert(`Missing required headers: ${missingHeaders.join(', ')}`);
+        return;
+      }
+
+      const updates = [];
+      const errors = [];
+
+      for (let i = 0; i < dataRows.length; i++) {
+        const row = dataRows[i].split(',');
+        const rowData: any = {};
+        
+        headers.forEach((header, index) => {
+          rowData[header.trim()] = row[index]?.trim() || '';
+        });
+
+        if (rowData.assignment_id && (rowData.training_date || rowData.training_evidence)) {
+          const updateData: any = {};
+          
+          if (rowData.training_date) {
+            // Validate date format
+            const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+            if (dateRegex.test(rowData.training_date)) {
+              updateData.completed_at = new Date(rowData.training_date + 'T00:00:00Z').toISOString();
+            } else {
+              errors.push(`Row ${i + 2}: Invalid date format "${rowData.training_date}". Use YYYY-MM-DD format.`);
+              continue;
+            }
+          }
+
+          if (rowData.training_evidence) {
+            updateData.training_evidence = rowData.training_evidence;
+          }
+
+          if (rowData.notes) {
+            updateData.notes = rowData.notes;
+          }
+
+          updates.push({
+            id: rowData.assignment_id,
+            ...updateData
+          });
+        }
+      }
+
+      if (errors.length > 0) {
+        alert(`Found ${errors.length} errors:\n${errors.slice(0, 5).join('\n')}${errors.length > 5 ? '\n...' : ''}`);
+        return;
+      }
+
+      if (updates.length === 0) {
+        alert('No valid updates found in CSV file');
+        return;
+      }
+
+      // Process updates in batches
+      const batchSize = 50;
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (let i = 0; i < updates.length; i += batchSize) {
+        const batch = updates.slice(i, i + batchSize);
+        
+        for (const update of batch) {
+          const { id, ...updateData } = update;
+          const { error } = await supabase
+            .from("user_assignments")
+            .update(updateData)
+            .eq("id", id);
+
+          if (error) {
+            console.error(`Error updating assignment ${id}:`, error);
+            errorCount++;
+          } else {
+            successCount++;
+          }
+        }
+      }
+
+      alert(`CSV Import Complete:\n✅ ${successCount} assignments updated\n❌ ${errorCount} errors`);
+
+      // Clear the file input
+      event.target.value = '';
+
+    } catch (error) {
+      console.error("Error processing CSV:", error);
+      alert("Failed to process CSV file");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <div className="after-hero global-content relative">
       <TrainingMaterialsManagerDialog open={materialsDialogOpen} onClose={() => setMaterialsDialogOpen(false)} />
@@ -541,6 +788,31 @@ export default function TrainerRecordingPage({
               Question Categories
             </button>
           </CustomTooltip>
+          <CustomTooltip text="Download user assignments as CSV">
+            <button
+              className="neon-btn neon-btn-utility neon-btn-global"
+              onClick={downloadUserAssignmentsCSV}
+            >
+              <FiArchive className="mr-2" />
+              Export CSV
+            </button>
+          </CustomTooltip>
+          <CustomTooltip text="Upload user assignments CSV">
+            <button
+              className="neon-btn neon-btn-utility neon-btn-global"
+              onClick={() => document.getElementById('csv-upload')?.click()}
+            >
+              <FiUserPlus className="mr-2" />
+              Import CSV
+            </button>
+          </CustomTooltip>
+          <input
+            id="csv-upload"
+            type="file"
+            accept=".csv"
+            style={{ display: 'none' }}
+            onChange={handleCSVUpload}
+          />
         </div>
 
         {/* Controls */}
