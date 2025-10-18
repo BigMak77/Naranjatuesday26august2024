@@ -13,6 +13,8 @@ type TurkusRisk = {
   title: string;
   description: string;
   severity: string;
+  likelihood: number; // 1-5 scale
+  risk_rating: number; // Calculated: severity_numeric × likelihood
   created_at: string;
   review_period_months: number;
   department_id: string | null;
@@ -50,6 +52,7 @@ export default function RiskAssessmentManager() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [severity, setSeverity] = useState("Medium");
+  const [likelihood, setLikelihood] = useState(3); // 1-5 scale
   const [reviewPeriod, setReviewPeriod] = useState(12);
   const [departmentId, setDepartmentId] = useState<string | null>(null);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
@@ -80,6 +83,7 @@ export default function RiskAssessmentManager() {
         setTitle(selected.title);
         setDescription(selected.description);
         setSeverity(selected.severity);
+        setLikelihood(selected.likelihood || 3);
         setReviewPeriod(selected.review_period_months);
         setDepartmentId(selected.department_id);
         setPhotoUrls(selected.photo_urls || []);
@@ -103,12 +107,64 @@ export default function RiskAssessmentManager() {
     }
   }, [mode, selectedId, riskAssessments]);
 
+  // Helper functions for risk calculation
+  const getSeverityNumeric = (sev: string): number => {
+    switch (sev) {
+      case "Low":
+        return 1;
+      case "Medium":
+        return 3;
+      case "High":
+        return 4;
+      case "Critical":
+        return 5;
+      default:
+        return 3;
+    }
+  };
+
+  const calculateRiskRating = (sev: string, like: number): number => {
+    return getSeverityNumeric(sev) * like;
+  };
+
+  const getRiskLevel = (rating: number): string => {
+    if (rating <= 5) return "Low";
+    if (rating <= 12) return "Medium";
+    if (rating <= 16) return "High";
+    return "Critical";
+  };
+
+  const getRiskColor = (rating: number): string => {
+    if (rating <= 5) return "#00ff00"; // Green
+    if (rating <= 12) return "#ffff00"; // Yellow
+    if (rating <= 16) return "#ff9900"; // Orange
+    return "#ff0000"; // Red
+  };
+
+  const getLikelihoodLabel = (like: number): string => {
+    switch (like) {
+      case 1:
+        return "Rare";
+      case 2:
+        return "Unlikely";
+      case 3:
+        return "Possible";
+      case 4:
+        return "Likely";
+      case 5:
+        return "Almost Certain";
+      default:
+        return "Unknown";
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const payload = {
       title,
       description,
       severity,
+      likelihood,
       review_period_months: reviewPeriod,
       department_id: departmentId,
       photo_urls: photoUrls,
@@ -148,39 +204,168 @@ export default function RiskAssessmentManager() {
       </div>
 
       {mode === "list" && (
-        <NeonTable
+        <>
+          {/* Risk Matrix Visualization */}
+          <div style={{
+            marginBottom: "24px",
+            padding: "20px",
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            border: "1px solid #00ffff",
+            borderRadius: "8px"
+          }}>
+            <h3 style={{ color: "#00ffff", marginBottom: "16px", fontSize: "1.1em" }}>
+              Risk Matrix
+            </h3>
+            <div style={{ overflowX: "auto" }}>
+              <table style={{
+                width: "100%",
+                borderCollapse: "separate",
+                borderSpacing: "4px",
+                fontSize: "0.85em"
+              }}>
+                <thead>
+                  <tr>
+                    <th style={{ padding: "8px", textAlign: "center", color: "#00ffff" }}>
+                      Likelihood →<br/>Severity ↓
+                    </th>
+                    <th style={{ padding: "8px", textAlign: "center", color: "#00ffff" }}>
+                      1<br/>Rare
+                    </th>
+                    <th style={{ padding: "8px", textAlign: "center", color: "#00ffff" }}>
+                      2<br/>Unlikely
+                    </th>
+                    <th style={{ padding: "8px", textAlign: "center", color: "#00ffff" }}>
+                      3<br/>Possible
+                    </th>
+                    <th style={{ padding: "8px", textAlign: "center", color: "#00ffff" }}>
+                      4<br/>Likely
+                    </th>
+                    <th style={{ padding: "8px", textAlign: "center", color: "#00ffff" }}>
+                      5<br/>Almost Certain
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {["Critical", "High", "Medium", "Low"].map((sev) => (
+                    <tr key={sev}>
+                      <td style={{ padding: "8px", fontWeight: "bold", color: "#00ffff" }}>
+                        {getSeverityNumeric(sev)} - {sev}
+                      </td>
+                      {[1, 2, 3, 4, 5].map((like) => {
+                        const rating = getSeverityNumeric(sev) * like;
+                        const color = getRiskColor(rating);
+                        const count = riskAssessments.filter(
+                          (r) => r.severity === sev && (r.likelihood || 3) === like
+                        ).length;
+                        return (
+                          <td
+                            key={like}
+                            style={{
+                              padding: "12px",
+                              textAlign: "center",
+                              backgroundColor: color,
+                              color: "#000",
+                              fontWeight: "bold",
+                              border: "1px solid rgba(255,255,255,0.2)",
+                              cursor: count > 0 ? "pointer" : "default",
+                              position: "relative"
+                            }}
+                            title={count > 0 ? `${count} risk(s) in this category` : ""}
+                          >
+                            {rating}
+                            {count > 0 && (
+                              <div style={{
+                                position: "absolute",
+                                top: "2px",
+                                right: "2px",
+                                backgroundColor: "rgba(0,0,0,0.7)",
+                                color: "#fff",
+                                borderRadius: "50%",
+                                width: "18px",
+                                height: "18px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: "0.7em"
+                              }}>
+                                {count}
+                              </div>
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div style={{ marginTop: "12px", fontSize: "0.8em", opacity: 0.8 }}>
+              <strong>Legend:</strong> Green (1-5): Low | Yellow (6-12): Medium | Orange (13-16): High | Red (17-25): Critical
+            </div>
+          </div>
+
+          <NeonTable
           columns={[
             { header: "Title", accessor: "title" },
             { header: "Description", accessor: "description" },
             { header: "Severity", accessor: "severity" },
+            { header: "Likelihood", accessor: "likelihood" },
+            { header: "Risk Rating", accessor: "risk_rating" },
             { header: "Actions", accessor: "actions" },
           ]}
-          data={riskAssessments.map((risk) => ({
-            title: risk.title,
-            description: risk.description,
-            severity: risk.severity,
-            actions: (
-              <div key={risk.id} className="risk-assessment-actions-global">
-                <NeonIconButton
-                  variant="edit"
-                  title="Amend"
-                  onClick={() => {
-                    setMode("edit");
-                    setSelectedId(risk.id);
-                  }}
-                />
-                <NeonIconButton
-                  variant="assign"
-                  title="Assign"
-                  onClick={() => {
-                    setMode("assign");
-                    setSelectedId(risk.id);
-                  }}
-                />
-              </div>
-            ),
-          }))}
+          data={riskAssessments.map((risk) => {
+            const rating = risk.risk_rating || calculateRiskRating(risk.severity, risk.likelihood || 3);
+            const riskLevel = getRiskLevel(rating);
+            const riskColor = getRiskColor(rating);
+
+            return {
+              title: risk.title,
+              description: risk.description,
+              severity: risk.severity,
+              likelihood: getLikelihoodLabel(risk.likelihood || 3),
+              risk_rating: (
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span
+                    style={{
+                      display: "inline-block",
+                      width: "50px",
+                      padding: "4px 8px",
+                      backgroundColor: riskColor,
+                      color: "#000",
+                      fontWeight: "bold",
+                      borderRadius: "4px",
+                      textAlign: "center",
+                    }}
+                  >
+                    {rating}
+                  </span>
+                  <span style={{ fontSize: "0.9em", opacity: 0.8 }}>({riskLevel})</span>
+                </div>
+              ),
+              actions: (
+                <div key={risk.id} className="risk-assessment-actions-global">
+                  <NeonIconButton
+                    variant="edit"
+                    title="Amend"
+                    onClick={() => {
+                      setMode("edit");
+                      setSelectedId(risk.id);
+                    }}
+                  />
+                  <NeonIconButton
+                    variant="assign"
+                    title="Assign"
+                    onClick={() => {
+                      setMode("assign");
+                      setSelectedId(risk.id);
+                    }}
+                  />
+                </div>
+              ),
+            };
+          })}
         />
+        </>
       )}
 
       {(mode === "create" || mode === "edit") && (
@@ -211,11 +396,59 @@ export default function RiskAssessmentManager() {
               value={severity}
               onChange={(e) => setSeverity(e.target.value)}
             >
-              <option value="Low">Low</option>
-              <option value="Medium">Medium</option>
-              <option value="High">High</option>
-              <option value="Critical">Critical</option>
+              <option value="Low">Low (1)</option>
+              <option value="Medium">Medium (3)</option>
+              <option value="High">High (4)</option>
+              <option value="Critical">Critical (5)</option>
             </select>
+            <select
+              className="neon-input"
+              value={likelihood}
+              onChange={(e) => setLikelihood(parseInt(e.target.value))}
+            >
+              <option value={1}>1 - Rare</option>
+              <option value={2}>2 - Unlikely</option>
+              <option value={3}>3 - Possible</option>
+              <option value={4}>4 - Likely</option>
+              <option value={5}>5 - Almost Certain</option>
+            </select>
+            
+            {/* Risk Rating Preview */}
+            <div style={{
+              padding: "16px",
+              backgroundColor: "rgba(0, 255, 255, 0.1)",
+              border: "1px solid #00ffff",
+              borderRadius: "8px",
+              marginBottom: "16px"
+            }}>
+              <div style={{ fontSize: "0.9em", marginBottom: "8px", color: "#00ffff" }}>
+                Risk Rating Preview:
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <span style={{
+                  display: "inline-block",
+                  minWidth: "60px",
+                  padding: "8px 16px",
+                  backgroundColor: getRiskColor(calculateRiskRating(severity, likelihood)),
+                  color: "#000",
+                  fontWeight: "bold",
+                  fontSize: "1.2em",
+                  borderRadius: "6px",
+                  textAlign: "center",
+                }}>
+                  {calculateRiskRating(severity, likelihood)}
+                </span>
+                <div>
+                  <div style={{ fontWeight: "bold" }}>
+                    {getRiskLevel(calculateRiskRating(severity, likelihood))} Risk
+                  </div>
+                  <div style={{ fontSize: "0.85em", opacity: 0.8 }}>
+                    {getSeverityNumeric(severity)} (Severity) × {likelihood} (Likelihood)
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <input
               className="neon-input"
               type="number"
