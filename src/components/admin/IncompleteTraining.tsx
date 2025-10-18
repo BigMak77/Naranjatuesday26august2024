@@ -77,20 +77,7 @@ export default function IncompleteTraining() {
         return;
       }
 
-      // 2) Fetch all active users
-      const { data: allUsers, error: usersErr } = await supabase
-        .from("users")
-        .select("auth_id, department_id, is_archived")
-        .eq("is_archived", false);
-
-      if (!isMounted) return;
-      if (usersErr) {
-        setError(usersErr.message);
-        setLoading(false);
-        return;
-      }
-
-      // 3) All assignments with user info
+      // 2) All assignments with user info
       const { data: allAssignments, error: allErr } = await supabase
         .from("user_assignments")
         .select(
@@ -135,7 +122,7 @@ export default function IncompleteTraining() {
         }
       }
 
-      // 7) Initialize department stats map with all departments
+      // 7) Initialize department stats map - only for departments with assignments
       const deptMap = new Map<string, {
         name: string;
         level: number;
@@ -145,36 +132,36 @@ export default function IncompleteTraining() {
         completedAssignments: number;
       }>();
 
-      for (const dept of allDepartments ?? []) {
-        deptMap.set(dept.id, {
-          name: dept.name || "Unknown",
-          level: dept.level || 0,
-          totalUsers: 0,
-          usersCompleted: 0,
-          totalAssignments: 0,
-          completedAssignments: 0
-        });
-      }
+      // 8) Build department map from users who have assignments
+      for (const [, userStats] of userAssignments.entries()) {
+        if (!userStats.deptId) continue;
 
-      // 8) Count active users per department
-      for (const user of allUsers ?? []) {
-        if (user.department_id && deptMap.has(user.department_id)) {
-          const stats = deptMap.get(user.department_id)!;
-          stats.totalUsers++;
+        // Find department info
+        const dept = allDepartments?.find(d => d.id === userStats.deptId);
+        if (!dept) continue;
+
+        // Initialize department if not exists
+        if (!deptMap.has(userStats.deptId)) {
+          deptMap.set(userStats.deptId, {
+            name: dept.name || "Unknown",
+            level: dept.level || 0,
+            totalUsers: 0,
+            usersCompleted: 0,
+            totalAssignments: 0,
+            completedAssignments: 0
+          });
         }
-      }
 
-      // 9) Calculate users who completed all their training
-      for (const [authId, userStats] of userAssignments.entries()) {
-        if (userStats.deptId && deptMap.has(userStats.deptId)) {
-          const deptStats = deptMap.get(userStats.deptId)!;
-          deptStats.totalAssignments += userStats.total;
-          deptStats.completedAssignments += userStats.completed;
+        const deptStats = deptMap.get(userStats.deptId)!;
 
-          // User completed ALL their training
-          if (userStats.total > 0 && userStats.completed === userStats.total) {
-            deptStats.usersCompleted++;
-          }
+        // Count unique users with assignments
+        deptStats.totalUsers++;
+        deptStats.totalAssignments += userStats.total;
+        deptStats.completedAssignments += userStats.completed;
+
+        // User completed ALL their training
+        if (userStats.total > 0 && userStats.completed === userStats.total) {
+          deptStats.usersCompleted++;
         }
       }
 
@@ -182,16 +169,15 @@ export default function IncompleteTraining() {
         id,
         name: stats.name,
         level: stats.level,
-        totalAssignments: stats.totalUsers, // Show total users in department
-        completedAssignments: stats.usersCompleted, // Show users who completed all training
-        complianceRate: stats.totalUsers > 0 ? Math.round((stats.usersCompleted / stats.totalUsers) * 100) : 0,
+        totalAssignments: stats.totalAssignments, // Total assignments in department
+        completedAssignments: stats.completedAssignments, // Completed assignments in department
+        complianceRate: stats.totalAssignments > 0
+          ? Math.round((stats.completedAssignments / stats.totalAssignments) * 100)
+          : 0,
       }));
 
-      // Sort by compliance rate (departments with users first, then by rate)
+      // Sort by compliance rate descending
       deptStatsArray.sort((a, b) => {
-        if (a.totalAssignments === 0 && b.totalAssignments === 0) return 0;
-        if (a.totalAssignments === 0) return 1;
-        if (b.totalAssignments === 0) return -1;
         return b.complianceRate - a.complianceRate;
       });
       setDepartmentStats(deptStatsArray);
@@ -235,15 +221,12 @@ export default function IncompleteTraining() {
       );
       const docNameById = new Map<string, string>(
         (docsRes.data ?? []).map(
-          (d: Document) =>
-            [
-              d.id,
-              typeof d.title === "string"
-                ? d.title
-                : typeof d.name === "string"
-                  ? d.name
-                  : "",
-            ] as [string, string],
+          (d: Document) => {
+            // Prefer title, fallback to name, then empty string
+            const displayName = d.title || d.name || "";
+            console.log(`Document mapping: ${d.id} -> "${displayName}"`);
+            return [d.id, displayName] as [string, string];
+          }
         ),
       );
 
@@ -264,9 +247,17 @@ export default function IncompleteTraining() {
           const moduleName = isModule
             ? (modNameById.get(item.item_id) ?? item.item_id)
             : "—";
-          const documentName = !isModule
-            ? (docNameById.get(item.item_id) ?? item.item_id)
-            : "—";
+
+          let documentName = "—";
+          if (!isModule) {
+            const docName = docNameById.get(item.item_id);
+            if (!docName) {
+              console.warn(`Document name not found for ID: ${item.item_id}`);
+              documentName = `Unknown Document (${item.item_id.substring(0, 8)}...)`;
+            } else {
+              documentName = docName;
+            }
+          }
 
           return {
             auth_id: item.auth_id,
@@ -290,7 +281,12 @@ export default function IncompleteTraining() {
   const compliancePercent = totalAssignments > 0 ? Math.round((totalCompleted / totalAssignments) * 100) : 0;
 
   const top10Departments = useMemo(() => departmentStats.slice(0, 10), [departmentStats]);
-  const bottom10Departments = useMemo(() => departmentStats.slice(-10).reverse(), [departmentStats]);
+
+  // Bottom 10: Only departments with incomplete training (compliance < 100%)
+  const bottom10Departments = useMemo(() => {
+    const departmentsWithIncomplete = departmentStats.filter(dept => dept.complianceRate < 100);
+    return departmentsWithIncomplete.slice(-10).reverse();
+  }, [departmentStats]);
 
   // Facets
   const departments = useMemo(() => {

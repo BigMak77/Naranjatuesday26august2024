@@ -278,22 +278,30 @@ export default function Structure() {
     return result;
   }, [departments, roles]);
 
-  if (loading) return <div>Loading…</div>;
+  if (loading) return (
+    <div className="after-hero global-content relative">
+      <div className="flex-1 min-w-0">
+        <div className="neon-panel">
+          <div className="text-center py-8 text-neon">Loading…</div>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="neon-panel" style={{ position: "relative" }}>
-      {/* Page Header */}
-      <h1 className="neon-page-header">
-        Organisation Structure
-      </h1>
-      {/* Right-side button group: Add, Amend, Move Role */}
-      <div style={{ position: "absolute", top: 6, right: 0, zIndex: 10, display: "flex", flexDirection: "row", gap: 6, padding: 0 }}>
-        <AddDepartmentButton onAdded={() => {}} />
-        <AddRoleButton departments={departments} onAdded={() => {}} />
-        <AmendDepartmentButton departments={tree} />
-        <RoleAmendButton departments={departments} roles={roles} />
+    <div className="after-hero global-content relative">
+      <div className="flex-1 min-w-0">
+        <div className="neon-panel" style={{ position: "relative" }}>
+          {/* Right-side button group: Add, Amend, Move Role */}
+          <div style={{ position: "absolute", top: 6, right: 0, zIndex: 10, display: "flex", flexDirection: "row", gap: 6, padding: 0 }}>
+            <AddDepartmentButton onAdded={() => {}} />
+            <AddRoleButton departments={departments} onAdded={() => {}} />
+            <AmendDepartmentButton departments={tree} />
+            <RoleAmendButton departments={departments} roles={roles} />
+          </div>
+          <StructureTree nodes={tree} level={2} />
+        </div>
       </div>
-      <StructureTree nodes={tree} level={2} />
     </div>
   );
 }

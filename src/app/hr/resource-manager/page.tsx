@@ -1,4 +1,4 @@
-import UserManager from "@/components/admin/UserManager";
+import UserManager from "@/components/userview/HrAdminView";
 
 export default function ResourceManagerPage() {
   return <UserManager />;

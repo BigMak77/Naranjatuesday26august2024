@@ -24,7 +24,6 @@ import {
 import { useUser } from "@/lib/useUser";
 import OverlayDialog from "@/components/ui/OverlayDialog";
 import nationalities from "@/lib/nationalities.json";
-import MainHeader from "@/components/ui/MainHeader";
 import UserPermissionsManager from "@/components/user/UserPermissionsManager";
 import { PERMISSIONS, PermissionKey } from "@/types/userPermissions";
 import SuccessModal from "../ui/SuccessModal";
@@ -648,7 +647,6 @@ export default function UserManagementPanel() {
 
   return (
     <>
-      <MainHeader title="User Management" subtitle="Manage users, roles, and assignments" />
       {/* Success Modal Overlay (replaced with shared SuccessModal) */}
       <SuccessModal
         open={showSuccess}
@@ -826,33 +824,29 @@ export default function UserManagementPanel() {
             {showBulkSelectColumn && !bulkAssignOpen && (
               <div
                 ref={bulkSelectBoxRef}
+                className="ui-dialog-content neon-dialog"
                 style={{
                   position: "absolute",
                   left: "50%",
                   top: 0,
                   transform: "translateX(-50%)",
                   zIndex: 20,
-                  background: "#222",
-                  color: "#fff",
-                  minWidth: 320,
-                  boxShadow: "0 2px 12px #000",
-                  borderRadius: 12,
-                  padding: "1rem 2rem",
+                  width: 400,
                   textAlign: "center",
-                  fontWeight: 700,
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
                   gap: "1rem"
                 }}
-                className="neon-label neon-bulk-assign-message"
               >
-                <span>Please select users for the bulk assign</span>
+                <div className="neon-form-title" style={{ marginBottom: "1rem" }}>
+                  Please select users for the bulk assign
+                </div>
                 <CustomTooltip text="Proceed to configure bulk assignments for selected users">
                   <button
-                    className="neon-btn neon-btn-primary"
+                    className="neon-btn-primary"
                     disabled={bulkSelectedUserIds.length === 0}
-                    style={{ marginTop: "0.5rem", width: 160 }}
+                    style={{ width: 160 }}
                     onClick={(e) => {
                       e.stopPropagation(); // Prevent click-away from firing
                       setBulkAssignOpen(true); // Now open modal
@@ -1447,72 +1441,129 @@ export default function UserManagementPanel() {
               </div>
               {/* Step 2: Configure assignment (now first step in modal) */}
               {bulkAssignStep === 2 && (
-                <div style={{ marginBottom: "2rem" }}>
-                  <div className="neon-label" style={{ marginBottom: "1rem" }}>
-                    What would you like to bulk assign?
+                <div className="neon-form-content">
+                  <div className="neon-form-section">
+                    <div className="neon-label">
+                      What would you like to bulk assign?
+                    </div>
+                    <div className="neon-radio-group">
+                      <div className="neon-radio-option">
+                        <input
+                          type="radio"
+                          id="bulk-type-role"
+                          name="bulkAssignType"
+                          value="role"
+                          checked={bulkAssignType === "role"}
+                          onChange={(e) => setBulkAssignType(e.target.value)}
+                          className="neon-radio"
+                        />
+                        <label htmlFor="bulk-type-role" className="neon-radio-label">
+                          <CustomTooltip text="Assign department and role to selected users">
+                            <span>Department/Role</span>
+                          </CustomTooltip>
+                        </label>
+                      </div>
+                      <div className="neon-radio-option">
+                        <input
+                          type="radio"
+                          id="bulk-type-shift"
+                          name="bulkAssignType"
+                          value="shift"
+                          checked={bulkAssignType === "shift"}
+                          onChange={(e) => setBulkAssignType(e.target.value)}
+                          className="neon-radio"
+                        />
+                        <label htmlFor="bulk-type-shift" className="neon-radio-label">
+                          <CustomTooltip text="Assign shift pattern to selected users">
+                            <span>Shift</span>
+                          </CustomTooltip>
+                        </label>
+                      </div>
+                      <div className="neon-radio-option">
+                        <input
+                          type="radio"
+                          id="bulk-type-first-aid"
+                          name="bulkAssignType"
+                          value="first_aid"
+                          checked={bulkAssignType === "first_aid"}
+                          onChange={(e) => setBulkAssignType(e.target.value)}
+                          className="neon-radio"
+                        />
+                        <label htmlFor="bulk-type-first-aid" className="neon-radio-label">
+                          <CustomTooltip text="Set first aid status for selected users">
+                            <span>First Aid</span>
+                          </CustomTooltip>
+                        </label>
+                      </div>
+                      <div className="neon-radio-option">
+                        <input
+                          type="radio"
+                          id="bulk-type-trainer"
+                          name="bulkAssignType"
+                          value="trainer"
+                          checked={bulkAssignType === "trainer"}
+                          onChange={(e) => setBulkAssignType(e.target.value)}
+                          className="neon-radio"
+                        />
+                        <label htmlFor="bulk-type-trainer" className="neon-radio-label">
+                          <CustomTooltip text="Set trainer status for selected users">
+                            <span>Trainer</span>
+                          </CustomTooltip>
+                        </label>
+                      </div>
+                    </div>
                   </div>
-                  <div style={{ display: "flex", gap: "1rem" }}>
-                    <CustomTooltip text="Assign department and role to selected users">
-                      <button className="neon-btn" onClick={() => { setBulkAssignType("role"); setBulkAssignStep(3); }}>
-                        Department/Role
-                      </button>
-                    </CustomTooltip>
-                    <CustomTooltip text="Assign shift pattern to selected users">
-                      <button className="neon-btn" onClick={() => { setBulkAssignType("shift"); setBulkAssignStep(3); }}>
-                        Shift
-                      </button>
-                    </CustomTooltip>
-                    <CustomTooltip text="Set first aid status for selected users">
-                      <button className="neon-btn" onClick={() => { setBulkAssignType("first_aid"); setBulkAssignStep(3); }}>
-                        First Aid
-                      </button>
-                    </CustomTooltip>
-                    <CustomTooltip text="Set trainer status for selected users">
-                      <button className="neon-btn" onClick={() => { setBulkAssignType("trainer"); setBulkAssignStep(3); }}>
-                        Trainer
-                      </button>
-                    </CustomTooltip>
-                  </div>
-                  <div className="neon-panel-actions" style={{ display: "flex", gap: "1rem", justifyContent: "flex-end", marginTop: "2rem" }}>
+                  <div className="neon-dialog-actions">
                     <CustomTooltip text="Cancel bulk assignment and close dialog">
-                      <button className="neon-btn" onClick={handleBulkAssignCancel}>
-                        Cancel
-                      </button>
+                      <NeonIconButton
+                        variant="close"
+                        icon={<FiX />}
+                        title="Cancel"
+                        onClick={handleBulkAssignCancel}
+                      />
+                    </CustomTooltip>
+                    <CustomTooltip text="Proceed to configure selected assignment type">
+                      <NeonIconButton
+                        variant="next"
+                        icon={<FiChevronRight />}
+                        title="Next"
+                        onClick={() => setBulkAssignStep(3)}
+                        disabled={!bulkAssignType}
+                      />
                     </CustomTooltip>
                   </div>
                 </div>
               )}
               {/* Step 3: Assignment config */}
               {bulkAssignStep === 3 && (
-                <div style={{ marginBottom: "2rem" }}>
-                  <div className="neon-label" style={{ marginBottom: "1rem" }}>
-                    {bulkAssignType === "role" && "You are bulk assigning to Department/Role."}
-                    {bulkAssignType === "shift" && "You are bulk assigning to Shift."}
-                    {bulkAssignType === "first_aid" && "You are bulk assigning First Aid status."}
-                    {bulkAssignType === "trainer" && "You are bulk assigning Trainer status."}
-                  </div>
-                  {/* Show summary of selected users */}
-                  <div className="neon-label neon-bulk-assign-summary" style={{ marginBottom: "1rem", color: "#aaa" }}>
-                    <strong>Selected users:</strong> {bulkSelectedUserIds.length}
-                    {bulkSelectedUserIds.length > 0 && (
-                      <ul style={{ margin: "0.5rem 0 0 1rem", padding: 0, listStyle: "disc" }}>
-                        {users
-                          .filter((u) => bulkSelectedUserIds.includes(u.id))
-                          .slice(0, 5)
-                          .map((u) => (
-                            <li key={u.id}>{`${u.first_name || ""} ${u.last_name || ""}`.trim() || u.email}</li>
-                          ))}
-                        {bulkSelectedUserIds.length > 5 && <li>...and {bulkSelectedUserIds.length - 5} more</li>}
-                      </ul>
-                    )}
+                <div className="neon-form-content">
+                  <div className="neon-form-section">
+                    <div className="neon-label">
+                      {bulkAssignType === "role" && "You are bulk assigning to Department/Role."}
+                      {bulkAssignType === "shift" && "You are bulk assigning to Shift."}
+                      {bulkAssignType === "first_aid" && "You are bulk assigning First Aid status."}
+                      {bulkAssignType === "trainer" && "You are bulk assigning Trainer status."}
+                    </div>
+                    {/* Show summary of selected users */}
+                    <div className="neon-form-info">
+                      <strong>Selected users:</strong> {bulkSelectedUserIds.length}
+                      {bulkSelectedUserIds.length > 0 && (
+                        <ul className="neon-user-list">
+                          {users
+                            .filter((u) => bulkSelectedUserIds.includes(u.id))
+                            .slice(0, 5)
+                            .map((u) => (
+                              <li key={u.id}>{`${u.first_name || ""} ${u.last_name || ""}`.trim() || u.email}</li>
+                            ))}
+                          {bulkSelectedUserIds.length > 5 && <li>...and {bulkSelectedUserIds.length - 5} more</li>}
+                        </ul>
+                      )}
+                    </div>
                   </div>
                   {bulkAssignType === "role" && (
-                    <div
-                      className="neon-form-grid neon-form-padding"
-                      style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "1.5rem" }}
-                    >
-                      <div>
-                        <label className="neon-label" htmlFor="bulk-dept-select" style={{ color: "var(--neon-text, #fff)" }}>
+                    <div className="neon-form-grid">
+                      <div className="neon-form-field">
+                        <label className="neon-label" htmlFor="bulk-dept-select">
                           Department
                         </label>
                         <select
@@ -1523,7 +1574,6 @@ export default function UserManagementPanel() {
                             setBulkDeptId(e.target.value);
                             setBulkRoleId("");
                           }}
-                          style={{ color: "var(--neon-text, #fff)" }}
                         >
                           <option value="">Select Department</option>
                           {departments.map((d) => (
@@ -1533,8 +1583,8 @@ export default function UserManagementPanel() {
                           ))}
                         </select>
                       </div>
-                      <div>
-                        <label className="neon-label" htmlFor="bulk-role-select" style={{ color: "var(--neon-text, #fff)" }}>
+                      <div className="neon-form-field">
+                        <label className="neon-label" htmlFor="bulk-role-select">
                           Role
                         </label>
                         <select
@@ -1543,7 +1593,6 @@ export default function UserManagementPanel() {
                           value={bulkRoleId}
                           onChange={(e) => setBulkRoleId(e.target.value)}
                           disabled={!bulkDeptId}
-                          style={{ color: "var(--neon-text, #fff)" }}
                         >
                           <option value="">Select Role</option>
                           {roles
@@ -1558,8 +1607,8 @@ export default function UserManagementPanel() {
                     </div>
                   )}
                   {bulkAssignType === "shift" && (
-                    <div>
-                      <label className="neon-label" htmlFor="bulk-shift-select" style={{ color: "var(--neon-text, #fff)" }}>
+                    <div className="neon-form-field">
+                      <label className="neon-label" htmlFor="bulk-shift-select">
                         Shift
                       </label>
                       <select
@@ -1567,7 +1616,6 @@ export default function UserManagementPanel() {
                         className="neon-input"
                         value={bulkShiftId}
                         onChange={(e) => setBulkShiftId(e.target.value)}
-                        style={{ color: "var(--neon-text, #fff)" }}
                       >
                         <option value="">Select Shift</option>
                         {shiftPatterns.map((s) => (
@@ -1579,8 +1627,8 @@ export default function UserManagementPanel() {
                     </div>
                   )}
                   {bulkAssignType === "first_aid" && (
-                    <div>
-                      <label className="neon-label" htmlFor="bulk-firstaid-select" style={{ color: "var(--neon-text, #fff)" }}>
+                    <div className="neon-form-field">
+                      <label className="neon-label" htmlFor="bulk-firstaid-select">
                         First Aid
                       </label>
                       <select
@@ -1588,7 +1636,6 @@ export default function UserManagementPanel() {
                         className="neon-input"
                         value={bulkFirstAid ? "true" : "false"}
                         onChange={(e) => setBulkFirstAid(e.target.value === "true")}
-                        style={{ color: "var(--neon-text, #fff)" }}
                       >
                         <option value="false">No</option>
                         <option value="true">Yes</option>
@@ -1596,8 +1643,8 @@ export default function UserManagementPanel() {
                     </div>
                   )}
                   {bulkAssignType === "trainer" && (
-                    <div>
-                      <label className="neon-label" htmlFor="bulk-trainer-select" style={{ color: "var(--neon-text, #fff)" }}>
+                    <div className="neon-form-field">
+                      <label className="neon-label" htmlFor="bulk-trainer-select">
                         Trainer
                       </label>
                       <select
@@ -1605,66 +1652,70 @@ export default function UserManagementPanel() {
                         className="neon-input"
                         value={bulkTrainer ? "true" : "false"}
                         onChange={(e) => setBulkTrainer(e.target.value === "true")}
-                        style={{ color: "var(--neon-text, #fff)" }}
                       >
                         <option value="false">No</option>
                         <option value="true">Yes</option>
                       </select>
                     </div>
                   )}
-                  <div className="neon-panel-actions" style={{ display: "flex", gap: "1rem", justifyContent: "flex-end", marginTop: "2rem" }}>
+                  <div className="neon-dialog-actions">
                     <CustomTooltip text="Go back to assignment type selection">
-                      <button className="neon-btn" onClick={() => setBulkAssignStep(2)}>
-                        Back
-                      </button>
+                      <NeonIconButton
+                        variant="back"
+                        icon={<FiChevronLeft />}
+                        title="Back"
+                        onClick={() => setBulkAssignStep(2)}
+                      />
                     </CustomTooltip>
                     <CustomTooltip text="Proceed to confirmation screen">
-                      <button
-                        className="neon-btn neon-btn-primary"
+                      <NeonIconButton
+                        variant="next"
+                        icon={<FiChevronRight />}
+                        title="Next"
                         onClick={() => setBulkAssignStep(4)}
                         disabled={(bulkAssignType === "role" && (!bulkDeptId || !bulkRoleId)) || (bulkAssignType === "shift" && !bulkShiftId)}
-                      >
-                        Next
-                      </button>
+                      />
                     </CustomTooltip>
                   </div>
                 </div>
               )}
               {/* Step 4: Confirm bulk assignment */}
               {bulkAssignStep === 4 && (
-                <div style={{ marginBottom: "2rem" }}>
-                  <div className="neon-label" style={{ marginBottom: "1rem" }}>
-                    Confirm bulk assignment:
+                <div className="neon-form-content">
+                  <div className="neon-form-section">
+                    <div className="neon-label">
+                      Confirm bulk assignment:
+                    </div>
+                    <div className="neon-form-info">
+                      <strong>Assignment:</strong>{" "}
+                      {bulkAssignType === "role"
+                        ? `Department: ${departments.find((d) => d.id === bulkDeptId)?.name || "—"}, Role: ${
+                            roles.find((r) => r.id === bulkRoleId)?.title || "—"
+                          }`
+                        : bulkAssignType === "shift"
+                        ? `Shift: ${shiftPatterns.find((s) => s.id === bulkShiftId)?.name || "—"}`
+                        : bulkAssignType === "first_aid"
+                        ? `First Aid: ${bulkFirstAid ? "Yes" : "No"}`
+                        : bulkAssignType === "trainer"
+                        ? `Trainer: ${bulkTrainer ? "Yes" : "No"}`
+                        : "—"}
+                    </div>
+                    <div className="neon-form-info">
+                      <strong>Users:</strong> {bulkSelectedUserIds.length}
+                      {bulkSelectedUserIds.length > 0 && (
+                        <ul className="neon-user-list">
+                          {users
+                            .filter((u) => bulkSelectedUserIds.includes(u.id))
+                            .slice(0, 5)
+                            .map((u) => (
+                              <li key={u.id}>{`${u.first_name || ""} ${u.last_name || ""}`.trim() || u.email}</li>
+                            ))}
+                          {bulkSelectedUserIds.length > 5 && <li>...and {bulkSelectedUserIds.length - 5} more</li>}
+                        </ul>
+                      )}
+                    </div>
                   </div>
-                  <div style={{ marginBottom: "1rem" }}>
-                    <strong>Assignment:</strong>{" "}
-                    {bulkAssignType === "role"
-                      ? `Department: ${departments.find((d) => d.id === bulkDeptId)?.name || "—"}, Role: ${
-                          roles.find((r) => r.id === bulkRoleId)?.title || "—"
-                        }`
-                      : bulkAssignType === "shift"
-                      ? `Shift: ${shiftPatterns.find((s) => s.id === bulkShiftId)?.name || "—"}`
-                      : bulkAssignType === "first_aid"
-                      ? `First Aid: ${bulkFirstAid ? "Yes" : "No"}`
-                      : bulkAssignType === "trainer"
-                      ? `Trainer: ${bulkTrainer ? "Yes" : "No"}`
-                      : "—"}
-                  </div>
-                  <div style={{ marginBottom: "1rem" }}>
-                    <strong>Users:</strong> {bulkSelectedUserIds.length}
-                    {bulkSelectedUserIds.length > 0 && (
-                      <ul style={{ margin: "0.5rem 0 0 1rem", padding: 0, listStyle: "disc" }}>
-                        {users
-                          .filter((u) => bulkSelectedUserIds.includes(u.id))
-                          .slice(0, 5)
-                          .map((u) => (
-                            <li key={u.id}>{`${u.first_name || ""} ${u.last_name || ""}`.trim() || u.email}</li>
-                          ))}
-                        {bulkSelectedUserIds.length > 5 && <li>...and {bulkSelectedUserIds.length - 5} more</li>}
-                      </ul>
-                    )}
-                  </div>
-                  <div className="neon-panel-actions" style={{ display: "flex", gap: "1rem", justifyContent: "flex-end", marginTop: "2rem" }}>
+                  <div className="neon-dialog-actions">
                     <CustomTooltip text={bulkAssignLoading ? "Processing bulk assignments..." : "Apply these assignments to all selected users"}>
                       <NeonIconButton
                         variant="save"

@@ -6,7 +6,17 @@ import { FiClipboard, FiVideo, FiActivity, FiRefreshCw, FiFolder, FiMail } from 
 export default function InstructionalMediaPage() {
   return (
     <main className="neon-bg">
-      <section className="neon-panel neon-panel-centered">
+      <section 
+        className="neon-panel"
+        style={{
+          backgroundImage: 'linear-gradient(rgba(104, 45, 3, 0.77), rgba(250, 122, 32, 0.7)), url(/flt.jpeg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          minHeight: '100vh',
+          width: '100%'
+        }}
+      >
         <h2 className="neon-title">How We Help</h2>
         <p className="neon-description">
           At Naranja, we work directly with teams to create effective, easy-to-use work instructions and SOPs. These tools ensure consistency, reduce training time, and increase audit readiness.

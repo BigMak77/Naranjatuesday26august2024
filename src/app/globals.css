@@ -55,6 +55,15 @@
   opacity: 0.85;
 }
 
+/* MainHeader container spacing */
+.main-header-container {
+  margin-bottom: 1.5rem;
+}
+
+.main-header-container.with-subtitle {
+  margin-bottom: 2.5rem;
+}
+
 body, html, .neon-text {
   color: var(--text);
 }
@@ -93,7 +102,7 @@ input,select,textarea,button,label,option{ font-family:inherit; }
   display:grid; grid-template-rows:auto auto 1fr auto; min-height:100vh;
 }
 header.header{ grid-row:1; width:100%; margin:0; padding:0; border:0; box-shadow:none; position:sticky; top:0; z-index:50; }
-.section-toolbar{ grid-row:2; width:100%; margin:0; background:var(--panel); position:sticky; top:0; z-index:49; }
+.section-toolbar{ grid-row:2; width:100%; margin:0; background:var(--panel); position:sticky; top:0; z-index:49; height:40px; min-height:40px; max-height:40px; display:grid; grid-template-columns:100px repeat(14, 40px); align-items:center; padding-left:10px; }
 .section-toolbar .inner,
 main.content,
 footer.site-footer .inner{
@@ -115,7 +124,6 @@ main.content {
   margin-top: 2.5rem; /* Add gap between toolbar and main section */
   border: 2px solid #fa7a20;
   border-radius: var(--radius);
-  box-shadow: 0 0 16px var(--neon);
 }
 footer.site-footer{ grid-row:4; width:100%; background:#062b2b; border-top:1px solid rgba(64,224,208,.18); }
 
@@ -130,7 +138,7 @@ input[type="text"],input[type="search"],input[type="date"],input[type="number"],
   border:1px solid var(--border); border-radius:6px; padding:.75rem 1rem; margin-bottom:1rem;
   transition:border-color .2s, box-shadow .2s, background-color .2s;
 }
-input:focus,select:focus,textarea:focus{ outline:none; border-color:var(--neon); box-shadow:0 0 0 2px var(--neon); }
+input:focus,select:focus,textarea:focus{ outline:none; border-color:var(--neon); }
 /* Remove global max-width for all search inputs to avoid conflict */
 input[type="search"] {
   /* max-width: 20rem;  <-- removed to avoid conflict with toolbar search input */
@@ -154,13 +162,11 @@ select{
   border-radius: 8px;
   padding: .85rem 1.1rem;
   font-size: 1rem;
-  box-shadow: 0 0 8px var(--neon);
-  transition: border-color .2s, box-shadow .2s, background-color .2s;
+  transition: border-color .2s, background-color .2s;
 }
 .neon-input:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--neon);
+  border-color: var (--accent);
 }
 
 /* Form row and group for horizontal filters */
@@ -202,10 +208,10 @@ select{
   font-size: 1.1rem;
 }
 
-/* ================== Panels / Buttons ================== */
+/* ================== Panels ================== */
 .neon-form{
   background:var(--panel); border:1px solid var(--neon); border-radius:var(--radius);
-  box-shadow:0 0 8px var(--neon); padding:2rem; color: var(--text);
+  padding:2rem; color: var (--text);
 }
 
 /* NeonPanel: rounded corners and consistent panel style */
@@ -213,12 +219,32 @@ select{
   background: var(--panel);
   border: 1.5px solid var(--neon);
   border-radius: 16px;
-  box-shadow: 0 0 8px var(--neon);
   padding: 2rem;
   color: var (--text);
-  transition: box-shadow 0.18s, transform 0.12s;
+  transition: transform 0.12s;
 }
 
+/* ================== BUTTON SYSTEM ================== */
+/*
+ * Comprehensive Button System with Color-Coded Semantic Actions
+ * 
+ * ORGANIZED SECTIONS:
+ * 1. Base Button Styles - Core .neon-btn and .neon-btn-square
+ * 2. Red/Danger Buttons - Delete, Close, Leavers
+ * 3. Green/Success Buttons - Save, Add, Confirm, Review actions
+ * 4. Blue/Information Buttons - View, Edit, Tools
+ * 5. Yellow/Warning Buttons - Assign actions
+ * 6. Purple/Special Buttons - Upload, History
+ * 7. Dark/Neutral Buttons - Next, Back, Archive
+ * 8. Special Color Buttons - Unique one-off colors
+ * 9. Theme-Based Action Buttons - Primary, Secondary, Cancel
+ * 10. Large Icon Buttons - 60px circular buttons
+ * 11. Sidebar Action Buttons - Full-width sidebar buttons
+ * 12. Modal & List Buttons - Close, List selection buttons
+ * 13. Dual Listbox Buttons - Component-specific buttons
+ */
+
+/* ================== Base Button Styles ================== */
 .neon-btn,
 .neon-btn-square {
   width: 30px;
@@ -230,9 +256,12 @@ select{
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex: none; /* Prevent flexbox containers from making buttons flexible */
+  flex-grow: 0; /* Explicitly prevent growing */
+  flex-shrink: 0; /* Explicitly prevent shrinking */
   padding: 0;
   border-radius: 8px;
-  background: var (--panel);
+  background: var(--panel);
   color: #fff;
   box-shadow: none; /* Remove neon blue glow from buttons */
   border: 0;
@@ -256,13 +285,13 @@ button svg {
 .neon-btn:hover,
 .neon-btn-square:hover {
   background: var(--neon);
-  box-shadow: 0 1px 8px 0 var(--neon);
 }
 .neon-btn:active,
 .neon-btn-square:active {
   transform: translateY(1px);
 }
 
+/* ================== Red/Danger Buttons ================== */
 .neon-btn-close {
   background: #ea1c1c;
   color: #fff;
@@ -272,67 +301,24 @@ button svg {
   color: #fff;
 }
 
-.neon-btn-assign {
-  background: #efb123 !important;
-  color: #012b2b !important;
-}
-
-.neon-btn-view {
-  background: #82c8e5 !important;
-  color: #012b2b !important;
-}
-
 .neon-btn-delete {
   background: #cd5c5c !important;
   color: #fff !important;
 }
 
+.neon-btn-leavers {
+  background: #6d0101 !important;
+  color: #fff !important;
+}
+
+/* ================== Green/Success Buttons ================== */
 .neon-btn-save {
   background: #16a34a !important;
   color: #fff !important;
-  padding: 8px 16px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
 }
 
 .neon-btn-confirm {
   background: #0e7c3a !important;
-  color: #fff !important;
-  padding: 8px 16px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.neon-btn-next,
-.neon-btn-back {
-  background: #222 !important;
-  color: #fff !important;
-  padding: 8px 16px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.neon-btn-view-archive {
-  background: #000 !important;
-  color: #fff !important;
-}
-
-.neon-btn-archive {
-  background: #000 !important;
-  color: #fff !important;
-}
-
-.neon-btn-edit {
-  background: #083ddb !important;
   color: #fff !important;
 }
 
@@ -351,41 +337,6 @@ button svg {
   color: #fff !important;
 }
 
-.neon-btn-leavers {
-  background: #6d0101 !important;
-  color: #fff !important;
-}
-
-.neon-btn-corner-down-right {
-  background: #5d6152 !important;
-  color: #012b2b !important;
-  border-radius: 8px;
-  box-shadow: 0 0 1px #40e0d0;
-  border: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  min-width: 30px;
-  min-height: 30px;
-  max-width: 30px;
-  max-height: 30px;
-  padding: 0;
-  cursor: pointer;
-  transition: background .2s, color .2s, box-shadow .2s, transform .06s;
-}
-.neon-btn-corner-down-right:hover {
-  background: #2edbd0 !important;
-  color: #012b2b !important;
-  box-shadow: 0 2px 12px #40e0d0;
-}
-
-.neon-btn-history {
-  background: #a084e8 !important; /* light purple */
-  color: #fff !important;
-}
-
 .neon-btn-activity {
   background: #14532d !important; /* dark green */
   color: #fff !important;
@@ -401,51 +352,19 @@ button svg {
 }
 
 .neon-btn-globe {
-  width: 30px;
-  height: 30px;
-  min-width: 30px;
-  min-height: 30px;
-  max-width: 30px;
-  max-height: 30px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border-radius: 8px;
   background: #16a34a; /* vibrant green */
-  color: #fff;
-  box-shadow: none;
-  border: 0;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.06s;
-  margin-right: 6px;
-}
-.neon-btn-globe svg {
-  color: #fff !important;
-  stroke: #fff !important;
-  fill: none !important;
 }
 .neon-btn-globe:hover {
   background: #22c55e;
-  box-shadow: 0 1px 8px 0 #16a34a;
-}
-.neon-btn-globe:active {
-  transform: translateY(1px);
 }
 
 .neon-btn-submit-application {
   background: #19e68c !important;
   color: #111 !important;
-  border: none !important;
-  box-shadow: none;
-  font-size: 1.2rem;
-  transition: background 0.18s, color 0.18s, box-shadow 0.18s;
-  margin-right: 6px;
 }
 .neon-btn-submit-application:hover {
   background: #22ff99 !important;
   color: #111 !important;
-  box-shadow: 0 0 8px #19e68c99;
 }
 .neon-btn-submit-application svg {
   color: #111 !important;
@@ -453,57 +372,362 @@ button svg {
   margin-right: 0 !important;
 }
 
-.neon-btn-tool {
-  width: 30px;
-  height: 30px;
-  min-width: 30px;
-  min-height: 30px;
-  max-width: 30px;
-  max-height: 30px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border-radius: 8px;
-  background: #083ddb; /* dark blue */
-  color: #fff;
-  box-shadow: none;
-  border: 0;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.06s;
-  margin-right: 6px;
+/* ================== Blue/Information Buttons ================== */
+.neon-btn-view {
+  background: #82c8e5 !important;
+  color: #012b2b !important;
 }
-.neon-btn-tool svg {
+
+.neon-btn-edit {
+  background: #083ddb !important;
   color: #fff !important;
-  stroke: #fff !important;
-  fill: none !important;
+}
+
+.neon-btn-tool {
+  background: #083ddb; /* dark blue */
 }
 .neon-btn-tool:hover {
   background: #1856e2;
-  box-shadow: 0 1px 8px 0 #083ddb;
 }
-.neon-btn-tool:active {
-  transform: translateY(1px);
+
+.neon-btn-download {
+  background: #0ea5e9 !important; /* sky blue */
+  color: #fff !important;
+}
+.neon-btn-download:hover {
+  background: #0284c7 !important; /* darker sky blue on hover */
+  color: #fff !important;
+}
+
+/* ================== Yellow/Warning Buttons ================== */
+.neon-btn-assign {
+  background: #efb123 !important;
+  color: #012b2b !important;
+}
+
+.neon-btn-list {
+  background: #fa7a20 !important; /* orange background */
+  color: #fff !important;
+  border-radius: 50% !important; /* circular */
+}
+.neon-btn-list:hover {
+  background: #e06d1a !important; /* darker orange on hover */
+  color: #fff !important;
+}
+
+/* ================== Purple/Special Buttons ================== */
+.neon-btn-history {
+  background: #a084e8 !important; /* light purple */
+  color: #fff !important;
 }
 
 .neon-btn-upload {
   background: #a259e6 !important; /* purple */
   color: #fff !important;
-  border: none;
-  box-shadow: none;
 }
 .neon-btn-upload:hover {
   background: #c084fc !important; /* lighter purple on hover */
   color: #fff !important;
-  box-shadow: 0 1px 8px 0 #a259e6;
-}
-.neon-btn-upload svg {
-  color: #fff !important;
-  stroke: #fff !important;
-  fill: none !important;
 }
 
-/* ================== Large Neon Icon Buttons ================== */
+/* ================== Dark/Neutral Buttons ================== */
+.neon-btn-next,
+.neon-btn-back {
+  background: #222 !important;
+  color: #fff !important;
+  border-radius: 50% !important; /* circular */
+}
+
+.neon-btn-view-archive {
+  background: #000 !important;
+  color: #fff !important;
+}
+
+.neon-btn-archive {
+  background: #000 !important;
+  color: #fff !important;
+}
+
+/* ================== Special Color Buttons ================== */
+.neon-btn-corner-down-right {
+  background: #5d6152 !important;
+  color: #012b2b !important;
+}
+.neon-btn-corner-down-right:hover {
+  background: #2edbd0 !important;
+  color: #012b2b !important;
+}
+
+/* ================== Theme-Based Action Buttons ================== */
+
+/* ================== Text Buttons (Non-Square) ================== */
+/* These buttons are exceptions to the 30x30 rule - they need padding for text readability */
+
+/* Primary action buttons (Submit, Next) */
+.neon-btn-primary {
+  width: auto !important;
+  height: auto !important;
+  min-width: auto !important;
+  min-height: auto !important;
+  max-width: none !important;
+  max-height: none !important;
+  background: var(--neon) !important;
+  color: #012b2b !important;
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.neon-btn-primary:hover {
+  background: #36c9c9 !important;
+  transform: translateY(-1px);
+}
+
+.neon-btn-primary:disabled {
+  background: #666 !important;
+  color: #999 !important;
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+}
+
+/* Secondary action buttons (Back) */
+.neon-btn-secondary {
+  width: auto !important;
+  height: auto !important;
+  min-width: auto !important;
+  min-height: auto !important;
+  max-width: none !important;
+  max-height: none !important;
+  background: var(--panel) !important;
+  color: var(--text) !important;
+  border: 2px solid var(--neon) !important;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.neon-btn-secondary:hover {
+  background: var(--neon) !important;
+  color: #012b2b !important;
+  transform: translateY(-1px);
+}
+
+.neon-btn-secondary:disabled {
+  border-color: #666 !important;
+  color: #999 !important;
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+}
+
+/* Cancel buttons */
+.neon-btn-cancel {
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+  min-height: 30px !important;
+  max-width: 30px !important;
+  max-height: 30px !important;
+  background: #ea1c1c !important; /* red background */
+  color: #fff !important;
+  border: none !important;
+  padding: 0;
+  border-radius: 50% !important; /* circular */
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+  position: relative;
+}
+
+.neon-btn-cancel::before {
+  content: '✕';
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+}
+
+.neon-btn-cancel:hover {
+  background: #c1121f !important; /* darker red on hover */
+  color: #fff !important;
+  transform: translateY(-1px);
+}
+
+.neon-btn-cancel:disabled {
+  background: #666 !important;
+  color: #999 !important;
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+}
+
+.neon-btn-cancel:disabled::before {
+  color: #999;
+}
+
+/* ================== Wizard Styling ================== */
+.raise-issue-wizard {
+  max-width: 600px;
+  margin: 0;
+  width: 100%;
+}
+
+.raise-issue-wizard label {
+  display: block;
+  color: var(--neon);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.raise-issue-wizard label:first-child {
+  margin-top: 0;
+}
+
+.raise-issue-wizard h4 {
+  color: var(--neon);
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid rgba(64, 224, 208, 0.3);
+  padding-bottom: 0.5rem;
+}
+
+.raise-issue-wizard .review-item {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: rgba(64, 224, 208, 0.05);
+  border-radius: 6px;
+  border-left: 3px solid var(--neon);
+}
+
+.raise-issue-wizard .review-item b {
+  color: var(--neon);
+  font-weight: 600;
+}
+
+.raise-issue-wizard .file-label {
+  color: var(--neon);
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+/* Thank you modal styling */
+.thank-you-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 50;
+}
+
+.thank-you-modal-content {
+  background: var(--accent);
+  color: #fff;
+  padding: 2rem;
+  border-radius: var(--radius);
+  text-align: center;
+  max-width: 28rem;
+  width: 100%;
+  margin: 0 var(--gutter);
+}
+
+.thank-you-modal-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.thank-you-modal-message {
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+/* Action button container for proper spacing */
+.raise-issue-wizard-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(64, 224, 208, 0.2);
+}
+
+/* File list styling */
+.neon-file-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0;
+  background: rgba(64, 224, 208, 0.1);
+  border: 1px solid var(--neon);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.neon-file-list li {
+  color: var(--text);
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(64, 224, 208, 0.2);
+  font-size: 14px;
+}
+
+.neon-file-list li:last-child {
+  border-bottom: none;
+}
+
+/* Error and success message styling */
+.neon-error-message {
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid #dc2626;
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: #fca5a5;
+  font-size: 14px;
+  margin: 16px 0;
+  font-weight: 500;
+}
+
+.neon-success-message {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid #22c55e;
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: #86efac;
+  font-size: 14px;
+  margin: 16px 0;
+  font-weight: 500;
+}
+
+/* Action button container for proper spacing */
+.raise-issue-wizard-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(64, 224, 208, 0.2);
+}
+
+/* Duplicated button styles removed - organized above in sections */
+
+/* ================== Large Icon Buttons ================== */
 .large-neon-icon-btn {
   width: 60px;
   height: 60px;
@@ -517,13 +741,11 @@ button svg {
   border-radius: 50%;
   background: #fff;
   border: none;
-  box-shadow: 0 2px 12px 0 var(--neon, #40e0d0);
   cursor: pointer;
-  transition: box-shadow 0.18s, transform 0.08s, background 0.18s;
+  transition: transform 0.08s, background 0.18s;
   padding: 0;
 }
 .large-neon-icon-btn:hover {
-  box-shadow: 0 4px 24px 0 var(--neon, #40e0d0);
   background: #f0fdfa;
   transform: scale(1.06);
 }
@@ -539,27 +761,61 @@ button svg {
   stroke-width: 2.5px !important;
   display: block;
 }
-/* Example color override: orange icon */
+
+/* Large button color variants */
 .large-neon-icon-btn.orange svg {
   color: #fa7a20 !important;
   stroke: #fa7a20 !important;
 }
-/* Example color override: green icon */
 .large-neon-icon-btn.green svg {
   color: #16a34a !important;
   stroke: #16a34a !important;
 }
-/* Example color override: blue icon */
 .large-neon-icon-btn.blue svg {
   color: #0ea5e9 !important;
   stroke: #0ea5e9 !important;
+}
+
+/* ================== Sidebar Action Buttons ================== */
+.sidebar-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.sidebar-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 12px 14px;
+  font-weight: 700;
+  font-size: 18px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--neon);
+  color: #012b2b;
+  cursor: pointer;
+  transition: transform .06s, background .18s;
+}
+.sidebar-action:hover {
+  background: var(--neon-2);
+}
+.sidebar-action:active {
+  transform: translateY(1px);
+}
+.sidebar-action .icon {
+  width: 22px;
+  height: 22px;
 }
 
 /* ================== Tables ================== */
 .neon-table{
   width:100%; border-collapse:collapse; font-size:1rem; color:var(--text);
   background:var(--field); border:1px solid var(--neon); border-radius:12px; overflow:hidden;
-  box-shadow:0 0 8px var(--neon);
 }
 .neon-table thead {
   background: #c75c00 !important; /* dark orange */
@@ -739,15 +995,12 @@ button svg {
 .user-profile-card .label{ color:var(--neon); font-weight:700; }
 
 /* ================== Utilities ================== */
-.shadow-glow{ box-shadow:0 0 8px var(--neon); }
-.no-shadow-glow{ box-shadow:none !important; }
 
 /* ================== Neon Feature Card ================== */
 .neon-feature-card {
   background: var(--panel);
   border: 1.5px solid var(--neon);
   border-radius: 16px;
-  box-shadow: 0 0 8px var(--neon);
   padding: 1.5rem 1.25rem;
   min-height: 140px;
   display: flex;
@@ -761,7 +1014,6 @@ button svg {
 }
 .neon-feature-card:hover,
 .neon-feature-card:focus {
-  box-shadow: 0 0 8px var (--neon);
   transform: scale(1.03);
   outline: none;
 }
@@ -805,7 +1057,6 @@ button svg {
   max-height: 90%;
   overflow: visible;
   padding: 1.5rem;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
 }
 
 /* Org chart toolbar and button spacing improvements */
@@ -850,7 +1101,7 @@ button svg {
   border-radius: 12px;
   position: relative;
   transition: background 0.2s;
-  box-shadow: 0 0 0 2px var(--neon), 0 0 8px var(--neon);
+  border: 2px solid var(--neon);
 }
 .neon-switch::after {
   content: '';
@@ -862,7 +1113,6 @@ button svg {
   background: var(--neon);
   border-radius: 50%;
   transition: left 0.2s, background 0.2s;
-  box-shadow: 0 0 8px var(--neon);
 }
 .neon-switch-on {
   background: var(--neon);
@@ -889,9 +1139,8 @@ button svg {
   background: linear-gradient(90deg, var(--panel) 0%, var(--field) 100%);
   border-radius: 14px;
   position: relative;
-  transition: background 0.25s, box-shadow 0.18s;
-  box-shadow: 0 0 0 2px var(--accent), 0 0 12px var(--accent);
-  border: 1.5px solid var(--accent);
+  transition: background 0.25s;
+  border: 2px solid var(--accent);
 }
 .neon-switch-alt::after {
   content: '';
@@ -902,17 +1151,14 @@ button svg {
   height: 20px;
   background: radial-gradient(circle, var(--accent) 60%, #fff 100%);
   border-radius: 50%;
-  transition: left 0.25s, background 0.25s, box-shadow 0.18s;
-  box-shadow: 0 0 12px var(--accent), 0 0 2px #fff;
+  transition: left 0.25s, background 0.25s;
 }
 .neon-switch-alt-on {
   background: linear-gradient(90deg, var(--accent) 0%, #ffd580 100%);
-  box-shadow: 0 0 0 2px var(--accent), 0 0 16px var(--accent);
 }
 .neon-switch-alt-on::after {
   left: 28px;
   background: radial-gradient(circle, #fff 60%, var(--accent) 100%);
-  box-shadow: 0 0 16px #fff, 0 0 4px var(--accent);
 }
 
 /* ================== NeonDualListbox styling for consistent theme */
@@ -925,7 +1171,6 @@ button svg {
   background: var(--panel) !important;
   border: 1.5px solid var(--neon);
   border-radius: 12px;
-  box-shadow: 0 0 8px var(--neon);
   padding: 1.5rem;
   color: var(--text);
   margin-left: auto;
@@ -947,7 +1192,6 @@ button svg {
   list-style: none; /* Remove bullets if using <ul>/<li> */
   margin: 0;
   padding: 0.75rem 0.5rem;
-  box-shadow: 0 0 4px var(--neon);
   color: var(--text);
 }
 .neon-duallistbox-list-item {
@@ -978,22 +1222,7 @@ button svg {
   gap: 0.75rem;
   margin: 0 1rem;
 }
-.neon-duallistbox-btn {
-  background: var(--neon);
-  color: #012b2b;
-  border: none;
-  border-radius: 8px;
-  padding: 0.5rem 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 0 4px var(--neon);
-  transition: background 0.18s, color 0.18s;
-}
-.neon-duallistbox-btn:disabled {
-  background: #222;
-  color: #888;
-  cursor: not-allowed;
-}
+/* Button styles for dual listbox are defined in the organized button sections above */
 .neon-duallistbox-panel {
   max-width: 300px;
   min-width: 300px;
@@ -1192,7 +1421,6 @@ button svg {
 .neon-modal {
   background: #181c24;
   border-radius: 12px;
-  box-shadow: 0 4px 32px 0 #000a;
   min-width: 320px;
   max-width: 95vw;
   width: 400px;
@@ -1211,7 +1439,16 @@ button svg {
   font-size: 1.1rem;
   font-weight: 700;
 }
+/* ================== Modal & List Buttons ================== */
+/* These buttons are exceptions to the 30x30 rule due to their specific use cases */
+
 .neon-btn-close {
+  width: auto !important;
+  height: auto !important;
+  min-width: auto !important;
+  min-height: auto !important;
+  max-width: none !important;
+  max-height: none !important;
   background: none;
   border: none;
   color: #fff;
@@ -1220,6 +1457,76 @@ button svg {
   padding: 0 0.5rem;
   line-height: 1;
 }
+
+/* ================== Dual Listbox Buttons ================== */
+/* These buttons are exceptions to the 30x30 rule - they need padding for text readability */
+
+.neon-duallistbox-btn {
+  width: auto !important;
+  height: auto !important;
+  min-width: auto !important;
+  min-height: auto !important;
+  max-width: none !important;
+  max-height: none !important;
+  background: var(--neon);
+  color: #012b2b;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+}
+.neon-duallistbox-btn:disabled {
+  background: #222;
+  color: #888;
+  cursor: not-allowed;
+}
+
+/* ================== END BUTTON SYSTEM ================== */
+/*
+ * BUTTON SIZING GUIDE:
+ * 
+ * SQUARE BUTTONS (30px x 30px):
+ * - All .neon-btn and .neon-btn-square classes inherit 30x30 dimensions
+ * - All color variant buttons (save, delete, edit, etc.) are square
+ * - Icon-only buttons for consistent interface alignment
+ * 
+ * EXCEPTIONS (Auto-sized with padding):
+ * - .neon-btn-primary, .neon-btn-secondary, .neon-btn-cancel (text buttons)
+ * - .neon-btn-close (modal close button)
+ * - .neon-btn-list (full-width list items)
+ * - .neon-duallistbox-btn (component buttons with text)
+ * - .large-neon-icon-btn (60px circular)
+ * - .sidebar-action (full-width sidebar buttons)
+ * 
+ * BUTTON COLOR REFERENCE GUIDE:
+ * 
+ * RED/DANGER (#ea1c1c, #cd5c5c, #6d0101):
+ * - .neon-btn-close, .neon-btn-delete, .neon-btn-leavers
+ * 
+ * GREEN/SUCCESS (#16a34a, #32cd32, #14532d, #19e68c):
+ * - .neon-btn-save, .neon-btn-add, .neon-btn-confirm, .neon-btn-review
+ * - .neon-btn-add-people, .neon-btn-activity, .neon-btn-pen-tool
+ * - .neon-btn-globe, .neon-btn-submit-application
+ * 
+ * BLUE/INFO (#82c8e5, #083ddb, #0ea5e9):
+ * - .neon-btn-view, .neon-btn-edit, .neon-btn-tool, .neon-btn-download
+ * 
+ * YELLOW/WARNING (#efb123):
+ * - .neon-btn-assign
+ * 
+ * PURPLE/SPECIAL (#a084e8, #a259e6):
+ * - .neon-btn-history, .neon-btn-upload
+ * 
+ * DARK/NEUTRAL (#222, #000):
+ * - .neon-btn-next, .neon-btn-back, .neon-btn-archive, .neon-btn-view-archive
+ * 
+ * THEME COLORS (CSS variables):
+ * - .neon-btn-primary (--neon: #40e0d0)
+ * - .neon-btn-secondary (--panel: #053639 with --neon border)
+ * - .neon-btn-cancel (--accent: #fa7a20 border)
+ */
 .neon-modal-content {
   padding: 1rem 1.25rem 1.25rem 1.25rem;
 }
@@ -1230,7 +1537,7 @@ button svg {
   max-height: 260px;
   overflow-y: auto;
 }
-.neon-btn-list {
+.neon-list-item-btn {
   background: none;
   border: none;
   color: var(--neon-fg, #fff);
@@ -1242,9 +1549,63 @@ button svg {
   transition: background 0.15s;
   cursor: pointer;
 }
-.neon-btn-list:hover, .neon-btn-list:focus {
+.neon-list-item-btn:hover, .neon-list-item-btn:focus {
   background: var(--accent, #0ea5e9);
   color: #fff;
+}
+
+/* ================== List Button Dropdown ================== */
+.list-button-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  background: var(--panel);
+  border: 2px solid var(--neon);
+  border-radius: 8px;
+  min-width: 160px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.list-button-dropdown-header {
+  padding: 8px 12px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  border-bottom: 1px solid var(--neon);
+}
+
+.list-button-dropdown-list {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.list-button-dropdown-item {
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.list-button-dropdown-item:hover {
+  background: var(--neon);
+  color: #012b2b;
+}
+
+.list-button-dropdown-item.active {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
 }
 
 /* ================== Footer Link Styles ================== */
@@ -1463,7 +1824,6 @@ footer .footer__icon svg {
   border: none;
   border-top: 2.5px solid var(--neon);
   margin: 2.5rem 0 1.5rem 0;
-  box-shadow: 0 0 8px var(--neon);
   background: none;
 }
 
@@ -1495,49 +1855,7 @@ footer .footer__icon svg {
 }
 
 
-/* Vertical stack wrapper */
-.sidebar-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 100%;
-}
-
-/* Sidebar action button (independent of .neon-btn) */
-.sidebar-action {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-
-  width: 100%;
-  min-height: 44px;       /* comfy tap target */
-  padding: 12px 14px;
-
-  font-weight: 700;
-  font-size: 18px;
-  border: 0;
-  border-radius: 10px;
-
-  background: var(--neon);
-  color: #012b2b;
-  box-shadow: 0 2px 8px #0002;
-  cursor: pointer;
-  transition: transform .06s, box-shadow .18s, background .18s;
-}
-.sidebar-action:hover {
-  box-shadow: 0 3px 14px #0003;
-  background: var(--neon-2);
-}
-.sidebar-action:active {
-  transform: translateY(1px);
-}
-
-/* Optional: tweak icon size if you want bigger than the global 20px */
-.sidebar-action .icon {
-  width: 22px;
-  height: 22px;
-}
+/* Sidebar styles moved to organized button section above */
 
 /* Muted/secondary text in orange */
 .neon-muted {
@@ -1629,5 +1947,357 @@ body, html, .neon-text,
 .custom-tooltip-trigger:hover::after {
   opacity: 1;
   transition-delay: 0.1s; /* 100ms delay for fast response */
+}
+
+/* ================== User Manager Styles ================== */
+.user-manager-section {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.user-manager-header {
+  margin-bottom: 2rem;
+}
+
+.user-manager-content {
+  margin-top: 2rem;
+}
+
+.user-manager-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+  .user-manager-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+.user-manager-subheading {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.user-manager-table {
+  margin-bottom: 2rem;
+}
+
+.user-manager-name {
+  font-weight: 600;
+}
+
+.user-manager-empty {
+  text-align: center;
+  color: var(--accent);
+  font-style: italic;
+  padding: 2rem !important;
+}
+
+.user-manager-loading,
+.user-manager-error {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text);
+}
+
+.user-manager-error {
+  color: #ea1c1c;
+  background: rgba(234, 28, 28, 0.1);
+  border: 1px solid #ea1c1c;
+  border-radius: 8px;
+}
+
+.user-manager-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+.user-manager-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  align-items: flex-end;
+}
+
+.user-manager-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: var(--neon);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.user-manager-select,
+.user-manager-input {
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--field);
+  color: var(--text);
+  min-width: 120px;
+}
+
+.user-manager-download {
+  display: flex;
+  align-items: flex-end;
+}
+
+.user-manager-structure {
+  margin-top: 2rem;
+}
+
+.user-manager-structure-toggle {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.user-manager-structure-label {
+  font-weight: 600;
+  color: var(--text);
+  transition: color 0.2s;
+}
+
+.user-manager-structure-label.active {
+  color: var(--neon);
+}
+
+.user-manager-structure-switch {
+  width: 60px;
+  height: 30px;
+  background: var(--field);
+  border: 2px solid var(--border);
+  border-radius: 15px;
+  position: relative;
+  transition: all 0.2s;
+}
+
+.user-manager-structure-switch.active {
+  border-color: var(--neon);
+  background: var(--neon);
+}
+
+.user-manager-structure-switch-handle {
+  width: 22px;
+  height: 22px;
+  background: var(--text);
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s;
+}
+
+.user-manager-structure-switch.active .user-manager-structure-switch-handle {
+  transform: translateX(30px);
+  background: var(--field);
+}
+
+.shift-toggle {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.shift-toggle-label {
+  font-weight: 600;
+  color: var(--text);
+  transition: color 0.2s;
+}
+
+.shift-toggle-label.active {
+  color: var(--neon);
+}
+
+.shift-toggle-switch {
+  width: 60px;
+  height: 30px;
+  background: var(--field);
+  border: 2px solid var(--border);
+  border-radius: 15px;
+  position: relative;
+  transition: all 0.2s;
+}
+
+.shift-toggle-switch.active {
+  border-color: var(--neon);
+  background: var(--neon);
+}
+
+.shift-toggle-switch-handle {
+  width: 22px;
+  height: 22px;
+  background: var(--text);
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s;
+}
+
+.shift-toggle-switch.active .shift-toggle-switch-handle {
+  transform: translateX(30px);
+  background: var (--field);
+}
+
+.user-manager-placeholder {
+  margin-top: 2rem;
+}
+
+/* Bulk Assignment Dialog Standardized Formatting */
+.neon-form-content {
+  padding: 0;
+  margin: 0;
+}
+
+.neon-form-section {
+  margin-bottom: 2rem;
+}
+
+.neon-form-section:last-child {
+  margin-bottom: 0;
+}
+
+.neon-form-info {
+  background: rgba(0, 255, 255, 0.1);
+  border: 1px solid rgba(0, 255, 255, 0.3);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  color: var(--neon-text, #fff);
+}
+
+.neon-form-info strong {
+  color: var(--neon-primary, #00ffff);
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.neon-user-list {
+  margin: 0.5rem 0 0 1rem;
+  padding: 0;
+  list-style: disc;
+  color: #aaa;
+}
+
+.neon-user-list li {
+  margin-bottom: 0.25rem;
+}
+
+.neon-button-group {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.neon-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.neon-form-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.neon-dialog-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(0, 255, 255, 0.2);
+}
+
+/* Responsive adjustments for bulk assignment forms */
+@media (max-width: 768px) {
+  .neon-form-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .neon-button-group {
+    flex-direction: column;
+  }
+  
+  .neon-dialog-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* Radio Button Group Styling */
+.neon-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.neon-radio-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: rgba(0, 255, 255, 0.05);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.neon-radio-option:hover {
+  background: rgba(0, 255, 255, 0.1);
+  border-color: rgba(0, 255, 255, 0.4);
+}
+
+.neon-radio-option:has(.neon-radio:checked) {
+  background: rgba(0, 255, 255, 0.15);
+  border-color: var(--neon-primary, #00ffff);
+}
+
+.neon-radio {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--neon-primary, #00ffff);
+  cursor: pointer;
+}
+
+.neon-radio-label {
+  flex: 1;
+  color: var(--neon-text, #fff);
+  font-size: 1rem;
+  cursor: pointer;
+  margin: 0;
+}
+
+.neon-radio-label span {
+  font-weight: 500;
+}
+
+/* Responsive adjustments for radio groups */
+@media (max-width: 768px) {
+  .neon-radio-group {
+    gap: 0.75rem;
+  }
+  
+  .neon-radio-option {
+    padding: 0.5rem 0.75rem;
+  }
 }
 

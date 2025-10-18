@@ -98,7 +98,6 @@ export default function SearchableDropdown({
                 zIndex: 1000,
                 background: "var(--dropdown-bg, #18181b)",
                 borderRadius: 8,
-                boxShadow: "0 4px 32px rgba(0,0,0,0.22)",
               }}
               // Stop clicks from reaching the backdrop
               onClick={(e) => e.stopPropagation()}

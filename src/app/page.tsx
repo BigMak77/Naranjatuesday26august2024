@@ -171,29 +171,29 @@ export default function HomePage() {
                 <div className={styles.metricLabel}>Lost Documents</div>
               </div>
             </div>
+          </div>
+        </div>
 
-            {/* CTO Message Section */}
-            <div className={styles.ctoPanel}>
-              <div className={styles.ctoContent}>
-                <div className={styles.ctoIcon}>
-                  <FiStar />
-                </div>
-                <div className={styles.ctoText}>
-                  <h3 className={styles.ctoTitle}>
-                    Our Purpose is Simple
-                    <span className={styles.ctoHighlight}>
-                      — To help food and drink businesses keep their people safe
-                    </span>
-                  </h3>
-                  <blockquote className={styles.ctoQuote}>
-                    "We built Naranja to help food and drink businesses keep
-                    their people safe and deliver the highest quality products to
-                    consumers. By taking care of compliance, training, and audit
-                    readiness, we free you to focus on what matters most — running
-                    your operation and making great products."
-                  </blockquote>
-                </div>
-              </div>
+        {/* CTO Message Section */}
+        <div className={styles.ctoPanel}>
+          <div className={styles.ctoContent}>
+            <div className={styles.ctoIcon}>
+              <FiStar />
+            </div>
+            <div className={styles.ctoText}>
+              <h3 className={styles.ctoTitle}>
+                Our Purpose is Simple 
+                <span className={styles.ctoHighlight}>
+                  — To help food and drink businesses keep their people safe
+                </span>
+              </h3>
+              <blockquote className={styles.ctoQuote}>
+                "We built Naranja to help food and drink businesses keep
+                their people safe and deliver the highest quality products to
+                consumers. By taking care of compliance, training, and audit
+                readiness, we free you to focus on what matters most — running
+                your operation and making great products."
+              </blockquote>
             </div>
           </div>
         </div>

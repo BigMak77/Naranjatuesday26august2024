@@ -74,9 +74,8 @@ function StructureTree({ nodes, level = 2, users }: StructureTreeProps) {
           flexDirection: "row",
           gap: 24,
           justifyContent: "center",
-          flexWrap: "nowrap",
+          flexWrap: "wrap",
           width: "100%",
-          overflowX: "auto", // keep row centered even with many siblings
           paddingBottom: 4,
         }}
         onClick={(e) => e.stopPropagation()}
@@ -102,107 +101,110 @@ function StructureTree({ nodes, level = 2, users }: StructureTreeProps) {
           });
 
           return (
-            <div
+            <CustomTooltip 
               key={node.id}
-              style={{
-                width: 120,
-                minWidth: 120,
-                maxWidth: 120,
-                position: "relative",
-                opacity: isMuted ? 0.6 : 1,
-                filter: isMuted ? "grayscale(0.3)" : "none",
-                transition: "opacity 0.2s, filter 0.2s",
-              }}
+              text={`${node.name} department - ${countPeople(node)} total employees, ${managersInDept.length} managers. ${node.children?.length ? 'Click to expand and view managers and sub-departments.' : 'No sub-departments.'}`}
             >
               <div
-                onClick={() => {
-                  const next = isExpanded ? null : node.id;
-                  setExpandedId(next);
-                }}
                 style={{
-                  cursor: node.children?.length ? "pointer" : "default",
-                  padding: "12px 16px",
-                  borderRadius: 12,
-                  background:
-                    level === 2 ? (isMuted ? mutedBg : vibrantBg) : "#23232e",
-                  border: isExpanded
-                    ? "1.5px solid #00fff7"
-                    : "1.5px solid #222",
-                  color: "#fff",
-                  fontWeight: 500,
-                  transition: "background 0.2s, border 0.2s",
-                  textAlign: "center",
+                  width: 120,
+                  minWidth: 120,
+                  maxWidth: 120,
+                  position: "relative",
+                  opacity: isMuted ? 0.6 : 1,
+                  filter: isMuted ? "grayscale(0.3)" : "none",
+                  transition: "opacity 0.2s, filter 0.2s",
                 }}
               >
-                {node.name}
-
-                {/* People count */}
                 <div
+                  onClick={() => {
+                    const next = isExpanded ? null : node.id;
+                    setExpandedId(next);
+                  }}
                   style={{
-                    margin: "10px auto 0",
-                    display: "flex",
-                    justifyContent: "center",
+                    cursor: node.children?.length ? "pointer" : "default",
+                    padding: "12px 16px",
+                    borderRadius: 12,
+                    background:
+                      level === 2 ? (isMuted ? mutedBg : vibrantBg) : "#23232e",
+                    border: isExpanded
+                      ? "1.5px solid #00fff7"
+                      : "1.5px solid #222",
+                    color: "#fff",
+                    fontWeight: 500,
+                    transition: "background 0.2s, border 0.2s",
+                    textAlign: "center",
                   }}
                 >
+                  {node.name}
+
+                  {/* People count */}
                   <div
                     style={{
-                      width: 22,
-                      height: 22,
-                      borderRadius: "50%",
-                      background: "#00fff7",
-                      color: "#1e1e28",
+                      margin: "10px auto 0",
                       display: "flex",
-                      alignItems: "center",
                       justifyContent: "center",
-                      fontWeight: 600,
-                      fontSize: 12,
-                      boxShadow: "0 0 4px #00fff7aa",
                     }}
                   >
-                    {countPeople(node)}
-                  </div>
-                </div>
-
-                {node.children?.length ? (
-                  <span style={{ float: "right", opacity: 0.7, fontSize: 18 }}>
-                    {isExpanded ? "−" : "+"}
-                  </span>
-                ) : null}
-              </div>
-
-              {/* Users inside the card when expanded */}
-              {isExpanded && (
-                <div style={{ marginTop: 12, textAlign: "left" }}>
-                  <div
-                    style={{
-                      fontSize: 12,
-                      color: "#00fff7",
-                      marginBottom: 4,
-                      fontWeight: 600,
-                    }}
-                  >
-                    Managers:
-                  </div>
-                  {managersInDept.length ? (
-                    <ul style={{ paddingLeft: 16, margin: 0 }}>
-                      {managersInDept.map((u) => (
-                        <li
-                          key={u.id}
-                          style={{ color: "#fff", fontSize: 13, marginBottom: 6 }}
-                        >
-                          {`${u.first_name || ""} ${u.last_name || ""}`.trim() ||
-                            u.id}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <div style={{ color: "#888", fontSize: 12, paddingLeft: 16 }}>
-                      (No managers in this department)
+                    <div
+                      style={{
+                        width: 22,
+                        height: 22,
+                        borderRadius: "50%",
+                        background: "#00fff7",
+                        color: "#1e1e28",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontWeight: 600,
+                        fontSize: 12,
+                      }}
+                    >
+                      {countPeople(node)}
                     </div>
-                  )}
+                  </div>
+
+                  {node.children?.length ? (
+                    <span style={{ float: "right", opacity: 0.7, fontSize: 18 }}>
+                      {isExpanded ? "−" : "+"}
+                    </span>
+                  ) : null}
                 </div>
-              )}
-            </div>
+
+                {/* Users inside the card when expanded */}
+                {isExpanded && (
+                  <div style={{ marginTop: 12, textAlign: "left" }}>
+                    <div
+                      style={{
+                        fontSize: 12,
+                        color: "#00fff7",
+                        marginBottom: 4,
+                        fontWeight: 600,
+                      }}
+                    >
+                      Managers:
+                    </div>
+                    {managersInDept.length ? (
+                      <ul style={{ paddingLeft: 16, margin: 0 }}>
+                        {managersInDept.map((u) => (
+                          <li
+                            key={u.id}
+                            style={{ color: "#fff", fontSize: 13, marginBottom: 6 }}
+                          >
+                            {`${u.first_name || ""} ${u.last_name || ""}`.trim() ||
+                              u.id}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div style={{ color: "#888", fontSize: 12, paddingLeft: 16 }}>
+                        (No managers in this department)
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </CustomTooltip>
           );
         })}
       </div>
@@ -315,56 +317,56 @@ export default function Structure() {
     return result;
   }, [departments]);
 
-  if (loading) return <div>Loading…</div>;
+  if (loading) return (
+    <div className="neon-panel">
+      <div className="text-center py-8 text-neon">Loading…</div>
+    </div>
+  );
 
   return (
     <div className="neon-panel" style={{ position: "relative" }}>
-      {/* Page Header */}
-      <h1 className="neon-page-header">Manager Structure</h1>
-
       {/* Description and Toggle Row */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
         gap: 16,
-        marginBottom: 32
+        marginBottom: 32,
+        justifyContent: 'flex-start'
       }}>
-        <p className="neon-text" style={{ margin: 0, fontSize: 12 }}>
-          View your organisation by management hierarchy - see which managers oversee which departments and teams
-        </p>
-
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8
-        }}>
-          <span style={{ fontSize: 12, color: '#9ca3af', whiteSpace: 'nowrap' }}>Department</span>
-          <button
-            onClick={() => window.location.href = '/hr/structure/role-structure'}
-            style={{
-              width: 44,
-              height: 24,
-              background: '#22c55e',
-              border: 'none',
-              borderRadius: 12,
-              position: 'relative',
-              cursor: 'pointer',
-              transition: 'background 0.2s'
-            }}
-          >
-            <div style={{
-              position: 'absolute',
-              right: 3,
-              top: 3,
-              width: 18,
-              height: 18,
-              background: '#fff',
-              borderRadius: '50%',
-              transition: 'left 0.2s'
-            }} />
-          </button>
-          <span style={{ fontSize: 12, color: '#fff', whiteSpace: 'nowrap' }}>Manager</span>
-        </div>
+        <CustomTooltip text="Switch between Department view (showing roles and employees) and Manager view (showing management hierarchy)">
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8
+          }}>
+            <span style={{ fontSize: 12, color: '#9ca3af', whiteSpace: 'nowrap' }}>Department</span>
+            <button
+              onClick={() => window.location.href = '/hr/structure/role-structure'}
+              style={{
+                width: 44,
+                height: 24,
+                background: '#22c55e',
+                border: 'none',
+                borderRadius: 12,
+                position: 'relative',
+                cursor: 'pointer',
+                transition: 'background 0.2s'
+              }}
+            >
+              <div style={{
+                position: 'absolute',
+                right: 3,
+                top: 3,
+                width: 18,
+                height: 18,
+                background: '#fff',
+                borderRadius: '50%',
+                transition: 'left 0.2s'
+              }} />
+            </button>
+            <span style={{ fontSize: 12, color: '#fff', whiteSpace: 'nowrap' }}>Manager</span>
+          </div>
+        </CustomTooltip>
       </div>
 
       {/* Right-side button group: Assign, Change Manager */}

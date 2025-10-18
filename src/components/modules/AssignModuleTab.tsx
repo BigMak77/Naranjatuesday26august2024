@@ -5,13 +5,10 @@ import { supabase } from "@/lib/supabase-client";
 import NeonIconButton from "@/components/ui/NeonIconButton";
 import {
   FiSend,
-  FiChevronLeft,
-  FiChevronRight,
-  FiCheckSquare,
-  FiSquare,
-  FiPlus,
 } from "react-icons/fi";
 import SearchableDropdown from "@/components/SearchableDropdown";
+import { CustomTooltip } from "@/components/ui/CustomTooltip";
+import SuccessModal from "@/components/ui/SuccessModal";
 
 type UUID = string;
 
@@ -57,6 +54,7 @@ export default function AssignModuleWizard() {
 
   // Success modal state
   const [showSuccess, setShowSuccess] = useState(false);
+  const [assignedCount, setAssignedCount] = useState(0);
 
   useEffect(() => {
     (async () => {
@@ -207,10 +205,10 @@ If this persists, check Row Level Security policies on "user_assignments".`);
         return;
       }
 
-      setFeedback(
-        `Assigned "${modules.find((m) => m.id === selectedModule)?.name ?? "Module"}" to ${rows.length} user(s).`,
-      );
+      // Show success modal
+      setAssignedCount(rows.length);
       setShowSuccess(true);
+      setFeedback("");
       // Reset selections
       setSelectedDeptIds([]);
       setSelectedUserAuthIds([]);
@@ -223,42 +221,8 @@ If this persists, check Row Level Security policies on "user_assignments".`);
     }
   };
 
-  // Success modal overlay
-  const successModal = showSuccess && (
-    <div style={{
-      position: "fixed",
-      top: 0,
-      left: 0,
-      width: "100vw",
-      height: "100vh",
-      background: "rgba(0,0,0,0.32)",
-      zIndex: 2000,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-    }}>
-      <div style={{
-        background: "#232323",
-        borderRadius: 12,
-        padding: 36,
-        minWidth: 340,
-        maxWidth: 420,
-        boxShadow: "0 8px 32px rgba(0,0,0,0.22)",
-        textAlign: "center",
-      }}>
-        <h2 style={{ color: "var(--neon)", marginBottom: 12 }}>Success!</h2>
-        <div style={{ color: "#fff", marginBottom: 24, whiteSpace: "pre-line" }}>{feedback}</div>
-        <NeonIconButton
-          variant="add"
-          icon={<FiPlus />}
-          title="Close"
-          onClick={() => setShowSuccess(false)}
-        >
-          Close
-        </NeonIconButton>
-      </div>
-    </div>
-  );
+  // Get module name for success message
+  const moduleName = modules.find((m) => m.id === selectedModule)?.name ?? "Module";
 
   if (loading)
     return (
@@ -269,17 +233,19 @@ If this persists, check Row Level Security policies on "user_assignments".`);
 
   return (
     <>
-      {successModal}
+      <SuccessModal
+        open={showSuccess}
+        onClose={() => setShowSuccess(false)}
+        title="Assignment Successful!"
+        message={`Successfully assigned "${moduleName}" to ${selectedUserAuthIds.length} user(s).`}
+        autoCloseMs={3000}
+      />
       <div className="neon-panel-module" style={{ display: "grid", gap: "1rem" }}>
         <h3
           className="neon-section-title"
           style={{ display: "flex", alignItems: "center", gap: 8 }}
         >
-          <NeonIconButton
-            variant="edit"
-            icon={<FiSend />}
-            title="Assign Training Module"
-          />
+          <FiSend style={{ color: "var(--accent, #0ea5e9)" }} />
           Bulk Assignment Wizard
         </h3>
 
@@ -296,8 +262,20 @@ If this persists, check Row Level Security policies on "user_assignments".`);
 
         {/* Step 1 */}
         {step === 1 && (
-          <div style={{ display: "grid", gap: 8 }}>
-            <label className="neon-label">Select Module</label>
+          <div style={{ display: "grid", gap: 12 }}>
+            <div style={{
+              padding: "12px 16px",
+              background: "rgba(14, 165, 233, 0.1)",
+              borderLeft: "3px solid var(--accent, #0ea5e9)",
+              borderRadius: 6,
+              fontSize: 14,
+              lineHeight: 1.6
+            }}>
+              <strong>Step 1 of 3:</strong> Choose which training module you want to assign to users.
+              Once selected, you'll move to the next step to pick departments.
+            </div>
+
+            <label className="neon-label">Select Training Module</label>
             <select
               className="neon-input"
               value={selectedModule}
@@ -319,21 +297,34 @@ If this persists, check Row Level Security policies on "user_assignments".`);
                 marginTop: 8,
               }}
             >
-              <NeonIconButton
-                variant="next"
-                icon={<FiChevronRight />}
-                title="Next: choose departments"
-                onClick={() => setStep(2)}
-                disabled={!canGoNextFrom1}
-                aria-label="Next"
-              />
+              <CustomTooltip text={!canGoNextFrom1 ? "Please select a module first" : "Continue to department selection"}>
+                <NeonIconButton
+                  variant="next"
+                  title="Next"
+                  onClick={() => setStep(2)}
+                  disabled={!canGoNextFrom1}
+                  aria-label="Next to departments"
+                />
+              </CustomTooltip>
             </div>
           </div>
         )}
 
         {/* Step 2 */}
         {step === 2 && (
-          <div style={{ display: "grid", gap: 8 }}>
+          <div style={{ display: "grid", gap: 12 }}>
+            <div style={{
+              padding: "12px 16px",
+              background: "rgba(14, 165, 233, 0.1)",
+              borderLeft: "3px solid var(--accent, #0ea5e9)",
+              borderRadius: 6,
+              fontSize: 14,
+              lineHeight: 1.6
+            }}>
+              <strong>Step 2 of 3:</strong> Select one or more departments. Only users from the selected departments will be available in the next step.
+              You can select multiple departments at once.
+            </div>
+
             <label className="neon-label">Select Department(s)</label>
             <SearchableDropdown
               options={departments.filter((d) => d.id).map((d) => ({
@@ -348,9 +339,9 @@ If this persists, check Row Level Security policies on "user_assignments".`);
               }}
               placeholder="Select department(s)..."
             />
-            <div style={{ fontSize: 13, opacity: 0.8 }}>
+            <div style={{ fontSize: 13, opacity: 0.8, padding: "4px 0" }}>
               {selectedDeptIds.length
-                ? `Selected ${selectedDeptIds.length} dept(s) containing ${deptUserCount} user(s).`
+                ? `✓ Selected ${selectedDeptIds.length} department(s) containing ${deptUserCount} user(s).`
                 : "Pick at least one department to continue."}
             </div>
             <div
@@ -361,54 +352,62 @@ If this persists, check Row Level Security policies on "user_assignments".`);
                 marginTop: 8,
               }}
             >
-              <NeonIconButton
-                variant="back"
-                icon={<FiChevronLeft />}
-                title="Back"
-                onClick={() => setStep(1)}
-                aria-label="Back"
-              />
-              <NeonIconButton
-                variant="next"
-                icon={<FiChevronRight />}
-                title="Next: choose users"
-                onClick={() => {
-                  setSelectedUserAuthIds([]);
-                  setStep(3);
-                }}
-                disabled={!canGoNextFrom2}
-                aria-label="Next"
-              />
+              <CustomTooltip text="Go back to module selection">
+                <NeonIconButton
+                  variant="back"
+                  title="Back"
+                  onClick={() => setStep(1)}
+                  aria-label="Back to module selection"
+                />
+              </CustomTooltip>
+              <CustomTooltip text={!canGoNextFrom2 ? "Please select at least one department" : "Continue to user selection"}>
+                <NeonIconButton
+                  variant="next"
+                  title="Next"
+                  onClick={() => {
+                    setSelectedUserAuthIds([]);
+                    setStep(3);
+                  }}
+                  disabled={!canGoNextFrom2}
+                  aria-label="Next to user selection"
+                />
+              </CustomTooltip>
             </div>
           </div>
         )}
 
         {/* Step 3 */}
         {step === 3 && (
-          <div style={{ display: "grid", gap: 10 }}>
+          <div style={{ display: "grid", gap: 12 }}>
+            <div style={{
+              padding: "12px 16px",
+              background: "rgba(14, 165, 233, 0.1)",
+              borderLeft: "3px solid var(--accent, #0ea5e9)",
+              borderRadius: 6,
+              fontSize: 14,
+              lineHeight: 1.6
+            }}>
+              <strong>Step 3 of 3:</strong> Select the specific users you want to assign this module to.
+              You can use the search box to filter users, or use "Select All" to choose everyone from the selected departments.
+            </div>
+
             <div
               style={{
                 display: "flex",
                 gap: 8,
                 alignItems: "center",
                 justifyContent: "space-between",
+                flexWrap: "wrap",
               }}
             >
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <NeonIconButton
-                  variant="back"
-                  icon={<FiChevronLeft />}
-                  title="Back"
-                  onClick={() => setStep(2)}
-                  aria-label="Back"
-                />
                 <div style={{ fontSize: 13, opacity: 0.9 }}>
-                  {filteredUsers.length} user(s) in selected department(s)
+                  {filteredUsers.length} user(s) available • {selectedUserAuthIds.length} selected
                 </div>
               </div>
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                 {/* Select All Checkbox */}
-                <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 14, cursor: "pointer" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 14, cursor: "pointer", whiteSpace: "nowrap" }}>
                   <input
                     type="checkbox"
                     checked={allChecked}
@@ -482,15 +481,25 @@ If this persists, check Row Level Security policies on "user_assignments".`);
               )}
             </div>
 
-            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-              <NeonIconButton
-                variant="add"
-                icon={<FiPlus />}
-                title={assigning ? "Assigning…" : "Assign Module"}
-                onClick={handleAssign}
-                disabled={assigning || !canAssign}
-                aria-label="Assign Module"
-              />
+            <div style={{ display: "flex", gap: 8, justifyContent: "space-between", marginTop: 8 }}>
+              <CustomTooltip text="Go back to department selection">
+                <NeonIconButton
+                  variant="back"
+                  title="Back"
+                  onClick={() => setStep(2)}
+                  aria-label="Back to departments"
+                  disabled={assigning}
+                />
+              </CustomTooltip>
+              <CustomTooltip text={!canAssign ? "Please select at least one user" : assigning ? "Assigning module to selected users..." : "Assign module to selected users"}>
+                <NeonIconButton
+                  variant="assign"
+                  title={assigning ? "Assigning…" : "Assign Module"}
+                  onClick={handleAssign}
+                  disabled={assigning || !canAssign}
+                  aria-label="Assign Module to Users"
+                />
+              </CustomTooltip>
             </div>
           </div>
         )}

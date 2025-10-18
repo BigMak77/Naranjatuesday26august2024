@@ -18,7 +18,6 @@ import AddModuleTab from "@/components/modules/AddModuleTab";
 import { ViewModuleTab } from "@/components/modules/ViewModuleTab";
 import AssignModuleTab from "@/components/modules/AssignModuleTab";
 import NeonIconButton from "@/components/ui/NeonIconButton";
-import MainHeader from "../ui/MainHeader";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
 import "@/components/folder-tabs-equal-width.css";
@@ -55,21 +54,25 @@ export default function TrainingModuleManager() {
       key: "add",
       label: "",
       icon: <FiPlus />,
+      tooltip: "Add new training module",
     },
     {
       key: "view",
       label: "",
       icon: <FiClipboard />,
+      tooltip: "View and edit training modules",
     },
     {
       key: "assign",
       label: "",
       icon: <FiSend />,
+      tooltip: "Assign modules to users",
     },
     {
       key: "archive",
       label: "",
       icon: <FiHelpCircle />,
+      tooltip: "Archive training modules",
     },
   ];
 
@@ -115,7 +118,6 @@ export default function TrainingModuleManager() {
 
   return (
     <>
-      <MainHeader title="Training Module Manager" subtitle="Add, view, assign, and archive training modules" />
       <FolderTabs
         tabs={tabList.map(tab => ({
           ...tab,
@@ -137,13 +139,15 @@ export default function TrainingModuleManager() {
       {activeTab === "view" && (
         <div>
           <div style={{ marginBottom: 16 }}>
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search modules..."
-              className="neon-input"
-            />
+            <CustomTooltip text="Search modules by name or description">
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search modules..."
+                className="neon-input"
+              />
+            </CustomTooltip>
           </div>
           <NeonTable
             columns={[
@@ -183,13 +187,15 @@ export default function TrainingModuleManager() {
       {activeTab === "archive" && (
         <div>
           <div style={{ marginBottom: 16 }}>
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search modules to archive..."
-              className="neon-input"
-            />
+            <CustomTooltip text="Search for modules to archive">
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search modules to archive..."
+                className="neon-input"
+              />
+            </CustomTooltip>
           </div>
           <NeonTable
             columns={[

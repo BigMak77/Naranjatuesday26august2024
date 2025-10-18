@@ -14,7 +14,6 @@ export default function CreateAuditTab() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [frequency, setFrequency] = useState("");
-  const [version, setVersion] = useState("");
   const [sectionId, setSectionId] = useState("");
   const [sections, setSections] = useState<Section[]>([]);
   const [loading, setLoading] = useState(false);
@@ -39,7 +38,6 @@ export default function CreateAuditTab() {
           setTitle(tpl.title || "");
           setDescription(tpl.description || "");
           setFrequency(tpl.frequency || "");
-          setVersion(tpl.version || "");
           setSectionId(tpl.standard_section_id || "");
         }
       }
@@ -63,7 +61,6 @@ export default function CreateAuditTab() {
           title,
           description,
           frequency,
-          version,
           standard_section_id: sectionId || null,
         })
         .eq("id", editId));
@@ -75,7 +72,6 @@ export default function CreateAuditTab() {
           title,
           description,
           frequency,
-          version,
           standard_section_id: sectionId || null,
           created_by: user?.id || null,
         })
@@ -97,7 +93,6 @@ export default function CreateAuditTab() {
     setTitle("");
     setDescription("");
     setFrequency("");
-    setVersion("");
     setSectionId("");
     router.refresh();
   };
@@ -108,45 +103,22 @@ export default function CreateAuditTab() {
       onSubmit={handleSubmit}
       submitLabel={loading ? "Saving..." : "Create Template"}
     >
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="flex flex-col gap-3">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        {/* Title and Standard Section Link on same line */}
+        <div style={{ display: 'flex', gap: '1rem' }}>
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Title"
             className="neon-input"
+            style={{ flex: 1 }}
             required
-          />
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Description"
-            className="neon-input"
-            rows={2}
-          />
-          <select
-            value={frequency}
-            onChange={(e) => setFrequency(e.target.value)}
-            className="neon-input"
-            required
-          >
-            <option value="">Select Frequency</option>
-            {["Monthly", "Quarterly", "Yearly"].map((f) => (
-              <option key={f} value={f}>
-                {f}
-              </option>
-            ))}
-          </select>
-          <input
-            value={version}
-            onChange={(e) => setVersion(e.target.value)}
-            placeholder="Version"
-            className="neon-input"
           />
           <select
             value={sectionId}
             onChange={(e) => setSectionId(e.target.value)}
             className="neon-input"
+            style={{ flex: 1 }}
           >
             <option value="">Link to Standard Section (optional)</option>
             {sections.map((s: Section) => (
@@ -156,6 +128,28 @@ export default function CreateAuditTab() {
             ))}
           </select>
         </div>
+        
+        {/* Rest of the form fields */}
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Description"
+          className="neon-input"
+          rows={2}
+        />
+        <select
+          value={frequency}
+          onChange={(e) => setFrequency(e.target.value)}
+          className="neon-input"
+          required
+        >
+          <option value="">Select Frequency</option>
+          {["Monthly", "Quarterly", "Yearly"].map((f) => (
+            <option key={f} value={f}>
+              {f}
+            </option>
+          ))}
+        </select>
       </div>
     </NeonForm>
   );

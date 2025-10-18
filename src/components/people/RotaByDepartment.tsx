@@ -106,6 +106,7 @@ export default function RotaByDepartment({ departmentId }: { departmentId: strin
             <CustomTooltip text="Return to reports page">
               <NeonIconButton
                 variant="back"
+                title="Back"
                 aria-label="Back"
                 onClick={() => window.location.href = "/reports"}
                 style={{ justifySelf: 'end' }}

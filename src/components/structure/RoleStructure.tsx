@@ -279,67 +279,66 @@ export default function Structure() {
     return result;
   }, [departments, roles]);
 
-  if (loading) return <div>Loading…</div>;
+  if (loading) return (
+    <div className="neon-panel">
+      <div className="text-center py-8 text-neon">Loading…</div>
+    </div>
+  );
 
   return (
     <div className="neon-panel" style={{ position: "relative" }}>
-      {/* Page Header */}
-      <h1 className="neon-page-header">
-        Department Structure
-      </h1>
-
-      {/* Description and Toggle Row */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 16,
-        marginBottom: 32
-      }}>
-        <p className="neon-text" style={{ margin: 0, fontSize: 12 }}>
-          View your organisation's hierarchical department structure with roles and employee counts
-        </p>
-
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8
-        }}>
-          <span style={{ fontSize: 12, color: '#fff', whiteSpace: 'nowrap' }}>Department</span>
-          <button
-            onClick={() => window.location.href = '/hr/structure/manager-structure'}
-            style={{
-              width: 44,
-              height: 24,
-              background: '#22c55e',
-              border: 'none',
-              borderRadius: 12,
-              position: 'relative',
-              cursor: 'pointer',
-              transition: 'background 0.2s'
-            }}
-          >
-            <div style={{
-              position: 'absolute',
-              left: 3,
-              top: 3,
-              width: 18,
-              height: 18,
-              background: '#fff',
-              borderRadius: '50%',
-              transition: 'left 0.2s'
-            }} />
-          </button>
-          <span style={{ fontSize: 12, color: '#9ca3af', whiteSpace: 'nowrap' }}>Manager</span>
-        </div>
-      </div>
-
       {/* Right-side button group: Add, Amend, Move Role */}
-      <div style={{ position: "absolute", top: 16, right: 16, zIndex: 10, display: "flex", flexDirection: "row", gap: 8 }}>
+      <div style={{ position: "absolute", top: 6, right: 0, zIndex: 10, display: "flex", flexDirection: "row", gap: 6, padding: 0 }}>
         <AddDepartmentButton onAdded={() => {}} />
         <AddRoleButton departments={departments} onAdded={() => {}} />
         <AmendDepartmentButton departments={tree} />
         <RoleAmendButton departments={departments} roles={roles} />
       </div>
+      
+      {/* Toggle Row */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 16,
+        marginBottom: 32,
+        justifyContent: 'flex-start'
+      }}>
+        <CustomTooltip text="Switch between Department view (showing roles and employees) and Manager view (showing management hierarchy)">
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8
+          }}>
+            <span style={{ fontSize: 12, color: '#fff', whiteSpace: 'nowrap' }}>Department</span>
+            <button
+              onClick={() => window.location.href = '/hr/structure/manager-structure'}
+              style={{
+                width: 44,
+                height: 24,
+                background: '#22c55e',
+                border: 'none',
+                borderRadius: 12,
+                position: 'relative',
+                cursor: 'pointer',
+                transition: 'background 0.2s'
+              }}
+            >
+              <div style={{
+                position: 'absolute',
+                left: 3,
+                top: 3,
+                width: 18,
+                height: 18,
+                background: '#fff',
+                borderRadius: '50%',
+                transition: 'left 0.2s'
+              }} />
+            </button>
+            <span style={{ fontSize: 12, color: '#9ca3af', whiteSpace: 'nowrap' }}>Manager</span>
+          </div>
+        </CustomTooltip>
+      </div>
+      
       <StructureTree nodes={tree} level={2} />
     </div>
   );

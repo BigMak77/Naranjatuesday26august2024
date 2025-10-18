@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-client";
 import NeonTable from "@/components/NeonTable";
@@ -11,6 +11,7 @@ import NeonIconButton from "@/components/ui/NeonIconButton";
 import OverlayDialog from "@/components/ui/OverlayDialog";
 import NeonForm from "@/components/NeonForm";
 import MainHeader from "@/components/ui/MainHeader";
+import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
 interface DocumentType {
   id: string;
@@ -98,9 +99,10 @@ export default function DocumentManager() {
     setColumnWidths((prev) => ({ ...prev, [accessor]: Math.max(60, newWidth) }));
   };
 
-  // Fetch docs + sections + document types
-  useEffect(() => {
-    (async () => {
+  // Fetch all data - memoized callback for refresh
+  const fetchAllData = useCallback(async () => {
+    setLoading(true);
+    try {
       // Fetch documents (no join)
       const { data: docs, error: docsErr } = await supabase
         .from("documents")
@@ -129,9 +131,17 @@ export default function DocumentManager() {
       );
       setSections(secs || []);
       setDocumentTypes(docTypes || []);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
       setLoading(false);
-    })();
+    }
   }, []);
+
+  // Initial fetch
+  useEffect(() => {
+    fetchAllData();
+  }, [fetchAllData]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -292,14 +302,9 @@ export default function DocumentManager() {
       setEditSectionError("No section was updated. Check if the ID is correct.");
       return;
     }
-    const { data: secs, error: secsErr } = await supabase
-      .from("standard_sections")
-      .select("id, code, title, description, parent_section_id");
-    if (secsErr) {
-      setEditSectionError(secsErr.message);
-      return;
-    }
-    setSections(secs || []);
+
+    // Refresh all data to ensure consistency
+    await fetchAllData();
     setEditSectionModalOpen(false);
     setEditSection(null);
   };
@@ -365,7 +370,7 @@ export default function DocumentManager() {
       </section>
 
       {loading ? (
-        <p className="neon-loading">Loading…</p>
+        <p className="neon-text" style={{ textAlign: 'center', padding: '2rem' }}>Loading…</p>
       ) : (
         <>
           <div className="document-section-table-wrapper neon-panel neon-form-padding">
@@ -385,9 +390,8 @@ export default function DocumentManager() {
               </div>
 
               <div className="neon-table-toolbar-actions">
-                <NeonIconButton
-                  variant="edit"
-                  title={
+                <CustomTooltip
+                  text={
                     filterSection
                       ? `Edit section: ${
                           sections.find((s) => s.id === filterSection)?.code || ""
@@ -396,30 +400,46 @@ export default function DocumentManager() {
                         }`
                       : "Select a section to edit"
                   }
-                  aria-label="Edit selected section"
-                  onClick={() => {
-                    const section = sections.find((s) => s.id === filterSection);
-                    if (section) handleEditSectionClick(section);
-                  }}
-                  disabled={!filterSection}
-                />
-                {/* CHANGED: open add dialog instead of route */}
-                <NeonIconButton
-                  variant="add"
-                  title="Add Document"
-                  aria-label="Add Document"
-                  onClick={() => { setActiveDocId(null); setViewMode("add"); }}
-                  disabled={!!buttonLoading}
-                />
-                {/* CHANGED: open archived dialog instead of route */}
-                <NeonIconButton
-                  variant="viewArchive"
-                  title="View Archived Documents"
-                  aria-label="View Archived Documents"
-                  onClick={() => setViewMode("archived")}
-                  disabled={!!buttonLoading}
-                  className="neon-btn-view-archive"
-                />
+                >
+                  <NeonIconButton
+                    variant="edit"
+                    title=""
+                    aria-label="Edit selected section"
+                    onClick={() => {
+                      const section = sections.find((s) => s.id === filterSection);
+                      if (section) handleEditSectionClick(section);
+                    }}
+                    disabled={!filterSection}
+                  />
+                </CustomTooltip>
+                <CustomTooltip text="Add Document">
+                  <NeonIconButton
+                    variant="add"
+                    title=""
+                    aria-label="Add Document"
+                    onClick={() => { setActiveDocId(null); setViewMode("add"); }}
+                    disabled={!!buttonLoading}
+                  />
+                </CustomTooltip>
+                <CustomTooltip text="View Archived Documents">
+                  <NeonIconButton
+                    variant="viewArchive"
+                    title=""
+                    aria-label="View Archived Documents"
+                    onClick={() => setViewMode("archived")}
+                    disabled={!!buttonLoading}
+                    className="neon-btn-view-archive"
+                  />
+                </CustomTooltip>
+                <CustomTooltip text="Refresh data">
+                  <NeonIconButton
+                    variant="refresh"
+                    title=""
+                    aria-label="Refresh data"
+                    onClick={fetchAllData}
+                    disabled={loading}
+                  />
+                </CustomTooltip>
               </div>
 
               <div className="neon-table-toolbar-pagination">
@@ -434,23 +454,27 @@ export default function DocumentManager() {
                   <option value="50">50 per page</option>
                 </select>
                 <div className="neon-btn-group">
-                  <NeonIconButton
-                    variant="back"
-                    title="Previous page"
-                    aria-label="Previous page"
-                    onClick={handlePrevPage}
-                    disabled={currentPage === 1}
-                  />
+                  <CustomTooltip text="Previous page">
+                    <NeonIconButton
+                      variant="back"
+                      title=""
+                      aria-label="Previous page"
+                      onClick={handlePrevPage}
+                      disabled={currentPage === 1}
+                    />
+                  </CustomTooltip>
                   <span className="neon-label" style={{ margin: '0 8px' }}>
                     Page {currentPage} / {totalPages}
                   </span>
-                  <NeonIconButton
-                    variant="next"
-                    title="Next page"
-                    aria-label="Next page"
-                    onClick={handleNextPage}
-                    disabled={currentPage === totalPages}
-                  />
+                  <CustomTooltip text="Next page">
+                    <NeonIconButton
+                      variant="next"
+                      title=""
+                      aria-label="Next page"
+                      onClick={handleNextPage}
+                      disabled={currentPage === totalPages}
+                    />
+                  </CustomTooltip>
                 </div>
               </div>
             </div>
@@ -495,15 +519,17 @@ export default function DocumentManager() {
                     version: <div className="document-version-cell neon-label">{doc.current_version || "—"}</div>,
                     edit: (
                       <div className="document-edit-cell">
-                        <NeonIconButton
-                          variant="edit"
-                          title="Edit document"
-                          aria-label="Edit document"
-                          onClick={() => {
-                            setEditStageDocId(doc.id);
-                            setShowEditStageModal(true);
-                          }}
-                        />
+                        <CustomTooltip text="Edit document">
+                          <NeonIconButton
+                            variant="edit"
+                            title=""
+                            aria-label="Edit document"
+                            onClick={() => {
+                              setEditStageDocId(doc.id);
+                              setShowEditStageModal(true);
+                            }}
+                          />
+                        </CustomTooltip>
                       </div>
                     ),
                   };
@@ -525,13 +551,13 @@ export default function DocumentManager() {
         }}
       >
         <div style={{ minWidth: 380, maxWidth: 480, padding: 24 }}>
-          <div style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
-            <FiArchive className="neon-icon danger-text" />
-            <h2 className="neon-dialog-title" style={{ margin: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: 16 }}>
+            <FiArchive style={{ color: "var(--accent)", width: "24px", height: "24px" }} />
+            <h2 className="neon-heading" style={{ margin: 0 }}>
               Archive Document
             </h2>
           </div>
-          <p className="neon-label" style={{ marginBottom: 16 }}>
+          <p className="neon-text" style={{ marginBottom: 16 }}>
             Are you sure you want to archive this document? This action cannot be undone.<br />
             Please provide a change summary below.
           </p>
@@ -562,7 +588,7 @@ export default function DocumentManager() {
               rows={3}
               style={{ width: "100%" }}
             />
-            {archiveErrorMsg && <p className="danger-text mb-2">{archiveErrorMsg}</p>}
+            {archiveErrorMsg && <p className="neon-text danger-text" style={{ marginBottom: '0.5rem' }}>{archiveErrorMsg}</p>}
           </NeonForm>
         </div>
       </OverlayDialog>
@@ -657,7 +683,7 @@ export default function DocumentManager() {
             onChange={(e) => setEditSectionDescription(e.target.value)}
             rows={3}
           />
-          {editSectionError && <p className="danger-text mb-2">{editSectionError}</p>}
+          {editSectionError && <p className="neon-text danger-text" style={{ marginBottom: '0.5rem' }}>{editSectionError}</p>}
         </NeonForm>
       </OverlayDialog>
 
@@ -671,10 +697,10 @@ export default function DocumentManager() {
         }}
       >
         <div style={{ minWidth: 340, maxWidth: '100vw', width: 850, display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
-          <h2 className="neon-dialog-title" style={{ marginBottom: 16 }}>Edit Document</h2>
+          <h2 className="neon-heading" style={{ marginBottom: 16 }}>Edit Document</h2>
           {editStage === "archive" ? (
             <>
-              <p className="neon-label" style={{ marginBottom: 16 }}>
+              <p className="neon-text" style={{ marginBottom: 16 }}>
                 Are you sure you want to archive this document? This action cannot be undone.<br />
                 Please provide a change summary below.
               </p>
@@ -715,12 +741,12 @@ export default function DocumentManager() {
                   rows={3}
                   style={{ width: "100%" }}
                 />
-                {archiveErrorMsg && <p className="danger-text mb-2">{archiveErrorMsg}</p>}
+                {archiveErrorMsg && <p className="neon-text danger-text" style={{ marginBottom: '0.5rem' }}>{archiveErrorMsg}</p>}
               </NeonForm>
             </>
           ) : editStage === "review" ? (
             <>
-              <p className="neon-label" style={{ marginBottom: 16 }}>
+              <p className="neon-text" style={{ marginBottom: 16 }}>
                 You confirm that there are no changes to be made to this document.<br />
                 The review date will be updated.
               </p>
@@ -751,35 +777,41 @@ export default function DocumentManager() {
                 Would you like to perform a <strong>Review</strong> (update last reviewed date), create a <strong>New Version</strong>, or <strong>Archive</strong> this document?
               </p>
               <div style={{ display: 'flex', gap: 16, width: '100%' }}>
-                <NeonIconButton
-                  variant="refresh"
-                  className="neon-btn-review"
-                  title="Review (update last reviewed date)"
-                  aria-label="Review"
-                  onClick={() => {
-                    setEditStage("review");
-                  }}
-                />
-                <NeonIconButton
-                  variant="edit"
-                  className="neon-btn-pen-tool"
-                  title="Create New Version"
-                  aria-label="Create New Version"
-                  onClick={() => {
-                    setShowEditStageModal(false);
-                    setActiveDocId(editStageDocId);
-                    setViewMode("edit");
-                  }}
-                />
-                <NeonIconButton
-                  variant="archive"
-                  title="Archive document"
-                  aria-label="Archive document"
-                  className="neon-btn-archive"
-                  onClick={() => {
-                    setEditStage("archive");
-                  }}
-                />
+                <CustomTooltip text="Review (update last reviewed date)">
+                  <NeonIconButton
+                    variant="refresh"
+                    className="neon-btn-review"
+                    title=""
+                    aria-label="Review"
+                    onClick={() => {
+                      setEditStage("review");
+                    }}
+                  />
+                </CustomTooltip>
+                <CustomTooltip text="Create New Version">
+                  <NeonIconButton
+                    variant="edit"
+                    className="neon-btn-pen-tool"
+                    title=""
+                    aria-label="Create New Version"
+                    onClick={() => {
+                      setShowEditStageModal(false);
+                      setActiveDocId(editStageDocId);
+                      setViewMode("edit");
+                    }}
+                  />
+                </CustomTooltip>
+                <CustomTooltip text="Archive document">
+                  <NeonIconButton
+                    variant="archive"
+                    title=""
+                    aria-label="Archive document"
+                    className="neon-btn-archive"
+                    onClick={() => {
+                      setEditStage("archive");
+                    }}
+                  />
+                </CustomTooltip>
               </div>
             </>
           )}
@@ -938,7 +970,7 @@ function DocumentForm({
     }
   };
 
-  if (loading) return <p className="neon-loading">Loading…</p>;
+  if (loading) return <p className="neon-text" style={{ textAlign: 'center', padding: '2rem' }}>Loading…</p>;
 
   return (
     <NeonForm
@@ -947,7 +979,7 @@ function DocumentForm({
       submitLabel={id ? "Save Changes" : "Create Document"}
       onCancel={onCancel}
     >
-      {error && <p className="danger-text mb-2">{error}</p>}
+      {error && <p className="neon-text danger-text" style={{ marginBottom: '0.5rem' }}>{error}</p>}
 
       <label className="neon-label" htmlFor="docTitle">Title</label>
       <input id="docTitle" className="neon-input mb-2" value={title} onChange={e=>setTitle(e.target.value)} required />
@@ -1031,20 +1063,22 @@ function ArchivedDocuments({ onRestore }: { onRestore: (doc: Document) => void }
     onRestore(data as Document);
   };
 
-  if (loading) return <p className="neon-loading">Loading archived…</p>;
-  if (error) return <p className="danger-text">{error}</p>;
+  if (loading) return <p className="neon-text" style={{ textAlign: 'center', padding: '2rem' }}>Loading archived…</p>;
+  if (error) return <p className="neon-text danger-text">{error}</p>;
 
   return (
     <div style={{ minWidth: 600 }}>
-      <h2 className="neon-dialog-title">Archived Documents</h2>
+      <h2 className="neon-heading">Archived Documents</h2>
       <div className="neon-table" role="table" aria-label="Archived documents">
         {rows.map((r) => (
           <div key={r.id} className="neon-row" role="row">
-            <div role="cell" className="neon-cell">{r.title}</div>
-            <div role="cell" className="neon-cell">v{r.archived_version}</div>
-            <div role="cell" className="neon-cell">{new Date(r.change_date).toLocaleString("en-GB")}</div>
+            <div role="cell" className="neon-cell neon-text">{r.title}</div>
+            <div role="cell" className="neon-cell neon-text">v{r.archived_version}</div>
+            <div role="cell" className="neon-cell neon-text">{new Date(r.change_date).toLocaleString("en-GB")}</div>
             <div role="cell" className="neon-cell">
-              <NeonIconButton variant="edit" title="Restore" aria-label="Restore" onClick={() => restore(r)} />
+              <CustomTooltip text="Restore document">
+                <NeonIconButton variant="edit" title="" aria-label="Restore" onClick={() => restore(r)} />
+              </CustomTooltip>
             </div>
           </div>
         ))}

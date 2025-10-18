@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
+import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
 export type Tab = {
   key: string;
   label: string;
   icon?: React.ReactNode;
+  tooltip?: string;
 };
 
 interface FolderTabsProps {
@@ -20,31 +22,41 @@ export default function FolderTabs({
 }: FolderTabsProps) {
   return (
     <div className="folder-tabs">
-      {tabs.map((tab) => (
-        <div
-          key={tab.key}
-          className={`folder-tab${activeTab === tab.key ? " active" : ""}`}
-          onClick={() => onChange(tab.key)}
-          tabIndex={0}
-          role="button"
-          aria-pressed={activeTab === tab.key}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              onChange(tab.key);
-            }
-          }}
-        >
-          {tab.icon && (
-            <span
-              className="folder-tab-icon neon-icon-white"
-              aria-hidden="true"
-            >
-              {tab.icon}
-            </span>
-          )}
-          <span className="folder-tab-label">{tab.label}</span>
-        </div>
-      ))}
+      {tabs.map((tab) => {
+        const tabContent = (
+          <div
+            key={tab.key}
+            className={`folder-tab${activeTab === tab.key ? " active" : ""}`}
+            onClick={() => onChange(tab.key)}
+            tabIndex={0}
+            role="button"
+            aria-pressed={activeTab === tab.key}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                onChange(tab.key);
+              }
+            }}
+          >
+            {tab.icon && (
+              <span
+                className="folder-tab-icon neon-icon-white"
+                aria-hidden="true"
+              >
+                {tab.icon}
+              </span>
+            )}
+            <span className="folder-tab-label">{tab.label}</span>
+          </div>
+        );
+
+        return tab.tooltip ? (
+          <CustomTooltip key={tab.key} text={tab.tooltip}>
+            {tabContent}
+          </CustomTooltip>
+        ) : (
+          tabContent
+        );
+      })}
     </div>
   );
 }

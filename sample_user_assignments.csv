@@ -1,0 +1,4 @@
+assignment_id,user_auth_id,user_name,user_email,item_type,item_id,item_name,assigned_at,completed_at,training_date,training_evidence,notes
+ua123,auth456,"John Doe",john@example.com,module,mod789,"Basic Safety Training",2025-10-01,,2025-10-13,"Completed hands-on assessment","Demonstrated proper use of PPE"
+ua124,auth457,"Jane Smith",jane@example.com,module,mod790,"Advanced Safety",2025-10-02,,2025-10-14,"Written test passed","Needs refresher on emergency procedures"
+ua125,auth458,"Bob Johnson",bob@example.com,document,doc101,"Safety Manual",2025-10-03,,,"Read and acknowledged",""

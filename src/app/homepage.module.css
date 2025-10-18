@@ -14,6 +14,12 @@
   --neutral-700: #334155;
   --neutral-800: #1e293b;
   --neutral-900: #0f172a;
+  background: #053639 !important;
+  min-height: 100vh;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 .heroPanel {
@@ -86,8 +92,9 @@
 .mainPanel {
   max-width: 1400px;
   margin: 3rem auto;
-  background: #053639;
+  background: #011f1e;
   border-radius: 16px;
+  border: 2px solid white;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   padding: 2.5rem;
   overflow: hidden;
@@ -113,7 +120,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(1, 31, 30, 0.7);
+  background: rgba(1, 31, 30, 0.2);
   z-index: 1;
 }
 
@@ -131,7 +138,7 @@
 
 .problemSolutionCard {
   background: #053639;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 2px solid white;
   border-radius: 12px;
   padding: 2rem;
 }
@@ -170,7 +177,7 @@
 .featuresContainer {
   background: rgba(5, 54, 57, 0.95);
   border-radius: 20px;
-  padding: 2.5rem;
+  padding: 0.5rem;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -186,9 +193,9 @@
 
 .featureCard {
   background: #053639;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 2px solid white;
   border-radius: 12px;
-  padding: 2rem;
+  padding: 1rem;
   text-decoration: none;
   transition: all 0.2s ease;
   display: block;
@@ -367,27 +374,32 @@
   padding: 1.5rem;
   text-align: center;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  border-left: 4px solid;
+  border: 2px solid;
+  border-left: 6px solid;
 }
 
 .metricCard.success {
+  border-color: var(--success-green);
   border-left-color: var(--success-green);
-  background: linear-gradient(135deg, #053639 0%, rgba(22, 163, 74, 0.1) 100%);
+  background: linear-gradient(135deg, #053639 0%, rgba(22, 163, 74, 0.7) 100%);
 }
 
 .metricCard.info {
-  border-left-color: var(--primary-blue);
-  background: linear-gradient(135deg, #053639 0%, rgba(5, 112, 134, 0.1) 100%);
+  border-color: #0906af;
+  border-left-color: #0906af;
+  background: linear-gradient(135deg, #053639 0%, rgba(45, 36, 221, 0.7) 100%);
 }
 
 .metricCard.warning {
+  border-color: var(--warning-yellow);
   border-left-color: var(--warning-yellow);
-  background: linear-gradient(135deg, #053639 0%, rgba(217, 119, 6, 0.1) 100%);
+  background: linear-gradient(135deg, #053639 0%, rgba(217, 119, 6, 0.7) 100%);
 }
 
 .metricCard.error {
+  border-color: var(--error-red);
   border-left-color: var(--error-red);
-  background: linear-gradient(135deg, #053639 0%, rgba(220, 38, 38, 0.1) 100%);
+  background: linear-gradient(135deg, #053639 0%, rgba(220, 38, 38, 0.7) 100%);
 }
 
 .metricValue {
@@ -397,19 +409,19 @@
 }
 
 .metricCard.success .metricValue {
-  color: var(--success-green);
+  color: white;
 }
 
 .metricCard.info .metricValue {
-  color: var(--primary-blue);
+  color: white;
 }
 
 .metricCard.warning .metricValue {
-  color: var(--warning-yellow);
+  color: white;
 }
 
 .metricCard.error .metricValue {
-  color: var(--error-red);
+  color: white;
 }
 
 .metricLabel {
@@ -420,42 +432,45 @@
 }
 
 .ctoPanel {
+  max-width: 1400px;
+  margin: 2rem auto 3rem auto;
   background: linear-gradient(135deg, var(--neutral-800) 0%, var(--neutral-900) 100%);
+  border: 2px solid white;
   border-radius: 16px;
   padding: 2.5rem;
   color: white;
-  margin-top: 2rem;
 }
 
 .ctoContent {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 100px 1fr;
   gap: 2rem;
-  max-width: 1000px;
-  margin: 0 auto;
-  position: relative;
+  align-items: center;
+  min-height: 120px;
 }
 
 .ctoIcon {
-  position: absolute;
-  left: -100px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 200px;
-  height: 200px;
-  color: #ffff00;
-  font-size: 12rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  text-shadow: 0 0 15px #ffff00, 0 0 30px #ffff00, 0 0 45px #ffff00, 0 0 60px #ffff00;
-  filter: drop-shadow(0 0 15px #ffff00);
-  z-index: 1;
+  width: 100px;
+  height: 100px;
+  color: #d4af37;
+  font-size: 80px;
+}
+
+.ctoIcon svg {
+  width: 80px !important;
+  height: 80px !important;
+  color: #d4af37 !important;
+  stroke: #d4af37 !important;
+  fill: #d4af37 !important;
 }
 
 .ctoText {
-  flex: 1;
-  padding-left: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .ctoTitle {
@@ -510,26 +525,16 @@
   }
   
   .ctoContent {
-    flex-direction: column;
+    grid-template-columns: 1fr;
     text-align: center;
     gap: 1.5rem;
-    position: static;
   }
   
   .ctoIcon {
-    position: static;
-    transform: none;
-    left: auto;
-    top: auto;
     width: 160px;
     height: 160px;
     font-size: 10rem;
-    color: #ffff00;
-    text-shadow: 0 0 15px #ffff00, 0 0 30px #ffff00, 0 0 45px #ffff00, 0 0 60px #ffff00;
-    filter: drop-shadow(0 0 15px #ffff00);
-  }
-  
-  .ctoText {
-    padding-left: 0;
+    color: #d4af37;
+    margin: 0 auto;
   }
 }

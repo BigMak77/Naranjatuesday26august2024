@@ -300,7 +300,6 @@ export default function TaskDashboard() {
 
   return (
     <NeonPanel className="neon-form-padding max-w-3xl mx-auto">
-      <h1 className="neon-form-title">Task Dashboard</h1>
       <FolderTabs
         tabs={[
           { label: "All Tasks", key: "all", icon: <FiList /> },

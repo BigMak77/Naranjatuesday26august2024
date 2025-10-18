@@ -99,13 +99,14 @@ export default function GlobalHeader({
           icon: <FiUsers />,
           dropdown: [
             { href: "/hr/people/", label: "People" },
+            { href: "/admin/onboarding", label: "Onboarding" },
             { href: "/admin/roles/add", label: "Roles" },
             { href: "/hr/structure/", label: "Structure" },
             { href: "/admin/role-profiles/", label: "Role Profiles" },
             { href: "/admin/utility/", label: "Utilities" },
             { href: "/reports/", label: "Reports" },
             { href: "/admin/modules/", label: "Modules" },
-            { href: "/manager/training/resources", label: "Training Resources" }, // Added here
+            { href: "/manager/training/resources", label: "Training Resources" },
           ],
         },
         {

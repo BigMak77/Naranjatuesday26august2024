@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase-client";
-import { DialogClose } from "@/components/ui/dialog";
+import MainHeader from "@/components/ui/MainHeader";
+import NeonPanel from "@/components/NeonPanel";
+import NeonIconButton from "@/components/ui/NeonIconButton";
 
 interface RaiseIssueWizardProps {
   onClose: () => void;
@@ -18,7 +20,6 @@ export default function RaiseIssueWizard({ onClose }: RaiseIssueWizardProps) {
   const [success, setSuccess] = useState(false);
   const [showThankYou, setShowThankYou] = useState(false);
   const [evidenceFiles, setEvidenceFiles] = useState<File[]>([]);
-  const [evidenceUrls, setEvidenceUrls] = useState<string[]>([]);
   const [departments, setDepartments] = useState<{ id: string; name: string }[]>([]);
 
   // Fetch departments on mount
@@ -103,142 +104,159 @@ export default function RaiseIssueWizard({ onClose }: RaiseIssueWizardProps) {
   return (
     <div className="raise-issue-wizard">
       {showThankYou && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-          <div className="bg-orange-500 text-white px-8 py-8 rounded-lg shadow-lg text-center max-w-md w-full">
-            <div className="text-lg font-semibold mb-2">Thank you for submitting the issue</div>
-            <div>This helps to maintain the high standards that we all expect</div>
+        <div className="thank-you-modal-overlay">
+          <div className="thank-you-modal-content">
+            <div className="thank-you-modal-title">Thank you for submitting the issue</div>
+            <div className="thank-you-modal-message">This helps to maintain the high standards that we all expect</div>
           </div>
         </div>
       )}
-      <h2>Raise New Issue</h2>
-      {/* Sub-header instructions for each stage */}
-      {stage === 0 && (
-        <div className="raise-issue-wizard-subheader">
-          Please select the type of issue and provide a detailed description. This helps us understand the problem and address it efficiently.
-        </div>
-      )}
-      {stage === 1 && (
-        <div className="raise-issue-wizard-subheader">
-          Please select the severity/risk of this issue. <br />
-          <b>Low:</b> Minor inconvenience, no immediate action required.<br />
-          <b>Medium:</b> Could impact safety, quality, or operations if not addressed soon.<br />
-          <b>High:</b> Immediate risk to safety, compliance, or business continuity. Requires urgent attention.
-        </div>
-      )}
-      {stage === 2 && (
-        <div className="raise-issue-wizard-subheader">
-          Please review the details below. If everything is correct, submit the issue. You can go back to make changes if needed.
-        </div>
-      )}
-      {stage === 0 && (
-        <div>
-          <label>
-            Type of Issue
-            <select
-              className="raise-issue-wizard-input"
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-              required
-            >
-              <option value="">Please select</option>
-              <option value="Health and Safety">Health and Safety</option>
-              <option value="Near Miss">Near Miss</option>
-              <option value="Maintenance">Maintenance</option>
-              <option value="Pest Spotted">Pest Spotted</option>
-              <option value="Internal Fabrication Damage">Internal Fabrication Damage</option>
-              <option value="External Fabrication Damage">External Fabrication Damage</option>
-            </select>
-          </label>
-          <label>
-            Description
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="raise-issue-wizard-textarea"
-            />
-          </label>
-          <label>
-            Attach Evidence (optional)
-            <input
-              type="file"
-              accept="image/*,application/pdf"
-              multiple
-              className="raise-issue-wizard-input"
-              onChange={e => {
-                if (e.target.files) {
-                  setEvidenceFiles(Array.from(e.target.files));
-                }
-              }}
-            />
-          </label>
-          {evidenceFiles.length > 0 && (
-            <ul className="raise-issue-wizard-evidence-list">
-              {evidenceFiles.map((file, idx) => (
-                <li key={idx}>{file.name}</li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
-      {stage === 1 && (
-        <div>
-          <label>
-            Severity / Risk
-            <select
-              value={priority}
-              onChange={(e) => setPriority(e.target.value)}
-              className="raise-issue-wizard-input"
-            >
-              <option value="">Select severity/risk</option>
-              <option value="Low">Low</option>
-              <option value="Medium">Medium</option>
-              <option value="High">High</option>
-            </select>
-          </label>
-        </div>
-      )}
-      {stage === 2 && (
-        <div>
-          <h4>Review</h4>
-          <div><b>Type of Issue:</b> {title}</div>
-          <div><b>Description:</b> {description}</div>
-          <div><b>Severity/Risk:</b> {priority}</div>
-        </div>
-      )}
-      {error && <div className="raise-issue-wizard-error">{error}</div>}
-      {success && <div className="raise-issue-wizard-success">Issue raised!</div>}
-      <div className="raise-issue-wizard-actions">
-        <button onClick={onClose} type="button" disabled={submitting}>
-          Cancel
-        </button>
-        {stage > 0 && (
-          <button onClick={prev} type="button" disabled={submitting}>
-            Back
-          </button>
+      <MainHeader 
+        title="Raise New Issue"
+        subtitle={
+          stage === 0 ? "Please select the type of issue and provide a detailed description. This helps us understand the problem and address it efficiently." :
+          stage === 1 ? "Please select the severity/risk of this issue. Low: Minor inconvenience, no immediate action required. Medium: Could impact safety, quality, or operations if not addressed soon. High: Immediate risk to safety, compliance, or business continuity. Requires urgent attention." :
+          "Please review the details below. If everything is correct, submit the issue. You can go back to make changes if needed."
+        }
+      />
+      <NeonPanel>
+        {stage === 0 && (
+          <div>
+            <label htmlFor="issue-type">
+              Type of Issue
+              <select
+                id="issue-type"
+                className="neon-input"
+                value={title}
+                onChange={e => setTitle(e.target.value)}
+                required
+              >
+                <option value="">Please select</option>
+                <option value="Health and Safety">Health and Safety</option>
+                <option value="Near Miss">Near Miss</option>
+                <option value="Maintenance">Maintenance</option>
+                <option value="Pest Spotted">Pest Spotted</option>
+                <option value="Internal Fabrication Damage">Internal Fabrication Damage</option>
+                <option value="External Fabrication Damage">External Fabrication Damage</option>
+              </select>
+            </label>
+            <label htmlFor="issue-description">
+              Description
+              <textarea
+                id="issue-description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="neon-input"
+                rows={4}
+                placeholder="Please provide a detailed description of the issue..."
+              />
+            </label>
+            <label htmlFor="evidence-files">
+              Attach Evidence (optional)
+              <input
+                id="evidence-files"
+                type="file"
+                accept="image/*,application/pdf"
+                multiple
+                className="neon-input"
+                onChange={e => {
+                  if (e.target.files) {
+                    setEvidenceFiles(Array.from(e.target.files));
+                  }
+                }}
+              />
+            </label>
+            {evidenceFiles.length > 0 && (
+              <div>
+                <span className="file-label">
+                  Selected files:
+                </span>
+                <ul className="neon-file-list">
+                  {evidenceFiles.map((file, idx) => (
+                    <li key={idx}>{file.name}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
         )}
-        {stage < 2 && (
-          <button
-            onClick={next}
-            type="button"
-            disabled={
-              (stage === 0 && !title) ||
-              (stage === 0 && !description) ||
-              (stage === 1 && !priority)
-            }
-          >
-            Next
-          </button>
+        {stage === 1 && (
+          <div>
+            <label htmlFor="issue-severity">
+              Severity / Risk
+              <select
+                id="issue-severity"
+                value={priority}
+                onChange={(e) => setPriority(e.target.value)}
+                className="neon-input"
+                required
+              >
+                <option value="">Select severity/risk</option>
+                <option value="Low">Low - Minor inconvenience, no immediate action required</option>
+                <option value="Medium">Medium - Could impact safety, quality, or operations</option>
+                <option value="High">High - Immediate risk requiring urgent attention</option>
+              </select>
+            </label>
+          </div>
         )}
         {stage === 2 && (
-          <button
-            onClick={handleSubmit}
-            type="button"
-            disabled={submitting}
-          >
-            {submitting ? "Submitting..." : "Submit"}
-          </button>
+          <div>
+            <h4>Review</h4>
+            <div className="review-item"><b>Type of Issue:</b> {title}</div>
+            <div className="review-item"><b>Description:</b> {description}</div>
+            <div className="review-item"><b>Severity/Risk:</b> {priority}</div>
+            {evidenceFiles.length > 0 && (
+              <div className="review-item">
+                <b>Evidence Files:</b>
+                <ul className="neon-file-list">
+                  {evidenceFiles.map((file, idx) => (
+                    <li key={idx}>{file.name}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
         )}
-      </div>
+        {error && <div className="neon-error-message">{error}</div>}
+        {success && <div className="neon-success-message">Issue raised!</div>}
+        <div className="raise-issue-wizard-actions">
+          <button 
+            className="neon-btn-cancel" 
+            onClick={onClose} 
+            disabled={submitting}
+            type="button"
+          >
+          </button>
+          {stage > 0 && (
+            <NeonIconButton 
+              variant="back" 
+              title="Back" 
+              onClick={prev} 
+              disabled={submitting}
+            />
+          )}
+          {stage < 2 && (
+            <NeonIconButton
+              variant="next"
+              title="Next"
+              onClick={next}
+              disabled={
+                (stage === 0 && !title) ||
+                (stage === 0 && !description) ||
+                (stage === 1 && !priority)
+              }
+            />
+          )}
+          {stage === 2 && (
+            <NeonIconButton
+              variant="submit"
+              title={submitting ? "Submitting..." : "Submit"}
+              onClick={handleSubmit}
+              disabled={submitting}
+            />
+          )}
+        </div>
+      </NeonPanel>
     </div>
   );
 }

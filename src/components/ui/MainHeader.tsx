@@ -12,8 +12,14 @@ interface MainHeaderProps {
  * <MainHeader title="Dashboard" subtitle="Welcome to your dashboard" />
  */
 export default function MainHeader({ title, subtitle, className = "" }: MainHeaderProps) {
+  const containerClasses = [
+    "main-header-container",
+    subtitle ? "with-subtitle" : "",
+    className
+  ].filter(Boolean).join(" ");
+
   return (
-    <div className={className} style={{ marginBottom: subtitle ? "2.5rem" : "1.5rem" }}>
+    <div className={containerClasses}>
       <h1 className="main-header">{title}</h1>
       {subtitle && <div className="main-subheader">{subtitle}</div>}
     </div>

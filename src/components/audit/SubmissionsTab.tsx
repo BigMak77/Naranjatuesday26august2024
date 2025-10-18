@@ -234,7 +234,6 @@ export default function SubmissionsTab() {
   return (
     <NeonPanel
       bgColor="#012f34"
-      glowColor="#40E0D0"
       className="submissions-tab-panel"
     >
       <h3 className="submissions-tab-title">Audit Submissions</h3>

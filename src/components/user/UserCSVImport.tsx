@@ -157,6 +157,7 @@ const UserCSVImport: React.FC<UserCSVImportProps> = ({ onImport, onError }) => {
       <CustomTooltip text="Import users from CSV file">
         <NeonIconButton
           variant="upload"
+          title="Import CSV"
           onClick={() => setModalOpen(true)}
         />
       </CustomTooltip>

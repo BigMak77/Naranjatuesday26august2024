@@ -1,4 +1,3 @@
-// Custom tooltips added to all buttons
 "use client";
 import React, { useEffect, useState } from "react";
 import NeonDualListbox from "@/components/ui/NeonDualListbox";
@@ -7,7 +6,7 @@ import NeonForm from "@/components/NeonForm";
 import NeonPanel from "@/components/NeonPanel";
 import OverlayDialog from "@/components/ui/OverlayDialog";
 import SuccessModal from "@/components/ui/SuccessModal";
-import { CustomTooltip } from "@/components/ui/CustomTooltip";
+import NeonIconButton from "@/components/ui/NeonIconButton";
 
 interface Role {
   id: string;
@@ -172,14 +171,18 @@ export default function RoleModuleDocumentAssignment() {
   if (stage === "choose") {
     return (
       <NeonPanel>
-        <h2 className="neon-heading">What would you like to do?</h2>
+        <h2 className="neon-heading">Role Training Assignment</h2>
         <div style={{ display: "flex", gap: "12px", marginTop: "16px" }}>
-          <CustomTooltip text="Create a new role with training assignments">
-            <button className="neon-btn neon-btn-add" onClick={() => setStage("create")}>Create a new role</button>
-          </CustomTooltip>
-          <CustomTooltip text="Modify training assignments for an existing role">
-            <button className="neon-btn neon-btn-edit" onClick={() => setStage("amend")}>Amend an existing role</button>
-          </CustomTooltip>
+          <NeonIconButton 
+            variant="add"
+            title="Add New Role"
+            onClick={() => setStage("create")}
+          />
+          <NeonIconButton 
+            variant="edit"
+            title="Assign Training to Existing Role"
+            onClick={() => setStage("amend")}
+          />
         </div>
       </NeonPanel>
     );
@@ -191,6 +194,8 @@ export default function RoleModuleDocumentAssignment() {
       <OverlayDialog open={true} onClose={() => setStage("choose")}> 
         <NeonForm
           title="Add New Role"
+          submitLabel="Save Role"
+          onCancel={() => setStage("choose")}
           onSubmit={async (e) => {
             e.preventDefault();
             setCreatingRole(true);
@@ -242,18 +247,6 @@ export default function RoleModuleDocumentAssignment() {
             </select>
           </label>
           {newRoleError && <div className="neon-form-error">{newRoleError}</div>}
-          <div style={{ marginTop: 16, display: "flex", gap: "12px" }}>
-            <CustomTooltip text={creatingRole ? "Creating new role..." : "Create the new role"}>
-              <button type="submit" className="neon-btn neon-btn-save" disabled={creatingRole}>
-                {creatingRole ? "Creating..." : "Create Role"}
-              </button>
-            </CustomTooltip>
-            <CustomTooltip text="Cancel role creation and go back">
-              <button type="button" className="neon-btn neon-btn-close" onClick={() => setStage("choose")} disabled={creatingRole}>
-                Cancel
-              </button>
-            </CustomTooltip>
-          </div>
         </NeonForm>
       </OverlayDialog>
     );
@@ -300,26 +293,20 @@ export default function RoleModuleDocumentAssignment() {
                   />
                 </div>
                 <div style={{ marginTop: 16, display: "flex", gap: "12px" }}>
-                  <CustomTooltip text="Proceed to document selection">
-                    <button
-                      className="neon-btn neon-btn-next"
-                      onClick={() => setAssignmentStep("documents")}
-                    >
-                      Next: Documents
-                    </button>
-                  </CustomTooltip>
-                  <CustomTooltip text="Go back to main menu">
-                    <button
-                      className="neon-btn neon-btn-back"
-                      onClick={() => {
-                        setStage("choose");
-                        setSelectedRoleId("");
-                        setAssignmentStep("modules");
-                      }}
-                    >
-                      Cancel
-                    </button>
-                  </CustomTooltip>
+                  <NeonIconButton
+                    variant="next"
+                    title="Next Step"
+                    onClick={() => setAssignmentStep("documents")}
+                  />
+                  <NeonIconButton
+                    variant="back"
+                    title="Go Back"
+                    onClick={() => {
+                      setStage("choose");
+                      setSelectedRoleId("");
+                      setAssignmentStep("modules");
+                    }}
+                  />
                 </div>
               </>
             )}
@@ -337,22 +324,16 @@ export default function RoleModuleDocumentAssignment() {
                   />
                 </div>
                 <div style={{ marginTop: 16, display: "flex", gap: "12px" }}>
-                  <CustomTooltip text="Go back to module selection">
-                    <button
-                      className="neon-btn neon-btn-back"
-                      onClick={() => setAssignmentStep("modules")}
-                    >
-                      Back: Modules
-                    </button>
-                  </CustomTooltip>
-                  <CustomTooltip text="Save training assignments for this role">
-                    <button
-                      className="neon-btn neon-btn-save"
-                      onClick={() => handleSave(selectedRoleId)}
-                    >
-                      Submit Assignments
-                    </button>
-                  </CustomTooltip>
+                  <NeonIconButton
+                    variant="back"
+                    title="Go Back"
+                    onClick={() => setAssignmentStep("modules")}
+                  />
+                  <NeonIconButton
+                    variant="save"
+                    title="Save Assignments"
+                    onClick={() => handleSave(selectedRoleId)}
+                  />
                 </div>
               </>
             )}
@@ -360,9 +341,11 @@ export default function RoleModuleDocumentAssignment() {
         )}
         {!selectedRoleId && (
           <div style={{ marginTop: 24 }}>
-            <CustomTooltip text="Go back to main menu">
-              <button className="neon-btn neon-btn-back" onClick={() => setStage("choose")}>Back</button>
-            </CustomTooltip>
+            <NeonIconButton 
+              variant="back"
+              title="Go Back"
+              onClick={() => setStage("choose")}
+            />
           </div>
         )}
       </NeonPanel>
