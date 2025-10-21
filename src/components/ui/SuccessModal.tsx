@@ -66,11 +66,14 @@ export default function SuccessModal({
   const overlay = (
     <div
       role="presentation"
-      onMouseDown={onClose} // click outside
+      onMouseDown={onClose}
       style={{
         position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,0.45)",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -85,18 +88,38 @@ export default function SuccessModal({
         ref={panelRef}
         onMouseDown={(e) => e.stopPropagation()}
         style={{
-          background: "#073642", // dark teal
-          width: "min(520px, 92vw)",
-          borderRadius: 12,
-          boxShadow: "0 20px 40px rgba(0,0,0,0.25)",
-          padding: 24,
+          backgroundColor: "white",
+          borderRadius: "0.5rem",
+          boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+          padding: "1.5rem",
+          width: "100%",
+          maxWidth: "28rem",
+          margin: "0 1rem",
           outline: "none",
-          border: "3px solid #ff8800", // orange border
-          color: "#fff", // white text
+          border: "1px solid #e5e7eb",
         }}
       >
-        <h2 id="success-title" style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#fff" }}>{title}</h2>
-        <p style={{ marginTop: 10, marginBottom: 0, lineHeight: 1.5, color: "#fff" }}>{message}</p>
+        <h2 
+          id="success-title" 
+          style={{ 
+            fontSize: "1.25rem", 
+            fontWeight: 700, 
+            color: "#111827", 
+            marginBottom: "0.75rem",
+            marginTop: 0,
+          }}
+        >
+          {title}
+        </h2>
+        <p 
+          style={{ 
+            color: "#374151", 
+            lineHeight: 1.625,
+            margin: 0,
+          }}
+        >
+          {message}
+        </p>
       </div>
     </div>
   );

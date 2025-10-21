@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import NeonPanel from "@/components/NeonPanel";
+import NeonIconButton from "@/components/ui/NeonIconButton";
 
 /* ===========================
    Enhanced TrainingMatrix with Historical Completion Support
@@ -343,48 +344,58 @@ const TrainingMatrix: React.FC = () => {
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 16, marginBottom: 12, alignItems: "flex-start" }}>
-          <select value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value)}>
-            {[{ id: "", name: "All Departments" }, ...departments]
-              .filter((opt, idx, arr) => idx === 0 || (opt.id && opt.id !== ""))
-              .map((opt, idx) => (
-                <option
-                  key={opt.id && opt.id !== "" ? `dept-${String(opt.id)}` : `dept-fallback-${idx}`}
-                  value={opt.id ?? ""}
-                >
-                  {opt.name}
-                </option>
-              ))}
-          </select>
-
-          <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
-            {[...(filteredRoles.length ? filteredRoles : [{ id: "", title: "All Roles" }])]
-              .filter((opt, idx) => idx === 0 || (opt.id && opt.id !== ""))
-              .map((opt, idx) => (
-                <option
-                  key={opt.id && opt.id !== "" ? `role-${String(opt.id)}` : `role-fallback-${idx}`}
-                  value={opt.id ?? ""}
-                >
-                  {opt.title}
-                </option>
-              ))}
-          </select>
-
-          <input
-            type="text"
-            placeholder="Filter by name..."
-            value={nameFilter}
-            onChange={(e) => setNameFilter(e.target.value)}
-            style={{ padding: 6, borderRadius: 4, border: "1px solid #ccc", minWidth: 180 }}
-          />
-
+        <div style={{ display: "flex", gap: 12, marginBottom: 12, alignItems: "center", height: "36px", justifyContent: "space-between" }}>
           <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-            <label style={{ display: "flex", alignItems: "center", gap: 6, color: "#fff", fontSize: 14 }}>
+            <select 
+              value={departmentFilter} 
+              onChange={(e) => setDepartmentFilter(e.target.value)}
+              style={{ padding: "6px 8px", borderRadius: 4, border: "1px solid #ccc", fontSize: 12, minWidth: 120, maxWidth: 140, height: "32px" }}
+            >
+              {[{ id: "", name: "All Departments" }, ...departments]
+                .filter((opt, idx, arr) => idx === 0 || (opt.id && opt.id !== ""))
+                .map((opt, idx) => (
+                  <option
+                    key={opt.id && opt.id !== "" ? `dept-${String(opt.id)}` : `dept-fallback-${idx}`}
+                    value={opt.id ?? ""}
+                  >
+                    {opt.name}
+                  </option>
+                ))}
+            </select>
+
+            <select 
+              value={roleFilter} 
+              onChange={(e) => setRoleFilter(e.target.value)}
+              style={{ padding: "6px 8px", borderRadius: 4, border: "1px solid #ccc", fontSize: 12, minWidth: 120, maxWidth: 140, height: "32px" }}
+            >
+              {[...(filteredRoles.length ? filteredRoles : [{ id: "", title: "All Roles" }])]
+                .filter((opt, idx) => idx === 0 || (opt.id && opt.id !== ""))
+                .map((opt, idx) => (
+                  <option
+                    key={opt.id && opt.id !== "" ? `role-${String(opt.id)}` : `role-fallback-${idx}`}
+                    value={opt.id ?? ""}
+                  >
+                    {opt.title}
+                  </option>
+                ))}
+            </select>
+
+            <input
+              type="text"
+              placeholder="Filter by name..."
+              value={nameFilter}
+              onChange={(e) => setNameFilter(e.target.value)}
+              style={{ padding: "6px 8px", borderRadius: 4, border: "1px solid #ccc", fontSize: 12, minWidth: 140, maxWidth: 160, height: "32px", boxSizing: "border-box" }}
+            />
+          </div>
+
+          <div style={{ display: "flex", gap: 8, alignItems: "center", height: "32px" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 4, color: "#fff", fontSize: 12, whiteSpace: "nowrap", height: "32px", margin: 0, padding: 0 }}>
               <input
                 type="checkbox"
                 checked={autoRefresh}
                 onChange={(e) => setAutoRefresh(e.target.checked)}
-                style={{ margin: 0 }}
+                style={{ margin: 0, padding: 0 }}
               />
               Auto-refresh
             </label>
@@ -393,7 +404,7 @@ const TrainingMatrix: React.FC = () => {
               <select
                 value={refreshInterval}
                 onChange={(e) => setRefreshInterval(Number(e.target.value))}
-                style={{ padding: 4, borderRadius: 4, border: "1px solid #ccc", fontSize: 12 }}
+                style={{ padding: "4px 6px", borderRadius: 4, border: "1px solid #ccc", fontSize: 11, minWidth: 50, height: "28px", margin: 0 }}
               >
                 <option value={10}>10s</option>
                 <option value={30}>30s</option>
@@ -402,26 +413,18 @@ const TrainingMatrix: React.FC = () => {
               </select>
             )}
 
-            <button
-              style={{ 
-                padding: "4px 12px", 
-                borderRadius: 4, 
-                background: "#27ae60", 
-                color: "#fff", 
-                fontWeight: 600, 
-                border: "none", 
-                cursor: "pointer",
-                fontSize: 12
-              }}
-              onClick={() => setRefreshTrigger(prev => prev + 1)}
-            >
-              Refresh Now
-            </button>
-          </div>
-
-          <button
-            style={{ padding: "6px 16px", borderRadius: 4, background: "#00e0ff", color: "#00313a", fontWeight: 700, border: "none", cursor: "pointer" }}
-            onClick={() => {
+            <div style={{ display: "flex", gap: 6, alignItems: "center", height: "32px" }}>
+              <NeonIconButton
+                variant="refresh"
+                title="Refresh Now"
+                onClick={() => setRefreshTrigger(prev => prev + 1)}
+                style={{ height: "32px", minHeight: "32px" }}
+              />
+              
+              <NeonIconButton
+                variant="download"
+                title="Download CSV"
+                onClick={() => {
               // Download CSV of visible matrix with historical completions
               const rows: string[] = [];
               const header = ["User", ...displayedItems.map(item => item.title + (item.type === "document" ? " (Document)" : ""))];
@@ -464,9 +467,10 @@ const TrainingMatrix: React.FC = () => {
               document.body.removeChild(a);
               URL.revokeObjectURL(url);
             }}
-          >
-            Download CSV
-          </button>
+            style={{ height: "32px", minHeight: "32px" }}
+          />
+            </div>
+          </div>
         </div>
 
         {/* Legend for completion status */}
@@ -498,6 +502,7 @@ const TrainingMatrix: React.FC = () => {
             overflowY: "hidden",
             WebkitOverflowScrolling: "touch",
             borderRadius: 6,
+            border: "3px solid #ff8c00",
           }}
         >
           <table

@@ -3,46 +3,70 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/lib/useUser";
-
-type AccessLevel = "Admin" | "Manager" | "User" | "HR";
+import { AccessLevel, canAccessRoute, getDashboardUrl } from "@/lib/permissions";
 
 interface Props {
   allowedRoles: AccessLevel | AccessLevel[];
   children: React.ReactNode;
+  fallbackMessage?: string;
+  redirectTo?: string;
 }
 
-export default function RequireAccess({ allowedRoles, children }: Props) {
+export default function RequireAccess({ 
+  allowedRoles, 
+  children, 
+  fallbackMessage = "You don't have permission to access this page.",
+  redirectTo 
+}: Props) {
   const router = useRouter();
   const { user, loading } = useUser();
   const [allowed, setAllowed] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (loading) return;
-    if (!user) return router.push("/login");
-    const allowedLevels = Array.isArray(allowedRoles)
-      ? allowedRoles
-      : [allowedRoles];
-    // Normalize both sides to lowercase for comparison
-    const userLevel = (user?.access_level ?? "").toLowerCase();
-    const allowedNormalized = allowedLevels.map((l) => l.toLowerCase());
-    if (user && allowedNormalized.includes(userLevel)) {
+    
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    const allowedLevels = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
+    const hasAccess = canAccessRoute(user.access_level, allowedLevels);
+    
+    if (hasAccess) {
       setAllowed(true);
     } else {
       setAllowed(false);
-      // Redirect based on user role
-      if (userLevel === "admin") {
-        router.push("/admin/dashboard");
-      } else if (userLevel === "manager") {
-        router.push("/manager/dashboard");
-      } else {
-        router.push("/user/dashboard");
-      }
+      
+      // Redirect to specified URL or user's appropriate dashboard
+      const redirectUrl = redirectTo || getDashboardUrl(user.access_level);
+      router.push(redirectUrl);
     }
-  }, [allowedRoles, user, loading, router]);
+  }, [allowedRoles, user, loading, router, redirectTo]);
 
-  if (allowed === null)
-    return <p className="p-10 text-center">Checking access...</p>;
-  if (!allowed) return null;
+  if (loading) {
+    return (
+      <div className="p-10 text-center">
+        <div className="neon-info">Checking access...</div>
+      </div>
+    );
+  }
+
+  if (allowed === null) {
+    return (
+      <div className="p-10 text-center">
+        <div className="neon-info">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!allowed) {
+    return (
+      <div className="p-10 text-center">
+        <div className="neon-error">{fallbackMessage}</div>
+      </div>
+    );
+  }
 
   return <>{children}</>;
 }

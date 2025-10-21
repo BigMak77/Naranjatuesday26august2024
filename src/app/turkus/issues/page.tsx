@@ -1,21 +1,37 @@
 "use client";
 
-import RaiseIssueWizard from "@/components/issues/RaiseIssueWizard";
-import { useRouter } from "next/navigation";
+import IssueManager from "@/components/manager/IssueManager";
+import MainHeader from "@/components/ui/MainHeader";
+import { useUser } from "@/lib/useUser";
 
 export default function IssuesListPage() {
-  const router = useRouter();
+  const { user } = useUser();
 
-  const handleClose = () => {
-    // Navigate back to dashboard or issues list
-    router.push("/user/dashboard");
+  // Determine the appropriate subtitle based on user role
+  const getSubtitle = () => {
+    if (!user) return "Loading...";
+    
+    const accessLevel = user.access_level;
+    if (accessLevel === "5") {
+      return "View and manage reported issues across the entire organization";
+    } else if (accessLevel === "4") {
+      return "View and manage reported issues within your department";
+    } else if (accessLevel === "3") {
+      return "View reported issues (read-only access)";
+    } else {
+      return "Access restricted";
+    }
   };
 
   return (
-    <div className="app-shell">
-      <main className="content">
-        <RaiseIssueWizard onClose={handleClose} />
+    <>
+      <MainHeader
+        title="Issues Management"
+        subtitle={getSubtitle()}
+      />
+      <main className="after-hero global-content">
+        <IssueManager />
       </main>
-    </div>
+    </>
   );
 }

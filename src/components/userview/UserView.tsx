@@ -6,7 +6,6 @@ import UserTrainingDashboard from "@/components/training/UserTrainingDashboard";
 import UserTrainingRequest from "@/components/user/UserTrainingRequest";
 import MyTasks from "@/components/tasks/MyTasks";
 import MyIssues from "@/components/issues/MyIssues";
-import IssuesWidget from "@/components/issues/IssuesWidget";
 
 export default function UserView() {
   const { user, profile } = useUser() as {
@@ -24,8 +23,6 @@ export default function UserView() {
   return (
     <div className="user-view global-content">
       <MyIssues />
-      <hr className="issues-widget-separator" />
-      <IssuesWidget />
       <hr className="issues-widget-separator" />
       <MyTasks />
       <hr className="issues-widget-separator" />

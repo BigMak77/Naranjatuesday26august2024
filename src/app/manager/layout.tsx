@@ -1,16 +1,16 @@
-
-// app/layout.tsx  (SERVER component — no "use client")
+// app/manager/layout.tsx
 import "../globals.css";
 import type { ReactNode } from "react";
 import ProjectGlobalHeader from "@/components/ui/ProjectGlobalHeader";
 import AuthListener from "@/app/AuthListener";
+import ManagerLayoutWrapper from "@/components/manager/ManagerLayoutWrapper";
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default function ManagerLayout({ children }: { children: ReactNode }) {
   return (
     <>
       <AuthListener />
       <ProjectGlobalHeader />
-      <main className="content">{children}</main>
+      <ManagerLayoutWrapper>{children}</ManagerLayoutWrapper>
       <footer className="site-footer">
         <div className="inner">© Naranja</div>
       </footer>

@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import RequireAccess from "@/components/RequireAccess";
 import {
   FiUsers,
   FiPlus,
@@ -28,7 +29,6 @@ import MainHeader from "@/components/ui/MainHeader";
 // Custom tooltip added
 import PeopleAndAccessManagement from "@/components/admin/PeopleAndAccessManagement";
 import TurkusWidget from "@/components/admin/TurkusWidget";
-import HealthAndSafetyWidget from "@/components/healthsafety/HealthAndSafetyWidget";
 import DocumentsModulesResourcesWidget from "@/components/admin/DocumentsModulesResourcesWidget";
 
 /*********************************
@@ -111,7 +111,7 @@ function FeatureCard({
  *********************************/
 export default function DashboardPage() {
   return (
-    <>
+    <RequireAccess allowedRoles={["Admin"]}>
       <MainHeader
         title="Admin Dashboard"
         subtitle="Quick access to modules, documents, roles, and health & safety"
@@ -120,7 +120,7 @@ export default function DashboardPage() {
         aria-label="Dashboard widgets"
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
+          gridTemplateColumns: "repeat(3, 1fr)",
           gap: "1.5rem",
           marginTop: "1.5rem",
           alignItems: "stretch",
@@ -129,8 +129,7 @@ export default function DashboardPage() {
         <PeopleAndAccessManagement />
         <DocumentsModulesResourcesWidget />
         <TurkusWidget />
-        <HealthAndSafetyWidget />
       </section>
-    </>
+    </RequireAccess>
   );
 }

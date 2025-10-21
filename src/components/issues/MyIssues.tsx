@@ -1,12 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
+import { useUser } from "@/lib/useUser";
 import { FiAlertCircle, FiPlus } from "react-icons/fi"; // Add Fi icon import
 import NeonIconButton from "@/components/ui/NeonIconButton"; // Import NeonIconButton
-
-interface Department {
-  name: string;
-}
 
 interface Issue {
   id: number;
@@ -14,28 +11,28 @@ interface Issue {
   priority: string;
   status: string;
   created_at: string;
-  departments?: Department[] | Department | null;
-  department?: Department | null;
+  assigned_to: string | null;
 }
 
 export default function MyIssues() {
   const [issues, setIssues] = useState<Issue[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useUser();
 
   useEffect(() => {
-    const fetch = async () => {
-      // TODO: Replace with your actual auth logic
-      const authData = { user: { user_metadata: { department_id: undefined } } };
-      if (!authData?.user || !authData.user.user_metadata?.department_id) {
+    const fetchMyAssignedIssues = async () => {
+      if (!user?.id) {
         setIssues([]);
         setLoading(false);
         return;
       }
-      // Fetch issues for user's department
+      
+      // Fetch issues assigned to the current user
       const { data } = await supabase
         .from("issues")
-        .select("id, title, priority, status, created_at, departments (name)")
-        .eq("department_id", authData.user.user_metadata.department_id);
+        .select("id, title, priority, status, created_at, assigned_to")
+        .eq("assigned_to", user.id);
+        
       setIssues(
         (data || []).map((issue) => ({
           id: Number(issue.id),
@@ -43,16 +40,14 @@ export default function MyIssues() {
           priority: issue.priority ?? "",
           status: issue.status ?? "",
           created_at: issue.created_at ?? "",
-          departments: issue.departments ?? null,
-          department: Array.isArray(issue?.departments)
-            ? issue.departments[0]
-            : (issue?.departments ?? null),
+          assigned_to: issue.assigned_to ?? null,
         })),
       );
       setLoading(false);
     };
-    fetch();
-  }, []);
+    
+    fetchMyAssignedIssues();
+  }, [user]);
   return (
     <div>
       <h1 className="dashboard-section-title">My Issues</h1>
@@ -71,8 +66,7 @@ export default function MyIssues() {
                 <div className="my-issues-title">{issue.title}</div>
                 <div className="my-issues-meta">
                   Priority: {issue.priority} · Status: {issue.status} ·{" "}
-                  {new Date(issue.created_at).toLocaleDateString()} ·
-                  Department: {issue.department?.name || "N/A"}
+                  {new Date(issue.created_at).toLocaleDateString()}
                 </div>
               </div>
               <button

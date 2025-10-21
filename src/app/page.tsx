@@ -10,7 +10,7 @@ import {
   FiCheckCircle,
 } from "react-icons/fi";
 import Image from "next/image";
-import GlobalFooter from "@/components/GlobalFooter";
+import GlobalFooter from "@/components/ui/GlobalFooter";
 import ProjectGlobalHeader from "@/components/ui/ProjectGlobalHeader";
 import styles from "./homepage.module.css";
 

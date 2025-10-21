@@ -10,7 +10,7 @@ import {
   DialogOverlay,
 } from "@/components/ui/dialog";
 import NeonIconButton from "@/components/ui/NeonIconButton";
-import { FiCheckSquare } from "react-icons/fi";
+import { FiCheckSquare, FiX } from "react-icons/fi";
 
 interface User {
   id: string;
@@ -24,7 +24,13 @@ interface Department {
   name: string;
 }
 
-export default function AssignIssue({ issueId }: { issueId: string }) {
+export default function AssignIssue({ 
+  issueId, 
+  onClose 
+}: { 
+  issueId: string;
+  onClose?: () => void;
+}) {
   const [users, setUsers] = useState<User[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [selectedUser, setSelectedUser] = useState("");
@@ -100,6 +106,13 @@ export default function AssignIssue({ issueId }: { issueId: string }) {
       .eq("id", issueId);
     setLoading(false);
     setSuccess(true);
+    
+    // Auto-close after successful assignment if onClose is provided
+    if (onClose) {
+      setTimeout(() => {
+        onClose();
+      }, 1500);
+    }
   };
 
   return (
@@ -107,7 +120,18 @@ export default function AssignIssue({ issueId }: { issueId: string }) {
       <DialogPortal>
         <DialogOverlay />
         <DialogContent>
-          <DialogTitle>Assign Issue</DialogTitle>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+            <DialogTitle>Assign Issue</DialogTitle>
+            {onClose && (
+              <NeonIconButton
+                icon={<FiX />}
+                variant="close"
+                title="Close"
+                onClick={onClose}
+                style={{ padding: 8 }}
+              />
+            )}
+          </div>
           <div className="centered-content">
             <form onSubmit={handleAssign}>
               <div className="mb-2">

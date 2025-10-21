@@ -1,10 +1,17 @@
 import React from "react";
+import PermissionManager from "@/components/admin/PermissionManager";
+import MainHeader from "@/components/ui/MainHeader";
 
 export default function AccessManagerPage() {
   return (
-    <div>
-      <h1>Access Manager</h1>
-      <p>This is a placeholder page for managing access.</p>
-    </div>
+    <main className="after-hero">
+      <div className="global-content">
+        <MainHeader 
+          title="Access Manager" 
+          subtitle="Manage system permissions and access controls" 
+        />
+        <PermissionManager />
+      </div>
+    </main>
   );
 }

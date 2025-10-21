@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase-client";
 import NeonPanel from "@/components/NeonPanel";
-import SuccessModal from "@/components/ui/SuccessModal";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
 interface Permission {
@@ -24,6 +23,7 @@ export default function PermissionManager() {
   const [newPermissionCategory, setNewPermissionCategory] = useState("");
   const [newPermissionDescription, setNewPermissionDescription] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   // Predefined categories
   const categories = [
@@ -62,11 +62,19 @@ export default function PermissionManager() {
   const handleAddPermission = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
     setSaving(true);
 
     // Validate
     if (!newPermissionKey || !newPermissionCategory) {
       setError("Permission key and category are required");
+      setSaving(false);
+      return;
+    }
+
+    // Validate permission key format (no special characters except hyphens and underscores)
+    if (!/^[a-zA-Z0-9_-]+$/.test(newPermissionKey)) {
+      setError("Permission key can only contain letters, numbers, hyphens, and underscores");
       setSaving(false);
       return;
     }
@@ -102,11 +110,15 @@ export default function PermissionManager() {
     setNewPermissionDescription("");
     setShowAddForm(false);
     setSaving(false);
+    setSuccess(`Permission "${formattedKey}" created successfully!`);
     fetchPermissions();
+    
+    // Clear success message after 3 seconds
+    setTimeout(() => setSuccess(""), 3000);
   };
 
-  const handleDeletePermission = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this permission?")) {
+  const handleDeletePermission = async (id: string, permissionKey: string) => {
+    if (!confirm(`Are you sure you want to delete the permission "${permissionKey}"? This action cannot be undone.`)) {
       return;
     }
 
@@ -116,8 +128,11 @@ export default function PermissionManager() {
       .eq("id", id);
 
     if (error) {
-      alert("Error deleting permission: " + error.message);
+      setError("Error deleting permission: " + error.message);
+      setTimeout(() => setError(""), 5000);
     } else {
+      setSuccess(`Permission "${permissionKey}" deleted successfully!`);
+      setTimeout(() => setSuccess(""), 3000);
       fetchPermissions();
     }
   };
@@ -132,7 +147,14 @@ export default function PermissionManager() {
   }, {} as Record<string, Permission[]>);
 
   if (loading) {
-    return <div>Loading permissions...</div>;
+    return (
+      <NeonPanel>
+        <div style={{ textAlign: "center", padding: "2rem" }}>
+          <div className="neon-heading" style={{ marginBottom: "1rem" }}>Loading Permissions...</div>
+          <div style={{ color: "#999" }}>Please wait while we fetch the permission data...</div>
+        </div>
+      </NeonPanel>
+    );
   }
 
   return (
@@ -149,6 +171,32 @@ export default function PermissionManager() {
             </button>
           </CustomTooltip>
         </div>
+
+        {/* Global success/error messages */}
+        {success && (
+          <div style={{ 
+            background: "#10b981", 
+            color: "white", 
+            padding: "12px", 
+            borderRadius: "6px", 
+            marginBottom: "1rem",
+            border: "1px solid #059669"
+          }}>
+            {success}
+          </div>
+        )}
+        {error && !showAddForm && (
+          <div style={{ 
+            background: "#ef4444", 
+            color: "white", 
+            padding: "12px", 
+            borderRadius: "6px", 
+            marginBottom: "1rem",
+            border: "1px solid #dc2626"
+          }}>
+            {error}
+          </div>
+        )}
 
         {showAddForm && (
           <form onSubmit={handleAddPermission} style={{ marginBottom: "2rem" }}>
@@ -197,6 +245,7 @@ export default function PermissionManager() {
               </label>
 
               {error && <div style={{ color: "#ef4444", marginBottom: "1rem" }}>{error}</div>}
+              {success && <div style={{ color: "#10b981", marginBottom: "1rem" }}>{success}</div>}
 
               <div style={{ display: "flex", gap: "12px" }}>
                 <CustomTooltip text={saving ? "Creating new permission..." : "Save the new permission to database"}>
@@ -264,7 +313,7 @@ export default function PermissionManager() {
                           <CustomTooltip text="Permanently delete this permission">
                             <button
                               className="neon-btn neon-btn-delete"
-                              onClick={() => handleDeletePermission(perm.id)}
+                              onClick={() => handleDeletePermission(perm.id, perm.key)}
                             >
                               Delete
                             </button>

@@ -19,7 +19,7 @@ interface IncompleteRecord {
 }
 
 type Module = { id: string; name: string };
-type Document = { id: string; title?: string; name?: string };
+type Document = { id: string; title?: string };
 type IncompleteRow = {
   auth_id: string;
   item_id: string;
@@ -208,7 +208,7 @@ export default function IncompleteTraining() {
         documentIds.length
           ? supabase
               .from("documents")
-              .select("id, title, name")
+              .select("id, title")
               .in("id", documentIds)
           : Promise.resolve({ data: [], error: null } as {
               data: Document[];
@@ -222,8 +222,8 @@ export default function IncompleteTraining() {
       const docNameById = new Map<string, string>(
         (docsRes.data ?? []).map(
           (d: Document) => {
-            // Prefer title, fallback to name, then empty string
-            const displayName = d.title || d.name || "";
+            // Use title as the display name
+            const displayName = d.title || "";
             console.log(`Document mapping: ${d.id} -> "${displayName}"`);
             return [d.id, displayName] as [string, string];
           }

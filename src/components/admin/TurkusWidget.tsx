@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { FiUsers, FiClipboard, FiList, FiCheckSquare } from "react-icons/fi";
+import { FiUsers, FiClipboard, FiList, FiCheckSquare, FiPlus } from "react-icons/fi";
 
 const TURKUS_ACTIONS = [
   {
@@ -28,10 +28,16 @@ const TURKUS_ACTIONS = [
     icon: <FiCheckSquare />,
   },
   {
-    href: "/issues",
-    label: "View Issues",
-    description: "See and manage reported issues.",
+    href: "/turkus/issues",
+    label: "Manage Issues",
+    description: "View and manage all reported issues across departments.",
     icon: <FiClipboard />,
+  },
+  {
+    href: "/turkus/issues/add",
+    label: "Create New Issue",
+    description: "Report a new issue that needs attention.",
+    icon: <FiPlus />,
   },
 ];
 

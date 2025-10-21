@@ -1900,53 +1900,47 @@ body, html, .neon-text,
   font-size: 10px !important;
 }
 
-/* Custom Tooltip - Fast, CSS-based tooltips */
-.custom-tooltip-trigger {
-  position: relative;
+/* Custom Tooltip - Portal-based tooltips that render at document body level */
+.custom-tooltip-portal {
+  animation: tooltipFadeIn 0.1s ease-in-out;
 }
 
-.custom-tooltip-trigger::before,
-.custom-tooltip-trigger::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.1s ease-in-out;
-  z-index: 9999;
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-.custom-tooltip-trigger::before {
-  content: attr(data-tooltip);
+.custom-tooltip-content {
   background: #1a1a1a;
   color: #fff;
-  padding: 4px 8px;
+  padding: 6px 8px;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
-  white-space: nowrap;
+  white-space: normal;
+  word-wrap: break-word;
+  width: 80px;
+  max-width: 80px;
   border: 1px solid #444;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  bottom: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
+  line-height: 1.3;
+  text-align: center;
 }
 
-.custom-tooltip-trigger::after {
-  content: '';
+.custom-tooltip-arrow {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
   width: 0;
   height: 0;
   border-left: 4px solid transparent;
   border-right: 4px solid transparent;
   border-top: 4px solid #1a1a1a;
-  bottom: calc(100% + 4px);
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.custom-tooltip-trigger:hover::before,
-.custom-tooltip-trigger:hover::after {
-  opacity: 1;
-  transition-delay: 0.1s; /* 100ms delay for fast response */
 }
 
 /* ================== User Manager Styles ================== */

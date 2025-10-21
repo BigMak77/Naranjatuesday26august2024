@@ -1,4 +1,4 @@
-import IncompleteTraining from "@/components/admin/IncompleteTraining";
+import IncompleteTraining from "@/components/training/IncompleteTraining";
 
 export default function IncompleteTrainingPage() {
   return <IncompleteTraining />;

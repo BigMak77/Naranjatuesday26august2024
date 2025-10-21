@@ -7,6 +7,13 @@ type Contact = {
   dpoEmail?: string; // Data Protection Officer or privacy contact (optional)
 };
 
+type LawfulBase = 
+  | "consent" 
+  | "contract" 
+  | "legal_obligation" 
+  | "legitimate_interests" 
+  | "vital_interests";
+
 type PrivacyNoticeProps = {
   companyName?: string;
   lastUpdated?: string; // e.g., "6 September 2025"
@@ -18,12 +25,10 @@ type PrivacyNoticeProps = {
   // Useful if you use sub-processors or vendors:
   processorsSummary?: string; // brief text (e.g., "cloud hosting, email, analytics")
   // Lawful bases you actually rely on:
-  lawfulBases?: Array<
-    "consent" | "contract" | "legal_obligation" | "legitimate_interests" | "vital_interests"
-  >;
+  lawfulBases?: Array<LawfulBase>;
 };
 
-const defaultBases: PrivacyNoticeProps["lawfulBases"] = [
+const defaultBases: Array<LawfulBase> = [
   "consent",
   "contract",
   "legal_obligation",
@@ -40,7 +45,7 @@ const PrivacyNotice: React.FC<PrivacyNoticeProps> = ({
   processorsSummary = "infrastructure hosting, analytics, communications, and payments (where applicable)",
   lawfulBases = defaultBases,
 }) => {
-  const baseLabel: Record<NonNullable<PrivacyNoticeProps["lawfulBases"]>[number], string> = {
+  const baseLabel: Record<LawfulBase, string> = {
     consent: "Your consent",
     contract: "Performance of a contract",
     legal_obligation: "Compliance with legal obligations",
@@ -54,7 +59,7 @@ const PrivacyNotice: React.FC<PrivacyNoticeProps> = ({
       <p className="meta">Last updated: {lastUpdated}</p>
 
       <p className="lead">
-        This Privacy Notice explains how <strong>{companyName}</strong> (“we”, “us”, “our”)
+        This Privacy Notice explains how <strong>{companyName}</strong> ("we", "us", "our")
         collects, uses, and protects your personal information when you use our websites,
         applications, and services.
       </p>
@@ -62,18 +67,46 @@ const PrivacyNotice: React.FC<PrivacyNoticeProps> = ({
       <nav aria-label="Contents" className="toc">
         <h2>Contents</h2>
         <ol>
-          <li><a href="#who-we-are">Who we are</a></li>
-          <li><a href="#data-we-collect">Information we collect</a></li>
-          <li><a href="#how-we-use">How we use your information</a></li>
-          <li><a href="#legal-bases">Legal bases</a></li>
-          <li><a href="#sharing">How we share information</a></li>
-          {showInternationalTransfers && <li><a href="#transfers">International transfers</a></li>}
-          <li><a href="#retention">Data retention</a></li>
-          <li><a href="#rights">Your rights</a></li>
-          <li><a href="#cookies">Cookies & tracking</a></li>
-          <li><a href="#security">Data security</a></li>
-          {showChildrenSection && <li><a href="#children">Children’s privacy</a></li>}
-          <li><a href="#contact">Contact us</a></li>
+          <li>
+            <a href="#who-we-are">Who we are</a>
+          </li>
+          <li>
+            <a href="#data-we-collect">Information we collect</a>
+          </li>
+          <li>
+            <a href="#how-we-use">How we use your information</a>
+          </li>
+          <li>
+            <a href="#legal-bases">Legal bases</a>
+          </li>
+          <li>
+            <a href="#sharing">How we share information</a>
+          </li>
+          {showInternationalTransfers && (
+            <li>
+              <a href="#transfers">International transfers</a>
+            </li>
+          )}
+          <li>
+            <a href="#retention">Data retention</a>
+          </li>
+          <li>
+            <a href="#rights">Your rights</a>
+          </li>
+          <li>
+            <a href="#cookies">Cookies & tracking</a>
+          </li>
+          <li>
+            <a href="#security">Data security</a>
+          </li>
+          {showChildrenSection && (
+            <li>
+              <a href="#children">Children's privacy</a>
+            </li>
+          )}
+          <li>
+            <a href="#contact">Contact us</a>
+          </li>
         </ol>
       </nav>
 
@@ -130,8 +163,10 @@ const PrivacyNotice: React.FC<PrivacyNoticeProps> = ({
         <h2>4) Legal bases</h2>
         <p>We rely on one or more of the following legal bases to process personal data:</p>
         <ul>
-          {lawfulBases.map((b) => (
-            <li key={b}><strong>{baseLabel[b]}</strong></li>
+          {lawfulBases.map((base) => (
+            <li key={base}>
+              <strong>{baseLabel[base]}</strong>
+            </li>
           ))}
         </ul>
       </section>
@@ -220,7 +255,7 @@ const PrivacyNotice: React.FC<PrivacyNoticeProps> = ({
 
       {showChildrenSection && (
         <section id="children">
-          <h2>{showInternationalTransfers ? "11" : "10"}) Children’s privacy</h2>
+          <h2>{showInternationalTransfers ? "11" : "10"}) Children's privacy</h2>
           <p>
             Our services are not directed to children under the age required by law in your jurisdiction.
             We do not knowingly collect personal data from children. If you believe a child has provided
@@ -241,10 +276,18 @@ const PrivacyNotice: React.FC<PrivacyNoticeProps> = ({
           }) Contact us
         </h2>
         <address>
-          <p><strong>{companyName}</strong></p>
+          <p>
+            <strong>{companyName}</strong>
+          </p>
           {contact.address && <p>{contact.address}</p>}
-          {contact.phone && <p>Phone: <a href={`tel:${contact.phone}`}>{contact.phone}</a></p>}
-          <p>Email: <a href={`mailto:${contact.email}`}>{contact.email}</a></p>
+          {contact.phone && (
+            <p>
+              Phone: <a href={`tel:${contact.phone}`}>{contact.phone}</a>
+            </p>
+          )}
+          <p>
+            Email: <a href={`mailto:${contact.email}`}>{contact.email}</a>
+          </p>
           {contact.dpoEmail && (
             <p>
               Privacy/DPO: <a href={`mailto:${contact.dpoEmail}`}>{contact.dpoEmail}</a>
@@ -260,21 +303,70 @@ const PrivacyNotice: React.FC<PrivacyNoticeProps> = ({
           padding: 24px;
           line-height: 1.6;
           border-radius: 12px;
-          box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.05);
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.05);
         }
-        .meta { margin-top: -4px; font-size: 0.95rem; }
-        .lead { margin-top: 16px; }
-        h1 { margin: 0; font-size: 2rem; }
-        h2 { margin-top: 28px; font-size: 1.25rem; }
-        ul { padding-left: 1.2rem; }
-        .toc { padding: 16px; border-radius: 10px; margin: 20px 0; }
-        .toc h2 { margin-top: 0; font-size: 1rem; text-transform: uppercase; letter-spacing: .04em; }
-        .toc ol { margin: 0; padding-left: 1.1rem; }
-        a { text-decoration: underline; text-underline-offset: 2px; }
-        address { font-style: normal; }
+        
+        .meta { 
+          margin-top: -4px; 
+          font-size: 0.95rem; 
+        }
+        
+        .lead { 
+          margin-top: 16px; 
+        }
+        
+        h1 { 
+          margin: 0; 
+          font-size: 2rem; 
+        }
+        
+        h2 { 
+          margin-top: 28px; 
+          font-size: 1.25rem; 
+        }
+        
+        ul { 
+          padding-left: 1.2rem; 
+        }
+        
+        .toc { 
+          padding: 16px; 
+          border-radius: 10px; 
+          margin: 20px 0; 
+        }
+        
+        .toc h2 { 
+          margin-top: 0; 
+          font-size: 1rem; 
+          text-transform: uppercase; 
+          letter-spacing: 0.04em; 
+        }
+        
+        .toc ol { 
+          margin: 0; 
+          padding-left: 1.1rem; 
+        }
+        
+        a { 
+          text-decoration: underline; 
+          text-underline-offset: 2px; 
+        }
+        
+        address { 
+          font-style: normal; 
+        }
+        
         @media print {
-          .privacy { box-shadow: none; border: none; border-radius: 0; }
-          a { color: black; text-decoration: none; }
+          .privacy { 
+            box-shadow: none; 
+            border: none; 
+            border-radius: 0; 
+          }
+          
+          a { 
+            color: black; 
+            text-decoration: none; 
+          }
         }
       `}</style>
     </article>

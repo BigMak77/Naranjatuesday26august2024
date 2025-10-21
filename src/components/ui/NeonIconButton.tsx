@@ -23,6 +23,7 @@ import {
   FiServer,
   FiUserPlus,
   FiShare,
+  FiSend,
 } from "react-icons/fi";
 
 const ICONS = {
@@ -46,6 +47,7 @@ const ICONS = {
   assign: <FiCheckSquare style={{ color: "#d9ed92" }} />,
   viewArchive: <FiServer />,
   submitApplication: <FiShare />, // new green submit application button
+  send: <FiSend />,
 } as const;
 
 type Variant = keyof typeof ICONS;
@@ -91,7 +93,7 @@ export default function NeonIconButton(p: Props) {
 
   // Next <Link> branch
   if (p.as === "link") {
-    const { children, href, ...linkProps } = p as NextLinkOwn & BaseProps;
+    const { children, href, as, variant, icon, title, className, ...linkProps } = p as NextLinkOwn & BaseProps;
     return (
       <Link href={href} {...linkProps} className={classes} title={title}>
         <span>{IconEl}</span>

@@ -7,6 +7,7 @@ import NeonForm from "@/components/NeonForm";
 import NeonTable from "@/components/NeonTable";
 import NeonPanel from "@/components/NeonPanel";
 import NeonIconButton from "@/components/ui/NeonIconButton";
+import OverlayDialog from "@/components/ui/OverlayDialog";
 
 type TurkusRisk = {
   id: string;
@@ -158,6 +159,24 @@ export default function RiskAssessmentManager() {
     }
   };
 
+  const resetForm = () => {
+    setTitle("");
+    setDescription("");
+    setSeverity("Medium");
+    setLikelihood(3);
+    setReviewPeriod(12);
+    setDepartmentId(null);
+    setPhotoUrls([]);
+    setControlMeasures("");
+    setPersonsAtRisk("");
+    setInjuryRisk("");
+  };
+
+  const handleCancel = () => {
+    resetForm();
+    setMode("list");
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const payload = {
@@ -181,6 +200,7 @@ export default function RiskAssessmentManager() {
 
     const { error } = await query;
     if (!error) {
+      resetForm();
       setMode("list");
       const { data } = await supabase.from("turkus_risks").select("*");
       setRiskAssessments(data || []);
@@ -188,15 +208,24 @@ export default function RiskAssessmentManager() {
   };
 
   return (
-    <div className="risk-assessment-manager-global">
-      <div className="risk-assessment-header-global">
-        <h2 className="neon-form-title">
+    <div style={{ width: "100%", maxWidth: "1400px", margin: "0 auto", padding: "20px" }}>
+      <div style={{ 
+        display: "flex", 
+        justifyContent: "space-between", 
+        alignItems: "center", 
+        marginBottom: "24px",
+        padding: "16px",
+        backgroundColor: "rgba(0, 0, 0, 0.3)",
+        borderRadius: "8px"
+      }}>
+        <h2 className="neon-form-title" style={{ margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
           <FiClipboard /> Risk Assessments
         </h2>
         <NeonIconButton
           variant="add"
           title="Create New"
           onClick={() => {
+            resetForm();
             setMode("create");
             setSelectedId(null);
           }}
@@ -221,26 +250,27 @@ export default function RiskAssessmentManager() {
                 width: "100%",
                 borderCollapse: "separate",
                 borderSpacing: "4px",
-                fontSize: "0.85em"
+                fontSize: "0.85em",
+                tableLayout: "fixed"
               }}>
                 <thead>
                   <tr>
-                    <th style={{ padding: "8px", textAlign: "center", color: "#00ffff" }}>
+                    <th style={{ padding: "8px", textAlign: "center", color: "#00ffff", width: "140px" }}>
                       Likelihood →<br/>Severity ↓
                     </th>
-                    <th style={{ padding: "8px", textAlign: "center", color: "#00ffff" }}>
+                    <th style={{ padding: "8px", textAlign: "center", color: "#00ffff", width: "calc((100% - 140px) / 5)" }}>
                       1<br/>Rare
                     </th>
-                    <th style={{ padding: "8px", textAlign: "center", color: "#00ffff" }}>
+                    <th style={{ padding: "8px", textAlign: "center", color: "#00ffff", width: "calc((100% - 140px) / 5)" }}>
                       2<br/>Unlikely
                     </th>
-                    <th style={{ padding: "8px", textAlign: "center", color: "#00ffff" }}>
+                    <th style={{ padding: "8px", textAlign: "center", color: "#00ffff", width: "calc((100% - 140px) / 5)" }}>
                       3<br/>Possible
                     </th>
-                    <th style={{ padding: "8px", textAlign: "center", color: "#00ffff" }}>
+                    <th style={{ padding: "8px", textAlign: "center", color: "#00ffff", width: "calc((100% - 140px) / 5)" }}>
                       4<br/>Likely
                     </th>
-                    <th style={{ padding: "8px", textAlign: "center", color: "#00ffff" }}>
+                    <th style={{ padding: "8px", textAlign: "center", color: "#00ffff", width: "calc((100% - 140px) / 5)" }}>
                       5<br/>Almost Certain
                     </th>
                   </tr>
@@ -302,12 +332,27 @@ export default function RiskAssessmentManager() {
             <div style={{ marginTop: "12px", fontSize: "0.8em", opacity: 0.8 }}>
               <strong>Legend:</strong> Green (1-5): Low | Yellow (6-12): Medium | Orange (13-16): High | Red (17-25): Critical
             </div>
+            
+            {/* Explanatory note about non-linear severity scale */}
+            <div style={{
+              marginTop: "12px",
+              padding: "8px 12px",
+              backgroundColor: "rgba(255, 165, 0, 0.1)",
+              border: "1px solid rgba(255, 165, 0, 0.3)",
+              borderRadius: "6px",
+              fontSize: "0.8em",
+              color: "#ffa500",
+              lineHeight: "1.4"
+            }}>
+              <strong>Note:</strong> The severity scale uses a non-linear progression (1, 3, 4, 5) to reflect the exponential increase in risk severity. Level 2 is intentionally omitted as there is no meaningful distinction between minor injuries (1) and those requiring medical treatment (3).
+            </div>
           </div>
 
           <NeonTable
           columns={[
             { header: "Title", accessor: "title" },
             { header: "Description", accessor: "description" },
+            { header: "Department", accessor: "department" },
             { header: "Severity", accessor: "severity" },
             { header: "Likelihood", accessor: "likelihood" },
             { header: "Risk Rating", accessor: "risk_rating" },
@@ -317,10 +362,12 @@ export default function RiskAssessmentManager() {
             const rating = risk.risk_rating || calculateRiskRating(risk.severity, risk.likelihood || 3);
             const riskLevel = getRiskLevel(rating);
             const riskColor = getRiskColor(rating);
+            const department = departments.find(d => d.id === risk.department_id);
 
             return {
               title: risk.title,
               description: risk.description,
+              department: department?.name || "N/A",
               severity: risk.severity,
               likelihood: getLikelihoodLabel(risk.likelihood || 3),
               risk_rating: (
@@ -343,7 +390,7 @@ export default function RiskAssessmentManager() {
                 </div>
               ),
               actions: (
-                <div key={risk.id} className="risk-assessment-actions-global">
+                <div style={{ display: "flex", gap: "8px", justifyContent: "center" }}>
                   <NeonIconButton
                     variant="edit"
                     title="Amend"
@@ -368,124 +415,170 @@ export default function RiskAssessmentManager() {
         </>
       )}
 
-      {(mode === "create" || mode === "edit") && (
-        <NeonPanel>
-          <NeonForm
-            title={
-              mode === "create"
-                ? "Create Risk Assessment"
-                : "Edit Risk Assessment"
-            }
-            onSubmit={handleSubmit}
-          >
-            <input
-              className="neon-input"
-              placeholder="Title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-            <textarea
-              className="neon-input"
-              placeholder="Description"
-              rows={3}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
-            <select
-              className="neon-input"
-              value={severity}
-              onChange={(e) => setSeverity(e.target.value)}
-            >
-              <option value="Low">Low (1)</option>
-              <option value="Medium">Medium (3)</option>
-              <option value="High">High (4)</option>
-              <option value="Critical">Critical (5)</option>
-            </select>
-            <select
-              className="neon-input"
-              value={likelihood}
-              onChange={(e) => setLikelihood(parseInt(e.target.value))}
-            >
-              <option value={1}>1 - Rare</option>
-              <option value={2}>2 - Unlikely</option>
-              <option value={3}>3 - Possible</option>
-              <option value={4}>4 - Likely</option>
-              <option value={5}>5 - Almost Certain</option>
-            </select>
-            
-            {/* Risk Rating Preview */}
-            <div style={{
-              padding: "16px",
-              backgroundColor: "rgba(0, 255, 255, 0.1)",
-              border: "1px solid #00ffff",
-              borderRadius: "8px",
+      <OverlayDialog
+        open={mode === "create" || mode === "edit"}
+        onClose={handleCancel}
+        ariaLabelledby="risk-assessment-form-title"
+      >
+        <NeonForm
+          title={
+            mode === "create"
+              ? "Create Risk Assessment"
+              : "Edit Risk Assessment"
+          }
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+        >
+            {/* Top row: Title, Description, Department inline */}
+            <div style={{ 
+              display: "grid", 
+              gridTemplateColumns: "1fr 2fr 1fr", 
+              gap: "12px",
+              alignItems: "start",
               marginBottom: "16px"
             }}>
-              <div style={{ fontSize: "0.9em", marginBottom: "8px", color: "#00ffff" }}>
-                Risk Rating Preview:
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <input
+                className="neon-input"
+                placeholder="Title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                style={{ height: "40px" }}
+              />
+              <input
+                className="neon-input"
+                placeholder="Description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                style={{ height: "40px" }}
+              />
+              <select
+                className="neon-input"
+                value={departmentId || ""}
+                onChange={(e) => setDepartmentId(e.target.value)}
+                style={{ height: "40px" }}
+              >
+                <option value="">Select department</option>
+                {departments.map((dept) => (
+                  <option key={dept.id} value={dept.id}>
+                    {dept.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Second row: Severity, Likelihood, Risk Score inline */}
+            <div style={{ 
+              display: "grid", 
+              gridTemplateColumns: "1fr 1fr 2fr", 
+              gap: "12px",
+              alignItems: "start",
+              marginBottom: "16px"
+            }}>
+              <select
+                className="neon-input"
+                value={severity}
+                onChange={(e) => setSeverity(e.target.value)}
+                style={{ height: "40px" }}
+              >
+                <option value="Low">Low (1) - Minor injury, first aid</option>
+                <option value="Medium">Medium (3) - Injury requiring medical treatment</option>
+                <option value="High">High (4) - Serious injury, hospitalization</option>
+                <option value="Critical">Critical (5) - Fatality, permanent disability</option>
+              </select>
+              <select
+                className="neon-input"
+                value={likelihood}
+                onChange={(e) => setLikelihood(parseInt(e.target.value))}
+                style={{ height: "40px" }}
+              >
+                <option value={1}>1 - Rare</option>
+                <option value={2}>2 - Unlikely</option>
+                <option value={3}>3 - Possible</option>
+                <option value={4}>4 - Likely</option>
+                <option value={5}>5 - Almost Certain</option>
+              </select>
+              
+              {/* Risk Rating Preview - Inline */}
+              <div style={{
+                padding: "8px 16px",
+                backgroundColor: "rgba(0, 255, 255, 0.1)",
+                border: "1px solid #00ffff",
+                borderRadius: "8px",
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                height: "40px"
+              }}>
                 <span style={{
                   display: "inline-block",
-                  minWidth: "60px",
-                  padding: "8px 16px",
+                  minWidth: "40px",
+                  padding: "4px 12px",
                   backgroundColor: getRiskColor(calculateRiskRating(severity, likelihood)),
                   color: "#000",
                   fontWeight: "bold",
-                  fontSize: "1.2em",
-                  borderRadius: "6px",
+                  fontSize: "1em",
+                  borderRadius: "4px",
                   textAlign: "center",
                 }}>
                   {calculateRiskRating(severity, likelihood)}
                 </span>
-                <div>
-                  <div style={{ fontWeight: "bold" }}>
-                    {getRiskLevel(calculateRiskRating(severity, likelihood))} Risk
-                  </div>
-                  <div style={{ fontSize: "0.85em", opacity: 0.8 }}>
-                    {getSeverityNumeric(severity)} (Severity) × {likelihood} (Likelihood)
-                  </div>
+                <div style={{ fontSize: "0.85em" }}>
+                  <span style={{ fontWeight: "bold" }}>
+                    {getRiskLevel(calculateRiskRating(severity, likelihood))}
+                  </span>
+                  <span style={{ opacity: 0.7, marginLeft: "4px" }}>
+                    ({getSeverityNumeric(severity)} × {likelihood})
+                  </span>
                 </div>
               </div>
             </div>
 
-            <input
-              className="neon-input"
-              type="number"
-              placeholder="Review period (months)"
-              value={reviewPeriod}
-              onChange={(e) => setReviewPeriod(parseInt(e.target.value))}
-            />
-            <select
-              className="neon-input"
-              value={departmentId || ""}
-              onChange={(e) => setDepartmentId(e.target.value)}
-            >
-              <option value="">Select department</option>
-              {departments.map((dept) => (
-                <option key={dept.id} value={dept.id}>
-                  {dept.name}
-                </option>
-              ))}
-            </select>
+            {/* Explanatory note about non-linear severity scale */}
+            <div style={{
+              padding: "8px 12px",
+              backgroundColor: "rgba(255, 165, 0, 0.1)",
+              border: "1px solid rgba(255, 165, 0, 0.3)",
+              borderRadius: "6px",
+              fontSize: "0.85em",
+              color: "#ffa500",
+              marginBottom: "16px",
+              lineHeight: "1.4"
+            }}>
+              <strong>Note:</strong> The severity scale uses a non-linear progression (1, 3, 4, 5) to reflect the exponential increase in risk severity. Level 2 is intentionally omitted as there is no meaningful distinction between minor injuries (1) and those requiring medical treatment (3).
+            </div>
+
+            {/* Third row: Persons at Risk, Injury Risk inline */}
+            <div style={{ 
+              display: "grid", 
+              gridTemplateColumns: "1fr 1fr", 
+              gap: "12px",
+              alignItems: "start",
+              marginBottom: "16px"
+            }}>
+              <input
+                className="neon-input"
+                placeholder="Persons at Risk"
+                value={personsAtRisk}
+                onChange={(e) => setPersonsAtRisk(e.target.value)}
+                style={{ height: "40px" }}
+              />
+              <input
+                className="neon-input"
+                placeholder="Injury Risk"
+                value={injuryRisk}
+                onChange={(e) => setInjuryRisk(e.target.value)}
+                style={{ height: "40px" }}
+              />
+            </div>
+
             <textarea
               className="neon-input"
               placeholder="Control Measures"
               value={controlMeasures}
               onChange={(e) => setControlMeasures(e.target.value)}
+              style={{ marginBottom: "16px" }}
             />
-            <textarea
-              className="neon-input"
-              placeholder="Persons at Risk"
-              value={personsAtRisk}
-              onChange={(e) => setPersonsAtRisk(e.target.value)}
-            />
-            <textarea
-              className="neon-input"
-              placeholder="Injury Risk"
-              value={injuryRisk}
-              onChange={(e) => setInjuryRisk(e.target.value)}
-            />
+
             <input
               className="neon-input"
               placeholder="Photo URLs (comma separated)"
@@ -493,10 +586,34 @@ export default function RiskAssessmentManager() {
               onChange={(e) =>
                 setPhotoUrls(e.target.value.split(",").map((s) => s.trim()))
               }
+              style={{ marginBottom: "16px" }}
             />
+
+            {/* Review Period with label */}
+            <div style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "12px"
+            }}>
+              <label style={{ 
+                color: "#00ffff", 
+                fontSize: "0.9em",
+                whiteSpace: "nowrap",
+                minWidth: "fit-content"
+              }}>
+                Review Period (months):
+              </label>
+              <input
+                className="neon-input"
+                type="number"
+                placeholder="12"
+                value={reviewPeriod}
+                onChange={(e) => setReviewPeriod(parseInt(e.target.value))}
+                style={{ width: "80px" }}
+              />
+            </div>
           </NeonForm>
-        </NeonPanel>
-      )}
+      </OverlayDialog>
 
       {mode === "assign" && (
         <NeonPanel>
