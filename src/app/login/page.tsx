@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-client";
+import { getDashboardUrl } from "@/lib/permissions";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,16 +16,43 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
+
+    const { error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-    setLoading(false);
-    if (error) {
-      setError(error.message);
-    } else {
-      router.push("/admin/dashboard");
+
+    if (signInError) {
+      setError(signInError.message);
+      setLoading(false);
+      return;
     }
+
+    // Fetch user profile to get access level
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+
+    if (!authUser) {
+      setError("Failed to get user information");
+      setLoading(false);
+      return;
+    }
+
+    const { data: userProfile, error: profileError } = await supabase
+      .from("users")
+      .select("access_level")
+      .eq("auth_id", authUser.id)
+      .single();
+
+    if (profileError || !userProfile) {
+      setError("Failed to load user profile. Please contact an administrator.");
+      setLoading(false);
+      return;
+    }
+
+    // Redirect to appropriate dashboard based on access level
+    const dashboardUrl = getDashboardUrl(userProfile.access_level);
+    router.push(dashboardUrl);
+    setLoading(false);
   };
 
   return (

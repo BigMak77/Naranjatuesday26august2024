@@ -168,7 +168,7 @@ const UserManager: React.FC = () => {
   };
 
   return (
-    <section className="neon-card neon-form-padding user-manager-section">
+    <section className="user-manager-section">
       <div className="user-manager-header">
         <h2 className="neon-heading">User Manager</h2>
       </div>
@@ -203,16 +203,16 @@ const UserManager: React.FC = () => {
                           <td className="user-manager-name">{`${user.first_name || ""} ${user.last_name || ""}`.trim()}</td>
                           <td>{getManagedDepartments(user.id)}</td>
                           <td>
-                            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                              <button 
-                                className="neon-btn neon-btn-edit" 
+                            <div className="user-manager-actions-cell">
+                              <button
+                                className="neon-btn neon-btn-edit"
                                 onClick={() => handleEditUser(user)}
                                 title="Edit User"
                               >
                                 <FiEdit />
                               </button>
-                              <button 
-                                className="neon-btn neon-btn-delete" 
+                              <button
+                                className="neon-btn neon-btn-delete"
                                 onClick={() => handleDeleteUser(user.id)}
                                 title="Delete User"
                               >
@@ -243,16 +243,16 @@ const UserManager: React.FC = () => {
                         <tr key={user.id}>
                           <td className="user-manager-name">{`${user.first_name || ""} ${user.last_name || ""}`.trim()}</td>
                           <td>
-                            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                              <button 
-                                className="neon-btn neon-btn-edit" 
+                            <div className="user-manager-actions-cell">
+                              <button
+                                className="neon-btn neon-btn-edit"
                                 onClick={() => handleEditUser(user)}
                                 title="Edit User"
                               >
                                 <FiEdit />
                               </button>
-                              <button 
-                                className="neon-btn neon-btn-delete" 
+                              <button
+                                className="neon-btn neon-btn-delete"
                                 onClick={() => handleDeleteUser(user.id)}
                                 title="Delete User"
                               >
@@ -368,16 +368,16 @@ const UserManager: React.FC = () => {
                           <td>{user.start_date || "—"}</td>
                           <td>{getDepartmentName(user.department_id)}</td>
                           <td>
-                            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                              <button 
-                                className="neon-btn neon-btn-edit" 
+                            <div className="user-manager-actions-cell">
+                              <button
+                                className="neon-btn neon-btn-edit"
                                 onClick={() => handleEditUser(user)}
                                 title="Edit User"
                               >
                                 <FiEdit />
                               </button>
-                              <button 
-                                className="neon-btn neon-btn-delete" 
+                              <button
+                                className="neon-btn neon-btn-delete"
                                 onClick={() => handleDeleteUser(user.id)}
                                 title="Delete User"
                               >
@@ -397,20 +397,20 @@ const UserManager: React.FC = () => {
           <RoleModuleDocumentAssignment />
         )}
         {activeTab === "departments" && (
-          <div className="user-manager-structure">
-            <div className="user-manager-structure-toggle" onClick={() => setStructureView(v => v === 'role' ? 'manager' : 'role')} aria-label="Toggle structure view">
-              <span className={`user-manager-structure-label ${structureView === 'role' ? 'active' : ''}`}>
-                Role Structure
-              </span>
-              <div className={`user-manager-structure-switch ${structureView === 'role' ? 'active' : ''}`}>
-                <div className="user-manager-structure-switch-handle" />
-              </div>
-              <span className={`user-manager-structure-label ${structureView === 'manager' ? 'active' : ''}`}>
-                Manager Structure
-              </span>
+          <div className="user-manager-structure-toggle" onClick={() => setStructureView(v => v === 'role' ? 'manager' : 'role')}>
+            <span className={`user-manager-structure-label ${structureView === 'role' ? 'active' : ''}`}>
+              Role Structure
+            </span>
+            <div className={`user-manager-structure-switch ${structureView === 'role' ? 'active' : ''}`}>
+              <div className="user-manager-structure-switch-handle" />
             </div>
-            {structureView === 'role' ? <RoleStructure /> : <ManagerStructure />}
+            <span className={`user-manager-structure-label ${structureView === 'manager' ? 'active' : ''}`}>
+              Manager Structure
+            </span>
           </div>
+        )}
+        {activeTab === "departments" && (
+          structureView === 'role' ? <RoleStructure /> : <ManagerStructure />
         )}
         {activeTab === "shifts" && (
           <div className="user-manager-placeholder">
@@ -424,12 +424,12 @@ const UserManager: React.FC = () => {
 
       {/* User Edit/Add Dialog */}
       <OverlayDialog open={dialogOpen} onClose={handleCloseDialog} ariaLabelledby="user-editor-title">
-        <div className="neon-form-title" id="user-editor-title" style={{ marginBottom: "1.25rem" }}>
+        <div className="neon-form-title user-manager-dialog-title" id="user-editor-title">
           {isAddMode ? "Add User" : "Edit User"}
         </div>
 
         {error && (
-          <div className="neon-error-message" style={{ marginBottom: "1rem" }}>
+          <div className="neon-error-message user-manager-dialog-error">
             {error}
           </div>
         )}
@@ -504,9 +504,9 @@ function UserEditForm({ user, departments, onSave, onCancel, isAddMode }: UserEd
   };
 
   return (
-    <form onSubmit={handleSubmit} className="neon-form-grid" style={{ gap: '1rem' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-        <div>
+    <form onSubmit={handleSubmit} className="user-manager-form">
+      <div className="user-manager-form-row">
+        <div className="user-manager-form-field">
           <label>First Name</label>
           <input
             type="text"
@@ -515,7 +515,7 @@ function UserEditForm({ user, departments, onSave, onCancel, isAddMode }: UserEd
             required
           />
         </div>
-        <div>
+        <div className="user-manager-form-field">
           <label>Last Name</label>
           <input
             type="text"
@@ -526,7 +526,7 @@ function UserEditForm({ user, departments, onSave, onCancel, isAddMode }: UserEd
         </div>
       </div>
 
-      <div>
+      <div className="user-manager-form-field">
         <label>Email</label>
         <input
           type="email"
@@ -536,8 +536,8 @@ function UserEditForm({ user, departments, onSave, onCancel, isAddMode }: UserEd
         />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-        <div>
+      <div className="user-manager-form-row">
+        <div className="user-manager-form-field">
           <label>Department</label>
           <select
             value={formData.department_id}
@@ -549,7 +549,7 @@ function UserEditForm({ user, departments, onSave, onCancel, isAddMode }: UserEd
             ))}
           </select>
         </div>
-        <div>
+        <div className="user-manager-form-field">
           <label>Access Level</label>
           <select
             value={formData.access_level}
@@ -562,7 +562,7 @@ function UserEditForm({ user, departments, onSave, onCancel, isAddMode }: UserEd
         </div>
       </div>
 
-      <div>
+      <div className="user-manager-form-field">
         <label>Start Date</label>
         <input
           type="date"
@@ -571,7 +571,7 @@ function UserEditForm({ user, departments, onSave, onCancel, isAddMode }: UserEd
         />
       </div>
 
-      <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
+      <div className="user-manager-form-actions">
         <button type="button" className="neon-btn-secondary" onClick={onCancel}>
           Cancel
         </button>

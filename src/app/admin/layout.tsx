@@ -9,12 +9,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <>
       <AuthListener />
-      <ProjectGlobalHeader />
-      <AdminToolbar />
-      <main className="content">{children}</main>
-      <footer className="site-footer">
-        <div className="inner">© Naranja</div>
-      </footer>
+      <div className="app-shell">
+        <ProjectGlobalHeader />
+        <AdminToolbar />
+        <main className="content">{children}</main>
+        <footer className="site-footer">
+          <div className="inner">© Naranja</div>
+        </footer>
+      </div>
     </>
   );
 }

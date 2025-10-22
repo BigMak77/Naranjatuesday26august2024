@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/lib/supabase-client";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
+import NeonIconButton from "@/components/ui/NeonIconButton";
+import { FiTool, FiUserPlus } from "react-icons/fi";
 
 /* ===========================
    Types
@@ -324,68 +326,27 @@ export default function Structure() {
   );
 
   return (
-    <div className="neon-panel" style={{ position: "relative" }}>
-      {/* Description and Toggle Row */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 16,
-        marginBottom: 32,
-        justifyContent: 'flex-start'
-      }}>
-        <CustomTooltip text="Switch between Department view (showing roles and employees) and Manager view (showing management hierarchy)">
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8
-          }}>
-            <span style={{ fontSize: 12, color: '#9ca3af', whiteSpace: 'nowrap' }}>Department</span>
-            <button
-              onClick={() => window.location.href = '/hr/structure/role-structure'}
-              style={{
-                width: 44,
-                height: 24,
-                background: '#22c55e',
-                border: 'none',
-                borderRadius: 12,
-                position: 'relative',
-                cursor: 'pointer',
-                transition: 'background 0.2s'
-              }}
-            >
-              <div style={{
-                position: 'absolute',
-                right: 3,
-                top: 3,
-                width: 18,
-                height: 18,
-                background: '#fff',
-                borderRadius: '50%',
-                transition: 'left 0.2s'
-              }} />
-            </button>
-            <span style={{ fontSize: 12, color: '#fff', whiteSpace: 'nowrap' }}>Manager</span>
-          </div>
-        </CustomTooltip>
-      </div>
-
+    <div style={{ position: "relative" }}>
       {/* Right-side button group: Assign, Change Manager */}
       <div
         style={{
           position: "absolute",
-          top: 16,
-          right: 16,
+          top: 0,
+          right: 0,
           zIndex: 10,
           display: "flex",
           flexDirection: "row",
           gap: 8,
+          marginBottom: "1rem",
         }}
       >
         <AssignManagerButton departments={departments} users={users} onAdded={() => {}} />
         <ChangeManagerButton departments={departments} users={users} />
       </div>
 
-      <StructureTree nodes={tree} level={2} users={users} />
+      <div style={{ paddingTop: "3rem" }}>
+        <StructureTree nodes={tree} level={2} users={users} />
+      </div>
     </div>
   );
 }
@@ -453,31 +414,12 @@ function ChangeManagerButton({
 
   return (
     <>
-      <CustomTooltip text="Change manager department">
-        <button
-          className="neon-btn"
-          aria-label="Change manager department"
-          onClick={() => setOpen(true)}
-          type="button"
-        >
-          {/* Tool/Wrench Icon SVG */}
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M22 19.3l-6.1-6.1a7 7 0 0 1-7.2-1.7A7 7 0 0 1 2.5 7.1a7 7 0 0 1 7.1-7.1c1.7 0 3.3.6 4.6 1.7l-2.1 2.1a3 3 0 0 0-4.2 4.2l2.1 2.1a3 3 0 0 0 4.2-4.2l2.1-2.1A7 7 0 0 1 22 7.1a7 7 0 0 1-1.7 7.2 7 7 0 0 1-1.7 7.2z"
-              stroke="currentColor"
-              strokeWidth="1.7"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
-      </CustomTooltip>
+      <NeonIconButton
+        variant="edit"
+        icon={<FiTool />}
+        title="Change manager department"
+        onClick={() => setOpen(true)}
+      />
       {open && (
         <div
           style={{
@@ -645,27 +587,12 @@ function AssignManagerButton({
 
   return (
     <>
-      <CustomTooltip text="Assign manager to department">
-        <button
-          className="neon-btn"
-          aria-label="Assign manager to department"
-          onClick={() => setOpen(true)}
-          type="button"
-        >
-          {/* Neon Add Icon (plus in a circle) */}
-          <svg
-            width="22"
-            height="22"
-            viewBox="0 0 22 22"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <circle cx="11" cy="11" r="10" stroke="#00fff7" strokeWidth="2" fill="#1e1e28" />
-            <line x1="11" y1="6" x2="11" y2="16" stroke="#00fff7" strokeWidth="2" />
-            <line x1="6" y1="11" x2="16" y2="11" stroke="#00fff7" strokeWidth="2" />
-          </svg>
-        </button>
-      </CustomTooltip>
+      <NeonIconButton
+        variant="add"
+        icon={<FiUserPlus />}
+        title="Assign manager to department"
+        onClick={() => setOpen(true)}
+      />
       {open && (
         <div
           style={{
