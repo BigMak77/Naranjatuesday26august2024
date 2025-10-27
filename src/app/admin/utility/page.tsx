@@ -1,7 +1,7 @@
 "use client";
 
 import UtilityWidget from "@/components/utility/UtilityWidget";
-import MainHeader from "@/components/ui/MainHeader";
+import ContentHeader from "@/components/ui/ContentHeader";
 import { useState } from "react";
 import DocumentTypeTable from "@/components/documents/DocumentTypeTable";
 import ShiftPatternsTable from "@/components/utility/ShiftPatternsTable";
@@ -19,11 +19,11 @@ export default function UtilityPage() {
 
   return (
     <main className="after-hero">
+      <ContentHeader
+        title="Admin Utilities"
+        description="Utilities are similar to global settings, that improve the functionality of the platform."
+      />
       <div className="global-content">
-        <MainHeader 
-          title="Admin Utilities" 
-          subtitle="Utilities are similar to global settings, that improve the functionality of the platform." 
-        />
         <section style={{ marginBottom: 32 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 0 }}>
             <NeonIconButton

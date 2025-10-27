@@ -10,7 +10,6 @@ import { useUser } from "@/lib/useUser";
 import NeonIconButton from "@/components/ui/NeonIconButton";
 import OverlayDialog from "@/components/ui/OverlayDialog";
 import NeonForm from "@/components/NeonForm";
-import MainHeader from "@/components/ui/MainHeader";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
 interface DocumentType {
@@ -324,10 +323,6 @@ export default function DocumentManager() {
 
   return (
     <>
-      <MainHeader
-        title="Document Manager"
-        subtitle="Manage, edit, and archive your documents"
-      />
       {/* ===== FILTER BAR ===== */}
       <section className="content-controls neon-panel neon-form-padding">
         <div className="controls-left">

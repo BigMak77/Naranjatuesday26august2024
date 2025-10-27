@@ -7,7 +7,6 @@ import { useState, useMemo, useContext } from "react";
 import { useUser } from "@/lib/useUser";
 import { supabase } from "@/lib/supabase-client";
 import {
-  FiHome,
   FiUsers,
   FiFileText,
   FiShield,
@@ -19,6 +18,7 @@ import {
 } from "react-icons/fi";
 import MyProfileModal from "@/components/user/MyProfileModal";
 import Modal from "@/components/modal";
+import NeonIconButton from "@/components/ui/NeonIconButton";
 import { RaiseIssueModalContext } from "@/context/RaiseIssueModalContext";
 
 type NavLink = {
@@ -75,25 +75,9 @@ export default function GlobalHeader({
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
-  const dashboardHref = useMemo(() => {
-    if (!user || typeof user.access_level !== "string")
-      return "/user/dashboard";
-    switch (user.access_level.toLowerCase()) {
-      case "admin":
-        return "/admin/dashboard";
-      case "manager":
-        return "/manager/dashboard";
-      case "user":
-        return "/user/dashboard";
-      default:
-        return "/user/dashboard";
-    }
-  }, [user]);
-
   const links: NavLink[] = useMemo(
     () =>
       navLinks ?? [
-        { href: dashboardHref, label: "Dashboard", icon: <FiHome /> },
         {
           label: "People & Roles",
           icon: <FiUsers />,
@@ -121,7 +105,7 @@ export default function GlobalHeader({
         },
         { href: "/admin/incomplete", label: "Compliance", icon: <FiShield /> },
       ],
-    [navLinks, dashboardHref],
+    [navLinks],
   );
 
   const initials = useMemo(() => {
@@ -152,40 +136,13 @@ export default function GlobalHeader({
 
   return (
     <>
-      <header
-        className="global-header"
-        style={{
-          position: "sticky",
-          top: 0,
-          width: "100%",
-          background: "linear-gradient(118deg in oklab, #05363a 0%, #0a706a 48%, #16cbcf 100%)",
-          borderBottom: "6px solid #fa7a20",
-          boxSizing: "border-box",
-          zIndex: 3000,
-        }}
-      >
-        <div
-          className="global-header-row"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "0 32px",
-            minHeight: "96px",
-            boxSizing: "border-box",
-          }}
-        >
+      <header className="global-header">
+        <div className="global-header-row">
           {/* Left: Logo */}
           <Link
             href="/"
             aria-label="Go to homepage"
             className="neon-text"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              textDecoration: "none",
-              marginRight: "12px",
-            }}
           >
             <Image
               src="/logo2.png"
@@ -193,85 +150,28 @@ export default function GlobalHeader({
               width={220}
               height={86}
               priority={logoPriority}
-              style={{
-                objectFit: "contain",
-                height: "96px",
-                width: "220px",
-                display: "block",
-              }}
             />
           </Link>
 
           {/* Center: Quick links (signed-in) */}
           {!loading && user && (
-            <nav
-              aria-label="Primary"
-              style={{
-                display: "flex",
-                gap: "8px",
-                alignItems: "center",
-                flex: 1,
-                justifyContent: "left",
-              }}
-            >
+            <nav aria-label="Primary">
               {links
                 .filter((l) => l.dropdown || l.href)
                 .map((l) =>
                   l.dropdown ? (
-                    <div
-                      key={l.label}
-                      className="global-header-dropdown"
-                      style={{
-                        position: "relative",
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "flex-start",
-                      }}
-                    >
+                    <div key={l.label} className="global-header-dropdown">
                       <button
                         type="button"
                         className="sidebar-action"
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                          fontFamily: "inherit",
-                          fontWeight: 700,
-                          background: "none",
-                          border: "none",
-                          padding: "10px 18px",
-                          borderRadius: "8px",
-                          cursor: "pointer",
-                          transition: "background 0.2s",
-                          color: "#fff",
-                          fontSize: "14px",
-                        }}
                         aria-haspopup="menu"
                         aria-expanded={openDropdown === l.label}
                         onClick={() => setOpenDropdown(openDropdown === l.label ? null : l.label)}
                       >
-                        <span style={{ width: "20px", height: "20px", display: "flex", alignItems: "center", justifyContent: "center" }} aria-hidden="true">
-                          {l.icon && React.cloneElement(l.icon, { style: { fontSize: "16px", color: "#fff" } })}
-                        </span>
-                        <span style={{ fontSize: "14px", fontWeight: 700 }}>{l.label}</span>
-                        <FiChevronDown style={{ fontSize: "16px", width: "20px", height: "20px", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "#fff" }} aria-hidden="true" />
+                        {l.label}
                       </button>
                       {openDropdown === l.label && (
-                        <div
-                          role="menu"
-                          style={{
-                            position: "absolute",
-                            top: "100%",
-                            left: 0,
-                            minWidth: "180px",
-                            background: "#fa7a20",
-                            boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
-                            borderRadius: "8px",
-                            zIndex: 3002,
-                            marginTop: "8px",
-                            padding: "8px 0",
-                          }}
-                        >
+                        <div role="menu">
                           {l.dropdown.map((d) => (
                             <Link
                               key={d.href}
@@ -279,18 +179,6 @@ export default function GlobalHeader({
                               role="menuitem"
                               prefetch
                               className={d.className || "global-header-link neon-text"}
-                              style={{
-                                display: "block",
-                                padding: "10px 24px",
-                                textDecoration: "none",
-                                fontWeight: 400,
-                                fontSize: "12px",
-                                border: "none",
-                                background: "none",
-                                cursor: "pointer",
-                                transition: "background 0.2s",
-                                color: "#fff",
-                              }}
                               onClick={(e) => {
                                 if (d.href?.startsWith('http') || d.href?.startsWith('mailto:') || d.href?.startsWith('tel:') || e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
                                 setTimeout(() => setOpenDropdown(null), 80);
@@ -309,23 +197,8 @@ export default function GlobalHeader({
                         href={l.href}
                         prefetch
                         className="global-header-link neon-text"
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                          textDecoration: "none",
-                          fontWeight: 700,
-                          fontSize: "14px",
-                          padding: "10px 18px",
-                          borderRadius: "8px",
-                          transition: "background 0.2s",
-                          color: "#fff",
-                        }}
                       >
-                        <span style={{ width: "20px", height: "20px", display: "flex", alignItems: "center", justifyContent: "center" }} aria-hidden="true">
-                          {l.icon && React.cloneElement(l.icon, { style: { fontSize: "16px", color: "#fff" } })}
-                        </span>
-                        <span style={{ fontSize: "14px", fontWeight: 700 }}>{l.label}</span>
+                        {l.label}
                       </Link>
                     )
                   )
@@ -338,19 +211,10 @@ export default function GlobalHeader({
             role="search"
             aria-label="Site search"
             className="global-header-search-form"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              margin: 0,
-              padding: 0,
-              border: "none",
-              background: "none",
-            }}
             onSubmit={(e) => e.preventDefault()}
           >
-            <span className="global-header-search-icon" aria-hidden="true" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <FiSearch style={{ fontSize: "18px", width: "20px", height: "20px", display: "flex", alignItems: "center", justifyContent: "center" }} />
+            <span className="global-header-search-icon" aria-hidden="true">
+              <FiSearch />
             </span>
             <input
               id="global-header-search"
@@ -359,26 +223,13 @@ export default function GlobalHeader({
               autoComplete="off"
               name="search"
               className="global-header-search-input"
-              style={{
-                display: "inline-block",
-                verticalAlign: "middle",
-                margin: 0,
-              }}
             />
           </form>
 
           {/* Right: Auth area */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "16px",
-              minWidth: "220px",
-              justifyContent: "flex-end",
-            }}
-          >
+          <div className="global-header-auth">
             {loading && (
-              <span style={{ fontSize: "15px" }} aria-live="polite">
+              <span aria-live="polite">
                 Checking session…
               </span>
             )}
@@ -388,74 +239,28 @@ export default function GlobalHeader({
                 href="/login"
                 aria-label="Log in"
                 prefetch
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  background: "#e94f4f",
-                  borderRadius: "8px",
-                  padding: "10px 18px",
-                  fontWeight: 500,
-                  fontSize: "17px",
-                  textDecoration: "none",
-                  boxShadow: "0 2px 8px rgba(233,79,79,0.08)",
-                  border: "none",
-                  cursor: "pointer",
-                  transition: "background 0.2s",
-                  color: "#fff",
-                }}
+                className="global-header-login-btn"
               >
-                <FiLogIn aria-hidden="true" style={{ fontSize: "18px", width: "20px", height: "20px", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "#fff" }} />
-                <span style={{ display: "inline-block", fontSize: "17px", fontWeight: 500 }}>Log In</span>
+                <FiLogIn aria-hidden="true" />
+                <span>Log In</span>
               </Link>
             )}
 
             {!loading && user && (
-              <div style={{ position: "relative" }} className="global-header-user-menu">
-                {/* User pill button - update background and border to match pill */}
+              <div className="global-header-user-menu">
+                {/* User pill button */}
                 <button
                   type="button"
+                  className="global-header-user-btn"
                   aria-haspopup="menu"
                   aria-expanded={menuOpen}
                   onClick={() => setMenuOpen((s) => !s)}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "12px",
-                    background: "#fa7a20",
-                    borderRadius: "24px",
-                    padding: "0.5rem 0.5rem",
-                    border: "2px solid #fff",
-                    cursor: "pointer",
-                    fontWeight: 500,
-                    fontSize: "16px",
-                    boxShadow: "0 1px 4px rgba(0,0,0,0.03)",
-                    color: "#fff",
-                  }}
                 >
                   {/* Avatar or fallback initials */}
-                  <span
-                    style={{
-                      width: "32px",
-                      height: "32px",
-                      borderRadius: "50%",
-                      background: "#fa7a20",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontWeight: 700,
-                      fontSize: "12px",
-                      marginRight: "8px",
-                      color: "#fff",
-                      border: "2px solid #fff",
-                      boxSizing: "border-box",
-                    }}
-                    aria-hidden="true"
-                  >
+                  <span className="global-header-user-avatar" aria-hidden="true">
                     {initials}
                   </span>
                   <span
-                    style={{ fontWeight: 500, fontSize: "12px", color: "#fff" }}
                     title={(
                       (user?.first_name ? user.first_name + " " : "") +
                       (user?.last_name ?? "")
@@ -466,7 +271,7 @@ export default function GlobalHeader({
                       (user?.last_name ?? "")
                     ).trim()}
                   </span>
-                  <FiChevronDown style={{ fontSize: "18px", width: "20px", height: "20px", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "#fff" }} aria-hidden="true" />
+                  <FiChevronDown aria-hidden="true" />
                 </button>
 
                 {/* User menu */}
@@ -474,42 +279,15 @@ export default function GlobalHeader({
                   <div
                     role="menu"
                     aria-label="User menu"
-                    style={{
-                      position: "absolute",
-                      top: "110%",
-                      right: 0,
-                      minWidth: "180px",
-                      background: "#fa7a20",
-                      boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
-                      borderRadius: "8px",
-                      zIndex: 3002,
-                      marginTop: "8px",
-                      padding: "8px 0",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "4px",
-                    }}
+                    className="global-header-user-dropdown"
                   >
                     <button
                       type="button"
                       role="menuitem"
+                      className="global-header-menu-item"
                       onClick={() => {
                         setMenuOpen(false);
                         setProfileModalOpen(true);
-                      }}
-                      style={{
-                        display: "block",
-                        width: "100%",
-                        padding: "10px 24px",
-                        background: "none",
-                        border: "none",
-                        textAlign: "left",
-                        fontWeight: 400,
-                        fontSize: "16px",
-                        cursor: "pointer",
-                        borderRadius: "4px",
-                        transition: "background 0.2s",
-                        color: "#fff",
                       }}
                     >
                       Profile
@@ -518,19 +296,7 @@ export default function GlobalHeader({
                       href="/account/security"
                       role="menuitem"
                       onClick={() => setMenuOpen(false)}
-                      style={{
-                        display: "block",
-                        padding: "10px 24px",
-                        textDecoration: "none",
-                        fontWeight: 400,
-                        fontSize: "16px",
-                        border: "none",
-                        background: "none",
-                        cursor: "pointer",
-                        borderRadius: "4px",
-                        transition: "background 0.2s",
-                        color: "#fff",
-                      }}
+                      className="global-header-menu-item"
                     >
                       Security
                     </Link>
@@ -538,19 +304,7 @@ export default function GlobalHeader({
                       href="/billing"
                       role="menuitem"
                       onClick={() => setMenuOpen(false)}
-                      style={{
-                        display: "block",
-                        padding: "10px 24px",
-                        textDecoration: "none",
-                        fontWeight: 400,
-                        fontSize: "16px",
-                        border: "none",
-                        background: "none",
-                        cursor: "pointer",
-                        borderRadius: "4px",
-                        transition: "background 0.2s",
-                        color: "#fff",
-                      }}
+                      className="global-header-menu-item"
                     >
                       Billing
                     </Link>
@@ -558,20 +312,7 @@ export default function GlobalHeader({
                       href="/admin/utility/support/contact"
                       role="menuitem"
                       onClick={() => setMenuOpen(false)}
-                      style={{
-                        display: "block",
-                        padding: "10px 24px",
-                        textDecoration: "none",
-                        fontWeight: 400,
-                        fontSize: "16px",
-                        border: "none",
-                        background: "none",
-                        cursor: "pointer",
-                        borderRadius: "4px",
-                        transition: "background 0.2s",
-                        color: "#fff",
-                      }}
-                      className="global-header-link"
+                      className="global-header-menu-item"
                     >
                       Contact Support
                     </Link>
@@ -580,25 +321,13 @@ export default function GlobalHeader({
                       role="menuitem"
                       onClick={handleSignOut}
                       disabled={signingOut}
+                      className="global-header-menu-item"
                       style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                        width: "100%",
-                        padding: "10px 24px",
-                        background: "none",
-                        border: "none",
-                        textAlign: "left",
-                        fontWeight: 500,
-                        fontSize: "16px",
                         cursor: signingOut ? "not-allowed" : "pointer",
-                        borderRadius: "4px",
-                        opacity: signingOut ? 0.6 : 1,
-                        transition: "background 0.2s",
-                        color: "#fff",
+                        opacity: signingOut ? 0.6 : 1
                       }}
                     >
-                      <FiLogOut aria-hidden="true" style={{ fontSize: "18px", width: "20px", height: "20px", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "#fff" }} />
+                      <FiLogOut aria-hidden="true" />
                       Sign out
                     </button>
                   </div>
@@ -608,17 +337,11 @@ export default function GlobalHeader({
 
             {/* Siren button */}
             <Link
-              href="/turkus/issues/"
+              href="/turkus/issues/add"
               aria-label="Raise Issue"
               className="global-header-siren-btn"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#fff",
-              }}
             >
-              <FiAlertOctagon style={{ fontSize: "18px", width: "20px", height: "20px", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "#fff" }} />
+              <FiAlertOctagon />
             </Link>
           </div>
         </div>

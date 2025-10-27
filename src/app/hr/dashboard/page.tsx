@@ -1,11 +1,15 @@
 "use client";
 import HrAdminView from "@/components/userview/HrAdminView";
 import MainHeader from "@/components/ui/MainHeader";
-import RequireAccess from "@/components/RequireAccess";
+import AccessControlWrapper from "@/components/AccessControlWrapper";
 
 export default function HrDashboardPage() {
   return (
-    <RequireAccess allowedRoles={["HR", "Admin"]}>
+    <AccessControlWrapper 
+      requiredRoles={["HR Admin", "Admin"]}
+      redirectOnNoAccess={true}
+      noAccessMessage="HR access required. Redirecting to your dashboard..."
+    >
       <MainHeader
         title="HR Admin Dashboard"
         subtitle="Manage people, users, roles, structures, and permissions"
@@ -13,6 +17,6 @@ export default function HrDashboardPage() {
       <main className="after-hero global-content">
         <HrAdminView />
       </main>
-    </RequireAccess>
+    </AccessControlWrapper>
   );
 }

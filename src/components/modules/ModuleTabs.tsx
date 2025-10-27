@@ -3,14 +3,14 @@ import FolderTabs from "@/components/FolderTabs";
 import NeonPanel from "@/components/NeonPanel";
 import NeonIconButton from "../ui/NeonIconButton";
 import { FiEdit, FiEye } from "react-icons/fi";
+import EditModuleTab from "./EditModuleTab";
 
 interface Module {
   id: string;
   name: string;
   description?: string;
-  version?: string;
+  version?: number;
   is_archived?: boolean;
-  group_id?: string;
   learning_objectives?: string;
   estimated_duration?: string;
   delivery_format?: string;
@@ -18,6 +18,8 @@ interface Module {
   prerequisites?: string[];
   tags?: string[];
   thumbnail_url?: string;
+  requires_follow_up?: boolean;
+  review_period?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -26,6 +28,7 @@ interface ModuleTabsProps {
   module: Module;
   onEdit?: () => void;
   onCancel?: () => void;
+  onModuleUpdate?: () => void;
 }
 
 const tabList = [
@@ -154,6 +157,7 @@ export default function ModuleTabs({
   module,
   onEdit,
   onCancel,
+  onModuleUpdate,
 }: ModuleTabsProps) {
   const [activeTab, setActiveTab] = useState("Overview");
 
@@ -179,12 +183,6 @@ export default function ModuleTabs({
                 className={`neon-module-status ${module.is_archived ? "neon-status-archived" : "neon-status-active"}`}
               >
                 {module.is_archived ? "Archived" : "Active"}
-              </span>
-            </div>
-            <div className="mb-2">
-              Group ID:{" "}
-              <span className="neon-module-meta font-mono">
-                {module.group_id}
               </span>
             </div>
             <div className="mb-2">
@@ -217,6 +215,18 @@ export default function ModuleTabs({
                   : "—"}
               </span>
             </div>
+            <div className="mb-2">
+              Requires Follow-up:{" "}
+              <span className={module.requires_follow_up ? "text-yellow-400" : ""}>
+                {module.requires_follow_up ? "Yes" : "No"}
+              </span>
+            </div>
+            {module.requires_follow_up && (
+              <div className="mb-2">
+                Review Period:{" "}
+                <span>{module.review_period || "—"}</span>
+              </div>
+            )}
             <div className="mb-2">
               Created At:{" "}
               <span>
@@ -252,9 +262,7 @@ export default function ModuleTabs({
           </>
         )}
         {activeTab === "Edit" && (
-          <div className="neon-info py-8 text-center text-lg">
-            Edit tab coming soon...
-          </div>
+          <EditModuleTab module={module} onSuccess={onModuleUpdate} />
         )}
         {activeTab === "Assign" && (
           <div className="neon-info py-8 text-center text-lg">

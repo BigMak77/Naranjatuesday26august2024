@@ -4,12 +4,15 @@ import NeonIconButton from "@/components/ui/NeonIconButton";
 import { FiPlus, FiX } from "react-icons/fi";
 import { supabase } from "@/lib/supabase-client";
 import NeonForm from "@/components/NeonForm";
+import OverlayDialog from "@/components/ui/OverlayDialog";
+
+interface AddModuleTabProps {
+  onSuccess?: () => void;
+}
 
 export default function AddModuleTab({
   onSuccess,
-}: {
-  onSuccess?: () => void;
-}) {
+}: AddModuleTabProps) {
   // Form state
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -19,13 +22,44 @@ export default function AddModuleTab({
   const [deliveryFormat, setDeliveryFormat] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
+  const [requiresFollowUp, setRequiresFollowUp] = useState(false);
+  const [reviewPeriod, setReviewPeriod] = useState("0");
+  const [showFollowUpDialog, setShowFollowUpDialog] = useState(false);
   // Removed unused 'saving' state
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
+  // Debug logging
+  console.log("AddModuleTab render - showFollowUpDialog:", showFollowUpDialog, "requiresFollowUp:", requiresFollowUp);
+
+  const addTag = () => {
+    if (tagInput.trim() && !tags.includes(tagInput.trim())) {
+      setTags([...tags, tagInput.trim()]);
+      setTagInput("");
+    }
+  };
+
+  const handleTagKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addTag();
+    }
+  };
+
+  const handleFollowUpChange = (checked: boolean) => {
+    setRequiresFollowUp(checked);
+    if (checked && reviewPeriod === "0") {
+      setReviewPeriod("1 week"); // Set default review period when enabling follow-up
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    console.log("=== AddModuleTab: Form submitted ===");
+    console.log("Form values:", { name, description, version, learningObjectives, estimatedDuration, deliveryFormat, tags, requiresFollowUp, reviewPeriod });
+
     try {
       // Only export fields present in the add form
       const payload = {
@@ -36,13 +70,23 @@ export default function AddModuleTab({
         estimated_duration: estimatedDuration || null,
         delivery_format: deliveryFormat || null,
         tags: tags.length > 0 ? tags : null,
+        requires_follow_up: requiresFollowUp,
+        review_period: requiresFollowUp ? reviewPeriod : "0",
       };
-      const { error } = await supabase.from("modules").insert([payload]);
+
+      console.log("Payload to insert:", payload);
+
+      const { data, error } = await supabase.from("modules").insert([payload]).select();
+
+      console.log("Supabase response - data:", data, "error:", error);
+
       if (error) throw error;
+
+      console.log("✅ Module added successfully!");
       setSuccess(true);
       if (onSuccess) onSuccess();
       setTimeout(() => setSuccess(false), 1200);
-      // Optionally reset form fields here
+      // Reset form fields
       setDescription("");
       setVersion(1);
       setName("");
@@ -51,17 +95,21 @@ export default function AddModuleTab({
       setDeliveryFormat("");
       setTags([]);
       setTagInput("");
+      setRequiresFollowUp(false);
+      setReviewPeriod("0");
     } catch (err) {
+      console.error("❌ Error adding module:", err);
       setError(err instanceof Error ? err.message : "Failed to add module.");
     }
   };
 
   return (
     <>
-      <h1 className="add-module-tab-title">
-        <NeonIconButton variant="add" icon={<FiPlus />} title="Add Module" />
-      </h1>
-      <NeonForm title="Add Module" onSubmit={handleSubmit}>
+      <h2 style={{ color: "var(--accent)", fontWeight: 600, fontSize: "1.125rem", marginBottom: 16 }}>
+        Fill in the details to create a new training module
+      </h2>
+        
+        <NeonForm onSubmit={handleSubmit}>
         {/* Same fields as edit, but for adding */}
         <div className="add-module-tab-field">
           <label className="add-module-tab-label">Name</label>
@@ -121,14 +169,62 @@ export default function AddModuleTab({
             className="add-module-tab-input neon-input"
           />
         </div>
+        
+        <div className="add-module-tab-field">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <input
+              type="checkbox"
+              id="requiresFollowUpMain"
+              checked={requiresFollowUp}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                console.log("Checkbox clicked:", checked);
+                if (checked) {
+                  // When checking the box, set default period and show dialog
+                  setRequiresFollowUp(true);
+                  if (reviewPeriod === "0") {
+                    setReviewPeriod("1 week");
+                  }
+                  console.log("About to show dialog");
+                  setShowFollowUpDialog(true);
+                } else {
+                  // When unchecking, disable follow-up and reset period
+                  setRequiresFollowUp(false);
+                  setReviewPeriod("0");
+                  setShowFollowUpDialog(false);
+                }
+              }}
+              className="neon-checkbox"
+            />
+            <label htmlFor="requiresFollowUpMain" className="add-module-tab-label" style={{ margin: 0 }}>
+              After completion, does this training require a follow-up assessment?
+            </label>
+          </div>
+          {requiresFollowUp && (
+            <div style={{ marginTop: '8px', marginLeft: '24px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+              Review period: {reviewPeriod}
+            </div>
+          )}
+        </div>
+        
         <div className="add-module-tab-field">
           <label className="add-module-tab-label">Tags</label>
-          <div className="add-module-tab-tag-row">
+          <div className="add-module-tab-tag-row" style={{ display: 'flex', gap: '8px' }}>
             <input
               type="text"
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value)}
+              onKeyPress={handleTagKeyPress}
+              placeholder="Enter a tag and press Enter"
               className="add-module-tab-input neon-input"
+              style={{ flex: 1 }}
+            />
+            <NeonIconButton
+              variant="add"
+              icon={<FiPlus size={16} />}
+              title="Add Tag"
+              onClick={addTag}
+              disabled={!tagInput.trim()}
             />
           </div>
           <div className="add-module-tab-tag-list">
@@ -159,6 +255,86 @@ export default function AddModuleTab({
         )}
         <div className="add-module-tab-actions"></div>
       </NeonForm>
+
+      {/* Follow-up Assessment Dialog */}
+      {showFollowUpDialog && (
+        <OverlayDialog
+          open={showFollowUpDialog}
+          onClose={() => setShowFollowUpDialog(false)}
+          ariaLabelledby="follow-up-dialog-title"
+        >
+          <div style={{ padding: "24px", minWidth: "400px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+              <h3 
+                id="follow-up-dialog-title"
+                style={{ color: "var(--accent)", fontWeight: 600, fontSize: "1.1rem", margin: 0 }}
+              >
+                Follow-up Assessment Configuration
+              </h3>
+              <NeonIconButton
+                variant="delete"
+                icon={<FiX size={18} />}
+                title="Close"
+                onClick={() => {
+                  setShowFollowUpDialog(false);
+                  if (!requiresFollowUp) {
+                    setReviewPeriod("0");
+                  }
+                }}
+              />
+            </div>
+            
+            <div style={{ marginBottom: "20px" }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                <input
+                  type="checkbox"
+                  id="requiresFollowUpDialog"
+                  checked={requiresFollowUp}
+                  onChange={(e) => handleFollowUpChange(e.target.checked)}
+                  className="neon-checkbox"
+                />
+                <label htmlFor="requiresFollowUpDialog" style={{ color: 'var(--text)', fontSize: '0.9rem' }}>
+                  After completion, does this training require a follow-up assessment?
+                </label>
+              </div>
+              
+              {requiresFollowUp && (
+                <div>
+                  <label style={{ 
+                    color: 'var(--accent)', 
+                    fontSize: '0.85rem', 
+                    fontWeight: 500,
+                    display: 'block',
+                    marginBottom: '8px' 
+                  }}>
+                    Review Period
+                  </label>
+                  <select
+                    value={reviewPeriod}
+                    onChange={(e) => setReviewPeriod(e.target.value)}
+                    className="add-module-tab-input neon-input"
+                    style={{ width: '100%' }}
+                  >
+                    <option value="1 week">1 week</option>
+                    <option value="2 weeks">2 weeks</option>
+                    <option value="1 month">1 month</option>
+                    <option value="3 months">3 months</option>
+                  </select>
+                </div>
+              )}
+            </div>
+            
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+              <NeonIconButton
+                variant="add"
+                icon={<FiPlus size={16} />}
+                title="Save Configuration"
+                onClick={() => setShowFollowUpDialog(false)}
+              />
+            </div>
+          </div>
+        </OverlayDialog>
+      )}
     </>
   );
 }

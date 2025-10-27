@@ -7,6 +7,7 @@ import MyTeamTraining from "@/components/training/MyTeamTraining";
 import MyTeamComplianceMatrix from "@/components/manager/MyTeamComplianceMatrix";
 import MyTeamIssues from "@/components/manager/MyTeamIssues";
 import UserView from "@/components/userview/UserView";
+import AccessControlWrapper from "@/components/AccessControlWrapper";
 
 type ManagerView = "My Team" | "My Team Training" | "My Team Tasks" | "My Team Issues" | "My Team Audits" | "My Team Compliance" | "User Dashboard";
 
@@ -42,7 +43,20 @@ export default function ManagerPageWrapper() {
       case "My Team Compliance":
         return <MyTeamComplianceMatrix />;
       case "User Dashboard":
-        return <UserView />;
+        return (
+          <AccessControlWrapper 
+            requiredRoles={["Manager", "Admin"]}
+            hideIfNoAccess={true}
+            fallback={
+              <div className="neon-error neon-form-padding">
+                <h2 className="neon-heading">Access Denied</h2>
+                <p>You need Manager or Admin privileges to view the User Dashboard.</p>
+              </div>
+            }
+          >
+            <UserView />
+          </AccessControlWrapper>
+        );
       default:
         return <MyTeamView />;
     }

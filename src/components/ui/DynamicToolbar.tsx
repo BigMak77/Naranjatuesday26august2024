@@ -2,34 +2,36 @@
 
 import React from "react";
 import { useUser } from "@/context/UserContext";
+import { ManagerProvider } from "@/context/ManagerContext";
+import SuperAdminToolbar from "./SuperAdminToolbar";
 import AdminToolbar from "./AdminToolbar";
+import HRAdminToolbar from "./HRAdminToolbar";
+import HSAdminToolbar from "./HSAdminToolbar";
 import ManagerToolbar from "./ManagerToolbar";
-import ListButton from "./ListButton";
+import TrainerToolbar from "./TrainerToolbar";
+import UserToolbar from "./UserToolbar";
 
 interface DynamicToolbarProps {
   className?: string;
-  onViewChange?: (view: string) => void;
-  // Manager-specific props
-  onAddEmployee?: () => void;
-  onManageTeam?: () => void;
-  onViewReports?: () => void;
   // Override to force a specific toolbar type
-  forceToolbarType?: "admin" | "manager" | "hr" | "trainer" | "user" | "none";
+  forceToolbarType?: "super admin" | "admin" | "hr admin" | "h&s admin" | "dept. manager" | "manager" | "trainer" | "user" | "none";
 }
 
 /**
  * DynamicToolbar - Shows the appropriate toolbar based on user's access level
- * - Admin users see AdminToolbar
- * - Manager users see ManagerToolbar
- * - HR users see basic HR toolbar
- * - Other users see a basic toolbar or no toolbar
+ *
+ * Displays role-specific toolbars:
+ * - Super Admin: Full system access with all sections
+ * - Admin: System administration and management
+ * - HR Admin: Employee management across all departments
+ * - H&S Admin: Health & Safety management across all departments
+ * - Dept. Manager: Department-wide management (all shifts in their department)
+ * - Manager: Shift-level management (only their shift in their department)
+ * - Trainer: Training management across assigned departments
+ * - User: Basic user toolbar with personal information
  */
 export default function DynamicToolbar({
   className = "",
-  onViewChange,
-  onAddEmployee,
-  onManageTeam,
-  onViewReports,
   forceToolbarType,
 }: DynamicToolbarProps) {
   const { user, loading } = useUser();
@@ -49,85 +51,47 @@ export default function DynamicToolbar({
   }
 
   // Use forced toolbar type if provided, otherwise use user's access level
-  const toolbarType = forceToolbarType || user.access_level?.toLowerCase();
+  const toolbarType = (forceToolbarType || user.access_level)?.toLowerCase();
 
   // Show appropriate toolbar based on access level
   switch (toolbarType) {
-    case "admin":
     case "super admin":
+      return <SuperAdminToolbar />;
+
+    case "admin":
       return <AdminToolbar />;
-      
-    case "manager":
-      return (
-        <ManagerToolbar
-          className={className}
-        />
-      );
-      
-    case "hr":
+
     case "hr admin":
-      // HR Toolbar with basic HR functionality
-      return (
-        <section className={`section-toolbar ${className}`.trim()}>
-          <span>HR Toolbar</span>
-          <ListButton 
-            onViewChange={onViewChange || (() => {})}
-            aria-label="Select HR view"
-          />
-        </section>
-      );
-      
-    case "trainer":
-      // Trainer Toolbar with training-specific functionality
-      return (
-        <section className={`section-toolbar ${className}`.trim()}>
-          <span>Trainer Toolbar</span>
-          <ListButton 
-            onViewChange={onViewChange || (() => {})}
-            aria-label="Select trainer view"
-          />
-        </section>
-      );
-      
+    case "hr":
+      return <HRAdminToolbar />;
+
     case "h&s admin":
     case "health & safety admin":
-      // Health & Safety Admin Toolbar
+      return <HSAdminToolbar />;
+
+    case "dept. manager":
+    case "manager":
+      // Both dept managers and shift managers use ManagerToolbar
+      // The toolbar itself handles the difference based on permissions
       return (
-        <section className={`section-toolbar ${className}`.trim()}>
-          <span>H&S Admin Toolbar</span>
-          <ListButton 
-            onViewChange={onViewChange || (() => {})}
-            aria-label="Select H&S view"
-          />
-        </section>
+        <ManagerProvider>
+          <ManagerToolbar className={className} />
+        </ManagerProvider>
       );
-      
+
+    case "trainer":
+      return <TrainerToolbar />;
+
     case "user":
-      // Basic toolbar for regular users
-      return (
-        <section className={`section-toolbar ${className}`.trim()}>
-          <span>User Toolbar</span>
-          <ListButton 
-            onViewChange={onViewChange || (() => {})}
-            aria-label="Select user view"
-          />
-        </section>
-      );
-      
+      return <UserToolbar />;
+
     case "none":
       // No toolbar
       return null;
-      
+
     default:
-      // Default basic toolbar for unknown access levels
-      return (
-        <section className={`section-toolbar ${className}`.trim()}>
-          <span>Toolbar</span>
-          <ListButton 
-            onViewChange={onViewChange || (() => {})}
-            aria-label="Select view"
-          />
-        </section>
-      );
+      // Default to user toolbar for unknown access levels
+      console.warn(`Unknown access level: ${toolbarType}, defaulting to User Toolbar`);
+      return <UserToolbar />;
   }
 }

@@ -11,6 +11,7 @@ import CSVEmployeeUpload from "./CSVEmployeeUpload";
 import CreateDepartmentModal from "./CreateDepartmentModal";
 import CreateRoleModal from "./CreateRoleModal";
 import MainHeader from "@/components/ui/MainHeader";
+import NeonIconButton from "@/components/ui/NeonIconButton";
 import { sendWelcomeEmail as sendEmail, sendBulkWelcomeEmails } from "@/lib/email-service";
 
 // Types
@@ -739,28 +740,17 @@ export default function NewEmployeeWizard() {
   // Render helpers
   function renderModeSelection() {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-        <div style={{ textAlign: 'center' }}>
-          <h2 className="neon-heading" style={{ fontSize: '18px', marginBottom: '0.5rem' }}>Choose Onboarding Method</h2>
-          <p style={{ color: 'var(--text)', fontSize: '12px', opacity: 0.85 }}>Select how you'd like to add employees to the system</p>
+      <div className="flex flex-col gap-8">
+        <div className="text-center">
+          <h2 className="neon-heading text-lg mb-2">Choose Onboarding Method</h2>
+          <p className="text-sm opacity-75">Select how you'd like to add employees to the system</p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', maxWidth: '900px', margin: '0 auto' }}>
+        <div className="grid grid-auto-fit gap-6 max-w-4xl mx-auto">
           <button
             onClick={() => setMode("single")}
-            style={{
-              background: 'var(--panel)',
-              border: '2px solid var(--neon)',
-              borderRadius: 'var(--radius)',
-              padding: '2rem',
-              cursor: 'pointer',
-              transition: 'box-shadow 0.2s, transform 0.1s',
-              boxShadow: '0 0 8px var(--neon)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '1rem'
-            }}
+            className="card-container flex flex-col items-center gap-4 cursor-pointer transition hover-lift"
+            style={{ boxShadow: '0 0 8px var(--neon)' }}
             onMouseOver={(e) => {
               e.currentTarget.style.boxShadow = '0 0 16px var(--neon)';
               e.currentTarget.style.transform = 'translateY(-2px)';
@@ -771,27 +761,16 @@ export default function NewEmployeeWizard() {
             }}
           >
             <FiUser style={{ width: '64px', height: '64px', color: 'var(--accent)' }} />
-            <h3 className="neon-heading" style={{ fontSize: '16px', marginBottom: '0.5rem' }}>Single Employee</h3>
-            <p style={{ color: 'var(--text)', fontSize: '12px', textAlign: 'center' }}>
+            <h3 className="neon-heading text-base mb-2">Single Employee</h3>
+            <p className="text-sm text-center">
               Step-by-step wizard for adding one employee with full customization
             </p>
           </button>
 
           <button
             onClick={() => setMode("bulk")}
-            style={{
-              background: 'var(--panel)',
-              border: '2px solid var(--neon)',
-              borderRadius: 'var(--radius)',
-              padding: '2rem',
-              cursor: 'pointer',
-              transition: 'box-shadow 0.2s, transform 0.1s',
-              boxShadow: '0 0 8px var(--neon)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '1rem'
-            }}
+            className="card-container flex flex-col items-center gap-4 cursor-pointer transition"
+            style={{ boxShadow: '0 0 8px var(--neon)' }}
             onMouseOver={(e) => {
               e.currentTarget.style.boxShadow = '0 0 16px var(--neon)';
               e.currentTarget.style.transform = 'translateY(-2px)';
@@ -802,8 +781,8 @@ export default function NewEmployeeWizard() {
             }}
           >
             <FiUsers style={{ width: '64px', height: '64px', color: 'var(--accent)' }} />
-            <h3 className="neon-heading" style={{ fontSize: '16px', marginBottom: '0.5rem' }}>Bulk Import</h3>
-            <p style={{ color: 'var(--text)', fontSize: '12px', textAlign: 'center' }}>
+            <h3 className="neon-heading text-base mb-2">Bulk Import</h3>
+            <p className="text-sm text-center">
               Add multiple employees at once via table entry or CSV import
             </p>
           </button>
@@ -831,15 +810,14 @@ export default function NewEmployeeWizard() {
 
   function renderStep1BasicInfo() {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+      <div className="flex flex-col gap-6">
+        <div className="grid grid-auto-fit gap-4">
           <div>
             <label
-              className="custom-tooltip-trigger"
+              className="custom-tooltip-trigger neon-form-label text-xs mb-2"
               data-tooltip="Employee's legal first name as it appears on official documents"
-              style={{ display: 'block', fontWeight: 700, color: 'var(--neon)', marginBottom: '0.5rem', fontSize: '12px', cursor: 'help' }}
             >
-              First Name <span style={{ color: '#ea1c1c' }}>*</span>
+              First Name <span className="color-error">*</span>
             </label>
             <input
               type="text"
@@ -853,11 +831,10 @@ export default function NewEmployeeWizard() {
 
           <div>
             <label
-              className="custom-tooltip-trigger"
+              className="custom-tooltip-trigger neon-form-label text-xs mb-2"
               data-tooltip="Employee's legal last name/surname"
-              style={{ display: 'block', fontWeight: 700, color: 'var(--neon)', marginBottom: '0.5rem', fontSize: '12px', cursor: 'help' }}
             >
-              Last Name <span style={{ color: '#ea1c1c' }}>*</span>
+              Last Name <span className="color-error">*</span>
             </label>
             <input
               type="text"
@@ -871,11 +848,10 @@ export default function NewEmployeeWizard() {
 
           <div>
             <label
-              className="custom-tooltip-trigger"
+              className="custom-tooltip-trigger neon-form-label text-xs mb-2"
               data-tooltip="Work email address - must be unique in the system"
-              style={{ display: 'block', fontWeight: 700, color: 'var(--neon)', marginBottom: '0.5rem', fontSize: '12px', cursor: 'help' }}
             >
-              Email <span style={{ color: '#ea1c1c' }}>*</span>
+              Email <span className="color-error">*</span>
             </label>
             <input
               type="email"
@@ -900,11 +876,10 @@ export default function NewEmployeeWizard() {
 
           <div>
             <label
-              className="custom-tooltip-trigger"
+              className="custom-tooltip-trigger neon-form-label text-xs mb-2"
               data-tooltip="Unique identifier for this employee - must be unique across all employees (active and inactive)"
-              style={{ display: 'block', fontWeight: 700, color: 'var(--neon)', marginBottom: '0.5rem', fontSize: '12px', cursor: 'help' }}
             >
-              Employee Number <span style={{ color: '#ea1c1c' }}>*</span>
+              Employee Number <span className="color-error">*</span>
             </label>
             <input
               type="text"
@@ -931,15 +906,8 @@ export default function NewEmployeeWizard() {
               required
             />
             {singleEmployee.employee_number && existingEmployeeNumbers.has(singleEmployee.employee_number.trim()) && (
-              <p style={{
-                fontSize: '11px',
-                color: '#ea1c1c',
-                marginTop: '0.25rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.25rem'
-              }}>
-                <FiAlertCircle style={{ flexShrink: 0 }} />
+              <p className="text-xs color-error mt-1 flex items-center gap-1">
+                <FiAlertCircle className="flex-shrink-0" />
                 This employee number is already in use
               </p>
             )}
@@ -947,11 +915,10 @@ export default function NewEmployeeWizard() {
 
           <div>
             <label
-              className="custom-tooltip-trigger"
+              className="custom-tooltip-trigger neon-form-label text-xs mb-2"
               data-tooltip="First day of employment - used for training assignment scheduling"
-              style={{ display: 'block', fontWeight: 700, color: 'var(--neon)', marginBottom: '0.5rem', fontSize: '12px', cursor: 'help' }}
             >
-              Start Date <span style={{ color: '#ea1c1c' }}>*</span>
+              Start Date <span className="color-error">*</span>
             </label>
             <input
               type="date"
@@ -964,9 +931,8 @@ export default function NewEmployeeWizard() {
 
           <div>
             <label
-              className="custom-tooltip-trigger"
+              className="custom-tooltip-trigger neon-form-label text-xs mb-2"
               data-tooltip="Contact phone number (optional)"
-              style={{ display: 'block', fontWeight: 700, color: 'var(--neon)', marginBottom: '0.5rem', fontSize: '12px', cursor: 'help' }}
             >
               Phone (Optional)
             </label>
@@ -981,30 +947,26 @@ export default function NewEmployeeWizard() {
 
           {/* Department & Role Section */}
           <div style={{ gridColumn: '1 / -1' }}>
-            <div style={{ borderTop: '2px solid var(--neon)', paddingTop: '1.5rem', marginTop: '1.5rem' }}>
-              <h4 className="neon-heading" style={{ fontSize: '14px', marginBottom: '1rem' }}>Department & Role</h4>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+            <div className="border-t pt-6 mt-6">
+              <h4 className="neon-heading text-sm mb-4">Department & Role</h4>
+              <div className="grid grid-auto-fit gap-4">
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                  <div className="flex items-center justify-between mb-2">
                     <label
-                      className="custom-tooltip-trigger"
+                      className="custom-tooltip-trigger neon-form-label text-xs"
                       data-tooltip="Employee's organizational department - automatically assigns department-wide training"
-                      style={{ display: 'block', fontWeight: 700, color: 'var(--neon)', fontSize: '12px', cursor: 'help' }}
                     >
-                      Department <span style={{ color: '#ea1c1c' }}>*</span>
+                      Department <span className="color-error">*</span>
                     </label>
                     <button
                       type="button"
                       onClick={() => setShowCreateDepartment(true)}
-                      className="custom-tooltip-trigger"
+                      className="custom-tooltip-trigger text-xs font-bold no-underline cursor-pointer"
                       data-tooltip="Create a new department if not listed"
                       style={{
-                        fontSize: '11px',
                         color: 'var(--accent)',
                         background: 'none',
                         border: 'none',
-                        cursor: 'pointer',
-                        fontWeight: 600,
                         textDecoration: 'underline'
                       }}
                     >
@@ -1026,34 +988,31 @@ export default function NewEmployeeWizard() {
                     ))}
                   </select>
                   {departments.length === 0 && (
-                    <p style={{ fontSize: '11px', color: 'var(--accent)', marginTop: '0.5rem', opacity: 0.85 }}>
+                    <p className="text-xs mt-2 opacity-75">
                       No departments available. Create one to continue.
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                  <div className="flex items-center justify-between mb-2">
                     <label
-                      className="custom-tooltip-trigger"
+                      className="custom-tooltip-trigger neon-form-label text-xs"
                       data-tooltip="Employee's job role - automatically assigns role-specific training modules"
-                      style={{ display: 'block', fontWeight: 700, color: 'var(--neon)', fontSize: '12px', cursor: 'help' }}
                     >
-                      Role <span style={{ color: '#ea1c1c' }}>*</span>
+                      Role <span className="color-error">*</span>
                     </label>
                     <button
                       type="button"
                       onClick={() => setShowCreateRole(true)}
                       disabled={!singleEmployee.department_id}
-                      className="custom-tooltip-trigger"
+                      className="custom-tooltip-trigger text-xs font-bold"
                       data-tooltip={!singleEmployee.department_id ? "Select a department first" : "Create a new role if not listed"}
                       style={{
-                        fontSize: '11px',
                         color: singleEmployee.department_id ? 'var(--accent)' : '#666',
                         background: 'none',
                         border: 'none',
                         cursor: singleEmployee.department_id ? 'pointer' : 'not-allowed',
-                        fontWeight: 600,
                         textDecoration: 'underline'
                       }}
                     >
@@ -1075,10 +1034,10 @@ export default function NewEmployeeWizard() {
                       ))}
                   </select>
                   {!singleEmployee.department_id && (
-                    <p style={{ fontSize: '11px', color: 'var(--accent)', marginTop: '0.5rem', opacity: 0.85 }}>Select a department first</p>
+                    <p className="text-xs mt-2 opacity-75">Select a department first</p>
                   )}
                   {singleEmployee.department_id && roles.filter(r => r.department_id === singleEmployee.department_id).length === 0 && (
-                    <p style={{ fontSize: '11px', color: 'var(--accent)', marginTop: '0.5rem', opacity: 0.85 }}>
+                    <p className="text-xs mt-2 opacity-75">
                       No roles available for this department. Create one to continue.
                     </p>
                   )}
@@ -1180,15 +1139,14 @@ export default function NewEmployeeWizard() {
 
   function renderStep3AccessPermissions() {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6">
           <div>
             <label
-              className="custom-tooltip-trigger"
+              className="custom-tooltip-trigger neon-form-label text-xs mb-2"
               data-tooltip="System access level determines what features the employee can access - User (basic), Manager (team oversight), or Admin (full system)"
-              style={{ display: 'block', fontWeight: 700, color: 'var(--neon)', marginBottom: '0.5rem', fontSize: '12px', cursor: 'help' }}
             >
-              Access Level <span style={{ color: '#ea1c1c' }}>*</span>
+              Access Level <span className="color-error">*</span>
             </label>
             <select
               value={singleEmployee.access_level}
@@ -1204,27 +1162,17 @@ export default function NewEmployeeWizard() {
 
           <div>
             <label
-              className="custom-tooltip-trigger"
+              className="custom-tooltip-trigger neon-form-label text-xs mb-4"
               data-tooltip="Grant additional system capabilities beyond the base access level"
-              style={{ display: 'block', fontWeight: 700, color: 'var(--neon)', marginBottom: '1rem', fontSize: '12px', cursor: 'help' }}
             >
               Additional Permissions
             </label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div className="flex flex-col gap-3">
               {PERMISSION_OPTIONS.map(perm => (
                 <label
                   key={perm.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '0.75rem',
-                    padding: '0.75rem',
-                    border: '1px solid var(--neon)',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    background: 'var(--field)',
-                    transition: 'background 0.2s'
-                  }}
+                  className="flex items-start gap-3 p-3 border-neon rounded-lg cursor-pointer transition"
+                  style={{ background: 'var(--field)' }}
                   onMouseOver={(e) => e.currentTarget.style.background = 'rgba(64, 224, 208, 0.1)'}
                   onMouseOut={(e) => e.currentTarget.style.background = 'var(--field)'}
                 >
@@ -1241,8 +1189,8 @@ export default function NewEmployeeWizard() {
                     style={{ marginTop: '2px', width: '16px', height: '16px', accentColor: 'var(--neon)' }}
                   />
                   <div>
-                    <p style={{ fontWeight: 600, color: 'var(--text)', fontSize: '12px', marginBottom: '0.25rem' }}>{perm.label}</p>
-                    <p style={{ fontSize: '11px', color: 'var(--text)', opacity: 0.85 }}>{perm.description}</p>
+                    <p className="font-bold text-xs mb-1">{perm.label}</p>
+                    <p className="text-xs opacity-75">{perm.description}</p>
                   </div>
                 </label>
               ))}
@@ -1255,29 +1203,21 @@ export default function NewEmployeeWizard() {
 
   function renderStep4TrainingReview() {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <div className="flex flex-col gap-6">
         <div>
-          <h3 className="neon-heading" style={{ fontSize: '16px', marginBottom: '1rem' }}>Training Assignment Preview</h3>
-          <p className="main-subheader" style={{ marginBottom: '1.5rem' }}>These training modules will be automatically assigned based on the selected role</p>
+          <h3 className="neon-heading text-base mb-4">Training Assignment Preview</h3>
+          <p className="main-subheader mb-6">These training modules will be automatically assigned based on the selected role</p>
         </div>
 
-        <div style={{
-          background: 'rgba(14, 165, 233, 0.15)',
-          border: '2px solid #0ea5e9',
-          borderRadius: '8px',
-          padding: '1rem',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem'
-        }}>
-          <FiAlertCircle style={{ flexShrink: 0 }} />
-          <p style={{ color: 'var(--text)', fontSize: '12px' }}>
+        <div className="bg-info-light border-2 rounded-lg p-4 flex items-center gap-2" style={{ borderColor: '#0ea5e9' }}>
+          <FiAlertCircle className="flex-shrink-0" />
+          <p className="text-xs">
             Role-based training will be assigned automatically upon employee creation
           </p>
         </div>
 
-        <div style={{ textAlign: 'center', padding: '2rem 0', color: 'var(--text)', fontSize: '12px' }}>
-          Training assignments for role: <strong style={{ color: 'var(--neon)' }}>{roles.find(r => r.id === singleEmployee.role_id)?.title}</strong>
+        <div className="text-center py-8 text-xs">
+          Training assignments for role: <strong className="neon-heading">{roles.find(r => r.id === singleEmployee.role_id)?.title}</strong>
         </div>
       </div>
     );
@@ -1285,13 +1225,12 @@ export default function NewEmployeeWizard() {
 
   function renderStep5AdditionalDetails() {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4">
           <div>
             <label
-              className="custom-tooltip-trigger"
+              className="custom-tooltip-trigger neon-form-label text-xs mb-2"
               data-tooltip="Direct manager/supervisor for this employee - used for reporting hierarchy and approvals"
-              style={{ display: 'block', fontWeight: 700, color: 'var(--neon)', marginBottom: '0.5rem', fontSize: '12px', cursor: 'help' }}
             >
               Manager (Optional)
             </label>
@@ -1309,9 +1248,8 @@ export default function NewEmployeeWizard() {
 
           <div>
             <label
-              className="custom-tooltip-trigger"
+              className="custom-tooltip-trigger flex items-center gap-2 cursor-pointer"
               data-tooltip="Mark if employee is a certified first aider - displayed in emergency contact lists"
-              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'help' }}
             >
               <input
                 type="checkbox"
@@ -1319,15 +1257,14 @@ export default function NewEmployeeWizard() {
                 onChange={(e) => handleSingleFieldChange("is_first_aid", e.target.checked)}
                 style={{ width: '16px', height: '16px', accentColor: 'var(--neon)' }}
               />
-              <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text)' }}>First Aider</span>
+              <span className="text-xs font-bold">First Aider</span>
             </label>
           </div>
 
           <div>
             <label
-              className="custom-tooltip-trigger"
+              className="custom-tooltip-trigger neon-form-label text-xs mb-2"
               data-tooltip="Internal notes about this employee - visible only to admins"
-              style={{ display: 'block', fontWeight: 700, color: 'var(--neon)', marginBottom: '0.5rem', fontSize: '12px', cursor: 'help' }}
             >
               Notes (Optional)
             </label>
@@ -1775,15 +1712,10 @@ export default function NewEmployeeWizard() {
     const isLastStep = mode === "single" ? singleStep === 5 : bulkStep === 4;
 
     return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingTop: '1.5rem',
-        borderTop: '2px solid var(--neon)',
-        marginTop: '2rem'
-      }}>
-        <button
+      <div className="flex justify-between items-center pt-6 border-t mt-8">
+        <NeonIconButton
+          variant="back"
+          title="Go back to previous step"
           onClick={() => {
             if (mode === "single" && singleStep === 1) {
               setMode(null);
@@ -1793,44 +1725,55 @@ export default function NewEmployeeWizard() {
               mode === "single" ? handleSingleBack() : setBulkStep((bulkStep - 1) as BulkStep);
             }
           }}
-          className="neon-btn-back"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.75rem 1.5rem',
-            fontSize: '12px'
-          }}
-        >
-          <FiArrowLeft />
-          Back
-        </button>
+        />
 
         {mode === "single" && (
-          <div style={{ fontSize: '12px', color: 'var(--text)', fontWeight: 600 }}>
+          <div className="text-xs font-bold">
             Step {singleStep} of 5
           </div>
         )}
 
-        <button
-          type="button"
-          onClick={async (e) => {
-            e.preventDefault();
-            console.log('Next button clicked', { mode, singleStep, isLastStep, loading });
+        {isLastStep ? (
+          <NeonIconButton
+            variant="save"
+            title={`Create ${mode === "bulk" ? "all employees" : "employee"}`}
+            disabled={loading}
+            onClick={async (e) => {
+              e.preventDefault();
+              console.log('Save button clicked', { mode, singleStep, isLastStep, loading });
 
-            if (loading) {
-              console.log('Button click ignored - already loading');
-              return; // Prevent double-clicks
-            }
+              if (loading) {
+                console.log('Button click ignored - already loading');
+                return;
+              }
 
-            if (isLastStep) {
               console.log('Last step - creating employee(s)');
               if (mode === "single") {
                 await createSingleEmployee();
               } else {
                 await createBulkEmployees();
               }
-            } else {
+            }}
+            style={{
+              opacity: loading ? 0.5 : 1,
+              cursor: loading ? 'not-allowed' : 'pointer'
+            }}
+          />
+        ) : (
+          <NeonIconButton
+            variant="next"
+            title="Continue to next step"
+            type="button"
+            disabled={loading}
+            onClick={async (e) => {
+              e.preventDefault();
+              console.log('Next button clicked', { mode, singleStep, isLastStep, loading });
+
+              if (loading) {
+                console.log('Button click ignored - already loading');
+                return;
+              }
+
               if (mode === "single") {
                 console.log('Single mode - calling handleSingleNext');
                 await handleSingleNext();
@@ -1838,32 +1781,13 @@ export default function NewEmployeeWizard() {
                 console.log('Bulk mode - advancing step');
                 setBulkStep((bulkStep + 1) as BulkStep);
               }
-            }
-          }}
-          disabled={loading}
-          className={isLastStep ? "neon-btn-save" : "neon-btn-next"}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.75rem 1.5rem',
-            fontSize: '12px',
-            opacity: loading ? 0.5 : 1,
-            cursor: loading ? 'not-allowed' : 'pointer'
-          }}
-        >
-          {loading ? "Processing..." : isLastStep ? (
-            <>
-              <FiCheck />
-              Create {mode === "bulk" ? "All" : "Employee"}
-            </>
-          ) : (
-            <>
-              Next
-              <FiArrowRight />
-            </>
-          )}
-        </button>
+            }}
+            style={{
+              opacity: loading ? 0.5 : 1,
+              cursor: loading ? 'not-allowed' : 'pointer'
+            }}
+          />
+        )}
       </div>
     );
   }
@@ -1875,51 +1799,25 @@ export default function NewEmployeeWizard() {
         subtitle="Add new employees individually or in bulk with automated training assignment"
       />
 
-      <main style={{
-        maxWidth: '1400px',
-        marginInline: 'auto',
-        paddingInline: 'var(--gutter)',
-        paddingTop: '2.5rem',
-        paddingBottom: '2.5rem'
-      }}>
+      <main className="page-container">
         {!mode && renderModeSelection()}
 
         {mode && (
           <div className="neon-panel">
             {error && (
-              <div style={{
-                marginBottom: '1.5rem',
-                background: 'rgba(234, 28, 28, 0.15)',
-                border: '2px solid #ea1c1c',
-                borderRadius: '8px',
-                padding: '1rem 1.25rem',
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: '0.75rem',
-                boxShadow: '0 0 8px rgba(234, 28, 28, 0.3)'
-              }}>
-                <FiAlertCircle style={{ flexShrink: 0, marginTop: '2px' }} />
-                <div style={{ flex: 1 }}>
-                  <p style={{ fontWeight: 700, color: 'var(--neon)', marginBottom: '0.5rem' }}>Validation Error</p>
-                  <div style={{ whiteSpace: 'pre-wrap', fontSize: '12px', color: 'var(--text)' }}>{error}</div>
+              <div className="error-box mb-6 flex items-start gap-3 shadow-lg">
+                <FiAlertCircle className="flex-shrink-0 mt-1" />
+                <div className="flex-1">
+                  <p className="font-bold neon-heading mb-2">Validation Error</p>
+                  <div className="text-xs" style={{ whiteSpace: 'pre-wrap' }}>{error}</div>
                 </div>
               </div>
             )}
 
             {success && (
-              <div style={{
-                marginBottom: '1.5rem',
-                background: 'rgba(22, 163, 74, 0.15)',
-                border: '2px solid #16a34a',
-                borderRadius: '8px',
-                padding: '1rem 1.25rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                boxShadow: '0 0 8px rgba(22, 163, 74, 0.3)'
-              }}>
+              <div className="success-box mb-6 flex items-center gap-3 shadow-lg">
                 <FiCheck />
-                <span style={{ color: 'var(--text)', fontSize: '12px' }}>{success}</span>
+                <span className="text-xs">{success}</span>
               </div>
             )}
 

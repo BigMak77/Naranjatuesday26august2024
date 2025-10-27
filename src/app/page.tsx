@@ -11,13 +11,11 @@ import {
 } from "react-icons/fi";
 import Image from "next/image";
 import GlobalFooter from "@/components/ui/GlobalFooter";
-import ProjectGlobalHeader from "@/components/ui/ProjectGlobalHeader";
 import styles from "./homepage.module.css";
 
 export default function HomePage() {
   return (
     <>
-      <ProjectGlobalHeader logoPriority={true} />
       <main className={styles.homepage} aria-label="Homepage">
         {/* Hero Section */}
         <div className={styles.heroPanel}>

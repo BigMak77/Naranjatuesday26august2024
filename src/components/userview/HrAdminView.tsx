@@ -15,13 +15,13 @@ import SuccessModal from "@/components/ui/SuccessModal";
 import UserManagementPanel from "@/components/user/UserManagementPanel";
 
 const tabs: Tab[] = [
-  { key: "people", label: "People", icon: <FiUsers /> },
-  { key: "users", label: "Users", icon: <FiUsers /> },
-  { key: "roles", label: "Roles", icon: <FiShield /> },
-  { key: "departments", label: "Structures", icon: <FiUserPlus /> },
-  { key: "shifts", label: "Shifts", icon: <FiEdit /> },
-  { key: "permissions", label: "Permissions", icon: <FiUser /> },
-  { key: "startdate", label: "Users by Start Date", icon: <FiToggleRight /> },
+  { key: "people", label: "People" },
+  { key: "users", label: "Users" },
+  { key: "roles", label: "Roles" },
+  { key: "departments", label: "Structures" },
+  { key: "shifts", label: "Shifts" },
+  { key: "permissions", label: "Permissions" },
+  { key: "startdate", label: "Users by Start Date" },
 ];
 
 const UserManager: React.FC = () => {
@@ -204,20 +204,16 @@ const UserManager: React.FC = () => {
                           <td>{getManagedDepartments(user.id)}</td>
                           <td>
                             <div className="user-manager-actions-cell">
-                              <button
-                                className="neon-btn neon-btn-edit"
+                              <NeonIconButton
+                                variant="edit"
                                 onClick={() => handleEditUser(user)}
                                 title="Edit User"
-                              >
-                                <FiEdit />
-                              </button>
-                              <button
-                                className="neon-btn neon-btn-delete"
+                              />
+                              <NeonIconButton
+                                variant="delete"
                                 onClick={() => handleDeleteUser(user.id)}
                                 title="Delete User"
-                              >
-                                <FiTrash2 />
-                              </button>
+                              />
                             </div>
                           </td>
                         </tr>
@@ -244,20 +240,16 @@ const UserManager: React.FC = () => {
                           <td className="user-manager-name">{`${user.first_name || ""} ${user.last_name || ""}`.trim()}</td>
                           <td>
                             <div className="user-manager-actions-cell">
-                              <button
-                                className="neon-btn neon-btn-edit"
+                              <NeonIconButton
+                                variant="edit"
                                 onClick={() => handleEditUser(user)}
                                 title="Edit User"
-                              >
-                                <FiEdit />
-                              </button>
-                              <button
-                                className="neon-btn neon-btn-delete"
+                              />
+                              <NeonIconButton
+                                variant="delete"
                                 onClick={() => handleDeleteUser(user.id)}
                                 title="Delete User"
-                              >
-                                <FiTrash2 />
-                              </button>
+                              />
                             </div>
                           </td>
                         </tr>
@@ -279,8 +271,12 @@ const UserManager: React.FC = () => {
               <div className="user-manager-filters">
                 <label className="user-manager-label">
                   Department:
-                  <select value={filterDept} onChange={e => setFilterDept(e.target.value)} className="user-manager-select">
-                    <option value="">All</option>
+                  <select 
+                    value={filterDept} 
+                    onChange={e => setFilterDept(e.target.value)} 
+                    className="user-manager-select"
+                  >
+                    <option value="">All Departments</option>
                     {departments.map(dept => (
                       <option key={dept.id} value={dept.id}>{dept.name}</option>
                     ))}
@@ -288,17 +284,35 @@ const UserManager: React.FC = () => {
                 </label>
                 <label className="user-manager-label">
                   Start Date From:
-                  <input type="date" value={filterStart} onChange={e => setFilterStart(e.target.value)} className="user-manager-input" />
+                  <input 
+                    type="date" 
+                    value={filterStart} 
+                    onChange={e => setFilterStart(e.target.value)} 
+                    className="user-manager-input"
+                  />
                 </label>
                 <label className="user-manager-label">
-                  To:
-                  <input type="date" value={filterEnd} onChange={e => setFilterEnd(e.target.value)} className="user-manager-input" />
+                  Start Date To:
+                  <input 
+                    type="date" 
+                    value={filterEnd} 
+                    onChange={e => setFilterEnd(e.target.value)} 
+                    className="user-manager-input"
+                  />
                 </label>
                 <div className="user-manager-download">
                   <NeonIconButton
+                    variant="refresh"
+                    title="Clear filters"
+                    onClick={() => {
+                      setFilterDept("");
+                      setFilterStart("");
+                      setFilterEnd("");
+                    }}
+                  />
+                  <NeonIconButton
                     variant="download"
                     title="Download filtered users as CSV"
-                    className="neon-btn-upload"
                     onClick={() => {
                       const filtered = [...users]
                         .filter(u => u.start_date)
@@ -332,9 +346,7 @@ const UserManager: React.FC = () => {
                         URL.revokeObjectURL(url);
                       }, 100);
                     }}
-                  >
-                    Download CSV
-                  </NeonIconButton>
+                  />
                 </div>
               </div>
               <table className="neon-table user-manager-table">
@@ -369,20 +381,16 @@ const UserManager: React.FC = () => {
                           <td>{getDepartmentName(user.department_id)}</td>
                           <td>
                             <div className="user-manager-actions-cell">
-                              <button
-                                className="neon-btn neon-btn-edit"
+                              <NeonIconButton
+                                variant="edit"
                                 onClick={() => handleEditUser(user)}
                                 title="Edit User"
-                              >
-                                <FiEdit />
-                              </button>
-                              <button
-                                className="neon-btn neon-btn-delete"
+                              />
+                              <NeonIconButton
+                                variant="delete"
                                 onClick={() => handleDeleteUser(user.id)}
                                 title="Delete User"
-                              >
-                                <FiTrash2 />
-                              </button>
+                              />
                             </div>
                           </td>
                         </tr>

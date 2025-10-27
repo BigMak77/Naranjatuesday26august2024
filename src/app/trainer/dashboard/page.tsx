@@ -1,6 +1,6 @@
 "use client";
-import TrainerView from "@/components/userview/TrainerView";
+import TrainingDashboard from "@/components/training/TrainingDashboard";
 
 export default function TrainerDashboardPage() {
-  return <TrainerView />;
+  return <TrainingDashboard />;
 }

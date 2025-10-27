@@ -8,7 +8,6 @@ import React, {
   useCallback,
 } from "react";
 import {
-  FiUsers,
   FiUserPlus,
   FiClock,
   FiArchive,
@@ -28,13 +27,13 @@ import NeonTable from "../NeonTable";
 import NeonForm from "../NeonForm";
 import NeonPanel from "../NeonPanel";
 import Image from "next/image";
-import MainHeader from "@/components/ui/MainHeader";
 import TrainingMaterialsManagerDialog from "@/components/training/TrainingMaterialsManagerDialog";
 import TrainingQuestionsSection from "../training/TrainingQuestionsSection";
 import TrainingQuestionForm from "../training/TrainingQuestionForm";
 import TrainingQuestionCategoriesTable from "../training/TrainingQuestionCategoriesTable";
 import TrainingQuestionCategory from "../training/TrainingQuestionCategory";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
+import ContentHeader from "@/components/ui/ContentHeader";
 
 // ==========================
 // Types
@@ -505,6 +504,11 @@ export default function TrainerRecordingPage({
         (a) => a.module_id === selectedModuleId,
       );
 
+      console.log("=== TrainerView: Logging training completion ===");
+      console.log("User auth_id:", openFor.auth_id);
+      console.log("Module ID:", selectedModuleId);
+      console.log("Assignment ID:", assignment?.id);
+
       // 1) Insert into training_logs directly (client-side)
       const { error: insertErr } = await supabase.from("training_logs").insert([
         {
@@ -520,28 +524,51 @@ export default function TrainerRecordingPage({
       ]);
 
       if (insertErr) {
-        console.error("Insert training_logs failed:", insertErr);
+        console.error("❌ Insert training_logs failed:", insertErr);
         alert(`Failed to log training: ${insertErr.message}`);
         setBusy(false);
         return;
       }
 
-      // 2) Mark assignment completed (if we have a UA row id)
-      if (assignment?.id) {
-        const { error: updateError } = await supabase
-          .from("user_assignments")
-          .update({ completed_at: new Date().toISOString() })
-          .eq("id", assignment.id);
+      console.log("✅ Training log inserted successfully");
 
-        if (updateError) {
-          console.error("Failed to update assignment status:", updateError);
-          // Not fatal to the log, so we don't block UX
+      // 2) Record completion using the proper API (handles follow-up dates, permanent records, etc.)
+      if (form.outcome === "completed") {
+        console.log("📚 Recording training completion via API...");
+        console.log("📅 Training date from form:", form.date);
+        try {
+          const response = await fetch('/api/record-training-completion', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              auth_id: openFor.auth_id,
+              item_id: selectedModuleId,
+              item_type: 'module',
+              completed_date: form.date // Pass the actual training date for follow-up calculation
+            })
+          });
+
+          if (!response.ok) {
+            const error = await response.json();
+            console.error("❌ API error:", error);
+            throw new Error(error.error || 'Failed to record completion');
+          }
+
+          const result = await response.json();
+          console.log("✅ Completion recorded successfully:", result);
+        } catch (apiError) {
+          console.error("❌ Failed to record completion via API:", apiError);
+          alert("Training logged but completion may not be fully recorded. Please check the assignment status.");
         }
+      } else {
+        console.log("ℹ️ Outcome is 'needs-followup', not marking as completed");
       }
 
       setOpenFor(null);
     } catch (e) {
-      console.error(e);
+      console.error("❌ Error in submitLog:", e);
       alert("Failed to log training.");
     } finally {
       setBusy(false);
@@ -935,19 +962,12 @@ export default function TrainerRecordingPage({
   };
 
   return (
-    <div className="after-hero global-content relative">
+    <>
       <TrainingMaterialsManagerDialog open={materialsDialogOpen} onClose={() => setMaterialsDialogOpen(false)} />
-      {/* Main content */}
-      <div className="flex-1 min-w-0">
-        <MainHeader
-          title="Trainer View"
-          subtitle="Record, assign, and review training for users"
-        />
-        <h2 className="flex items-center gap-2 text-2xl font-semibold mb-4">
-          <FiUsers className="text-[var(--neon,#40E0D0)]" aria-hidden /> Record
-          Training
-        </h2>
-
+      <ContentHeader
+        title="Trainer View"
+        description="Record, assign, and review training for users"
+      />
         {/* Training Management Actions */}
         <div className="flex gap-2 mb-4 flex-wrap">
           <CustomTooltip text="Manage training materials">
@@ -1422,7 +1442,6 @@ export default function TrainerRecordingPage({
             </div>
           </div>
         )}
-      </div>
-    </div>
+    </>
   );
 }

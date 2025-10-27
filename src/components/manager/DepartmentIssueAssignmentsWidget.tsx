@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import { useUser } from "@/lib/useUser";
-import { FiUserPlus } from "react-icons/fi"; // Add Fi icon import
+import { FiUserPlus } from "react-icons/fi";
 import NeonTable from "@/components/NeonTable";
-import PermissionWrapper from "@/components/PermissionWrapper";
+import AccessControlWrapper from "@/components/AccessControlWrapper";
 
 interface Assignment {
   id: string;
@@ -52,7 +52,7 @@ export default function DepartmentIssueAssignmentsWidget() {
   if (!user) return null;
 
   return (
-    <PermissionWrapper requiredRoles={["Manager", "Admin"]}>
+    <AccessControlWrapper requiredRoles={["Manager", "Admin"]} hideIfNoAccess={true}>
       <h2 className="neon-section-title mb-4 flex items-center gap-2">
         <FiUserPlus /> Unassigned Department Issues
       </h2>
@@ -73,6 +73,6 @@ export default function DepartmentIssueAssignmentsWidget() {
           data={assignments.map(a => ({ title: a.title, created_at: a.created_at }))}
         />
       )}
-    </PermissionWrapper>
+    </AccessControlWrapper>
   );
 }

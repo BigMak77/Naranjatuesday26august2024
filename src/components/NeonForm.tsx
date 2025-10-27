@@ -8,7 +8,7 @@ import { FiX } from "react-icons/fi";
 // No local styles are used here. All class names below should be defined in globals.css for consistency.
 
 type NeonFormProps = {
-  title: string;
+  title?: string;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   children: React.ReactNode;
   submitLabel?: string;
@@ -24,7 +24,7 @@ export default function NeonForm({
 }: NeonFormProps) {
   return (
     <form className="neon-form" onSubmit={onSubmit}>
-      <h2 className="neon-form-title">{title}</h2>
+      {title && <h2 className="neon-form-title">{title}</h2>}
       {children}
       <div className="neon-form-actions">
         <NeonIconButton

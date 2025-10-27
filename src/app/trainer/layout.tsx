@@ -1,21 +1,8 @@
-// app/layout.tsx  (SERVER component — no "use client")
-import "@/app/globals.css";
+// app/trainer/layout.tsx
 import type { ReactNode } from "react";
-import ProjectGlobalHeader from "@/components/ui/ProjectGlobalHeader";
-import AuthListener from "@/app/AuthListener";
 
-export default function RootLayout({ children }: { children: ReactNode }) {
-  return (
-    <>
-      <AuthListener />
-      <ProjectGlobalHeader />
-      <section className="section-toolbar">
-        <div className="inner">{/* filters/actions */}</div>
-      </section>
-      <main className="content">{children}</main>
-      <footer className="site-footer">
-        <div className="inner">© Naranja</div>
-      </footer>
-    </>
-  );
+export default function TrainerLayout({ children }: { children: ReactNode }) {
+  // AppWrapper in the root layout already handles ProjectGlobalHeader, DynamicToolbar, and footer
+  // This layout just passes through the children
+  return <>{children}</>;
 }

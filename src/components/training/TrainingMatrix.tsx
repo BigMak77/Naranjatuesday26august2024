@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import NeonPanel from "@/components/NeonPanel";
 import NeonIconButton from "@/components/ui/NeonIconButton";
+import ContentHeader from "@/components/ui/ContentHeader";
 
 /* ===========================
    Enhanced TrainingMatrix with Historical Completion Support
@@ -303,46 +304,20 @@ const TrainingMatrix: React.FC = () => {
   if (fatalError) return <NeonPanel>{fatalError}</NeonPanel>;
 
   return (
-    <div style={{ width: "100%", display: "flex", justifyContent: "center", direction: "ltr" }}>
-      <div
-        style={{
-          width: CONTAINER_WIDTH,
-          minWidth: CONTAINER_WIDTH,
-          maxWidth: CONTAINER_WIDTH,
-          boxSizing: "border-box",
-        }}
-      >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-          <h2
-            style={{
-              margin: 0,
-              fontWeight: 700,
-              color: "#ffffff",
-              fontSize: 24,
-              letterSpacing: 0.5,
-            }}
-          >
-            Training Matrix {historicalCompletions.length > 0 && <span style={{ fontSize: 16, color: "#95a5a6" }}>(with History)</span>}
-          </h2>
-          
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
-            {loading && (
-              <div style={{ color: "#00e0ff", fontSize: 12, fontWeight: 500 }}>
-                Updating...
-              </div>
-            )}
-            {lastUpdated && (
-              <div style={{ color: "#ccc", fontSize: 11 }}>
-                Last updated: {lastUpdated.toLocaleTimeString()}
-              </div>
-            )}
-            {autoRefresh && (
-              <div style={{ color: "#27ae60", fontSize: 11 }}>
-                Auto-refresh: {refreshInterval}s
-              </div>
-            )}
-          </div>
-        </div>
+    <>
+      <ContentHeader
+        title="Training Matrix"
+        description="View and track training module and document completion status across all users. Historical completions are preserved when users change roles."
+      />
+      <div style={{ width: "100%", display: "flex", justifyContent: "center", direction: "ltr" }}>
+        <div
+          style={{
+            width: CONTAINER_WIDTH,
+            minWidth: CONTAINER_WIDTH,
+            maxWidth: CONTAINER_WIDTH,
+            boxSizing: "border-box",
+          }}
+        >
 
         <div style={{ display: "flex", gap: 12, marginBottom: 12, alignItems: "center", height: "36px", justifyContent: "space-between" }}>
           <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
@@ -659,6 +634,7 @@ const TrainingMatrix: React.FC = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import Papa from "papaparse";
 import NeonTable from "@/components/NeonTable";
-import ContentHeader from "@/components/headersandfooters/ContentHeader";
+import ContentHeader from "@/components/ui/ContentHeader";
 import MainHeader from "@/components/ui/MainHeader";
 
 interface ComplianceRow {

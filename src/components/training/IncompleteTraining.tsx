@@ -4,8 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import NeonTable from "@/components/NeonTable";
 import { FiTrendingUp, FiTrendingDown } from "react-icons/fi";
-import MainHeader from "@/components/ui/MainHeader";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
+import ContentHeader from "@/components/ui/ContentHeader";
 
 interface IncompleteRecord {
   auth_id: string;
@@ -352,11 +352,12 @@ export default function IncompleteTraining() {
   return (
     <div className="after-hero">
       <div className="global-content">
-        <MainHeader
-          title="Incomplete Training Assignments"
-          subtitle="View and filter users with incomplete modules and documents"
-        />
         <main className="page-main">
+          <ContentHeader
+            title="Compliance Overview"
+            description="Overall training compliance metrics and department performance"
+          />
+
           {/* Compliance summary panel */}
           <div className="neon-panel" style={{ marginBottom: "2rem", background: "#0d3c47", color: "#fff", borderRadius: "18px", boxShadow: "0 2px 8px rgba(0,0,0,0.10)", padding: "2rem 2rem 1.5rem 2rem", display: "flex", alignItems: "center", gap: "2.5rem" }}>
             <div style={{ flex: 1 }}>
@@ -422,6 +423,11 @@ export default function IncompleteTraining() {
               </div>
             </div>
           )}
+
+          <ContentHeader
+            title="Filter Training Assignments"
+            description="Use the filters below to search and filter incomplete training assignments"
+          />
 
           <div className="neon-panel">
             <div className="neon-panel-content">

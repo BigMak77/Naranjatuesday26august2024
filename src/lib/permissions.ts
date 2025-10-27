@@ -1,53 +1,149 @@
 // lib/permissions.ts
-export type AccessLevel = "Admin" | "Manager" | "User" | "HR";
+export type AccessLevel =
+  | "Super Admin"
+  | "Admin"
+  | "HR Admin"
+  | "Manager"
+  | "Dept. Manager"
+  | "H&S Admin"
+  | "Trainer"
+  | "User";
 
 export const PERMISSIONS = {
-  // Admin permissions - highest level
-  ADMIN: {
+  // Super Admin permissions - absolute highest level
+  "SUPER ADMIN": {
     canAccessAdmin: true,
     canAccessManager: true,
     canAccessHR: true,
+    canAccessHS: true,
+    canAccessTrainer: true,
     canAccessUser: true,
     canManageUsers: true,
     canManageRoles: true,
     canViewAllReports: true,
     canManageSystem: true,
+    canViewAllDepartments: true,
+    canViewAllShifts: true,
+    canManageTraining: true,
   },
-  
-  // HR permissions
-  HR: {
+
+  // Admin permissions - high level
+  ADMIN: {
+    canAccessAdmin: true,
+    canAccessManager: true,
+    canAccessHR: true,
+    canAccessHS: true,
+    canAccessTrainer: true,
+    canAccessUser: true,
+    canManageUsers: true,
+    canManageRoles: true,
+    canViewAllReports: true,
+    canManageSystem: true,
+    canViewAllDepartments: true,
+    canViewAllShifts: true,
+    canManageTraining: true,
+  },
+
+  // HR Admin permissions
+  "HR ADMIN": {
     canAccessAdmin: false,
     canAccessManager: false,
     canAccessHR: true,
+    canAccessHS: false,
+    canAccessTrainer: false,
     canAccessUser: true,
     canManageUsers: true,
     canManageRoles: true,
     canViewAllReports: true,
     canManageSystem: false,
+    canViewAllDepartments: true,
+    canViewAllShifts: true,
+    canManageTraining: false,
   },
-  
-  // Manager permissions
-  MANAGER: {
+
+  // H&S Admin permissions
+  "H&S ADMIN": {
+    canAccessAdmin: false,
+    canAccessManager: false,
+    canAccessHR: false,
+    canAccessHS: true,
+    canAccessTrainer: false,
+    canAccessUser: true,
+    canManageUsers: false,
+    canManageRoles: false,
+    canViewAllReports: true,
+    canManageSystem: false,
+    canViewAllDepartments: true,
+    canViewAllShifts: true,
+    canManageTraining: false,
+  },
+
+  // Dept. Manager permissions (department-wide manager)
+  "DEPT. MANAGER": {
     canAccessAdmin: false,
     canAccessManager: true,
     canAccessHR: false,
+    canAccessHS: false,
+    canAccessTrainer: false,
     canAccessUser: true,
     canManageUsers: false,
     canManageRoles: false,
     canViewAllReports: false,
     canManageSystem: false,
+    canViewAllDepartments: false, // Only their department
+    canViewAllShifts: true, // All shifts in their department
+    canManageTraining: false,
   },
-  
+
+  // Manager permissions (shift-level manager)
+  MANAGER: {
+    canAccessAdmin: false,
+    canAccessManager: true,
+    canAccessHR: false,
+    canAccessHS: false,
+    canAccessTrainer: false,
+    canAccessUser: true,
+    canManageUsers: false,
+    canManageRoles: false,
+    canViewAllReports: false,
+    canManageSystem: false,
+    canViewAllDepartments: false, // Only their department
+    canViewAllShifts: false, // Only their shift
+    canManageTraining: false,
+  },
+
+  // Trainer permissions (can have multi-department access)
+  TRAINER: {
+    canAccessAdmin: false,
+    canAccessManager: false,
+    canAccessHR: false,
+    canAccessHS: false,
+    canAccessTrainer: true,
+    canAccessUser: true,
+    canManageUsers: false,
+    canManageRoles: false,
+    canViewAllReports: false,
+    canManageSystem: false,
+    canViewAllDepartments: false, // Assigned departments only
+    canViewAllShifts: false,
+    canManageTraining: true,
+  },
+
   // User permissions - basic level
   USER: {
     canAccessAdmin: false,
     canAccessManager: false,
     canAccessHR: false,
+    canAccessHS: false,
+    canAccessTrainer: false,
     canAccessUser: true,
     canManageUsers: false,
     canManageRoles: false,
     canViewAllReports: false,
     canManageSystem: false,
+    canViewAllDepartments: false,
+    canViewAllShifts: false,
+    canManageTraining: false,
   },
 } as const;
 
@@ -88,16 +184,23 @@ export function canAccessRoute(
  */
 export function getDashboardUrl(userAccessLevel: string | undefined): string {
   if (!userAccessLevel) return "/login";
-  
+
   const level = userAccessLevel.toLowerCase();
-  
+
   switch (level) {
+    case "super admin":
     case "admin":
       return "/admin/dashboard";
+    case "hr admin":
     case "hr":
       return "/hr/dashboard";
+    case "dept. manager":
     case "manager":
-      return "/manager/dashboard";
+      return "/manager";
+    case "h&s admin":
+      return "/health-safety";
+    case "trainer":
+      return "/trainer/dashboard";
     case "user":
     default:
       return "/user/dashboard";
@@ -109,14 +212,14 @@ export function getDashboardUrl(userAccessLevel: string | undefined): string {
  */
 export function getAvailableRoutes(userAccessLevel: string | undefined) {
   if (!userAccessLevel) return [];
-  
+
   const level = userAccessLevel.toUpperCase() as keyof typeof PERMISSIONS;
   const permissions = PERMISSIONS[level];
-  
+
   if (!permissions) return [];
-  
+
   const routes = [];
-  
+
   if (permissions.canAccessUser) {
     routes.push({
       path: "/user/dashboard",
@@ -124,15 +227,15 @@ export function getAvailableRoutes(userAccessLevel: string | undefined) {
       level: "User"
     });
   }
-  
+
   if (permissions.canAccessManager) {
     routes.push({
-      path: "/manager/dashboard",
-      name: "Manager Dashboard", 
+      path: "/manager",
+      name: "Manager Dashboard",
       level: "Manager"
     });
   }
-  
+
   if (permissions.canAccessHR) {
     routes.push({
       path: "/hr/dashboard",
@@ -140,14 +243,58 @@ export function getAvailableRoutes(userAccessLevel: string | undefined) {
       level: "HR"
     });
   }
-  
+
+  if (permissions.canAccessHS) {
+    routes.push({
+      path: "/health-safety",
+      name: "Health & Safety",
+      level: "H&S Admin"
+    });
+  }
+
+  if (permissions.canAccessTrainer) {
+    routes.push({
+      path: "/trainer/dashboard",
+      name: "Trainer Dashboard",
+      level: "Trainer"
+    });
+  }
+
   if (permissions.canAccessAdmin) {
     routes.push({
-      path: "/admin/dashboard", 
+      path: "/admin/dashboard",
       name: "Admin Dashboard",
       level: "Admin"
     });
   }
-  
+
   return routes;
+}
+
+/**
+ * Check if user is a department-level manager (can see all shifts in their department)
+ */
+export function isDeptManager(userAccessLevel: string | undefined): boolean {
+  return userAccessLevel?.toLowerCase() === "dept. manager";
+}
+
+/**
+ * Check if user is a shift-level manager (can only see their specific shift)
+ */
+export function isShiftManager(userAccessLevel: string | undefined): boolean {
+  return userAccessLevel?.toLowerCase() === "manager";
+}
+
+/**
+ * Check if user can view all departments
+ */
+export function canViewAllDepartments(userAccessLevel: string | undefined): boolean {
+  return hasPermission(userAccessLevel, "canViewAllDepartments");
+}
+
+/**
+ * Check if user can view all shifts (within their department scope)
+ */
+export function canViewAllShifts(userAccessLevel: string | undefined): boolean {
+  return hasPermission(userAccessLevel, "canViewAllShifts");
 }

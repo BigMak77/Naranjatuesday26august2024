@@ -19,8 +19,7 @@ import { ViewModuleTab } from "@/components/modules/ViewModuleTab";
 import AssignModuleTab from "@/components/modules/AssignModuleTab";
 import NeonIconButton from "@/components/ui/NeonIconButton";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
-
-import "@/components/folder-tabs-equal-width.css";
+import ContentHeader from "@/components/ui/ContentHeader";
 
 // Define Module type inline
 interface Module {
@@ -29,13 +28,15 @@ interface Module {
   description: string;
   version: string;
   is_archived: boolean;
-  group_id: string;
   learning_objectives?: string;
   estimated_duration?: string;
   delivery_format?: string;
   target_audience?: string;
   prerequisites?: string[];
   tags?: string[];
+  thumbnail_url?: string;
+  requires_follow_up?: boolean;
+  review_period?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -116,28 +117,50 @@ export default function TrainingModuleManager() {
     ? { ...selectedModule, version: Number(selectedModule.version) }
     : null;
 
+  // Get tab description based on active tab
+  const getTabDescription = () => {
+    switch (activeTab) {
+      case "add":
+        return "Create new training modules";
+      case "view":
+        return "View and edit existing training modules";
+      case "assign":
+        return "Assign modules to users";
+      case "archive":
+        return "Archive training modules";
+      default:
+        return "";
+    }
+  };
+
   return (
     <>
-      <FolderTabs
-        tabs={tabList.map(tab => ({
-          ...tab,
-          icon: React.cloneElement(tab.icon, { className: undefined }) // Remove custom icon class
-        }))}
-        activeTab={activeTab}
-        onChange={(tabKey) => {
-          setActiveTab(tabKey as typeof activeTab);
-          setSelectedModule(null);
-        }}
-      />
+      <ContentHeader
+        title="Training Module Manager"
+        description={getTabDescription()}
+      >
+        <FolderTabs
+          tabs={tabList.map(tab => ({
+            ...tab,
+            icon: React.cloneElement(tab.icon, { className: undefined }) // Remove custom icon class
+          }))}
+          activeTab={activeTab}
+          onChange={(tabKey) => {
+            setActiveTab(tabKey as typeof activeTab);
+            setSelectedModule(null);
+          }}
+        />
+      </ContentHeader>
       {/* Spacer for visual separation */}
       <div style={{ height: 24 }} />
       {activeTab === "add" && (
-        <div>
-          <AddModuleTab onSuccess={() => setActiveTab("view")} />
-        </div>
+        <AddModuleTab onSuccess={() => setActiveTab("view")} />
       )}
       {activeTab === "view" && (
-        <div>
+        <>
+          <h2 style={{ color: "var(--accent)", fontWeight: 600, fontSize: "1.125rem", marginBottom: 16 }}>
+            Browse and edit your training modules
+          </h2>
           <div style={{ marginBottom: 16 }}>
             <CustomTooltip text="Search modules by name or description">
               <input
@@ -177,15 +200,16 @@ export default function TrainingModuleManager() {
           {selectedModuleForView && (
             <ViewModuleTab module={selectedModuleForView} />
           )}
-        </div>
+        </>
       )}
       {activeTab === "assign" && (
-        <div>
-          <AssignModuleTab />
-        </div>
+        <AssignModuleTab />
       )}
       {activeTab === "archive" && (
-        <div>
+        <>
+          <h2 style={{ color: "var(--accent)", fontWeight: 600, fontSize: "1.125rem", marginBottom: 16 }}>
+            Select modules to archive from the list below
+          </h2>
           <div style={{ marginBottom: 16 }}>
             <CustomTooltip text="Search for modules to archive">
               <input
@@ -221,10 +245,10 @@ export default function TrainingModuleManager() {
               }))}
           />
           {selectedModule && (
-            <div>
-              <h2 style={{ color: "var(--neon)", fontWeight: 700, fontSize: "1.25rem" }}>
-                Archive Module
-              </h2>
+            <div style={{ marginTop: 24, padding: 16, border: "1px solid var(--neon)", borderRadius: 8 }}>
+              <h3 style={{ color: "var(--neon)", fontWeight: 600, fontSize: "1rem", marginBottom: 8 }}>
+                Confirm Archive
+              </h3>
               <p style={{ marginBottom: 12 }}>
                 Are you sure you want to archive{" "}
                 <span style={{ color: "var(--accent)", fontWeight: 600 }}>
@@ -274,7 +298,7 @@ export default function TrainingModuleManager() {
               </div>
             </div>
           )}
-        </div>
+        </>
       )}
     </>
   );

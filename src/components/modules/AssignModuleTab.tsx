@@ -186,6 +186,19 @@ export default function AssignModuleWizard() {
     }
     setAssigning(true);
     try {
+      // Fetch the module to get follow-up settings
+      const { data: moduleData, error: moduleError } = await supabase
+        .from("modules")
+        .select("requires_follow_up, review_period")
+        .eq("id", selectedModule)
+        .single();
+
+      if (moduleError) {
+        setFeedback(`Failed to fetch module data: ${moduleError.message}`);
+        setAssigning(false);
+        return;
+      }
+
       const uniqueAuthIds = Array.from(
         new Set(selectedUserAuthIds.filter(Boolean)),
       );
@@ -193,6 +206,7 @@ export default function AssignModuleWizard() {
         auth_id,
         item_id: selectedModule,
         item_type: "module" as const,
+        follow_up_required: moduleData?.requires_follow_up || false,
       }));
 
       const { error } = await supabase
@@ -226,7 +240,7 @@ If this persists, check Row Level Security policies on "user_assignments".`);
 
   if (loading)
     return (
-      <div className="neon-loading" style={{ padding: "1rem" }}>
+      <div className="user-manager-loading">
         Loading…
       </div>
     );
@@ -240,37 +254,23 @@ If this persists, check Row Level Security policies on "user_assignments".`);
         message={`Successfully assigned "${moduleName}" to ${selectedUserAuthIds.length} user(s).`}
         autoCloseMs={3000}
       />
-      <div className="neon-panel-module" style={{ display: "grid", gap: "1rem" }}>
-        <h3
-          className="neon-section-title"
-          style={{ display: "flex", alignItems: "center", gap: 8 }}
-        >
-          <FiSend style={{ color: "var(--accent, #0ea5e9)" }} />
-          Bulk Assignment Wizard
-        </h3>
-
+      <h2 style={{ color: "var(--accent)", fontWeight: 600, fontSize: "1.125rem", marginBottom: 16 }}>
+        Follow the steps below to assign training modules to users
+      </h2>
+      <div className="neon-panel">
         {/* Steps indicator */}
-        <div
-          style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 14 }}
-        >
+        <div className="neon-button-group">
           <StepDot active={step === 1} label="1) Module" />
-          <div>—</div>
+          <span>—</span>
           <StepDot active={step === 2} label="2) Departments" />
-          <div>—</div>
+          <span>—</span>
           <StepDot active={step === 3} label="3) Users" />
         </div>
 
         {/* Step 1 */}
         {step === 1 && (
-          <div style={{ display: "grid", gap: 12 }}>
-            <div style={{
-              padding: "12px 16px",
-              background: "rgba(14, 165, 233, 0.1)",
-              borderLeft: "3px solid var(--accent, #0ea5e9)",
-              borderRadius: 6,
-              fontSize: 14,
-              lineHeight: 1.6
-            }}>
+          <div className="neon-form-section">
+            <div className="neon-form-info">
               <strong>Step 1 of 3:</strong> Choose which training module you want to assign to users.
               Once selected, you'll move to the next step to pick departments.
             </div>
@@ -289,14 +289,7 @@ If this persists, check Row Level Security policies on "user_assignments".`);
               ))}
             </select>
 
-            <div
-              style={{
-                display: "flex",
-                gap: 8,
-                justifyContent: "flex-end",
-                marginTop: 8,
-              }}
-            >
+            <div className="neon-dialog-actions">
               <CustomTooltip text={!canGoNextFrom1 ? "Please select a module first" : "Continue to department selection"}>
                 <NeonIconButton
                   variant="next"
@@ -312,15 +305,8 @@ If this persists, check Row Level Security policies on "user_assignments".`);
 
         {/* Step 2 */}
         {step === 2 && (
-          <div style={{ display: "grid", gap: 12 }}>
-            <div style={{
-              padding: "12px 16px",
-              background: "rgba(14, 165, 233, 0.1)",
-              borderLeft: "3px solid var(--accent, #0ea5e9)",
-              borderRadius: 6,
-              fontSize: 14,
-              lineHeight: 1.6
-            }}>
+          <div className="neon-form-section">
+            <div className="neon-form-info">
               <strong>Step 2 of 3:</strong> Select one or more departments. Only users from the selected departments will be available in the next step.
               You can select multiple departments at once.
             </div>
@@ -339,19 +325,12 @@ If this persists, check Row Level Security policies on "user_assignments".`);
               }}
               placeholder="Select department(s)..."
             />
-            <div style={{ fontSize: 13, opacity: 0.8, padding: "4px 0" }}>
+            <div className="neon-text">
               {selectedDeptIds.length
                 ? `✓ Selected ${selectedDeptIds.length} department(s) containing ${deptUserCount} user(s).`
                 : "Pick at least one department to continue."}
             </div>
-            <div
-              style={{
-                display: "flex",
-                gap: 8,
-                justifyContent: "space-between",
-                marginTop: 8,
-              }}
-            >
+            <div className="neon-dialog-actions">
               <CustomTooltip text="Go back to module selection">
                 <NeonIconButton
                   variant="back"
@@ -378,41 +357,23 @@ If this persists, check Row Level Security policies on "user_assignments".`);
 
         {/* Step 3 */}
         {step === 3 && (
-          <div style={{ display: "grid", gap: 12 }}>
-            <div style={{
-              padding: "12px 16px",
-              background: "rgba(14, 165, 233, 0.1)",
-              borderLeft: "3px solid var(--accent, #0ea5e9)",
-              borderRadius: 6,
-              fontSize: 14,
-              lineHeight: 1.6
-            }}>
+          <div className="neon-form-section">
+            <div className="neon-form-info">
               <strong>Step 3 of 3:</strong> Select the specific users you want to assign this module to.
               You can use the search box to filter users, or use "Select All" to choose everyone from the selected departments.
             </div>
 
-            <div
-              style={{
-                display: "flex",
-                gap: 8,
-                alignItems: "center",
-                justifyContent: "space-between",
-                flexWrap: "wrap",
-              }}
-            >
-              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <div style={{ fontSize: 13, opacity: 0.9 }}>
-                  {filteredUsers.length} user(s) available • {selectedUserAuthIds.length} selected
-                </div>
+            <div className="neon-form-row">
+              <div className="neon-text">
+                {filteredUsers.length} user(s) available • {selectedUserAuthIds.length} selected
               </div>
-              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <div className="neon-button-group">
                 {/* Select All Checkbox */}
-                <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 14, cursor: "pointer", whiteSpace: "nowrap" }}>
+                <label className="neon-form-label">
                   <input
                     type="checkbox"
                     checked={allChecked}
                     onChange={toggleSelectAllVisible}
-                    style={{ marginRight: 4 }}
                   />
                   Select All
                 </label>
@@ -421,22 +382,11 @@ If this persists, check Row Level Security policies on "user_assignments".`);
                   placeholder="Search users…"
                   value={userSearch}
                   onChange={(e) => setUserSearch(e.target.value)}
-                  style={{ width: 240 }}
                 />
               </div>
             </div>
 
-            <div
-              style={{
-                border: "1px solid var(--border, #2b2b2b)",
-                borderRadius: 8,
-                maxHeight: 360,
-                overflow: "auto",
-                padding: 8,
-                display: "grid",
-                gap: 6,
-              }}
-            >
+            <div className="neon-panel">
               {filteredUsers.map((u, idx) => {
                 const deptName = u.department_id
                   ? departments.find((d) => d.id === u.department_id)?.name
@@ -445,43 +395,31 @@ If this persists, check Row Level Security policies on "user_assignments".`);
                 const checked =
                   !!u.auth_id && selectedUserAuthIds.includes(u.auth_id);
                 return (
-                  <label
-                    key={key}
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "auto 1fr",
-                      alignItems: "center",
-                      gap: 10,
-                      padding: "8px 10px",
-                      borderRadius: 8,
-                      background: checked ? "rgba(0,0,0,0.12)" : "transparent",
-                      cursor: u.auth_id ? "pointer" : "not-allowed",
-                      opacity: u.auth_id ? 1 : 0.5,
-                    }}
-                  >
+                  <div key={key} className="neon-radio-option">
                     <input
                       type="checkbox"
+                      className="neon-radio"
                       checked={checked}
                       disabled={!u.auth_id}
                       onChange={() => toggleUser(u.auth_id)}
                     />
-                    <div style={{ display: "flex", flexDirection: "column" }}>
+                    <div className="neon-radio-label">
                       <strong>{u.name}</strong>
-                      <span style={{ fontSize: 12, opacity: 0.8 }}>
+                      <div className="neon-text">
                         {deptName}
-                      </span>
+                      </div>
                     </div>
-                  </label>
+                  </div>
                 );
               })}
               {!filteredUsers.length && (
-                <div style={{ padding: 12, opacity: 0.8 }}>
+                <div className="user-manager-empty">
                   No users match your filters.
                 </div>
               )}
             </div>
 
-            <div style={{ display: "flex", gap: 8, justifyContent: "space-between", marginTop: 8 }}>
+            <div className="neon-dialog-actions">
               <CustomTooltip text="Go back to department selection">
                 <NeonIconButton
                   variant="back"
@@ -505,7 +443,7 @@ If this persists, check Row Level Security policies on "user_assignments".`);
         )}
 
         {feedback && (
-          <div className="neon-info" style={{ whiteSpace: "pre-line" }}>
+          <div className="user-manager-error">
             {feedback}
           </div>
         )}
@@ -516,28 +454,7 @@ If this persists, check Row Level Security policies on "user_assignments".`);
 
 function StepDot({ active, label }: { active: boolean; label: string }) {
   return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 6,
-        padding: "4px 10px",
-        borderRadius: 999,
-        background: active
-          ? "var(--dot-active, rgba(0,0,0,0.2))"
-          : "var(--dot, rgba(0,0,0,0.08))",
-        fontWeight: active ? 600 : 500,
-      }}
-    >
-      <span
-        style={{
-          width: 8,
-          height: 8,
-          borderRadius: "50%",
-          background: active ? "var(--accent, #0ea5e9)" : "rgba(0,0,0,0.25)",
-          display: "inline-block",
-        }}
-      />
+    <span className={active ? "neon-heading" : "neon-text"}>
       {label}
     </span>
   );

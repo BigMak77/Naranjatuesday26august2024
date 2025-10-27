@@ -704,6 +704,16 @@ export default function UserManagementPanel() {
                   }}
                 />
               </CustomTooltip>
+              <CustomTooltip text="Send invitation email to a new user">
+                <NeonIconButton
+                  variant="send"
+                  title="Invite User"
+                  onClick={() => {
+                    // TODO: Implement invite user functionality
+                    console.log("Invite user clicked");
+                  }}
+                />
+              </CustomTooltip>
               <CustomTooltip text="Export all users data to CSV file">
                 <NeonIconButton
                   icon={<FiDownload />}

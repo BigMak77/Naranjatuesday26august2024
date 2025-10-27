@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase-client";
-import MainHeader from "@/components/ui/MainHeader";
 import NeonPanel from "@/components/NeonPanel";
 import NeonIconButton from "@/components/ui/NeonIconButton";
 
@@ -111,14 +110,6 @@ export default function RaiseIssueWizard({ onClose }: RaiseIssueWizardProps) {
           </div>
         </div>
       )}
-      <MainHeader 
-        title="Raise New Issue"
-        subtitle={
-          stage === 0 ? "Please select the type of issue and provide a detailed description. This helps us understand the problem and address it efficiently." :
-          stage === 1 ? "Please select the severity/risk of this issue. Low: Minor inconvenience, no immediate action required. Medium: Could impact safety, quality, or operations if not addressed soon. High: Immediate risk to safety, compliance, or business continuity. Requires urgent attention." :
-          "Please review the details below. If everything is correct, submit the issue. You can go back to make changes if needed."
-        }
-      />
       <NeonPanel>
         {stage === 0 && (
           <div>
@@ -220,13 +211,12 @@ export default function RaiseIssueWizard({ onClose }: RaiseIssueWizardProps) {
         {error && <div className="neon-error-message">{error}</div>}
         {success && <div className="neon-success-message">Issue raised!</div>}
         <div className="raise-issue-wizard-actions">
-          <button 
-            className="neon-btn-cancel" 
-            onClick={onClose} 
+          <NeonIconButton
+            variant="cancel"
+            title="Cancel"
+            onClick={onClose}
             disabled={submitting}
-            type="button"
-          >
-          </button>
+          />
           {stage > 0 && (
             <NeonIconButton 
               variant="back" 

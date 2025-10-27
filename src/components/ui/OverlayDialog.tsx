@@ -11,6 +11,7 @@ type OverlayDialogProps = {
   zIndexOverlay?: number; // defaults safe
   zIndexContent?: number; // defaults safe
   closeOnOutsideClick?: boolean;
+  width?: number; // custom width in pixels
 };
 
 export default function OverlayDialog({
@@ -21,6 +22,7 @@ export default function OverlayDialog({
   zIndexOverlay = 60000,
   zIndexContent = 60001,
   closeOnOutsideClick = true,
+  width = 900,
 }: OverlayDialogProps) {
   const mountRef = useRef<HTMLElement | null>(null);
 
@@ -79,7 +81,7 @@ export default function OverlayDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby={ariaLabelledby}
-        style={{ zIndex: zIndexContent, width: 900 }}
+        style={{ zIndex: zIndexContent, width: width, maxWidth: '95vw' }}
       >
         {children}
       </div>

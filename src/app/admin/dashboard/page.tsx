@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import RequireAccess from "@/components/RequireAccess";
+import AccessControlWrapper from "@/components/AccessControlWrapper";
 import {
   FiUsers,
   FiPlus,
@@ -111,7 +111,11 @@ function FeatureCard({
  *********************************/
 export default function DashboardPage() {
   return (
-    <RequireAccess allowedRoles={["Admin"]}>
+    <AccessControlWrapper 
+      requiredRoles={["Admin"]}
+      redirectOnNoAccess={true}
+      noAccessMessage="Admin access required. Redirecting to your dashboard..."
+    >
       <MainHeader
         title="Admin Dashboard"
         subtitle="Quick access to modules, documents, roles, and health & safety"
@@ -130,6 +134,6 @@ export default function DashboardPage() {
         <DocumentsModulesResourcesWidget />
         <TurkusWidget />
       </section>
-    </RequireAccess>
+    </AccessControlWrapper>
   );
 }

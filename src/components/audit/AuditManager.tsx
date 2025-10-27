@@ -13,7 +13,7 @@ import { supabase } from "@/lib/supabase-client";
 
 import NeonPanel from "@/components/NeonPanel";
 import FolderTabs from "@/components/FolderTabs";
-import MainHeader from "@/components/ui/MainHeader";
+import ContentHeader from "@/components/ui/ContentHeader";
 
 import {
   FiPlus,
@@ -96,43 +96,43 @@ export default function AuditManager() {
         {
           key: "create",
           label: "Create New Audit",
-          icon: <FiPlus className="folder-tab-icon" />,
+          icon: <FiPlus />,
         },
         {
           key: "view",
           label: "View Audits",
-          icon: <FiClipboard className="folder-tab-icon" />,
+          icon: <FiClipboard />,
         },
         {
           key: "assign",
           label: "Assign Audit",
-          icon: <FiSend className="folder-tab-icon" />,
+          icon: <FiSend />,
         },
         {
           key: "submissions",
           label: "Submissions",
-          icon: <FiFileText className="folder-tab-icon" />,
+          icon: <FiFileText />,
         },
         {
           key: "questions",
           label: "Edit Questions",
-          icon: <FiHelpCircle className="folder-tab-icon" />,
+          icon: <FiHelpCircle />,
         },
         {
           key: "assigned",
           label: "Assigned To",
-          icon: <FiClipboard className="folder-tab-icon" />,
+          icon: <FiClipboard />,
         },
         {
           key: "auditors",
           label: "Auditors",
-          icon: <FiShield className="folder-tab-icon" />,
+          icon: <FiShield />,
         },
-       
+
         {
           key: "standards",
           label: "Standards",
-          icon: <FiFileText className="folder-tab-icon" />,
+          icon: <FiFileText />,
         },
       ] satisfies { key: TabKey; label: string; icon: React.ReactNode }[],
     [],
@@ -148,11 +148,11 @@ export default function AuditManager() {
       }}
     >
       <div className="audit-manager-content">
+        <ContentHeader
+          title="Audit Management"
+          description="Create, assign, and manage audits and quality standards"
+        />
         <div className="audit-manager-inner">
-          <MainHeader
-            title="Audit Manager"
-            subtitle="Create, assign, and review audits and submissions"
-          />
           <FolderTabs
             tabs={tabs}
             activeTab={activeTab}

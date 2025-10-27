@@ -15,6 +15,14 @@ const ContentHeader: React.FC<ContentHeaderProps> = ({
     <div className="content-header-inner">
       <h1 className="content-header-title">{title}</h1>
       {description && <p className="content-header-desc">{description}</p>}
+      {/* Orange separator line underneath the description */}
+      <div style={{ 
+        width: "100%", 
+        height: "3px", 
+        background: "#ff8c00",
+        marginTop: "10px",
+        marginBottom: "10px"
+      }}></div>
       {children}
     </div>
   </div>

@@ -6,6 +6,9 @@ import { supabase } from "@/lib/supabase-client";
 import NeonModuleForm, {
   NeonModuleFormField,
 } from "@/components/NeonModuleForm";
+import OverlayDialog from "@/components/ui/OverlayDialog";
+import NeonIconButton from "@/components/ui/NeonIconButton";
+import { FiPlus, FiX } from "react-icons/fi";
 
 // --- helpers ---
 const isUuid = (v: unknown): v is string =>
@@ -119,6 +122,7 @@ export default function EditModulePage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [showVersionModal, setShowVersionModal] = useState(false);
+  const [showFollowUpDialog, setShowFollowUpDialog] = useState(false);
 
   // form state
   const [name, setName] = useState("");
@@ -131,6 +135,8 @@ export default function EditModulePage() {
   const [targetAudience, setTargetAudience] = useState("");
   const [prerequisites, setPrerequisites] = useState<string[]>([]);
   const [thumbnailUrl, setThumbnailUrl] = useState("");
+  const [requiresFollowUp, setRequiresFollowUp] = useState(false);
+  const [reviewPeriod, setReviewPeriod] = useState("0");
 
   // fetch module
   useEffect(() => {
@@ -169,6 +175,8 @@ export default function EditModulePage() {
         Array.isArray(data.prerequisites) ? data.prerequisites : [],
       );
       setThumbnailUrl(data.thumbnail_url || "");
+      setRequiresFollowUp(data.requires_follow_up || false);
+      setReviewPeriod(data.review_period || "0");
       setLoading(false);
     };
 
@@ -208,6 +216,8 @@ export default function EditModulePage() {
         target_audience: targetAudience,
         prerequisites,
         thumbnail_url: thumbnailUrl,
+        requires_follow_up: requiresFollowUp,
+        review_period: requiresFollowUp ? reviewPeriod : "0",
         updated_at: new Date().toISOString(),
       })
       .eq("id", derivedId);
@@ -225,6 +235,13 @@ export default function EditModulePage() {
 
   if (loading) return <p className="neon-loading">Loading module...</p>;
   if (error) return <p className="neon-error">{error}</p>;
+
+  const handleFollowUpChange = (checked: boolean) => {
+    setRequiresFollowUp(checked);
+    if (checked && reviewPeriod === "0") {
+      setReviewPeriod("1 week");
+    }
+  };
 
   const fields: NeonModuleFormField[] = [
     {
@@ -299,6 +316,40 @@ export default function EditModulePage() {
           error={error}
           success={success}
         />
+
+        {/* Follow-up Assessment Checkbox */}
+        <div style={{ marginTop: '24px', padding: '16px', background: 'var(--panel)', borderRadius: 'var(--radius)', border: '1px solid rgba(64, 224, 208, 0.2)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <input
+              type="checkbox"
+              id="requiresFollowUpEdit"
+              checked={requiresFollowUp}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                if (checked) {
+                  setRequiresFollowUp(true);
+                  if (reviewPeriod === "0") {
+                    setReviewPeriod("1 week");
+                  }
+                  setShowFollowUpDialog(true);
+                } else {
+                  setRequiresFollowUp(false);
+                  setReviewPeriod("0");
+                  setShowFollowUpDialog(false);
+                }
+              }}
+              className="neon-checkbox"
+            />
+            <label htmlFor="requiresFollowUpEdit" style={{ color: 'var(--text)', fontSize: '0.9rem', cursor: 'pointer' }}>
+              After completion, does this training require a follow-up assessment?
+            </label>
+          </div>
+          {requiresFollowUp && (
+            <div style={{ marginTop: '8px', marginLeft: '24px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+              Review period: {reviewPeriod}
+            </div>
+          )}
+        </div>
       </div>
 
       {showVersionModal && (
@@ -341,6 +392,96 @@ export default function EditModulePage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Follow-up Assessment Dialog */}
+      {showFollowUpDialog && (
+        <OverlayDialog
+          open={showFollowUpDialog}
+          onClose={() => setShowFollowUpDialog(false)}
+          ariaLabelledby="follow-up-dialog-title-edit"
+        >
+          <div style={{ padding: "24px", minWidth: "400px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+              <h3
+                id="follow-up-dialog-title-edit"
+                style={{ color: "var(--accent)", fontWeight: 600, fontSize: "1.1rem", margin: 0 }}
+              >
+                Follow-up Assessment Configuration
+              </h3>
+              <NeonIconButton
+                variant="delete"
+                icon={<FiX size={18} />}
+                title="Close"
+                onClick={() => {
+                  setShowFollowUpDialog(false);
+                  if (!requiresFollowUp) {
+                    setReviewPeriod("0");
+                  }
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: "20px" }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                <input
+                  type="checkbox"
+                  id="requiresFollowUpDialog"
+                  checked={requiresFollowUp}
+                  onChange={(e) => handleFollowUpChange(e.target.checked)}
+                  className="neon-checkbox"
+                />
+                <label htmlFor="requiresFollowUpDialog" style={{ color: 'var(--text)', fontSize: '0.9rem' }}>
+                  After completion, does this training require a follow-up assessment?
+                </label>
+              </div>
+
+              {requiresFollowUp && (
+                <div>
+                  <label style={{
+                    color: 'var(--accent)',
+                    fontSize: '0.85rem',
+                    fontWeight: 500,
+                    display: 'block',
+                    marginBottom: '8px'
+                  }}>
+                    Review Period
+                  </label>
+                  <select
+                    value={reviewPeriod}
+                    onChange={(e) => setReviewPeriod(e.target.value)}
+                    className="add-module-tab-input neon-input"
+                    style={{ width: '100%' }}
+                  >
+                    <option value="1 week">1 week</option>
+                    <option value="2 weeks">2 weeks</option>
+                    <option value="1 month">1 month</option>
+                    <option value="3 months">3 months</option>
+                  </select>
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+              <NeonIconButton
+                variant="delete"
+                icon={<FiX size={16} />}
+                title="Cancel"
+                onClick={() => {
+                  setShowFollowUpDialog(false);
+                  setRequiresFollowUp(false);
+                  setReviewPeriod("0");
+                }}
+              />
+              <NeonIconButton
+                variant="add"
+                icon={<FiPlus size={16} />}
+                title="Save Configuration"
+                onClick={() => setShowFollowUpDialog(false)}
+              />
+            </div>
+          </div>
+        </OverlayDialog>
       )}
     </>
   );

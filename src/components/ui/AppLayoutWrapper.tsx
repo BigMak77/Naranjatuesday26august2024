@@ -8,11 +8,7 @@ interface AppLayoutWrapperProps {
   children: React.ReactNode;
   className?: string;
   // Toolbar customization
-  forceToolbarType?: "admin" | "manager" | "hr" | "trainer" | "user" | "none";
-  onViewChange?: (view: string) => void;
-  onAddEmployee?: () => void;
-  onManageTeam?: () => void;
-  onViewReports?: () => void;
+  forceToolbarType?: "super admin" | "admin" | "hr admin" | "h&s admin" | "dept. manager" | "manager" | "trainer" | "user" | "none";
   // Layout customization
   showHeader?: boolean;
   showFooter?: boolean;
@@ -30,10 +26,6 @@ export default function AppLayoutWrapper({
   children,
   className = "",
   forceToolbarType,
-  onViewChange,
-  onAddEmployee,
-  onManageTeam,
-  onViewReports,
   showHeader = true,
   showFooter = true,
   showToolbar = true,
@@ -41,20 +33,16 @@ export default function AppLayoutWrapper({
   return (
     <>
       {showHeader && <ProjectGlobalHeader />}
-      
+
       {showToolbar && (
         <DynamicToolbar
           className={className}
           forceToolbarType={forceToolbarType}
-          onViewChange={onViewChange}
-          onAddEmployee={onAddEmployee}
-          onManageTeam={onManageTeam}
-          onViewReports={onViewReports}
         />
       )}
-      
+
       <main className="content">{children}</main>
-      
+
       {showFooter && (
         <footer className="site-footer">
           <div className="inner">© Naranja</div>
