@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase-client";
+import ContentHeader from "@/components/ui/ContentHeader";
 
 export default function FirstAidPage() {
   const [form, setForm] = useState({
@@ -51,7 +52,12 @@ export default function FirstAidPage() {
   };
 
   return (
-    <main className="first-aid-main">
+    <>
+      <ContentHeader
+        title="First Aid Treatment"
+        description="Record first aid treatments and incidents"
+      />
+      <main className="first-aid-main">
       <div className="first-aid-container">
         <form onSubmit={handleSubmit} className="first-aid-form">
           <div>
@@ -186,5 +192,6 @@ export default function FirstAidPage() {
         </form>
       </div>
     </main>
+    </>
   );
 }

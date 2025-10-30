@@ -10,7 +10,7 @@ import ManualBulkEntry from "./ManualBulkEntry";
 import CSVEmployeeUpload from "./CSVEmployeeUpload";
 import CreateDepartmentModal from "./CreateDepartmentModal";
 import CreateRoleModal from "./CreateRoleModal";
-import MainHeader from "@/components/ui/MainHeader";
+import ContentHeader from "@/components/ui/ContentHeader";
 import NeonIconButton from "@/components/ui/NeonIconButton";
 import { sendWelcomeEmail as sendEmail, sendBulkWelcomeEmails } from "@/lib/email-service";
 
@@ -1794,9 +1794,9 @@ export default function NewEmployeeWizard() {
 
   return (
     <>
-      <MainHeader
+      <ContentHeader
         title="Employee Onboarding"
-        subtitle="Add new employees individually or in bulk with automated training assignment"
+        description="Add new employees individually or in bulk with automated training assignment"
       />
 
       <main className="page-container">

@@ -4,7 +4,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import NeonPanel from "@/components/NeonPanel";
 import NeonIconButton from "@/components/ui/NeonIconButton";
-import ContentHeader from "@/components/ui/ContentHeader";
 
 /* ===========================
    Enhanced TrainingMatrix with Historical Completion Support
@@ -31,7 +30,11 @@ const COL_WIDTH = 75;
 const USER_COL_WIDTH = 120;
 const CONTAINER_WIDTH = 1380;
 
-const TrainingMatrix: React.FC = () => {
+interface TrainingMatrixProps {
+  filterByDepartmentId?: string; // Optional: auto-filter by department (for managers)
+}
+
+const TrainingMatrix: React.FC<TrainingMatrixProps> = ({ filterByDepartmentId }) => {
   const [users, setUsers] = useState<User[]>([]);
   const [modules, setModules] = useState<Module[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -40,7 +43,8 @@ const TrainingMatrix: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [fatalError, setFatalError] = useState<string | null>(null);
 
-  const [departmentFilter, setDepartmentFilter] = useState("");
+  // If filterByDepartmentId is provided, use it as the default filter
+  const [departmentFilter, setDepartmentFilter] = useState(filterByDepartmentId || "");
   const [roleFilter, setRoleFilter] = useState("");
   const [nameFilter, setNameFilter] = useState("");
 
@@ -50,6 +54,13 @@ const TrainingMatrix: React.FC = () => {
   const [refreshInterval, setRefreshInterval] = useState(30); // seconds
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  // Update department filter if prop changes
+  useEffect(() => {
+    if (filterByDepartmentId) {
+      setDepartmentFilter(filterByDepartmentId);
+    }
+  }, [filterByDepartmentId]);
 
   useEffect(() => {
     let isMounted = true;
@@ -304,12 +315,7 @@ const TrainingMatrix: React.FC = () => {
   if (fatalError) return <NeonPanel>{fatalError}</NeonPanel>;
 
   return (
-    <>
-      <ContentHeader
-        title="Training Matrix"
-        description="View and track training module and document completion status across all users. Historical completions are preserved when users change roles."
-      />
-      <div style={{ width: "100%", display: "flex", justifyContent: "center", direction: "ltr" }}>
+    <div style={{ width: "100%", display: "flex", justifyContent: "center", direction: "ltr" }}>
         <div
           style={{
             width: CONTAINER_WIDTH,
@@ -634,7 +640,6 @@ const TrainingMatrix: React.FC = () => {
         </div>
       </div>
     </div>
-    </>
   );
 };
 

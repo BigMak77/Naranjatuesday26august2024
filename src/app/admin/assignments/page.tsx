@@ -2,7 +2,7 @@
 
 import React from "react";
 import { FiRefreshCw, FiAlertTriangle, FiCheckCircle } from "react-icons/fi";
-import MainHeader from "@/components/ui/MainHeader";
+import ContentHeader from "@/components/ui/ContentHeader";
 import AssignmentSyncButtons from "@/components/AssignmentSyncButtons";
 import StagedRoleChangeManager from "@/components/StagedRoleChangeManager";
 import IntelligentRoleMigration from "@/components/IntelligentRoleMigration";
@@ -10,7 +10,7 @@ import IntelligentRoleMigration from "@/components/IntelligentRoleMigration";
 export default function AssignmentManagementPage() {
   return (
     <>
-      <MainHeader title="Assignment Management" />
+      <ContentHeader title="Assignment Management" />
       
       <div className="max-w-6xl mx-auto p-6 space-y-8">
         

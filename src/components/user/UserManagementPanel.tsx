@@ -387,7 +387,16 @@ export default function UserManagementPanel() {
     }, 800);
   };
 
-  const allowedAccessLevels = ["User", "Manager", "Admin"];
+  const allowedAccessLevels = [
+    "Super Admin",
+    "Admin", 
+    "HR Admin",
+    "H&S Admin",
+    "Dept. Manager",
+    "Manager",
+    "Trainer",
+    "User"
+  ];
   const cleanUserFields = (user: User): User => ({
     ...user,
     department_id: user.department_id || undefined,
@@ -1121,9 +1130,14 @@ export default function UserManagementPanel() {
                     }
                     style={{ color: "var(--neon-text, #fff)" }}
                   >
-                    <option value="User">User</option>
-                    <option value="Manager">Manager</option>
-                    <option value="Admin">Admin</option>
+                    <option value="Super Admin">Super Admin - System owners, full access</option>
+                    <option value="Admin">Admin - IT administrators</option>
+                    <option value="HR Admin">HR Admin - Human Resources team</option>
+                    <option value="H&S Admin">H&S Admin - Health & Safety officers</option>
+                    <option value="Dept. Manager">Dept. Manager - Department managers (see all shifts)</option>
+                    <option value="Manager">Manager - Shift managers (see only their shift)</option>
+                    <option value="Trainer">Trainer - Training coordinators</option>
+                    <option value="User">User - Regular employees</option>
                   </select>
                 </div>
                 {/* phone */}

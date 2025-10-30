@@ -2,7 +2,6 @@
 
 import React from "react";
 import { useUser } from "@/context/UserContext";
-import { ManagerProvider } from "@/context/ManagerContext";
 import SuperAdminToolbar from "./SuperAdminToolbar";
 import AdminToolbar from "./AdminToolbar";
 import HRAdminToolbar from "./HRAdminToolbar";
@@ -73,11 +72,8 @@ export default function DynamicToolbar({
     case "manager":
       // Both dept managers and shift managers use ManagerToolbar
       // The toolbar itself handles the difference based on permissions
-      return (
-        <ManagerProvider>
-          <ManagerToolbar className={className} />
-        </ManagerProvider>
-      );
+      // Note: ManagerProvider is now in AppWrapper (global context)
+      return <ManagerToolbar className={className} />;
 
     case "trainer":
       return <TrainerToolbar />;

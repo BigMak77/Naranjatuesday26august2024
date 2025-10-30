@@ -3,6 +3,7 @@ import { useState } from "react";
 import { FiCalendar, FiGrid, FiLayers, FiAlertTriangle } from "react-icons/fi";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 import Rota from "@/components/people/Rota";
+import ContentHeader from "@/components/ui/ContentHeader";
 
 // Custom tooltip added
 import TrainingMatrix from "@/components/training/TrainingMatrix";
@@ -20,7 +21,12 @@ export default function RotaPage() {
   const departmentId = "your-department-id";
 
   return (
-    <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+    <>
+      <ContentHeader
+        title="Reports"
+        description="Access various reporting tools and views"
+      />
+      <div style={{ maxWidth: 1400, margin: "0 auto" }}>
       {!open && !showMatrix && !showRotaByDept && !showWithoutManager && !showGroupModuleReport ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24, alignItems: 'flex-start', justifyContent: 'center', maxWidth: 600, margin: '0 auto' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
@@ -106,5 +112,6 @@ export default function RotaPage() {
         <WithoutManager />
       )}
     </div>
+    </>
   );
 }

@@ -3,7 +3,6 @@ import { supabase } from "@/lib/supabase-client";
 import Papa from "papaparse";
 import NeonTable from "@/components/NeonTable";
 import ContentHeader from "@/components/ui/ContentHeader";
-import MainHeader from "@/components/ui/MainHeader";
 
 interface ComplianceRow {
   auth_id: string;
@@ -83,8 +82,7 @@ export default function ComplianceDashboard() {
 
   return (
     <>
-      <MainHeader title="Compliance Dashboard" subtitle="Track training and module completion across all users" />
-      <ContentHeader title="Compliance Dashboard" />
+      <ContentHeader title="Compliance Dashboard" description="Track training and module completion across all users" />
       <div className="neon-panel">
         <h2 className="neon-form-title">Compliance Dashboard</h2>
         {/* Filters */}

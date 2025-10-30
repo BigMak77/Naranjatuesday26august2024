@@ -493,20 +493,18 @@ function ChangeManagerButton({
             {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
             {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
             <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
-              <button
+              <NeonIconButton
+                variant="submit"
+                title="Submit changes"
                 disabled={loading}
-                className="neon-btn-confirm"
                 style={{ opacity: loading ? 0.6 : 1 }}
                 onClick={handleSubmit}
-              >
-                Submit
-              </button>
-              <button
-                className="neon-btn-back"
+              />
+              <NeonIconButton
+                variant="cancel"
+                title="Cancel"
                 onClick={() => setOpen(false)}
-              >
-                Cancel
-              </button>
+              />
             </div>
           </div>
         </div>
@@ -678,21 +676,19 @@ function AssignManagerButton({
               {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
               {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
               <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
-                <button
+                <NeonIconButton
+                  variant="save"
+                  title="Assign manager"
                   disabled={loading}
-                  className="neon-btn-save"
                   type="submit"
                   style={{ opacity: loading ? 0.6 : 1 }}
-                >
-                  Assign
-                </button>
-                <button
-                  className="neon-btn-back"
+                />
+                <NeonIconButton
+                  variant="cancel"
+                  title="Cancel"
                   onClick={() => setOpen(false)}
                   type="button"
-                >
-                  Cancel
-                </button>
+                />
               </div>
             </form>
           </div>

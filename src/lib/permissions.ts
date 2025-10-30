@@ -166,16 +166,21 @@ export function hasPermission(
 
 /**
  * Check if user can access a specific route/page
+ * Super Admin has access to ALL routes by default
  */
 export function canAccessRoute(
   userAccessLevel: string | undefined,
   requiredLevels: AccessLevel[]
 ): boolean {
   if (!userAccessLevel) return false;
-  
+
   const normalizedUserLevel = userAccessLevel.toLowerCase();
+
+  // Super Admin has access to EVERYTHING
+  if (normalizedUserLevel === "super admin") return true;
+
   const normalizedRequired = requiredLevels.map(level => level.toLowerCase());
-  
+
   return normalizedRequired.includes(normalizedUserLevel);
 }
 

@@ -1,7 +1,15 @@
+import ContentHeader from "@/components/ui/ContentHeader";
+
 export default function CompliancePage() {
   return (
-    <div>
-      Compliance Page
-    </div>
+    <>
+      <ContentHeader
+        title="Compliance"
+        description="View and manage compliance tracking"
+      />
+      <div>
+        Compliance Page
+      </div>
+    </>
   );
 }

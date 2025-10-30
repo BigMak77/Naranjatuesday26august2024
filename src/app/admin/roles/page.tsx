@@ -3,13 +3,13 @@
 import React from "react";
 import Link from "next/link";
 import { FiUsers, FiSettings, FiRefreshCw, FiPlus } from "react-icons/fi";
-import MainHeader from "@/components/ui/MainHeader";
+import ContentHeader from "@/components/ui/ContentHeader";
 import AssignmentSyncButtons from "@/components/AssignmentSyncButtons";
 
 export default function RolesManagementPage() {
   return (
     <>
-      <MainHeader title="Role Management" />
+      <ContentHeader title="Role Management" />
       
       <div className="max-w-6xl mx-auto p-6 space-y-6">
         

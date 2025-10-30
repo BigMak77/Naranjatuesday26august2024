@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouterSafe } from "@/lib/useRouterSafe";
 import { useUser } from "@/lib/useUser";
 import { AccessLevel, canAccessRoute, getDashboardUrl, hasPermission } from "@/lib/permissions";
 
@@ -56,7 +56,7 @@ export default function AccessControlWrapper({
   loadingComponent,
   noAccessMessage = "You don't have permission to access this content.",
 }: AccessControlWrapperProps) {
-  const router = useRouter();
+  const router = useRouterSafe();
   const { user, loading } = useUser();
   const [accessState, setAccessState] = useState<'loading' | 'allowed' | 'denied' | null>(null);
 
@@ -68,7 +68,7 @@ export default function AccessControlWrapper({
 
     if (!user) {
       if (redirectOnNoAccess) {
-        router.push("/login");
+        router.push("/login", 500);
         return;
       }
       setAccessState('denied');
@@ -101,10 +101,10 @@ export default function AccessControlWrapper({
       // Handle redirect behavior
       if (redirectOnNoAccess) {
         const redirectUrl = redirectTo || getDashboardUrl(user.access_level);
-        router.push(redirectUrl);
+        router.push(redirectUrl, 500);
       }
     }
-  }, [user, loading, requiredRoles, requiredPermission, customAccessCheck, redirectOnNoAccess, redirectTo, router]);
+  }, [user, loading, requiredRoles, requiredPermission, customAccessCheck, redirectOnNoAccess, redirectTo]); // Remove router from dependency array to prevent navigation loops
 
   // Loading state
   if (accessState === 'loading') {

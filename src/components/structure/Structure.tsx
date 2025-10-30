@@ -408,8 +408,20 @@ function AmendDepartmentButton({ departments }: { departments: TreeNode[] }) {
             </div>
             {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
             {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
-            <button disabled={loading} style={{ background: "#ff9900", color: "#fff", border: "none", borderRadius: 6, padding: "6px 16px", fontWeight: 600, marginRight: 8, opacity: loading ? 0.6 : 1 }} onClick={handleSubmit}>Submit</button>
-            <button style={{ background: "#444", color: "#fff", border: "none", borderRadius: 6, padding: "6px 16px", fontWeight: 600 }} onClick={() => setOpen(false)}>Cancel</button>
+            <div style={{ display: "flex", gap: "8px" }}>
+              <NeonIconButton
+                variant="submit"
+                title="Submit changes"
+                disabled={loading}
+                style={{ opacity: loading ? 0.6 : 1 }}
+                onClick={handleSubmit}
+              />
+              <NeonIconButton
+                variant="cancel"
+                title="Cancel"
+                onClick={() => setOpen(false)}
+              />
+            </div>
           </div>
         </div>
       )}
@@ -483,8 +495,20 @@ function RoleAmendButton({ departments, roles }: { departments: Department[], ro
             </div>
             {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
             {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
-            <button disabled={loading} style={{ background: "#ff9900", color: "#fff", border: "none", borderRadius: 6, padding: "6px 16px", fontWeight: 600, marginRight: 8, opacity: loading ? 0.6 : 1 }} onClick={handleSubmit}>Submit</button>
-            <button style={{ background: "#444", color: "#fff", border: "none", borderRadius: 6, padding: "6px 16px", fontWeight: 600 }} onClick={() => setOpen(false)}>Cancel</button>
+            <div style={{ display: "flex", gap: "8px" }}>
+              <NeonIconButton
+                variant="submit"
+                title="Submit changes"
+                disabled={loading}
+                style={{ opacity: loading ? 0.6 : 1 }}
+                onClick={handleSubmit}
+              />
+              <NeonIconButton
+                variant="cancel"
+                title="Cancel"
+                onClick={() => setOpen(false)}
+              />
+            </div>
           </div>
         </div>
       )}
@@ -572,8 +596,21 @@ function AddDepartmentButton({ onAdded }: { onAdded?: () => void }) {
               </select>
               {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
               {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
-              <button disabled={loading} style={{ background: "#00fff7", color: "#1e1e28", border: "none", borderRadius: 6, padding: "6px 16px", fontWeight: 600, marginRight: 8, opacity: loading ? 0.6 : 1 }} type="submit">Add</button>
-              <button style={{ background: "#444", color: "#fff", border: "none", borderRadius: 6, padding: "6px 16px", fontWeight: 600 }} onClick={() => setOpen(false)} type="button">Cancel</button>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <NeonIconButton
+                  variant="add"
+                  title="Add department"
+                  disabled={loading}
+                  type="submit"
+                  style={{ opacity: loading ? 0.6 : 1 }}
+                />
+                <NeonIconButton
+                  variant="cancel"
+                  title="Cancel"
+                  onClick={() => setOpen(false)}
+                  type="button"
+                />
+              </div>
             </form>
           </div>
         </div>
@@ -646,8 +683,21 @@ function AddRoleButton({ departments, onAdded }: { departments: Department[]; on
               </select>
               {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
               {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
-              <button disabled={loading} className="neon-btn-add" type="submit" style={{ marginRight: 8, opacity: loading ? 0.6 : 1 }}>Add</button>
-              <button className="neon-btn-globe" onClick={() => setOpen(false)} type="button">Cancel</button>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <NeonIconButton
+                  variant="add"
+                  title="Add role"
+                  disabled={loading}
+                  type="submit"
+                  style={{ opacity: loading ? 0.6 : 1 }}
+                />
+                <NeonIconButton
+                  variant="cancel"
+                  title="Cancel"
+                  onClick={() => setOpen(false)}
+                  type="button"
+                />
+              </div>
             </form>
           </div>
         </div>
@@ -753,14 +803,14 @@ function RoleWithUsers({ roleId, roleTitle, departmentId }: { roleId: string; ro
                 ))}
               </ul>
             ) : null}
-            <button
-              className="neon-btn-globe"
-              style={{ marginTop: 18, float: "right" }}
-              onClick={() => setShowUsers(false)}
-              type="button"
-            >
-              Close
-            </button>
+            <div style={{ marginTop: 18, textAlign: "right" }}>
+              <NeonIconButton
+                variant="close"
+                title="Close"
+                onClick={() => setShowUsers(false)}
+                type="button"
+              />
+            </div>
           </div>
         </div>
       )}

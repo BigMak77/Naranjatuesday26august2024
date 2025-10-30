@@ -1,7 +1,7 @@
 "use client";
 
 import IssueManager from "@/components/manager/IssueManager";
-import MainHeader from "@/components/ui/MainHeader";
+import ContentHeader from "@/components/ui/ContentHeader";
 import { useUser } from "@/lib/useUser";
 
 export default function IssuesListPage() {
@@ -25,9 +25,9 @@ export default function IssuesListPage() {
 
   return (
     <>
-      <MainHeader
+      <ContentHeader
         title="Issues Management"
-        subtitle={getSubtitle()}
+        description={getSubtitle()}
       />
       <main className="after-hero global-content">
         <IssueManager />

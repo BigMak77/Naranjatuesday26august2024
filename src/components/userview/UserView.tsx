@@ -17,17 +17,18 @@ export default function UserView() {
   const appUserId = profile?.id ?? authId;
 
   if (!authId) {
-    return <div className="p-4 text-sm opacity-70">Loading your profile…</div>;
+    return (
+      <div style={{ textAlign: 'center', color: 'var(--text-white)', opacity: 0.7, padding: '2rem' }}>
+        Loading your profile…
+      </div>
+    );
   }
 
   return (
-    <div className="user-view global-content">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       <MyIssues />
-      <hr className="issues-widget-separator" />
       <MyTasks />
-      <hr className="issues-widget-separator" />
       <UserTrainingDashboard authId={authId} />
-      <hr className="issues-widget-separator" />
       <UserTrainingRequest userId={appUserId!} />
     </div>
   );

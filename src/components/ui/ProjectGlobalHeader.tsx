@@ -6,19 +6,16 @@ import Link from "next/link";
 import { useState, useMemo, useContext } from "react";
 import { useUser } from "@/lib/useUser";
 import { supabase } from "@/lib/supabase-client";
+import { getDashboardUrl } from "@/lib/permissions";
 import {
-  FiUsers,
-  FiFileText,
-  FiShield,
   FiLogIn,
   FiLogOut,
   FiChevronDown,
-  FiAlertOctagon,
   FiSearch,
 } from "react-icons/fi";
 import MyProfileModal from "@/components/user/MyProfileModal";
 import Modal from "@/components/modal";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import { NeonRaiseIssueButton } from "@/components/ui/NeonIconButton";
 import { RaiseIssueModalContext } from "@/context/RaiseIssueModalContext";
 
 type NavLink = {
@@ -44,10 +41,8 @@ export default function GlobalHeader({
   const { user, loading } = useUser();
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
-  const [turkusDropdownOpen, setTurkusDropdownOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const raiseIssueModalCtx = useContext(RaiseIssueModalContext);
-  const handleTurkusDropdown = () => setTurkusDropdownOpen((open) => !open);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   // Close dropdowns when clicking outside
@@ -77,34 +72,7 @@ export default function GlobalHeader({
 
   const links: NavLink[] = useMemo(
     () =>
-      navLinks ?? [
-        {
-          label: "People & Roles",
-          icon: <FiUsers />,
-          dropdown: [
-            { href: "/hr/people/", label: "People" },
-            { href: "/admin/onboarding", label: "Onboarding" },
-            { href: "/admin/roles/add", label: "Roles" },
-            { href: "/hr/structure/", label: "Structure" },
-            { href: "/admin/role-profiles/", label: "Role Profiles" },
-            { href: "/admin/utility/", label: "Utilities" },
-            { href: "/reports/", label: "Reports" },
-            { href: "/admin/modules/", label: "Modules" },
-            { href: "/manager/training/resources", label: "Training Resources" },
-          ],
-        },
-        {
-          label: "Turkus",
-          icon: <FiFileText />,
-          dropdown: [
-            { href: "/turkus/audit", label: "Audit" },
-            { href: "/tasks", label: "Tasks" },
-            { href: "/turkus/issues", label: "Issues" },
-            { href: "/turkus/documents", label: "Documents" },
-          ],
-        },
-        { href: "/admin/incomplete", label: "Compliance", icon: <FiShield /> },
-      ],
+      navLinks ?? [],
     [navLinks],
   );
 
@@ -281,6 +249,14 @@ export default function GlobalHeader({
                     aria-label="User menu"
                     className="global-header-user-dropdown"
                   >
+                    <Link
+                      href={getDashboardUrl(user?.access_level)}
+                      role="menuitem"
+                      onClick={() => setMenuOpen(false)}
+                      className="global-header-menu-item"
+                    >
+                      Dashboard
+                    </Link>
                     <button
                       type="button"
                       role="menuitem"
@@ -292,30 +268,6 @@ export default function GlobalHeader({
                     >
                       Profile
                     </button>
-                    <Link
-                      href="/account/security"
-                      role="menuitem"
-                      onClick={() => setMenuOpen(false)}
-                      className="global-header-menu-item"
-                    >
-                      Security
-                    </Link>
-                    <Link
-                      href="/billing"
-                      role="menuitem"
-                      onClick={() => setMenuOpen(false)}
-                      className="global-header-menu-item"
-                    >
-                      Billing
-                    </Link>
-                    <Link
-                      href="/admin/utility/support/contact"
-                      role="menuitem"
-                      onClick={() => setMenuOpen(false)}
-                      className="global-header-menu-item"
-                    >
-                      Contact Support
-                    </Link>
                     <button
                       type="button"
                       role="menuitem"
@@ -335,14 +287,11 @@ export default function GlobalHeader({
               </div>
             )}
 
-            {/* Siren button */}
-            <Link
-              href="/turkus/issues/add"
-              aria-label="Raise Issue"
-              className="global-header-siren-btn"
-            >
-              <FiAlertOctagon />
-            </Link>
+            {/* Raise Issue button */}
+            <NeonRaiseIssueButton
+              onClick={() => raiseIssueModalCtx?.openRaiseIssue()}
+              title="Raise Issue"
+            />
           </div>
         </div>
       </header>

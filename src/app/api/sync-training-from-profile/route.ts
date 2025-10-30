@@ -58,11 +58,10 @@ export async function POST(req: NextRequest) {
       const user = usersWithRole[i];
       for (const a of assignments) {
         const item_id = a.document_id || a.module_id;
-        newAssignments.push({ 
-          auth_id: user.auth_id, 
+        newAssignments.push({
+          auth_id: user.auth_id,
           item_id: item_id,
           item_type: a.type,
-          role_assignment_id: a.id, // Track which role_assignment created this user_assignment
           assigned_at: new Date().toISOString()
         });
       }
@@ -71,18 +70,18 @@ export async function POST(req: NextRequest) {
     // 4. Get all existing assignments for these users
     const { data: existingAssignments } = await supabase
       .from("user_assignments")
-      .select("auth_id, role_assignment_id")
+      .select("auth_id, item_id, item_type")
       .in("auth_id", auth_ids);
 
     const existingSet = new Set(
       (existingAssignments || []).map((a) => {
-        return [a.auth_id, a.role_assignment_id].join("|");
+        return [a.auth_id, a.item_id, a.item_type].join("|");
       })
     );
 
-    // 5. Filter out duplicates based on role_assignment_id
+    // 5. Filter out duplicates based on (auth_id, item_id, item_type) combination
     const filtered = newAssignments.filter((a) => {
-      const key = [a.auth_id, a.role_assignment_id].join("|");
+      const key = [a.auth_id, a.item_id, a.item_type].join("|");
       return !existingSet.has(key);
     });
 

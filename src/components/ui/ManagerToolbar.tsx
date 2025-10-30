@@ -1,104 +1,34 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useManagerContext } from "@/context/ManagerContext";
 import { useUser } from "@/lib/useUser";
 import { usePermissions } from "@/lib/usePermissions";
-import { FiMail, FiHome } from "react-icons/fi";
-
-type ManagerView = "My Team" | "My Team Training" | "My Team Tasks" | "My Team Issues" | "My Team Audits" | "My Team Compliance" | "User Dashboard";
+import { FiUsers, FiAlertCircle, FiCheckSquare, FiBookOpen, FiHome } from "react-icons/fi";
 
 interface ManagerToolbarProps {
   className?: string;
+}
+
+interface NavItem {
+  label: string;
+  description: string;
+  icon: React.ReactNode;
+  onClick: () => void;
+  requiresDepartment?: boolean;
+  comingSoon?: boolean;
 }
 
 export default function ManagerToolbar({
   className = "",
 }: ManagerToolbarProps) {
   const router = useRouter();
-  const { currentView, setCurrentView } = useManagerContext();
+  const { setCurrentView } = useManagerContext();
   const { user, loading: userLoading } = useUser();
-  const { isManager, isAdmin, canAccessManager } = usePermissions();
+  const { canAccessManager } = usePermissions();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Define all possible manager views with their access requirements
-  const allManagerViews: Array<{
-    view: ManagerView;
-    label: string;
-    description: string;
-    requiresManagerAccess: boolean;
-    requiresDepartment: boolean;
-    comingSoon?: boolean;
-  }> = [
-    {
-      view: "My Team",
-      label: "My Team",
-      description: "View and manage your team members",
-      requiresManagerAccess: true,
-      requiresDepartment: true,
-    },
-    {
-      view: "My Team Training",
-      label: "My Team Training",
-      description: "Manage team training assignments and progress",
-      requiresManagerAccess: true,
-      requiresDepartment: true,
-    },
-    {
-      view: "My Team Tasks",
-      label: "My Team Tasks",
-      description: "Assign and track team tasks",
-      requiresManagerAccess: true,
-      requiresDepartment: true,
-      comingSoon: true,
-    },
-    {
-      view: "My Team Issues",
-      label: "My Team Issues",
-      description: "View and manage team issues and incidents",
-      requiresManagerAccess: true,
-      requiresDepartment: true,
-    },
-    {
-      view: "My Team Audits",
-      label: "My Team Audits",
-      description: "Conduct and review team audits",
-      requiresManagerAccess: true,
-      requiresDepartment: true,
-      comingSoon: true,
-    },
-    {
-      view: "My Team Compliance",
-      label: "My Team Compliance",
-      description: "Monitor team compliance status",
-      requiresManagerAccess: true,
-      requiresDepartment: true,
-    },
-  ];
-
-  // Filter views based on user access level and department
-  const availableViews = useMemo(() => {
-    if (userLoading || !user) return [];
-
-    return allManagerViews.filter(({ requiresManagerAccess, requiresDepartment }) => {
-      // Check manager access requirement
-      if (requiresManagerAccess && !canAccessManager) {
-        return false;
-      }
-
-      // Check department requirement
-      if (requiresDepartment && !user.department_id) {
-        console.warn(`Manager ${user.first_name} ${user.last_name} has no department assigned`);
-        return false;
-      }
-
-      return true;
-    });
-  }, [user, userLoading, canAccessManager]);
-
-  const managerViews: ManagerView[] = availableViews.map(item => item.view);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -120,65 +50,72 @@ export default function ManagerToolbar({
     setIsOpen(!isOpen);
   };
 
-  const handleViewSelect = (view: ManagerView) => {
-    // Additional access check before allowing view change
-    const viewConfig = allManagerViews.find(v => v.view === view);
-
-    if (viewConfig?.requiresManagerAccess && !canAccessManager) {
-      console.warn(`Access denied to ${view} - insufficient permissions`);
-      alert('You do not have permission to access this section.');
-      return;
-    }
-
-    if (viewConfig?.requiresDepartment && !user?.department_id) {
-      console.warn(`Access denied to ${view} - no department assigned`);
-      alert('You need to be assigned to a department to access this section. Please contact your administrator.');
-      return;
-    }
-
-    if (viewConfig?.comingSoon) {
-      console.log(`${view} selected - feature coming soon`);
-      alert(`${viewConfig.label} - Coming soon!`);
-      setIsOpen(false);
-      return;
-    }
-
-    // Handle specific route navigation for My Team Issues
-    if (view === "My Team Issues") {
-      router.push('/manager/myteamissues');
-      setIsOpen(false);
-      console.log(`Navigating to My Team Issues page (Department: ${user?.department_id})`);
-      return;
-    }
-
-    // Set the view in context
+  const navigateToView = (view: "My Team" | "My Team Training" | "Training Matrix" | "My Team Compliance" | "User Dashboard") => {
     setCurrentView(view);
+    router.push('/manager');
     setIsOpen(false);
-
-    // Navigate to manager page so ManagerPageWrapper can display the view
-    router.push('/manager');
-    console.log(`Manager view changed to: ${view} (Department: ${user?.department_id})`);
   };
 
-  const handleContactAdmin = () => {
-    console.log('Contact Admin clicked');
-    // TODO: Implement contact admin functionality
-    // This could open a modal, redirect to a contact form, or send an email
-    alert('Contact Admin feature - Coming soon!');
-  };
+  // Navigation items for the dropdown
+  const navItems: NavItem[] = [
+    {
+      label: "My Team",
+      description: "View and manage your team members (user assignments)",
+      icon: <FiUsers size={16} />,
+      onClick: () => navigateToView("My Team"),
+      requiresDepartment: true,
+    },
+    {
+      label: "My Team Issues",
+      description: "View and manage team issues and incidents",
+      icon: <FiAlertCircle size={16} />,
+      onClick: () => {
+        router.push('/manager/myteamissues');
+        setIsOpen(false);
+      },
+      requiresDepartment: true,
+    },
+    {
+      label: "My Team Tasks",
+      description: "Assign and track team tasks",
+      icon: <FiCheckSquare size={16} />,
+      onClick: () => {
+        alert('My Team Tasks - Coming soon!');
+        setIsOpen(false);
+      },
+      requiresDepartment: true,
+      comingSoon: true,
+    },
+    {
+      label: "Team Training",
+      description: "View list of team training assignments",
+      icon: <FiBookOpen size={16} />,
+      onClick: () => navigateToView("My Team Training"),
+      requiresDepartment: true,
+    },
+    {
+      label: "Training Matrix",
+      description: "View training matrix grid for your team",
+      icon: <FiBookOpen size={16} />,
+      onClick: () => navigateToView("Training Matrix"),
+      requiresDepartment: true,
+    },
+    {
+      label: "User View",
+      description: "View your personal dashboard (tasks, issues, training)",
+      icon: <FiHome size={16} />,
+      onClick: () => navigateToView("User Dashboard"),
+      requiresDepartment: false,
+    },
+  ];
 
-  const handleUserDashboard = () => {
-    // Check if user can access User Dashboard view
-    if (!canAccessManager) {
-      alert('You do not have permission to access the User Dashboard view.');
-      return;
+  // Filter nav items based on user access
+  const availableNavItems = navItems.filter(item => {
+    if (item.requiresDepartment && !user?.department_id) {
+      return false;
     }
-
-    console.log(`User Dashboard clicked by ${user?.access_level} user`);
-    // Set view in context and navigate to manager page
-    setCurrentView("User Dashboard");
-    router.push('/manager');
-  };
+    return true;
+  });
 
   // Show loading state if user data is still loading
   if (userLoading) {
@@ -198,22 +135,20 @@ export default function ManagerToolbar({
     );
   }
 
-  const departmentInfo = user.department_id ? ` (Dept: ${user.department_id})` : ' (No Dept)';
-
   return (
     <section className={`section-toolbar ${className}`.trim()}>
-      <span>Manager Toolbar{departmentInfo}</span>
-      
+      <span>Manager Toolbar</span>
+
       <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-        {/* Localized Manager View Dropdown */}
+        {/* Manager Navigation Dropdown */}
         <div ref={dropdownRef} style={{ position: "relative" }}>
           <button
             className="neon-btn neon-btn-list"
             onClick={handleToggle}
-            aria-label="Select manager view"
+            aria-label="Manager navigation menu"
             aria-expanded={isOpen}
             type="button"
-            disabled={availableViews.length === 0}
+            disabled={availableNavItems.length === 0}
           >
             <svg
               width="20"
@@ -237,33 +172,47 @@ export default function ManagerToolbar({
           {isOpen && (
             <div className="list-button-dropdown">
               <div className="list-button-dropdown-header">
-                Manager View
-                {user.department_id && (
-                  <div style={{ fontSize: "0.8em", opacity: 0.7 }}>
-                    Department: {user.department_id}
-                  </div>
-                )}
+                Manager Menu
               </div>
               <ul className="list-button-dropdown-list">
-                {availableViews.length === 0 ? (
+                {availableNavItems.length === 0 ? (
                   <li>
                     <div className="list-button-dropdown-item" style={{ opacity: 0.6 }}>
                       No sections available
-                      {!user.department_id && <br />}
-                      {!user.department_id && <small>Contact admin to assign department</small>}
+                      {!user.department_id && (
+                        <>
+                          <br />
+                          <small>Contact admin to assign department</small>
+                        </>
+                      )}
                     </div>
                   </li>
                 ) : (
-                  availableViews.map(({ view, label, description, comingSoon }) => (
-                    <li key={view}>
+                  availableNavItems.map((item) => (
+                    <li key={item.label}>
                       <button
-                        className={`list-button-dropdown-item ${currentView === view ? "active" : ""} ${comingSoon ? "coming-soon" : ""}`}
-                        onClick={() => handleViewSelect(view)}
+                        className={`list-button-dropdown-item ${item.comingSoon ? "coming-soon" : ""}`}
+                        onClick={item.onClick}
                         type="button"
-                        title={description}
+                        title={item.description}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.75rem",
+                          width: "100%",
+                        }}
                       >
-                        {label}
-                        {comingSoon && <span style={{ opacity: 0.6, fontSize: "0.8em" }}> (Soon)</span>}
+                        <span style={{ display: "flex", alignItems: "center", color: "var(--neon)" }}>
+                          {item.icon}
+                        </span>
+                        <span style={{ flex: 1, textAlign: "left" }}>
+                          {item.label}
+                          {item.comingSoon && (
+                            <span style={{ opacity: 0.6, fontSize: "0.8em", marginLeft: "0.5rem" }}>
+                              (Soon)
+                            </span>
+                          )}
+                        </span>
                       </button>
                     </li>
                   ))
@@ -272,30 +221,6 @@ export default function ManagerToolbar({
             </div>
           )}
         </div>
-
-        {/* User Dashboard Button - Only for Managers/Admins */}
-        {canAccessManager && (
-          <button
-            className="neon-btn neon-btn-icon"
-            onClick={handleUserDashboard}
-            aria-label="User Dashboard View"
-            title="Switch to User Dashboard View"
-            type="button"
-          >
-            <FiHome size={18} />
-          </button>
-        )}
-
-        {/* Contact Admin Button */}
-        <button
-          className="neon-btn neon-btn-icon"
-          onClick={handleContactAdmin}
-          aria-label="Contact Admin"
-          title="Contact Admin"
-          type="button"
-        >
-          <FiMail size={18} />
-        </button>
       </div>
     </section>
   );

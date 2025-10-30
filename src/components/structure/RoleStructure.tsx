@@ -405,8 +405,18 @@ function AmendDepartmentButton({ departments }: { departments: TreeNode[] }) {
             {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
             {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
             <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
-              <button disabled={loading} className="neon-btn-confirm" style={{ opacity: loading ? 0.6 : 1 }} onClick={handleSubmit}>Submit</button>
-              <button className="neon-btn-back" onClick={() => setOpen(false)}>Cancel</button>
+              <NeonIconButton
+                variant="submit"
+                title="Submit changes"
+                disabled={loading}
+                style={{ opacity: loading ? 0.6 : 1 }}
+                onClick={handleSubmit}
+              />
+              <NeonIconButton
+                variant="cancel"
+                title="Cancel"
+                onClick={() => setOpen(false)}
+              />
             </div>
           </div>
         </div>
@@ -482,8 +492,18 @@ function RoleAmendButton({ departments, roles }: { departments: Department[], ro
             {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
             {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
             <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
-              <button disabled={loading} className="neon-btn-confirm" style={{ opacity: loading ? 0.6 : 1 }} onClick={handleSubmit}>Submit</button>
-              <button className="neon-btn-back" onClick={() => setOpen(false)}>Cancel</button>
+              <NeonIconButton
+                variant="submit"
+                title="Submit changes"
+                disabled={loading}
+                style={{ opacity: loading ? 0.6 : 1 }}
+                onClick={handleSubmit}
+              />
+              <NeonIconButton
+                variant="cancel"
+                title="Cancel"
+                onClick={() => setOpen(false)}
+              />
             </div>
           </div>
         </div>
@@ -573,8 +593,19 @@ function AddDepartmentButton({ onAdded }: { onAdded?: () => void }) {
               {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
               {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
               <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
-                <button disabled={loading} className="neon-btn-save" style={{ opacity: loading ? 0.6 : 1 }} type="submit">Add</button>
-                <button className="neon-btn-back" onClick={() => setOpen(false)} type="button">Cancel</button>
+                <NeonIconButton
+                  variant="add"
+                  title="Add department"
+                  disabled={loading}
+                  type="submit"
+                  style={{ opacity: loading ? 0.6 : 1 }}
+                />
+                <NeonIconButton
+                  variant="cancel"
+                  title="Cancel"
+                  onClick={() => setOpen(false)}
+                  type="button"
+                />
               </div>
             </form>
           </div>
@@ -649,8 +680,19 @@ function AddRoleButton({ departments, onAdded }: { departments: Department[]; on
               {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
               {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
               <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
-                <button disabled={loading} className="neon-btn-save" type="submit" style={{ opacity: loading ? 0.6 : 1 }}>Add</button>
-                <button className="neon-btn-back" onClick={() => setOpen(false)} type="button">Cancel</button>
+                <NeonIconButton
+                  variant="add"
+                  title="Add role"
+                  disabled={loading}
+                  type="submit"
+                  style={{ opacity: loading ? 0.6 : 1 }}
+                />
+                <NeonIconButton
+                  variant="cancel"
+                  title="Cancel"
+                  onClick={() => setOpen(false)}
+                  type="button"
+                />
               </div>
             </form>
           </div>
@@ -758,13 +800,12 @@ function RoleWithUsers({ roleId, roleTitle, departmentId }: { roleId: string; ro
               </ul>
             ) : null}
             <div style={{ marginTop: 18, display: "flex", justifyContent: "flex-end" }}>
-              <button
-                className="neon-btn-back"
+              <NeonIconButton
+                variant="close"
+                title="Close"
                 onClick={() => setShowUsers(false)}
                 type="button"
-              >
-                Close
-              </button>
+              />
             </div>
           </div>
         </div>

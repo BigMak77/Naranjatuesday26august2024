@@ -2,9 +2,9 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { FiMail, FiSettings } from "react-icons/fi";
+import { FiMail, FiShield, FiHeart } from "react-icons/fi";
 
-type AdminSection = "Dashboard" | "Users" | "Modules" | "Departments" | "System Settings" | "Utilities";
+type AdminSection = "Dashboard" | "Roles" | "HR" | "Compliance" | "Reports" | "Utilities" | "Trainer";
 
 export default function SuperAdminToolbar() {
   const router = useRouter();
@@ -25,28 +25,34 @@ export default function SuperAdminToolbar() {
       description: "System overview and analytics"
     },
     {
-      section: "Users",
-      label: "User Management",
-      path: "/admin/users",
-      description: "Manage all system users"
+      section: "Roles",
+      label: "Roles",
+      path: "/admin/roles",
+      description: "Manage user roles and permissions"
     },
     {
-      section: "Modules",
-      label: "Training Modules",
-      path: "/admin/modules",
-      description: "Manage training content"
+      section: "HR",
+      label: "HR Dashboard",
+      path: "/hr/dashboard",
+      description: "HR management and operations"
     },
     {
-      section: "Departments",
-      label: "Departments",
-      path: "/admin/departments",
-      description: "Manage organizational structure"
+      section: "Trainer",
+      label: "Trainer Dashboard",
+      path: "/trainer/dashboard",
+      description: "Training management and tracking"
     },
     {
-      section: "System Settings",
-      label: "System Settings",
-      path: "/admin/settings",
-      description: "Configure system-wide settings"
+      section: "Compliance",
+      label: "Compliance",
+      path: "/admin/incomplete",
+      description: "Compliance tracking and reports"
+    },
+    {
+      section: "Reports",
+      label: "Reports",
+      path: "/admin/reports",
+      description: "System reports and analytics"
     },
     {
       section: "Utilities",
@@ -86,6 +92,16 @@ export default function SuperAdminToolbar() {
   const handleContactAdmin = () => {
     console.log('Contact Support clicked');
     alert('Contact Support feature - Coming soon!');
+  };
+
+  const handleTurkusClick = () => {
+    router.push('/turkus');
+    console.log('Navigating to Turkus');
+  };
+
+  const handleHealthSafetyClick = () => {
+    router.push('/health-safety');
+    console.log('Navigating to Health & Safety');
   };
 
   return (
@@ -142,15 +158,26 @@ export default function SuperAdminToolbar() {
           )}
         </div>
 
-        {/* System Settings Button */}
+        {/* Health & Safety Button */}
         <button
           className="neon-btn neon-btn-icon"
-          onClick={() => router.push('/admin/settings')}
-          aria-label="System Settings"
-          title="System Settings"
+          onClick={handleHealthSafetyClick}
+          aria-label="Health & Safety"
+          title="Health & Safety"
           type="button"
         >
-          <FiSettings size={18} />
+          <FiHeart size={18} />
+        </button>
+
+        {/* Turkus Button */}
+        <button
+          className="neon-btn neon-btn-icon"
+          onClick={handleTurkusClick}
+          aria-label="Turkus Issues"
+          title="Turkus Issues"
+          type="button"
+        >
+          <FiShield size={18} />
         </button>
 
         {/* Contact Support Button */}

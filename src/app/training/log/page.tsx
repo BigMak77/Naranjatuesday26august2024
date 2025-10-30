@@ -6,6 +6,7 @@ import ModuleSelect, {
   Module,
 } from "@/components/ModuleSelect";
 import ArchiveModuleTab from "@/components/modules/ArchiveModuleTab";
+import ContentHeader from "@/components/ui/ContentHeader";
 
 export default function TrainingLogPage() {
   const [modules, setModules] = useState<Module[]>([]);
@@ -35,7 +36,12 @@ export default function TrainingLogPage() {
   };
 
   return (
-    <div className="grid gap-6 md:grid-cols-2">
+    <>
+      <ContentHeader
+        title="Training Log"
+        description="Record and manage training completions"
+      />
+      <div className="grid gap-6 md:grid-cols-2">
       <div>
         <h2 className="neon-form-title">Training Log</h2>
         <div className="space-y-4">
@@ -57,5 +63,6 @@ export default function TrainingLogPage() {
         />
       </div>
     </div>
+    </>
   );
 }

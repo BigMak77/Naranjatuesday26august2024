@@ -1,22 +1,23 @@
 "use client";
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import MainHeader from '@/components/ui/MainHeader';
+import { useRouterSafe } from '@/lib/useRouterSafe';
+import ContentHeader from '@/components/ui/ContentHeader';
 
 export default function StructurePage() {
-  const router = useRouter();
+  const router = useRouterSafe();
 
   useEffect(() => {
-    router.replace('/hr/structure/role-structure');
-  }, [router]);
+    // Use safe router with debounce to prevent excessive replaceState calls
+    router.replace('/hr/structure/role-structure', 500);
+  }, []); // Empty dependency array to prevent re-renders
 
   return (
     <div className="after-hero global-content relative">
       <div className="flex-1 min-w-0">
-        <MainHeader
+        <ContentHeader
           title="Structure Management"
-          subtitle="Redirecting to role structure page..."
+          description="Redirecting to role structure page..."
         />
         <div className="neon-panel">
           <p className="text-center py-8 text-neon">

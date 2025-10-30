@@ -52,7 +52,7 @@ export default function DepartmentIssueAssignmentsWidget() {
   if (!user) return null;
 
   return (
-    <AccessControlWrapper requiredRoles={["Manager", "Admin"]} hideIfNoAccess={true}>
+    <AccessControlWrapper requiredRoles={["Super Admin", "Admin", "Dept. Manager", "Manager"]} hideIfNoAccess={true}>
       <h2 className="neon-section-title mb-4 flex items-center gap-2">
         <FiUserPlus /> Unassigned Department Issues
       </h2>

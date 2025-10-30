@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { FiUserPlus, FiShield, FiUserX, FiGrid } from "react-icons/fi";
+import { FiUserPlus, FiShield, FiUserX } from "react-icons/fi";
 
 const PEOPLE_ACTIONS = [
   {
@@ -20,12 +20,6 @@ const PEOPLE_ACTIONS = [
     label: "RESOURCES MANAGER",
     description: "RESOURCE MANAGER ___ UNDER DEVELOPMENT.",
     icon: <FiUserX />,
-  },
-  {
-    href: "/hr/structure",
-    label: "Manage Structure",
-    description: "View, add, and ammend departmnet roles & structures.",
-    icon: <FiGrid />,
   },
 ];
 

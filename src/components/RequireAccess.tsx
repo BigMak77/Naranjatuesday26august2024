@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouterSafe } from "@/lib/useRouterSafe";
 import { useUser } from "@/lib/useUser";
 import { AccessLevel, canAccessRoute, getDashboardUrl } from "@/lib/permissions";
 
@@ -18,7 +18,7 @@ export default function RequireAccess({
   fallbackMessage = "You don't have permission to access this page.",
   redirectTo 
 }: Props) {
-  const router = useRouter();
+  const router = useRouterSafe();
   const { user, loading } = useUser();
   const [allowed, setAllowed] = useState<boolean | null>(null);
 
@@ -26,7 +26,7 @@ export default function RequireAccess({
     if (loading) return;
     
     if (!user) {
-      router.push("/login");
+      router.push("/login", 500);
       return;
     }
 
@@ -40,9 +40,9 @@ export default function RequireAccess({
       
       // Redirect to specified URL or user's appropriate dashboard
       const redirectUrl = redirectTo || getDashboardUrl(user.access_level);
-      router.push(redirectUrl);
+      router.push(redirectUrl, 500);
     }
-  }, [allowedRoles, user, loading, router, redirectTo]);
+  }, [allowedRoles, user, loading, redirectTo]); // Remove router from dependency array to prevent navigation loops
 
   if (loading) {
     return (

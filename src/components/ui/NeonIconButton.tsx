@@ -24,6 +24,10 @@ import {
   FiUserPlus,
   FiShare,
   FiSend,
+  FiAlertOctagon,
+  FiList,
+  FiClock,
+  FiCheckCircle,
 } from "react-icons/fi";
 
 const ICONS = {
@@ -48,6 +52,9 @@ const ICONS = {
   viewArchive: <FiServer />,
   submitApplication: <FiShare />, // new green submit application button
   send: <FiSend />,
+  list: <FiList />,
+  clock: <FiClock />,
+  checkCircle: <FiCheckCircle />,
 } as const;
 
 type Variant = keyof typeof ICONS;
@@ -157,6 +164,49 @@ export function NeonSubmitApplicationButton({ onClick, title = "Submit Applicati
     >
       <FiShare style={{ marginRight: 8, verticalAlign: "middle" }} />
       {title}
+    </button>
+  );
+}
+
+export interface NeonRaiseIssueButtonProps {
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
+  title?: string;
+  href?: string;
+}
+
+export function NeonRaiseIssueButton({ onClick, title = "Raise Issue", href }: NeonRaiseIssueButtonProps) {
+  const buttonStyle = {
+    background: "#ff3333",
+    color: "#fff",
+    border: "2px solid #ff6666",
+    boxShadow: "0 0 10px rgba(255, 51, 51, 0.5)",
+    transition: "all 0.3s ease",
+  };
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className="neon-btn neon-btn-raise-issue"
+        title={title}
+        aria-label={title}
+        style={buttonStyle}
+      >
+        <FiAlertOctagon />
+      </Link>
+    );
+  }
+
+  return (
+    <button
+      className="neon-btn neon-btn-raise-issue"
+      title={title}
+      aria-label={title}
+      onClick={onClick}
+      type="button"
+      style={buttonStyle}
+    >
+      <FiAlertOctagon />
     </button>
   );
 }

@@ -2,7 +2,6 @@
 "use client";
 
 import NeonIconButton from "@/components/ui/NeonIconButton";
-import MainHeader from "@/components/ui/MainHeader";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
 interface TaskItemProps {
@@ -17,11 +16,6 @@ interface TaskItemProps {
 
 export default function TaskItem({ task, onEdit }: TaskItemProps) {
   return (
-    <>
-      <MainHeader
-        title="Task"
-        subtitle={`Area: ${task.area} · Frequency: ${task.frequency}`}
-      />
       <li className="task-list-item">
         <div className="task-list-item-content">
           <h2 className="task-list-item-title">{task.title}</h2>
@@ -38,6 +32,5 @@ export default function TaskItem({ task, onEdit }: TaskItemProps) {
           />
         </CustomTooltip>
       </li>
-    </>
   );
 }

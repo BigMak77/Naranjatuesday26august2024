@@ -2,7 +2,8 @@
 "use client";
 
 import HealthSafetyManager from "@/components/userview/HealthSafetyManager";
-import MainHeader from "@/components/ui/MainHeader";
+import ContentHeader from "@/components/ui/ContentHeader";
+import AccessControlWrapper from "@/components/AccessControlWrapper";
 import { useEffect } from "react";
 import { supabase } from "@/lib/supabase-client";
 
@@ -12,14 +13,16 @@ export default function HealthSafetyPage() {
   }, []);
 
   return (
-    <>
-      <MainHeader
+    <AccessControlWrapper
+      requiredRoles={["Super Admin", "Admin", "H&S Admin"]}
+      redirectOnNoAccess={true}
+      noAccessMessage="Health & Safety Admin access required. Redirecting to your dashboard..."
+    >
+      <ContentHeader
         title="Health & Safety Manager"
-        subtitle="Manage risk assessments, incidents, policies, and first aid records"
+        description="Manage risk assessments, incidents, policies, and first aid records"
       />
-      <main className="after-hero global-content">
-        <HealthSafetyManager />
-      </main>
-    </>
+      <HealthSafetyManager />
+    </AccessControlWrapper>
   );
 }

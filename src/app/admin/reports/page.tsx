@@ -3,6 +3,7 @@
 import { useState } from "react";
 import ReportBuilder from "@/components/reporting/ReportBuilder";
 import ReportViewer from "@/components/reporting/ReportViewer";
+import ContentHeader from "@/components/ui/ContentHeader";
 
 // Use types from components for consistency
 import type { ReportParams } from "@/components/reporting/ReportBuilder";
@@ -22,10 +23,15 @@ export default function ReportsPage() {
     fetchData();
   };
   return (
-    <main>
-      <h1>Reports</h1>
-      <ReportBuilder onRun={run} />
-      <ReportViewer rows={rows} />
-    </main>
+    <>
+      <ContentHeader
+        title="Reports"
+        description="Build and view custom reports"
+      />
+      <main>
+        <ReportBuilder onRun={run} />
+        <ReportViewer rows={rows} />
+      </main>
+    </>
   );
 }

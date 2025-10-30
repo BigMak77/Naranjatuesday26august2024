@@ -8,7 +8,8 @@ import React, {
   createContext,
   useContext,
 } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useRouterSafe } from "@/lib/useRouterSafe";
 import { supabase } from "@/lib/supabase-client";
 
 import NeonPanel from "@/components/NeonPanel";
@@ -67,7 +68,7 @@ export const useAuditManager = () => {
    Main component
    ========================================================= */
 export default function AuditManager() {
-  const router = useRouter();
+  const router = useRouterSafe();
   const params = useSearchParams();
 
   // Read tab from URL (?tab=assign etc.)
@@ -83,9 +84,10 @@ export default function AuditManager() {
       setActiveTab(tab);
       const qs = new URLSearchParams(Array.from((params ?? new URLSearchParams()).entries()));
       qs.set("tab", tab);
-      router.replace(`?${qs.toString()}`);
+      // Use safe router with debounce to prevent excessive replaceState calls
+      router.replace(`?${qs.toString()}`, 300);
     },
-    [params, router],
+    [params, router], // Keep router in deps but use safe router
   );
 
   const bumpRefresh = useCallback(() => setRefreshKey((n) => n + 1), []);
