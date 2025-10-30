@@ -280,7 +280,7 @@ export default function GlobalHeader({
                       }}
                     >
                       <FiLogOut aria-hidden="true" />
-                      Sign out
+                      Log out
                     </button>
                   </div>
                 )}

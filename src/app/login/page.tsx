@@ -136,79 +136,79 @@ export default function LoginPage() {
 
           {error && <p className="login-error-msg">{error}</p>}
         </form>
-      </OverlayDialog>
 
-      <style jsx>{`
-        .login-form {
-          width: 100%;
-          display: flex;
-          flex-direction: column;
-          gap: 1.5rem;
-          padding: 2rem;
-        }
-        .login-title {
-          text-align: center;
-          font-size: 2rem;
-          font-weight: 800;
-          color: #fa7a20;
-          margin-bottom: 0.5rem;
-        }
-        .login-subtitle {
-          text-align: center;
-          color: #40e0d0;
-          margin-bottom: 1.5rem;
-          font-size: 1.1rem;
-        }
-        .login-label {
-          color: #40e0d0;
-          font-weight: 600;
-          margin-bottom: 0.5rem;
-          display: block;
-        }
-        .login-input {
-          width: 100%;
-          background: #012b2b;
-          color: #fff;
-          border: 1.5px solid #40e0d0;
-          border-radius: 8px;
-          padding: 0.75rem 1rem;
-          font-size: 1rem;
-        }
-        .login-input:focus {
-          outline: none;
-          border-color: #fa7a20;
-          box-shadow: 0 0 0 3px rgba(250, 122, 32, 0.1);
-        }
-        .login-error-msg {
-          color: #ff4d4f;
-          font-weight: 600;
-          text-align: center;
-          margin-top: 0;
-        }
-        .login-bg-wrapper {
-          position: fixed;
-          inset: 0;
-          width: 100vw;
-          height: 100vh;
-          min-height: 100vh;
-          z-index: 0;
-          overflow: hidden;
-        }
-        .login-bg-image {
-          position: absolute;
-          inset: 0;
-          width: 100vw;
-          height: 100vh;
-          background: url('/background1.jpg') center center / cover no-repeat;
-          z-index: 1;
-        }
-        .login-bg-overlay {
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(120deg, rgba(4,8,9,0.82) 0%, rgba(31,118,125,0.82) 100%);
-          z-index: 2;
-        }
-      `}</style>
+        <style jsx>{`
+          .login-form {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            padding: 2rem;
+          }
+          .login-title {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 800;
+            color: #fa7a20;
+            margin-bottom: 0.5rem;
+          }
+          .login-subtitle {
+            text-align: center;
+            color: #40e0d0;
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+          }
+          .login-label {
+            color: #40e0d0;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: block;
+          }
+          .login-input {
+            width: 100%;
+            background: #012b2b;
+            color: #fff;
+            border: 1.5px solid #40e0d0;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+          }
+          .login-input:focus {
+            outline: none;
+            border-color: #fa7a20;
+            box-shadow: 0 0 0 3px rgba(250, 122, 32, 0.1);
+          }
+          .login-error-msg {
+            color: #ff4d4f;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 0;
+          }
+          .login-bg-wrapper {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            min-height: 100vh;
+            z-index: 0;
+            overflow: hidden;
+          }
+          .login-bg-image {
+            position: absolute;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            background: url('/background1.jpg') center center / cover no-repeat;
+            z-index: 1;
+          }
+          .login-bg-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, rgba(4,8,9,0.82) 0%, rgba(31,118,125,0.82) 100%);
+            z-index: 2;
+          }
+        `}</style>
+      </OverlayDialog>
     </>
   );
 }

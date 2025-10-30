@@ -9,8 +9,9 @@
    - NO custom fonts
 
    FONT SIZES:
-   - Headers (h1-h6, labels, titles): 1.125rem (18px)
-   - Body text (tables, forms, paragraphs): 0.75rem (12px)
+   - Headers (h1-h6, labels, titles): 1.25rem (20px)
+   - Sub-headers (.sub-header): 1rem (16px)
+   - Body text (tables, forms, paragraphs): 0.875rem (14px)
 
    FONT WEIGHTS:
    - Headers (h1-h6, labels, titles): 700 (bold)
@@ -29,7 +30,7 @@
    TOOLTIPS:
    - Background: #0a4d4d (dark teal)
    - Text: #fff (white)
-   - Font size: 0.75rem (12px)
+   - Font size: 0.875rem (14px)
 
    ================================================================================== */
 
@@ -58,8 +59,9 @@
 
   /* ========== TYPOGRAPHY ========== */
   /* Font Sizes - STANDARDIZED */
-  --font-size-base: 0.75rem;       /* ALL body text, forms, tables (12px) */
-  --font-size-header: 1.125rem;    /* ALL headers (18px) */
+  --font-size-base: 0.875rem;      /* ALL body text, forms, tables (14px) */
+  --font-size-header: 1.25rem;     /* ALL headers (20px) */
+  --font-size-subheader: 1rem;     /* Sub-headers (16px) */
 
   /* Font Weights - STANDARDIZED */
   --font-weight-normal: 400;       /* ALL body text */
@@ -119,6 +121,16 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-family);
   margin-top: 0;
   margin-bottom: 1rem;
+}
+
+/* ========== SUB-HEADERS: Medium sized headers for sections ========== */
+.sub-header {
+  color: var(--header-text);
+  font-size: var(--font-size-subheader);
+  font-weight: var(--font-weight-header);
+  font-family: var(--font-family);
+  margin-top: 0;
+  margin-bottom: 0.75rem;
 }
 
 /* Native form controls use app font */
@@ -234,7 +246,7 @@ header.global-header {
   justify-content: center !important;
   font-family: var(--font-family) !important;
   font-weight: var(--font-weight-header) !important;
-  font-size: 12px !important;
+  font-size: var(--font-size-base) !important;
   background: none !important;
   border: none !important;
   padding: 0 16px !important;
@@ -285,7 +297,7 @@ header.global-header {
   padding: 12px 20px;
   text-decoration: none;
   font-weight: var(--font-weight-normal);
-  font-size: 12px;
+  font-size: var(--font-size-base);
   font-family: var(--font-family);
   border: none;
   background: none;
@@ -306,7 +318,7 @@ header.global-header {
   align-items: center !important;
   text-decoration: none !important;
   font-weight: var(--font-weight-header) !important;
-  font-size: 12px !important;
+  font-size: var(--font-size-base) !important;
   font-family: var(--font-family) !important;
   padding: 0 16px !important;
   height: 40px !important;
@@ -358,7 +370,7 @@ header.global-header {
   background: rgba(255, 255, 255, 0.1) !important;
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
   border-radius: 8px !important;
-  font-size: 12px !important;
+  font-size: var(--font-size-base) !important;
   font-family: var(--font-family) !important;
   font-weight: var(--font-weight-normal) !important;
   color: var(--text-white) !important;
@@ -389,7 +401,7 @@ header.global-header {
 }
 
 .global-header-auth span {
-  font-size: 12px;
+  font-size: var(--font-size-base);
   font-family: var(--font-family);
   font-weight: var(--font-weight-normal);
   color: var(--text-white);
@@ -407,7 +419,7 @@ header.global-header {
   line-height: 40px !important;
   margin: 0 !important;
   font-weight: var(--font-weight-header) !important;
-  font-size: 12px !important;
+  font-size: var(--font-size-base) !important;
   font-family: var(--font-family) !important;
   text-decoration: none !important;
   box-shadow: 0 2px 8px rgba(233,79,79,0.08) !important;
@@ -430,7 +442,7 @@ header.global-header {
 
 .global-header-login-btn span {
   display: inline-block;
-  font-size: 12px;
+  font-size: var(--font-size-base);
   font-weight: var(--font-weight-header);
 }
 
@@ -454,7 +466,7 @@ header.global-header {
   border: 2px solid var(--text-white) !important;
   cursor: pointer !important;
   font-weight: var(--font-weight-normal) !important;
-  font-size: 12px !important;
+  font-size: var(--font-size-base) !important;
   font-family: var(--font-family) !important;
   box-shadow: 0 1px 4px rgba(0,0,0,0.03) !important;
   color: var(--text-white) !important;
@@ -482,7 +494,7 @@ header.global-header {
   align-items: center;
   justify-content: center;
   font-weight: var(--font-weight-header);
-  font-size: 12px;
+  font-size: var(--font-size-base);
   color: var(--text-white);
   border: 2px solid var(--text-white);
   box-sizing: border-box;
@@ -518,7 +530,7 @@ header.global-header {
   border: none;
   text-align: left;
   font-weight: var(--font-weight-normal);
-  font-size: 12px;
+  font-size: var(--font-size-base);
   font-family: var(--font-family);
   cursor: pointer;
   border-radius: 4px;
@@ -577,7 +589,7 @@ header.global-header {
 /* ========== TOOLBAR TEXT STYLING ========== */
 .section-toolbar span,
 .section-toolbar > span {
-  font-size: 0.75rem; /* 12px */
+  font-size: var(--font-size-base);
   font-family: var(--font-family);
   font-weight: var(--font-weight-normal);
   color: var(--text-white);
@@ -697,7 +709,7 @@ select {
   width: 100%;
   background: var(--field);
   color: var(--text-white);
-  font-size: 12px;
+  font-size: var(--font-size-base);
   font-family: var(--font-family);
   font-weight: var(--font-weight-normal);
   border: 1px solid var(--border);
@@ -750,7 +762,7 @@ select {
   width: 100%;
   background: var(--field);
   color: var(--text-white) !important;
-  font-size: 12px;
+  font-size: var(--font-size-base);
   font-family: var(--font-family);
   font-weight: var(--font-weight-normal);
   border: 1.5px solid var(--neon);
@@ -1541,7 +1553,7 @@ button svg {
   border: 1px solid var(--border);
   background: var(--field);
   color: var(--text-white);
-  font-size: 12px;
+  font-size: var(--font-size-base);
   font-family: var(--font-family);
   height: 32px;
   min-width: 150px;
@@ -1711,7 +1723,7 @@ button svg {
   border: 1px solid var(--border);
   background: var(--field);
   color: var(--text-white);
-  font-size: 12px;
+  font-size: var(--font-size-base);
   font-family: var(--font-family);
   height: 32px;
   margin-bottom: 0;
@@ -2553,19 +2565,27 @@ button svg {
 }
 
 .text-sm {
-  font-size: 0.875rem;
+  font-size: var(--font-size-base);
 }
 
 .text-base {
   font-size: var(--font-size-base);
 }
 
+.text-md {
+  font-size: var(--font-size-subheader);
+}
+
 .text-lg {
-  font-size: 1.125rem;
+  font-size: var(--font-size-header);
 }
 
 .text-xl {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
+}
+
+.text-2xl {
+  font-size: 1.75rem;
 }
 
 .font-normal {
@@ -2877,6 +2897,77 @@ button svg {
 .transition-transform {
   transition: transform 0.2s ease;
 }
+
+/* ==================================================================================
+   UPDATED TYPOGRAPHY SCALE - NEW FONT SIZES
+   ================================================================================== */
+
+/* Override utility classes with new font sizes */
+.text-xs {
+  font-size: 0.75rem; /* 12px - keep for truly small text */
+}
+
+.text-sm {
+  font-size: var(--font-size-base); /* 14px - body text */
+}
+
+.text-base {
+  font-size: var(--font-size-base); /* 14px - body text */
+}
+
+.text-md {
+  font-size: var(--font-size-subheader); /* 16px - sub headers */
+}
+
+.text-lg {
+  font-size: var(--font-size-header); /* 20px - headers */
+}
+
+.text-xl {
+  font-size: 1.5rem; /* 24px - large headers */
+}
+
+.text-2xl {
+  font-size: 1.75rem; /* 28px - extra large headers */
+}
+
+/* Ensure all form elements use consistent sizing */
+input, select, textarea, button {
+  font-size: var(--font-size-base) !important;
+}
+
+/* Ensure all labels use sub-header sizing */
+label, .form-label {
+  font-size: var(--font-size-subheader) !important;
+}
+
+/* Ensure all table elements use body text sizing */
+table, th, td {
+  font-size: var(--font-size-base) !important;
+}
+
+/* Ensure consistent paragraph sizing */
+p, .text-content {
+  font-size: var(--font-size-base);
+}
+
+/* Sub-header utility class */
+.sub-header, .text-subheader {
+  font-size: var(--font-size-subheader);
+  font-weight: var(--font-weight-header);
+  color: var(--header-text);
+}
+
+/* Header utility classes */
+.main-header, .page-header {
+  font-size: var(--font-size-header);
+  font-weight: var(--font-weight-header);
+  color: var(--header-text);
+}
+
+/* ==================================================================================
+   END TYPOGRAPHY SCALE UPDATES
+   ================================================================================== */
 
 /* ==================================================================================
    END OF GLOBALS.CSS
