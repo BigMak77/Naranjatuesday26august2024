@@ -97,9 +97,8 @@ export default function GlobalHeader({
     }
     // Use Next.js router for navigation to avoid race conditions
     if (typeof window !== "undefined") {
-      window.location.replace("/homepage/login");
+      window.location.replace("/login");
     }
-    // If using useRouter, prefer router.replace("/homepage/login");
   }
 
   return (

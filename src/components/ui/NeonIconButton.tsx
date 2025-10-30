@@ -179,7 +179,6 @@ export function NeonRaiseIssueButton({ onClick, title = "Raise Issue", href }: N
     background: "#ff3333",
     color: "#fff",
     border: "2px solid #ff6666",
-    boxShadow: "0 0 10px rgba(255, 51, 51, 0.5)",
     transition: "all 0.3s ease",
   };
 
