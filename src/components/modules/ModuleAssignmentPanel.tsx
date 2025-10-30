@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-client";
+import NeonIconButton from "@/components/ui/NeonIconButton";
 
 interface Role {
   id: string;
@@ -146,72 +147,22 @@ export default function ModuleAssignmentPanel({ moduleId }: Props) {
       ))}
 
       <div className="module-assignment-actions">
-        <button
+        <NeonIconButton
+          variant="save"
+          title="Save Assignments"
           onClick={handleSave}
           disabled={saving}
-          className="neon-btn neon-btn-square neon-btn-save module-assignment-save-btn"
-          data-variant="save"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="feather feather-save neon-icon"
-          >
-            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-            <polyline points="17 21 17 13 7 13 7 21"></polyline>
-          </svg>
-        </button>
-        <button
-          type="button"
-          className="neon-btn neon-btn-edit module-assignment-edit-btn"
-          data-variant="edit"
+        />
+        <NeonIconButton
+          variant="edit"
+          title="Edit Module"
           onClick={() => router.push(`/admin/modules/edit/${moduleId}`)}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="feather feather-edit neon-icon"
-          >
-            <path d="M11 4h2a2 2 0 0 1 2 2v2"></path>
-            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L7 20.5 2.5 16 18.5 2.5z"></path>
-          </svg>
-        </button>
-        <button
-          type="button"
-          className="neon-btn neon-btn-view module-assignment-view-btn"
-          data-variant="view"
+        />
+        <NeonIconButton
+          variant="view"
+          title="View Module"
           onClick={() => router.push(`/admin/modules/${moduleId}`)}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="feather feather-eye neon-icon"
-          >
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-            <circle cx="12" cy="12" r="3"></circle>
-          </svg>
-        </button>
+        />
       </div>
     </div>
   );

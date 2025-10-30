@@ -84,8 +84,6 @@ export default function HSAdminToolbar() {
 
   return (
     <section className="section-toolbar">
-      <span>H&S Admin Toolbar (All Departments)</span>
-
       <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
         {/* H&S Sections Dropdown */}
         <div ref={dropdownRef} style={{ position: "relative" }}>
@@ -163,6 +161,8 @@ export default function HSAdminToolbar() {
           <FiMail size={18} />
         </button>
       </div>
+
+      <span>H&S Admin Toolbar (All Departments)</span>
     </section>
   );
 }

@@ -98,8 +98,6 @@ export default function TrainerToolbar() {
 
   return (
     <section className="section-toolbar">
-      <span>Trainer Toolbar</span>
-
       <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
         {/* Trainer Sections Dropdown */}
         <div ref={dropdownRef} style={{ position: "relative" }}>
@@ -177,6 +175,8 @@ export default function TrainerToolbar() {
           <FiMail size={18} />
         </button>
       </div>
+
+      <span>Trainer Toolbar</span>
     </section>
   );
 }

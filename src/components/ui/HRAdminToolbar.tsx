@@ -78,8 +78,6 @@ export default function HRAdminToolbar() {
 
   return (
     <section className="section-toolbar">
-      <span>HR Admin Toolbar (All Departments)</span>
-
       <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
         {/* HR Sections Dropdown */}
         <div ref={dropdownRef} style={{ position: "relative" }}>
@@ -157,6 +155,8 @@ export default function HRAdminToolbar() {
           <FiMail size={18} />
         </button>
       </div>
+
+      <span>HR Admin Toolbar (All Departments)</span>
     </section>
   );
 }

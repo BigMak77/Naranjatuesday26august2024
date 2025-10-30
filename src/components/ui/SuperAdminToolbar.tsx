@@ -106,8 +106,6 @@ export default function SuperAdminToolbar() {
 
   return (
     <section className="section-toolbar">
-      <span>Super Admin Toolbar</span>
-
       <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
         {/* Admin Sections Dropdown */}
         <div ref={dropdownRef} style={{ position: "relative" }}>
@@ -191,6 +189,8 @@ export default function SuperAdminToolbar() {
           <FiMail size={18} />
         </button>
       </div>
+
+      <span>Super Admin Toolbar</span>
     </section>
   );
 }

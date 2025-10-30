@@ -137,8 +137,6 @@ export default function ManagerToolbar({
 
   return (
     <section className={`section-toolbar ${className}`.trim()}>
-      <span>Manager Toolbar</span>
-
       <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
         {/* Manager Navigation Dropdown */}
         <div ref={dropdownRef} style={{ position: "relative" }}>
@@ -222,6 +220,8 @@ export default function ManagerToolbar({
           )}
         </div>
       </div>
+
+      <span>Manager Toolbar</span>
     </section>
   );
 }

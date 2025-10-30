@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-client";
 import { getDashboardUrl } from "@/lib/permissions";
+import OverlayDialog from "@/components/ui/OverlayDialog";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -56,13 +57,23 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="login-bg-wrapper">
-      <div className="login-bg-image" aria-hidden="true" />
-      <div className="login-bg-overlay" aria-hidden="true" />
-      <div className="login-center-panel">
+    <>
+      <div className="login-bg-wrapper">
+        <div className="login-bg-image" aria-hidden="true" />
+        <div className="login-bg-overlay" aria-hidden="true" />
+      </div>
+
+      <OverlayDialog
+        open={true}
+        onClose={() => {}}
+        closeOnOutsideClick={false}
+        width={450}
+        ariaLabelledby="login-title"
+      >
         <form onSubmit={handleLogin} className="login-form">
-          <h1 className="login-title">NARANJA Login</h1>
+          <h1 id="login-title" className="login-title">NARANJA Login</h1>
           <p className="login-subtitle">Sign in to your account</p>
+
           <div>
             <label className="login-label">Email</label>
             <input
@@ -74,6 +85,7 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
+
           <div>
             <label className="login-label">Password</label>
             <input
@@ -85,33 +97,94 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
+
           <button
             type="submit"
-            className="neon-btn neon-btn-login neon-btn-square login-submit-btn"
-            data-variant="login"
             disabled={loading}
+            style={{
+              width: '100%',
+              padding: '16px 24px',
+              fontSize: '18px',
+              fontWeight: '700',
+              color: '#ffffff',
+              backgroundColor: '#fa7a20',
+              border: '2px solid #fa7a20',
+              borderRadius: '12px',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              transition: 'all 0.3s ease',
+              textTransform: 'uppercase',
+              letterSpacing: '1px',
+              boxShadow: '0 4px 16px rgba(250, 122, 32, 0.4)',
+              opacity: loading ? 0.6 : 1,
+              marginTop: '8px',
+            }}
+            onMouseEnter={(e) => {
+              if (!loading) {
+                e.currentTarget.style.backgroundColor = '#ff8c3a';
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(250, 122, 32, 0.6)';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#fa7a20';
+              e.currentTarget.style.boxShadow = '0 4px 16px rgba(250, 122, 32, 0.4)';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="feather feather-log-in neon-icon"
-            >
-              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-              <polyline points="10 17 15 12 10 7"></polyline>
-              <line x1="3" y1="12" x2="15" y2="12"></line>
-            </svg>
+            {loading ? 'Logging In...' : 'Log In'}
           </button>
+
           {error && <p className="login-error-msg">{error}</p>}
         </form>
-      </div>
+      </OverlayDialog>
+
       <style jsx>{`
+        .login-form {
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+          padding: 2rem;
+        }
+        .login-title {
+          text-align: center;
+          font-size: 2rem;
+          font-weight: 800;
+          color: #fa7a20;
+          margin-bottom: 0.5rem;
+        }
+        .login-subtitle {
+          text-align: center;
+          color: #40e0d0;
+          margin-bottom: 1.5rem;
+          font-size: 1.1rem;
+        }
+        .login-label {
+          color: #40e0d0;
+          font-weight: 600;
+          margin-bottom: 0.5rem;
+          display: block;
+        }
+        .login-input {
+          width: 100%;
+          background: #012b2b;
+          color: #fff;
+          border: 1.5px solid #40e0d0;
+          border-radius: 8px;
+          padding: 0.75rem 1rem;
+          font-size: 1rem;
+        }
+        .login-input:focus {
+          outline: none;
+          border-color: #fa7a20;
+          box-shadow: 0 0 0 3px rgba(250, 122, 32, 0.1);
+        }
+        .login-error-msg {
+          color: #ff4d4f;
+          font-weight: 600;
+          text-align: center;
+          margin-top: 0;
+        }
         .login-bg-wrapper {
           position: fixed;
           inset: 0;
@@ -120,9 +193,6 @@ export default function LoginPage() {
           min-height: 100vh;
           z-index: 0;
           overflow: hidden;
-          display: flex;
-          align-items: center;
-          justify-content: center;
         }
         .login-bg-image {
           position: absolute;
@@ -138,73 +208,7 @@ export default function LoginPage() {
           background: linear-gradient(120deg, rgba(4,8,9,0.82) 0%, rgba(31,118,125,0.82) 100%);
           z-index: 2;
         }
-        .login-center-panel {
-          position: relative;
-          z-index: 3;
-          min-width: 340px;
-          max-width: 400px;
-          width: 100%;
-          margin: 0 auto;
-          border-radius: 18px;
-          box-shadow: 0 4px 32px 0 #000a, 0 0 0 2px var(--neon, #40e0d0);
-          background: rgba(16, 32, 36, 0.82);
-          backdrop-filter: blur(12px) saturate(1.2);
-          padding: 2.5rem 2rem 2rem 2rem;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-        }
-        .login-form {
-          width: 100%;
-          display: flex;
-          flex-direction: column;
-          gap: 1.5rem;
-        }
-        .login-title {
-          text-align: center;
-          font-size: 2rem;
-          font-weight: 800;
-          color: var(--accent, #fa7a20);
-          margin-bottom: 0.5rem;
-        }
-        .login-subtitle {
-          text-align: center;
-          color: var(--neon, #40e0d0);
-          margin-bottom: 1.5rem;
-          font-size: 1.1rem;
-        }
-        .login-label {
-          color: var(--neon, #40e0d0);
-          font-weight: 600;
-          margin-bottom: .5rem;
-          display: block;
-        }
-        .login-input {
-          width: 100%;
-          background: var(--field, #012b2b);
-          color: var(--text, #fff);
-          border: 1.5px solid var(--neon, #40e0d0);
-          border-radius: var(--r-sm, 8px);
-          padding: .75rem 1rem;
-          font-size: 1rem;
-        }
-        .login-submit-btn {
-          margin-top: 0.5rem;
-        }
-        .login-error-msg {
-          color: #ff4d4f;
-          font-weight: 600;
-          text-align: center;
-          margin-top: 1rem;
-        }
-        @media (max-width: 600px) {
-          .login-center-panel {
-            min-width: 0;
-            max-width: 98vw;
-            padding: 1.5rem 0.5rem;
-          }
-        }
       `}</style>
-    </div>
+    </>
   );
 }

@@ -12,8 +12,6 @@ export default function UserToolbar() {
 
   return (
     <section className="section-toolbar">
-      <span>User Toolbar</span>
-      
       <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
         {/* Contact Admin Button */}
         <NeonIconButton
@@ -23,6 +21,8 @@ export default function UserToolbar() {
           onClick={handleContactAdmin}
         />
       </div>
+
+      <span>User Toolbar</span>
     </section>
   );
 }

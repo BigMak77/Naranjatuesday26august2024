@@ -2,8 +2,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import { useUser } from "@/lib/useUser";
-import { FiAlertCircle, FiPlus } from "react-icons/fi"; // Add Fi icon import
-import NeonIconButton from "@/components/ui/NeonIconButton"; // Import NeonIconButton
+import NeonPanel from "@/components/NeonPanel";
+import NeonIconButton from "@/components/ui/NeonIconButton";
 
 interface Issue {
   id: number;
@@ -49,13 +49,13 @@ export default function MyIssues() {
     fetchMyAssignedIssues();
   }, [user]);
   return (
-    <div>
-      <h1 className="dashboard-section-title">My Issues</h1>
+    <NeonPanel className="neon-form-padding max-w-2xl mx-auto">
+      <h2 className="neon-form-title">My Issues</h2>
       {loading ? (
         <div>Loading...</div>
       ) : issues.length === 0 ? (
         <div className="flex items-center">
-        
+
           No issues found.
         </div>
       ) : (
@@ -69,18 +69,19 @@ export default function MyIssues() {
                   {new Date(issue.created_at).toLocaleDateString()}
                 </div>
               </div>
-              <button
-                className="my-issues-view-btn"
+              <NeonIconButton
+                variant="view"
+                title="View Issue"
                 onClick={() =>
                   (window.location.href = `/turkus/issues/${issue.id}`)
                 }
               >
-                View Issue
-              </button>
+                View
+              </NeonIconButton>
             </li>
           ))}
         </ul>
       )}
-    </div>
+    </NeonPanel>
   );
 }
