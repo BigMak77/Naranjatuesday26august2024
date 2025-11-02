@@ -17,9 +17,12 @@
   background: #053639 !important;
   min-height: 100vh;
   padding: 0 !important;
+  padding-bottom: 0 !important;
   margin: 0 !important;
   border: none !important;
   box-shadow: none !important;
+  display: flex;
+  flex-direction: column;
 }
 
 .heroPanel {

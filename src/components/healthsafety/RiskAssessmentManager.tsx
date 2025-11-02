@@ -208,41 +208,18 @@ export default function RiskAssessmentManager() {
   };
 
   return (
-    <div style={{ width: "100%", maxWidth: "1400px", margin: "0 auto", padding: "20px" }}>
-      <div style={{ 
-        display: "flex", 
-        justifyContent: "space-between", 
-        alignItems: "center", 
-        marginBottom: "24px",
-        padding: "16px",
-        backgroundColor: "rgba(0, 0, 0, 0.3)",
-        borderRadius: "8px"
-      }}>
-        <h2 className="neon-form-title" style={{ margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
-          <FiClipboard /> Risk Assessments
-        </h2>
-        <NeonIconButton
-          variant="add"
-          title="Create New"
-          onClick={() => {
-            resetForm();
-            setMode("create");
-            setSelectedId(null);
-          }}
-        />
-      </div>
-
+    <div style={{ width: "100%" }}>
       {mode === "list" && (
         <>
           {/* Risk Matrix Visualization */}
           <div style={{
             marginBottom: "24px",
             padding: "20px",
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            border: "1px solid #00ffff",
+            backgroundColor: "var(--panel)",
+            border: "1px solid #fa7a20",
             borderRadius: "8px"
           }}>
-            <h3 style={{ color: "#00ffff", marginBottom: "16px", fontSize: "1.1em" }}>
+            <h3 style={{ color: "var(--header-text)", marginBottom: "16px", fontSize: "var(--font-size-header)", fontWeight: "var(--font-weight-header)" }}>
               Risk Matrix
             </h3>
             <div style={{ overflowX: "auto" }}>
@@ -250,27 +227,27 @@ export default function RiskAssessmentManager() {
                 width: "100%",
                 borderCollapse: "separate",
                 borderSpacing: "4px",
-                fontSize: "0.85em",
+                fontSize: "var(--font-size-base)",
                 tableLayout: "fixed"
               }}>
                 <thead>
                   <tr>
-                    <th style={{ padding: "8px", textAlign: "center", color: "#00ffff", width: "140px" }}>
+                    <th style={{ padding: "8px", textAlign: "center", color: "var(--header-text)", fontWeight: "var(--font-weight-header)", width: "140px" }}>
                       Likelihood →<br/>Severity ↓
                     </th>
-                    <th style={{ padding: "8px", textAlign: "center", color: "#00ffff", width: "calc((100% - 140px) / 5)" }}>
+                    <th style={{ padding: "8px", textAlign: "center", color: "var(--header-text)", fontWeight: "var(--font-weight-header)", width: "calc((100% - 140px) / 5)" }}>
                       1<br/>Rare
                     </th>
-                    <th style={{ padding: "8px", textAlign: "center", color: "#00ffff", width: "calc((100% - 140px) / 5)" }}>
+                    <th style={{ padding: "8px", textAlign: "center", color: "var(--header-text)", fontWeight: "var(--font-weight-header)", width: "calc((100% - 140px) / 5)" }}>
                       2<br/>Unlikely
                     </th>
-                    <th style={{ padding: "8px", textAlign: "center", color: "#00ffff", width: "calc((100% - 140px) / 5)" }}>
+                    <th style={{ padding: "8px", textAlign: "center", color: "var(--header-text)", fontWeight: "var(--font-weight-header)", width: "calc((100% - 140px) / 5)" }}>
                       3<br/>Possible
                     </th>
-                    <th style={{ padding: "8px", textAlign: "center", color: "#00ffff", width: "calc((100% - 140px) / 5)" }}>
+                    <th style={{ padding: "8px", textAlign: "center", color: "var(--header-text)", fontWeight: "var(--font-weight-header)", width: "calc((100% - 140px) / 5)" }}>
                       4<br/>Likely
                     </th>
-                    <th style={{ padding: "8px", textAlign: "center", color: "#00ffff", width: "calc((100% - 140px) / 5)" }}>
+                    <th style={{ padding: "8px", textAlign: "center", color: "var(--header-text)", fontWeight: "var(--font-weight-header)", width: "calc((100% - 140px) / 5)" }}>
                       5<br/>Almost Certain
                     </th>
                   </tr>
@@ -278,7 +255,7 @@ export default function RiskAssessmentManager() {
                 <tbody>
                   {["Critical", "High", "Medium", "Low"].map((sev) => (
                     <tr key={sev}>
-                      <td style={{ padding: "8px", fontWeight: "bold", color: "#00ffff" }}>
+                      <td style={{ padding: "8px", fontWeight: "var(--font-weight-header)", color: "var(--text-white)" }}>
                         {getSeverityNumeric(sev)} - {sev}
                       </td>
                       {[1, 2, 3, 4, 5].map((like) => {
@@ -329,10 +306,10 @@ export default function RiskAssessmentManager() {
                 </tbody>
               </table>
             </div>
-            <div style={{ marginTop: "12px", fontSize: "0.8em", opacity: 0.8 }}>
+            <div style={{ marginTop: "12px", fontSize: "var(--font-size-base)", fontWeight: "var(--font-weight-normal)", opacity: 0.8 }}>
               <strong>Legend:</strong> Green (1-5): Low | Yellow (6-12): Medium | Orange (13-16): High | Red (17-25): Critical
             </div>
-            
+
             {/* Explanatory note about non-linear severity scale */}
             <div style={{
               marginTop: "12px",
@@ -340,8 +317,9 @@ export default function RiskAssessmentManager() {
               backgroundColor: "rgba(255, 165, 0, 0.1)",
               border: "1px solid rgba(255, 165, 0, 0.3)",
               borderRadius: "6px",
-              fontSize: "0.8em",
-              color: "#ffa500",
+              fontSize: "var(--font-size-base)",
+              fontWeight: "var(--font-weight-normal)",
+              color: "var(--status-warning)",
               lineHeight: "1.4"
             }}>
               <strong>Note:</strong> The severity scale uses a non-linear progression (1, 3, 4, 5) to reflect the exponential increase in risk severity. Level 2 is intentionally omitted as there is no meaningful distinction between minor injuries (1) and those requiring medical treatment (3).
@@ -501,8 +479,8 @@ export default function RiskAssessmentManager() {
               {/* Risk Rating Preview - Inline */}
               <div style={{
                 padding: "8px 16px",
-                backgroundColor: "rgba(0, 255, 255, 0.1)",
-                border: "1px solid #00ffff",
+                backgroundColor: "var(--panel)",
+                border: "1px solid #fa7a20",
                 borderRadius: "8px",
                 display: "flex",
                 alignItems: "center",
@@ -515,18 +493,18 @@ export default function RiskAssessmentManager() {
                   padding: "4px 12px",
                   backgroundColor: getRiskColor(calculateRiskRating(severity, likelihood)),
                   color: "#000",
-                  fontWeight: "bold",
-                  fontSize: "1em",
+                  fontWeight: "var(--font-weight-header)",
+                  fontSize: "var(--font-size-base)",
                   borderRadius: "4px",
                   textAlign: "center",
                 }}>
                   {calculateRiskRating(severity, likelihood)}
                 </span>
-                <div style={{ fontSize: "0.85em" }}>
-                  <span style={{ fontWeight: "bold" }}>
+                <div style={{ fontSize: "var(--font-size-base)" }}>
+                  <span style={{ fontWeight: "var(--font-weight-header)" }}>
                     {getRiskLevel(calculateRiskRating(severity, likelihood))}
                   </span>
-                  <span style={{ opacity: 0.7, marginLeft: "4px" }}>
+                  <span style={{ opacity: 0.7, marginLeft: "4px", fontWeight: "var(--font-weight-normal)" }}>
                     ({getSeverityNumeric(severity)} × {likelihood})
                   </span>
                 </div>
@@ -539,8 +517,9 @@ export default function RiskAssessmentManager() {
               backgroundColor: "rgba(255, 165, 0, 0.1)",
               border: "1px solid rgba(255, 165, 0, 0.3)",
               borderRadius: "6px",
-              fontSize: "0.85em",
-              color: "#ffa500",
+              fontSize: "var(--font-size-base)",
+              fontWeight: "var(--font-weight-normal)",
+              color: "var(--status-warning)",
               marginBottom: "16px",
               lineHeight: "1.4"
             }}>
@@ -590,14 +569,15 @@ export default function RiskAssessmentManager() {
             />
 
             {/* Review Period with label */}
-            <div style={{ 
-              display: "flex", 
-              alignItems: "center", 
+            <div style={{
+              display: "flex",
+              alignItems: "center",
               gap: "12px"
             }}>
-              <label style={{ 
-                color: "#00ffff", 
-                fontSize: "0.9em",
+              <label style={{
+                color: "var(--header-text)",
+                fontSize: "var(--font-size-base)",
+                fontWeight: "var(--font-weight-normal)",
                 whiteSpace: "nowrap",
                 minWidth: "fit-content"
               }}>

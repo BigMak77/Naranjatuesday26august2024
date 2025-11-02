@@ -191,11 +191,11 @@ export default function GlobalFooter() {
         </div>
       </div>
 
-      <style jsx>{`
+      <style jsx global>{`
         .globalFooter {
-          background: linear-gradient(135deg, #0d3c47 0%, #1a5866 100%);
-          color: #ffffff;
-          border-top: 3px solid #fa7a20;
+          background: var(--training-bg);
+          color: var(--text-white);
+          border-top: 3px solid var(--neon);
           box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
           position: relative;
         }
@@ -210,7 +210,7 @@ export default function GlobalFooter() {
           background: linear-gradient(
             90deg,
             transparent,
-            rgba(255, 255, 255, 0.1),
+            var(--training-accent-medium),
             transparent
           );
         }
@@ -237,18 +237,18 @@ export default function GlobalFooter() {
         }
 
         .footer__brandName {
-          font-weight: 700;
+          font-weight: var(--font-weight-header);
           letter-spacing: 0.025em;
           font-size: clamp(1.25rem, 2vw, 1.5rem);
-          color: #ffffff;
+          color: var(--text-white);
           margin-bottom: 0.25rem;
           line-height: 1.2;
         }
 
         .footer__tagline {
           font-size: 0.9rem;
-          color: rgba(255, 255, 255, 0.8);
-          font-weight: 400;
+          color: var(--text-white);
+          font-weight: var(--font-weight-normal);
           letter-spacing: 0.01em;
         }
 
@@ -259,7 +259,7 @@ export default function GlobalFooter() {
         }
 
         .footer__addressLine {
-          color: rgba(255, 255, 255, 0.9);
+          color: var(--text-white);
           margin-bottom: 0.375rem;
           font-size: 0.9rem;
         }
@@ -271,8 +271,8 @@ export default function GlobalFooter() {
         }
 
         .footer__contactLink {
-          color: #ffffff;
-          text-decoration: none;
+          color: var(--text-white) !important;
+          text-decoration: none !important;
           font-weight: 500;
           transition: all 0.2s ease;
           display: inline-flex;
@@ -281,14 +281,14 @@ export default function GlobalFooter() {
         }
 
         .footer__contactLink:hover {
-          color: #fa7a20;
+          color: var(--neon) !important;
           transform: translateX(2px);
         }
 
         .footer__registration {
           margin: 0.75rem 0 0;
           font-size: 0.8rem;
-          color: rgba(255, 255, 255, 0.7);
+          color: var(--text-white);
           line-height: 1.4;
         }
 
@@ -301,8 +301,8 @@ export default function GlobalFooter() {
 
         .footer__socialLabel {
           font-size: 0.85rem;
-          font-weight: 600;
-          color: rgba(255, 255, 255, 0.9);
+          font-weight: var(--font-weight-header);
+          color: var(--text-white);
           text-transform: uppercase;
           letter-spacing: 0.05em;
         }
@@ -321,19 +321,19 @@ export default function GlobalFooter() {
           height: 2.25rem;
           border-radius: 6px;
           transition: all 0.2s ease;
-          background: rgba(255, 255, 255, 0.1);
+          background: var(--training-accent-medium);
           backdrop-filter: blur(10px);
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          border: 1px solid var(--training-accent-medium);
         }
 
         .footer__icon:hover {
           transform: translateY(-2px);
-          background: rgba(255, 255, 255, 0.15);
+          background: var(--training-accent-light);
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
         .footer__icon:focus-visible {
-          outline: 2px solid #fa7a20;
+          outline: 2px solid var(--neon);
           outline-offset: 2px;
         }
 
@@ -367,10 +367,10 @@ export default function GlobalFooter() {
           font-size: 0.85rem;
           text-transform: uppercase;
           letter-spacing: 0.1em;
-          color: #ffffff;
-          font-weight: 600;
+          color: var(--text-white);
+          font-weight: var(--font-weight-header);
           padding-bottom: 0.25rem;
-          border-bottom: 2px solid rgba(250, 122, 32, 0.3);
+          border-bottom: 2px solid var(--training-accent);
         }
 
         .footer__list {
@@ -382,8 +382,8 @@ export default function GlobalFooter() {
         }
 
         .footer__link {
-          color: rgba(255, 255, 255, 0.9);
-          text-decoration: none;
+          color: var(--text-white) !important;
+          text-decoration: none !important;
           transition: all 0.2s ease;
           font-size: 0.9rem;
           position: relative;
@@ -397,12 +397,12 @@ export default function GlobalFooter() {
           height: 1px;
           bottom: -2px;
           left: 0;
-          background-color: #fa7a20;
+          background-color: var(--neon);
           transition: width 0.2s ease;
         }
 
         .footer__link:hover {
-          color: #ffffff;
+          color: var(--neon) !important;
           transform: translateX(4px);
         }
 
@@ -411,7 +411,7 @@ export default function GlobalFooter() {
         }
 
         .footer__link:focus-visible {
-          outline: 2px solid #fa7a20;
+          outline: 2px solid var(--neon);
           outline-offset: 2px;
           border-radius: 4px;
         }
@@ -421,7 +421,7 @@ export default function GlobalFooter() {
           background: linear-gradient(
             90deg,
             transparent,
-            rgba(255, 255, 255, 0.2),
+            var(--training-accent-medium),
             transparent
           );
           margin: clamp(12px, 1.5vw, 18px) 0;
@@ -437,7 +437,7 @@ export default function GlobalFooter() {
           align-items: center;
           justify-content: space-between;
           font-size: 0.85rem;
-          color: rgba(255, 255, 255, 0.8);
+          color: var(--text-white);
         }
 
         .footer__legalLinks {
@@ -453,107 +453,15 @@ export default function GlobalFooter() {
           font-weight: 500;
         }
 
-        /* Enhanced brand colors for social media icons */
-        .footer__icon--linkedin,
-        .footer__icon--linkedin svg,
-        .footer__icon--linkedin * {
-          color: #0a66c2 !important;
-          stroke: none !important;
-          fill: #0a66c2 !important;
-        }
-        .footer__icon--linkedin:hover {
-          background: rgba(10, 102, 194, 0.1) !important;
-        }
-        .footer__icon--linkedin:hover,
-        .footer__icon--linkedin:hover svg,
-        .footer__icon--linkedin:hover * {
-          color: #004182 !important;
-          fill: #004182 !important;
+        /* Social media icons - all white */
+        .footer__icon svg {
+          color: var(--text-white);
+          fill: var(--text-white);
         }
 
-        .footer__icon--x,
-        .footer__icon--x svg,
-        .footer__icon--x * {
-          color: #000000 !important;
-          stroke: none !important;
-          fill: #000000 !important;
-        }
-        .footer__icon--x:hover {
-          background: rgba(0, 0, 0, 0.1) !important;
-        }
-        .footer__icon--x:hover,
-        .footer__icon--x:hover svg,
-        .footer__icon--x:hover * {
-          color: #333333 !important;
-          fill: #333333 !important;
-        }
-
-        .footer__icon--youtube,
-        .footer__icon--youtube svg,
-        .footer__icon--youtube * {
-          color: #ff0000 !important;
-          stroke: none !important;
-          fill: #ff0000 !important;
-        }
-        .footer__icon--youtube:hover {
-          background: rgba(255, 0, 0, 0.1) !important;
-        }
-        .footer__icon--youtube:hover,
-        .footer__icon--youtube:hover svg,
-        .footer__icon--youtube:hover * {
-          color: #cc0000 !important;
-          fill: #cc0000 !important;
-        }
-
-        .footer__icon--facebook,
-        .footer__icon--facebook svg,
-        .footer__icon--facebook * {
-          color: #1877f2 !important;
-          stroke: none !important;
-          fill: #1877f2 !important;
-        }
-        .footer__icon--facebook:hover {
-          background: rgba(24, 119, 242, 0.1) !important;
-        }
-        .footer__icon--facebook:hover,
-        .footer__icon--facebook:hover svg,
-        .footer__icon--facebook:hover * {
-          color: #166fe5 !important;
-          fill: #166fe5 !important;
-        }
-
-        .footer__icon--instagram,
-        .footer__icon--instagram svg,
-        .footer__icon--instagram * {
-          color: #e4405f !important;
-          stroke: none !important;
-          fill: #e4405f !important;
-        }
-        .footer__icon--instagram:hover {
-          background: rgba(228, 64, 95, 0.1) !important;
-        }
-        .footer__icon--instagram:hover,
-        .footer__icon--instagram:hover svg,
-        .footer__icon--instagram:hover * {
-          color: #c13584 !important;
-          fill: #c13584 !important;
-        }
-
-        .footer__icon--email,
-        .footer__icon--email svg,
-        .footer__icon--email * {
-          color: #ea4335 !important;
-          stroke: none !important;
-          fill: #ea4335 !important;
-        }
-        .footer__icon--email:hover {
-          background: rgba(234, 67, 53, 0.1) !important;
-        }
-        .footer__icon--email:hover,
-        .footer__icon--email:hover svg,
-        .footer__icon--email:hover * {
-          color: #c5221f !important;
-          fill: #c5221f !important;
+        .footer__icon:hover svg {
+          color: var(--neon);
+          fill: var(--neon);
         }
 
         @media (max-width: 640px) {
