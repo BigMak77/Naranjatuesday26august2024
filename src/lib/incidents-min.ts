@@ -28,7 +28,9 @@ export async function saveIncident(values: MinimalIncidentForm) {
     .from("incidents")
     .insert({
       incident_type: values.incidentType,
+      severity: values.severity,
       description: values.description,
+      immediate_action: values.immediateAction || null,
       site: values.site,
       area: values.area || null,
       zone: values.zone || null,
@@ -41,6 +43,11 @@ export async function saveIncident(values: MinimalIncidentForm) {
       weather_conditions: values.weatherConditions || null,
       temperature: values.temperature || null,
       visibility: values.visibility || null,
+      injury_type: values.injuryType || null,
+      body_part_affected: values.bodyPartAffected || null,
+      treatment_given: values.treatmentGiven || null,
+      equipment_damaged: values.equipmentDamaged || null,
+      estimated_cost: values.estimatedCost || null,
       reported_by: user.id,
       status: "open",
     })

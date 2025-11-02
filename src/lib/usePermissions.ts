@@ -24,6 +24,12 @@ export function usePermissions() {
     return canAccessRoute(user?.access_level, requiredLevels);
   };
 
+  // Check if user has a specific granular permission (from permissions array)
+  const hasGranularPermission = (permissionKey: string): boolean => {
+    if (!user?.permissions) return false;
+    return user.permissions.includes(permissionKey);
+  };
+
   // Role check helpers
   const isSuperAdmin = () => user?.access_level?.toLowerCase() === "super admin";
   const isAdmin = () => user?.access_level?.toLowerCase() === "admin";
@@ -46,6 +52,7 @@ export function usePermissions() {
     loading,
     checkPermission,
     checkRouteAccess,
+    hasGranularPermission,
 
     // Role checks
     isSuperAdmin,
@@ -74,5 +81,36 @@ export function usePermissions() {
     canViewAllDepartments: canViewAllDepartments(user?.access_level),
     canViewAllShifts: canViewAllShifts(user?.access_level),
     canManageTraining: checkPermission("canManageTraining"),
+
+    // Granular permission helpers for first aiders and safety reps
+    canAddFirstAidReport: hasGranularPermission("health-safety:add-first-aid-report") ||
+                          hasGranularPermission("health-safety:manage-first-aid") ||
+                          isHSAdmin() ||
+                          isSuperAdmin() ||
+                          isAdmin(),
+    canEditFirstAidReport: hasGranularPermission("health-safety:edit-first-aid-report") ||
+                           hasGranularPermission("health-safety:manage-first-aid") ||
+                           isHSAdmin() ||
+                           isSuperAdmin() ||
+                           isAdmin(),
+    canAddRiskAssessment: hasGranularPermission("health-safety:add-risk-assessment") ||
+                          hasGranularPermission("health-safety:manage-risk-assessments") ||
+                          isHSAdmin() ||
+                          isSuperAdmin() ||
+                          isAdmin(),
+    canEditRiskAssessment: hasGranularPermission("health-safety:edit-risk-assessment") ||
+                           hasGranularPermission("health-safety:manage-risk-assessments") ||
+                           isHSAdmin() ||
+                           isSuperAdmin() ||
+                           isAdmin(),
+    canApproveRiskAssessment: hasGranularPermission("health-safety:approve-risk-assessment") ||
+                              hasGranularPermission("health-safety:manage-risk-assessments") ||
+                              isHSAdmin() ||
+                              isSuperAdmin() ||
+                              isAdmin(),
+    isFirstAider: hasGranularPermission("health-safety:add-first-aid-report") ||
+                  hasGranularPermission("health-safety:manage-first-aid"),
+    isSafetyRep: hasGranularPermission("health-safety:add-risk-assessment") ||
+                 hasGranularPermission("health-safety:manage-risk-assessments"),
   };
 }

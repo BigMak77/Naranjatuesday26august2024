@@ -4,9 +4,14 @@ import React, { useState } from "react";
 import { FiHeart, FiPlus, FiMail } from "react-icons/fi";
 import NeonIconButton from "@/components/ui/NeonIconButton";
 import AddFirstAidWidget from "@/components/healthsafety/AddFirstAidWidget";
+import { usePermissions } from "@/lib/usePermissions";
 
 export default function HealthSafetyToolbar() {
+  const { canAddFirstAidReport, isHSAdmin, isSuperAdmin, isAdmin } = usePermissions();
   const [showAddFirstAidWidget, setShowAddFirstAidWidget] = useState(false);
+
+  // Check if user can manage first aiders (add first aid designations)
+  const canManageFirstAiders = canAddFirstAidReport || isHSAdmin || isSuperAdmin || isAdmin;
 
   const handleContactAdmin = () => {
     console.log('Contact Admin clicked');
@@ -20,12 +25,14 @@ export default function HealthSafetyToolbar() {
         <div className="inner">
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-              <NeonIconButton
-                variant="add"
-                icon={<FiPlus />}
-                title="Add First Aid Designation"
-                onClick={() => setShowAddFirstAidWidget(!showAddFirstAidWidget)}
-              />
+              {canManageFirstAiders && (
+                <NeonIconButton
+                  variant="add"
+                  icon={<FiPlus />}
+                  title="Add First Aid Designation"
+                  onClick={() => setShowAddFirstAidWidget(!showAddFirstAidWidget)}
+                />
+              )}
               <NeonIconButton
                 variant="view"
                 icon={<FiHeart />}

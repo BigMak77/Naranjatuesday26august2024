@@ -83,7 +83,7 @@ export default function ManagerPageWrapper() {
         return (
           <div className="neon-card neon-form-padding">
             <h2 className="neon-heading">My Team Tasks</h2>
-            <p style={{ color: "var(--text)" }}>
+            <p className="neon-text">
               Team task management - Coming soon.
             </p>
           </div>
@@ -94,7 +94,7 @@ export default function ManagerPageWrapper() {
         return (
           <div className="neon-card neon-form-padding">
             <h2 className="neon-heading">My Team Audits</h2>
-            <p style={{ color: "var(--text)" }}>
+            <p className="neon-text">
               Team audit management and compliance tracking - Coming soon.
             </p>
           </div>

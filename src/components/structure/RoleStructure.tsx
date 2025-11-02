@@ -283,7 +283,7 @@ export default function Structure() {
 
   if (loading) return (
     <div className="neon-panel">
-      <div className="text-center py-8 text-neon">Loading…</div>
+      <div style={{ textAlign: 'center', padding: '2rem 0', color: 'var(--neon)' }}>Loading…</div>
     </div>
   );
 

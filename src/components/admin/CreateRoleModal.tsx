@@ -139,28 +139,42 @@ export default function CreateRoleModal({
 
         {/* Error Message */}
         {error && (
-          <div className="mb-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg text-sm">
+          <div className="neon-panel" style={{
+            marginBottom: '1rem',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid var(--text-error)',
+            color: 'var(--text-error)',
+            padding: '0.75rem 1rem',
+            fontSize: 'var(--font-size-base)'
+          }}>
             {error}
           </div>
         )}
 
         {/* Info Message */}
         {departments.length === 0 && !loadingDepartments && (
-          <div className="mb-4 bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg text-sm">
+          <div className="neon-panel" style={{
+            marginBottom: '1rem',
+            backgroundColor: 'rgba(234, 179, 8, 0.1)',
+            border: '1px solid #eab308',
+            color: '#eab308',
+            padding: '0.75rem 1rem',
+            fontSize: 'var(--font-size-base)'
+          }}>
             <strong>No departments found.</strong> Create a department first before adding roles.
           </div>
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Department <span className="text-red-500">*</span>
+            <label className="neon-form-label">
+              Department <span style={{ color: 'var(--text-error)' }}>*</span>
             </label>
             <select
               value={departmentId}
               onChange={(e) => setDepartmentId(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              className="neon-input"
               required
               disabled={loading || loadingDepartments}
             >
@@ -172,20 +186,20 @@ export default function CreateRoleModal({
               ))}
             </select>
             {loadingDepartments && (
-              <p className="text-sm text-gray-500 mt-1">Loading departments...</p>
+              <p style={{ fontSize: 'var(--font-size-base)', color: 'var(--text-white)', opacity: 0.7, marginTop: '0.25rem' }}>Loading departments...</p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Role Name <span className="text-red-500">*</span>
+            <label className="neon-form-label">
+              Role Name <span style={{ color: 'var(--text-error)' }}>*</span>
             </label>
             <input
               type="text"
               value={roleName}
               onChange={(e) => setRoleName(e.target.value)}
               placeholder="e.g., Software Developer, Marketing Manager"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              className="neon-input"
               required
               disabled={loading}
               autoFocus
@@ -193,7 +207,7 @@ export default function CreateRoleModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="neon-form-label">
               Description (Optional)
             </label>
             <textarea
@@ -201,34 +215,59 @@ export default function CreateRoleModal({
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Brief description of this role"
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              style={{
+                width: '100%',
+                background: 'var(--field)',
+                color: 'var(--text-white)',
+                fontSize: 'var(--font-size-base)',
+                fontFamily: 'var(--font-family)',
+                border: '1px solid var(--border)',
+                borderRadius: '6px',
+                padding: '0.75rem 1rem'
+              }}
               disabled={loading}
             />
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 pt-4">
+          <div style={{ display: 'flex', gap: '0.75rem', paddingTop: '1rem' }}>
             <button
               type="button"
               onClick={handleClose}
               disabled={loading}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+              className="neon-btn-cancel transition-colors"
+              style={{ flex: 1, opacity: loading ? 0.5 : 1 }}
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading || !roleName.trim() || !departmentId || departments.length === 0}
-              className="flex-1 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              className="neon-btn-primary transition-colors"
+              style={{ 
+                flex: 1, 
+                opacity: (loading || !roleName.trim() || !departmentId || departments.length === 0) ? 0.5 : 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem'
+              }}
             >
               {loading ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <div style={{
+                    width: '16px',
+                    height: '16px',
+                    border: '2px solid #fff',
+                    borderTop: '2px solid transparent',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite'
+                  }} />
                   Creating...
                 </>
               ) : (
                 <>
-                  <FiCheck className="w-4 h-4" />
+                  <FiCheck style={{ width: '16px', height: '16px' }} />
                   Create Role
                 </>
               )}

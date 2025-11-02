@@ -740,17 +740,23 @@ export default function NewEmployeeWizard() {
   // Render helpers
   function renderModeSelection() {
     return (
-      <div className="flex flex-col gap-8">
-        <div className="text-center">
-          <h2 className="neon-heading text-lg mb-2">Choose Onboarding Method</h2>
-          <p className="text-sm opacity-75">Select how you'd like to add employees to the system</p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        <div style={{ textAlign: 'center' }}>
+          <h2 className="neon-heading" style={{ fontSize: '1.125rem', marginBottom: '0.5rem' }}>Choose Onboarding Method</h2>
+          <p style={{ fontSize: 'var(--font-size-base)', opacity: 0.75 }}>Select how you'd like to add employees to the system</p>
         </div>
 
-        <div className="grid grid-auto-fit gap-6 max-w-4xl mx-auto">
+        <div className="stats-grid" style={{ maxWidth: '64rem', margin: '0 auto' }}>
           <button
             onClick={() => setMode("single")}
-            className="card-container flex flex-col items-center gap-4 cursor-pointer transition hover-lift"
-            style={{ boxShadow: '0 0 8px var(--neon)' }}
+            className="card-container cursor-pointer transition"
+            style={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              gap: '1rem',
+              boxShadow: '0 0 8px var(--neon)' 
+            }}
             onMouseOver={(e) => {
               e.currentTarget.style.boxShadow = '0 0 16px var(--neon)';
               e.currentTarget.style.transform = 'translateY(-2px)';
@@ -761,8 +767,8 @@ export default function NewEmployeeWizard() {
             }}
           >
             <FiUser style={{ width: '64px', height: '64px', color: 'var(--accent)' }} />
-            <h3 className="neon-heading text-base mb-2">Single Employee</h3>
-            <p className="text-sm text-center">
+            <h3 className="neon-heading" style={{ fontSize: 'var(--font-size-subheader)', marginBottom: '0.5rem' }}>Single Employee</h3>
+            <p style={{ fontSize: 'var(--font-size-base)', textAlign: 'center' }}>
               Step-by-step wizard for adding one employee with full customization
             </p>
           </button>
@@ -947,8 +953,12 @@ export default function NewEmployeeWizard() {
 
           {/* Department & Role Section */}
           <div style={{ gridColumn: '1 / -1' }}>
-            <div className="border-t pt-6 mt-6">
-              <h4 className="neon-heading text-sm mb-4">Department & Role</h4>
+            <div style={{ 
+              borderTop: '1px solid rgba(64, 224, 208, 0.18)', 
+              paddingTop: '1.5rem', 
+              marginTop: '1.5rem' 
+            }}>
+              <h4 className="neon-heading" style={{ fontSize: 'var(--font-size-base)', marginBottom: '1rem' }}>Department & Role</h4>
               <div className="grid grid-auto-fit gap-4">
                 <div>
                   <div className="flex items-center justify-between mb-2">
@@ -1082,7 +1092,7 @@ export default function NewEmployeeWizard() {
                 handleSingleFieldChange("department_id", e.target.value);
                 handleSingleFieldChange("role_id", ""); // Reset role when department changes
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              className="neon-input"
               required
             >
               <option value="">Select Department</option>
@@ -1114,7 +1124,7 @@ export default function NewEmployeeWizard() {
             <select
               value={singleEmployee.role_id}
               onChange={(e) => handleSingleFieldChange("role_id", e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              className="neon-input"
               disabled={!singleEmployee.department_id}
               required
             >
@@ -1171,8 +1181,16 @@ export default function NewEmployeeWizard() {
               {PERMISSION_OPTIONS.map(perm => (
                 <label
                   key={perm.id}
-                  className="flex items-start gap-3 p-3 border-neon rounded-lg cursor-pointer transition"
-                  style={{ background: 'var(--field)' }}
+                  className="cursor-pointer transition"
+                  style={{ 
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '0.75rem',
+                    padding: '0.75rem',
+                    border: '1px solid var(--neon)',
+                    borderRadius: '8px',
+                    background: 'var(--field)'
+                  }}
                   onMouseOver={(e) => e.currentTarget.style.background = 'rgba(64, 224, 208, 0.1)'}
                   onMouseOut={(e) => e.currentTarget.style.background = 'var(--field)'}
                 >

@@ -106,7 +106,12 @@ export default function DocumentTypeTable() {
   return (
     <NeonPanel>
       <div style={{ height: 24 }} />
-      <div className="flex items-center justify-end mb-4">
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'flex-end', 
+        marginBottom: '1rem' 
+      }}>
         <NeonIconButton
           variant="add"
           title="Add Document Type"

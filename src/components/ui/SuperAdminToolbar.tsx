@@ -106,91 +106,92 @@ export default function SuperAdminToolbar() {
 
   return (
     <section className="section-toolbar">
-      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-        {/* Admin Sections Dropdown */}
-        <div ref={dropdownRef} style={{ position: "relative" }}>
-          <button
-            className="neon-btn neon-btn-list"
-            onClick={handleToggle}
-            aria-label="Select admin section"
-            aria-expanded={isOpen}
-            type="button"
+      {/* Admin Sections Dropdown */}
+      <div ref={dropdownRef} style={{ position: "relative", gridColumn: "1" }}>
+        <button
+          className="neon-btn neon-btn-list"
+          onClick={handleToggle}
+          aria-label="Select admin section"
+          aria-expanded={isOpen}
+          type="button"
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="8" y1="6" x2="21" y2="6"></line>
-              <line x1="8" y1="12" x2="21" y2="12"></line>
-              <line x1="8" y1="18" x2="21" y2="18"></line>
-              <line x1="3" y1="6" x2="3.01" y2="6"></line>
-              <line x1="3" y1="12" x2="3.01" y2="12"></line>
-              <line x1="3" y1="18" x2="3.01" y2="18"></line>
-            </svg>
-          </button>
-
-          {isOpen && (
-            <div className="list-button-dropdown">
-              <div className="list-button-dropdown-header">Admin Sections</div>
-              <ul className="list-button-dropdown-list">
-                {adminSections.map(({ section, label, path, description }) => (
-                  <li key={section}>
-                    <button
-                      className={`list-button-dropdown-item ${selectedSection === section ? "active" : ""}`}
-                      onClick={() => handleSectionSelect(section, path)}
-                      type="button"
-                      title={description}
-                    >
-                      {label}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-
-        {/* Health & Safety Button */}
-        <button
-          className="neon-btn neon-btn-icon"
-          onClick={handleHealthSafetyClick}
-          aria-label="Health & Safety"
-          title="Health & Safety"
-          type="button"
-        >
-          <FiHeart size={18} />
+            <line x1="8" y1="6" x2="21" y2="6"></line>
+            <line x1="8" y1="12" x2="21" y2="12"></line>
+            <line x1="8" y1="18" x2="21" y2="18"></line>
+            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+          </svg>
         </button>
 
-        {/* Turkus Button */}
-        <button
-          className="neon-btn neon-btn-icon"
-          onClick={handleTurkusClick}
-          aria-label="Turkus Issues"
-          title="Turkus Issues"
-          type="button"
-        >
-          <FiShield size={18} />
-        </button>
-
-        {/* Contact Support Button */}
-        <button
-          className="neon-btn neon-btn-icon"
-          onClick={handleContactAdmin}
-          aria-label="Contact Support"
-          title="Contact Support"
-          type="button"
-        >
-          <FiMail size={18} />
-        </button>
+        {isOpen && (
+          <div className="list-button-dropdown">
+            <div className="list-button-dropdown-header">Admin Sections</div>
+            <ul className="list-button-dropdown-list">
+              {adminSections.map(({ section, label, path, description }) => (
+                <li key={section}>
+                  <button
+                    className={`list-button-dropdown-item ${selectedSection === section ? "active" : ""}`}
+                    onClick={() => handleSectionSelect(section, path)}
+                    type="button"
+                    title={description}
+                  >
+                    {label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
-      <span>Super Admin Toolbar</span>
+      {/* Health & Safety Button */}
+      <button
+        className="neon-btn neon-btn-icon"
+        onClick={handleHealthSafetyClick}
+        aria-label="Health & Safety"
+        title="Health & Safety"
+        type="button"
+        style={{ gridColumn: "2" }}
+      >
+        <FiHeart size={18} />
+      </button>
+
+      {/* Turkus Button */}
+      <button
+        className="neon-btn neon-btn-icon"
+        onClick={handleTurkusClick}
+        aria-label="Turkus Issues"
+        title="Turkus Issues"
+        type="button"
+        style={{ gridColumn: "3" }}
+      >
+        <FiShield size={18} />
+      </button>
+
+      {/* Contact Support Button */}
+      <button
+        className="neon-btn neon-btn-icon"
+        onClick={handleContactAdmin}
+        aria-label="Contact Support"
+        title="Contact Support"
+        type="button"
+        style={{ gridColumn: "4" }}
+      >
+        <FiMail size={18} />
+      </button>
+
+      <span style={{ gridColumn: "5 / -1", paddingLeft: "0.5rem" }}>Super Admin Toolbar</span>
     </section>
   );
 }

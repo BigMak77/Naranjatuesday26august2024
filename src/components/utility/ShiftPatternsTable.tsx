@@ -119,7 +119,12 @@ export default function ShiftPatternsTable() {
   return (
     <NeonPanel>
       <div style={{ height: 24 }} />
-      <div className="flex items-center justify-end mb-4">
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'flex-end', 
+        marginBottom: '1rem' 
+      }}>
         <NeonIconButton
           variant="add"
           title="Add Shift Pattern"
@@ -187,7 +192,7 @@ export default function ShiftPatternsTable() {
             onChange={e => setNewEnd(e.target.value)}
             required
           />
-          {error && <div className="neon-error mt-2">{error}</div>}
+          {error && <div className="neon-error" style={{ marginTop: '0.5rem' }}>{error}</div>}
         </NeonForm>
       </OverlayDialog>
       <OverlayDialog open={!!editDialog} onClose={() => setEditDialog(null)}>
@@ -222,7 +227,7 @@ export default function ShiftPatternsTable() {
             onChange={e => setEditEnd(e.target.value)}
             required
           />
-          {error && <div className="neon-error mt-2">{error}</div>}
+          {error && <div className="neon-error" style={{ marginTop: '0.5rem' }}>{error}</div>}
         </NeonForm>
       </OverlayDialog>
     </NeonPanel>

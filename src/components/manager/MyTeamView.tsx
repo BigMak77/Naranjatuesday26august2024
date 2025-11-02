@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import "../../app/globals.css";
 import { supabase } from "@/lib/supabase-client";
 import { useUser } from "@/lib/useUser";
 import NeonIconButton from "@/components/ui/NeonIconButton";
@@ -154,7 +155,7 @@ export default function MyTeamView() {
     <div>
       {/* Training Compliance Widget */}
       {department && (
-        <div style={{ marginBottom: "2rem" }}>
+        <div className="widget-spacing">
           <DepartmentTrainingWidget
             departmentId={department.id}
             departmentName={department.name}
@@ -165,51 +166,51 @@ export default function MyTeamView() {
       {/* Team Members Table */}
       <div className="neon-card neon-form-padding">
         <div className="mb-6">
-          <div className="flex items-center gap-2">
+          <div className="neon-header-row">
             <h2 className="neon-heading">My Team</h2>
             <CustomTooltip text="View all members of your department. To request changes to team member data, use the 'Notify HR Admin' button.">
-              <span className="text-gray-400 hover:text-white transition-colors cursor-help inline-flex">
+              <span className="neon-help-icon">
                 <FiHelpCircle size={18} />
               </span>
             </CustomTooltip>
           </div>
           {department && (
-            <p className="text-gray-400 mt-1">
-              Department: <span className="text-white">{department.name}</span>
+            <p className="neon-subtitle">
+              Department: <span className="neon-highlight">{department.name}</span>
             </p>
           )}
         </div>
 
         {teamMembers.length === 0 ? (
-          <div className="text-center py-8 text-gray-400">
+          <div className="neon-empty-state">
             No team members found in this department.
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="neon-table w-full">
+            <table className="neon-table">
               <thead>
                 <tr>
-                  <th className="text-left">
+                  <th className="neon-table-header-left">
                     <CustomTooltip text="Full name of the team member">
                       <span>Name</span>
                     </CustomTooltip>
                   </th>
-                  <th className="text-left">
+                  <th className="neon-table-header-left">
                     <CustomTooltip text="Team member's email address">
                       <span>Email</span>
                     </CustomTooltip>
                   </th>
-                  <th className="text-left">
+                  <th className="neon-table-header-left">
                     <CustomTooltip text="User role: Admin (full access), Manager (department management), or User (standard access)">
                       <span>Access Level</span>
                     </CustomTooltip>
                   </th>
-                  <th className="text-left">
+                  <th className="neon-table-header-left">
                     <CustomTooltip text="Date when the team member started with the company">
                       <span>Start Date</span>
                     </CustomTooltip>
                   </th>
-                  <th className="text-center">
+                  <th className="neon-table-header-center">
                     <CustomTooltip text="Contact HR Admin to request changes to team member information">
                       <span>Actions</span>
                     </CustomTooltip>
@@ -219,7 +220,7 @@ export default function MyTeamView() {
               <tbody>
                 {teamMembers.map((member) => (
                   <tr key={member.id}>
-                    <td className="font-medium">
+                    <td className="neon-table-name">
                       {`${member.first_name || ""} ${member.last_name || ""}`.trim() || "—"}
                     </td>
                     <td>{member.email || "—"}</td>
@@ -231,12 +232,12 @@ export default function MyTeamView() {
                           ? 'Manager: Can view and manage department team members'
                           : 'User: Standard employee access'
                       }>
-                        <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                        <span className={`neon-badge ${
                           member.access_level?.toLowerCase() === 'manager'
-                            ? 'bg-orange-500 text-white'
+                            ? 'neon-badge-manager'
                             : member.access_level?.toLowerCase() === 'admin'
-                            ? 'bg-red-500 text-white'
-                            : 'bg-gray-600 text-gray-200'
+                            ? 'neon-badge-admin'
+                            : 'neon-badge-user'
                         }`}>
                           {member.access_level || "User"}
                         </span>
@@ -244,7 +245,7 @@ export default function MyTeamView() {
                     </td>
                     <td>{member.start_date || "—"}</td>
                     <td>
-                      <div className="flex justify-center gap-2">
+                      <div className="neon-actions-cell">
                         <CustomTooltip text="Send a notification to HR Admin to request updates or changes for this team member">
                           <NeonIconButton
                             variant="send"
@@ -262,7 +263,7 @@ export default function MyTeamView() {
         )}
 
         <CustomTooltip text="Total number of employees in your department">
-          <div className="mt-4 text-sm text-gray-400 inline-block">
+          <div className="neon-table-footer">
             Total team members: {teamMembers.length}
           </div>
         </CustomTooltip>

@@ -49,8 +49,8 @@ function StructureTree({ nodes, level = 2, users }: StructureTreeProps) {
     }
   };
 
-  const vibrantBg = "#1e1e28";
-  const mutedBg = "#244d4d";
+  const vibrantBg = "var(--panel)";
+  const mutedBg = "var(--field)";
 
   // Which node (if any) is expanded at this level?
   const expandedNode = nodes.find((n) => n.id === expandedId) || null;
@@ -128,11 +128,11 @@ function StructureTree({ nodes, level = 2, users }: StructureTreeProps) {
                     padding: "12px 16px",
                     borderRadius: 12,
                     background:
-                      level === 2 ? (isMuted ? mutedBg : vibrantBg) : "#23232e",
+                      level === 2 ? (isMuted ? mutedBg : vibrantBg) : "var(--panel)",
                     border: isExpanded
-                      ? "1.5px solid #00fff7"
-                      : "1.5px solid #222",
-                    color: "#fff",
+                      ? "1.5px solid var(--neon)"
+                      : "1.5px solid var(--border)",
+                    color: "var(--text-white)",
                     fontWeight: 500,
                     transition: "background 0.2s, border 0.2s",
                     textAlign: "center",
@@ -153,8 +153,8 @@ function StructureTree({ nodes, level = 2, users }: StructureTreeProps) {
                         width: 22,
                         height: 22,
                         borderRadius: "50%",
-                        background: "#00fff7",
-                        color: "#1e1e28",
+                        background: "var(--neon)",
+                        color: "var(--panel)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -179,7 +179,7 @@ function StructureTree({ nodes, level = 2, users }: StructureTreeProps) {
                     <div
                       style={{
                         fontSize: 12,
-                        color: "#00fff7",
+                        color: "var(--neon)",
                         marginBottom: 4,
                         fontWeight: 600,
                       }}
@@ -321,7 +321,7 @@ export default function Structure() {
 
   if (loading) return (
     <div className="neon-panel">
-      <div className="text-center py-8 text-neon">Loading…</div>
+      <div style={{ textAlign: 'center', padding: '2rem 0', color: 'var(--neon)' }}>Loading…</div>
     </div>
   );
 
@@ -438,7 +438,7 @@ function ChangeManagerButton({
         >
           <div
             style={{
-              background: "#23232e",
+              background: "var(--panel)",
               padding: 24,
               borderRadius: 12,
               minWidth: 320,
@@ -446,7 +446,7 @@ function ChangeManagerButton({
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ fontWeight: 600, color: "#fff", marginBottom: 12 }}>
+            <div style={{ fontWeight: 600, color: "var(--text-white)", marginBottom: 12 }}>
               Change Manager Assignment
             </div>
             <div style={{ marginBottom: 12 }}>
@@ -609,7 +609,7 @@ function AssignManagerButton({
         >
           <div
             style={{
-              background: "#23232e",
+              background: "var(--panel)",
               padding: 24,
               borderRadius: 12,
               minWidth: 320,
@@ -617,11 +617,11 @@ function AssignManagerButton({
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ fontWeight: 600, color: "#fff", marginBottom: 12 }}>
+            <div style={{ fontWeight: 600, color: "var(--text-white)", marginBottom: 12 }}>
               Assign Manager
             </div>
             <form onSubmit={handleSubmit}>
-              <label style={{ color: "#fff", fontSize: 13 }}>Department:</label>
+              <label style={{ color: "var(--text-white)", fontSize: 13 }}>Department:</label>
               <select
                 value={departmentId}
                 onChange={handleDeptChange}

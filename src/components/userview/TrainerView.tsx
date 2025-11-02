@@ -1027,7 +1027,13 @@ export default function TrainerRecordingPage({
             <FiFilter aria-hidden />
             <select
               aria-label="Filter by department"
-              className="w-full bg-transparent outline-none"
+              style={{ 
+                width: '100%', 
+                background: 'transparent', 
+                outline: 'none',
+                border: 'none',
+                color: 'var(--text-white)'
+              }}
               value={dept}
               onChange={(e) => setDept(e.target.value)}
             >

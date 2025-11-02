@@ -90,12 +90,15 @@ export default function AssignmentSyncButtons({ userId, onComplete }: Assignment
   };
 
   return (
-    <div className="bg-white border rounded-lg p-6">
-      <h3 className="text-xl font-semibold mb-4">Assignment Sync Controls</h3>
+    <div className="neon-panel" style={{
+      backgroundColor: 'white',
+      color: '#000'
+    }}>
+      <h3 className="neon-heading" style={{ marginBottom: '1rem' }}>Assignment Sync Controls</h3>
       
-      <div className="space-y-4">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         {/* Scan Button */}
-        <div className="flex items-center gap-4">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <CustomTooltip text="Scan for legacy assignment issues">
             <Button onClick={handleScan} variant="secondary">
               🔍 Scan for Legacy Assignments

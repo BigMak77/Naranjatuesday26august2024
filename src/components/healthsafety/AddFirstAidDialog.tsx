@@ -218,7 +218,7 @@ export default function AddFirstAidDialog({ open, onClose, onAdded }: AddFirstAi
               style={{
                 flex: 1,
                 height: 4,
-                backgroundColor: stage >= stageNum ? "#22c55e" : "#374151",
+                backgroundColor: stage >= stageNum ? "var(--status-success)" : "var(--border)",
                 borderRadius: 2
               }}
             />
@@ -260,7 +260,7 @@ export default function AddFirstAidDialog({ open, onClose, onAdded }: AddFirstAi
                 overflowY: 'auto', 
                 border: '1px solid #374151', 
                 borderRadius: 6, 
-                backgroundColor: '#1f2937' 
+                backgroundColor: 'var(--panel)' 
               }}>
                 {searchResults.map(user => (
                   <div
@@ -273,7 +273,7 @@ export default function AddFirstAidDialog({ open, onClose, onAdded }: AddFirstAi
                       transition: 'background-color 0.2s'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#374151';
+                      e.currentTarget.style.backgroundColor = 'var(--field)';
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.backgroundColor = 'transparent';

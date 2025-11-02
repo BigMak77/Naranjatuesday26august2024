@@ -265,22 +265,22 @@ export default function ModuleTabs({
           <EditModuleTab module={module} onSuccess={onModuleUpdate} />
         )}
         {activeTab === "Assign" && (
-          <div className="neon-info py-8 text-center text-lg">
+          <div className="neon-info" style={{ padding: '2rem 0', textAlign: 'center', fontSize: '1.125rem' }}>
             Assign tab coming soon...
           </div>
         )}
         {activeTab === "Assignments" && (
-          <div className="neon-info py-8 text-center text-lg">
+          <div className="neon-info" style={{ padding: '2rem 0', textAlign: 'center', fontSize: '1.125rem' }}>
             Assignments tab coming soon...
           </div>
         )}
         {activeTab === "History" && (
-          <div className="neon-info py-8 text-center text-lg">
+          <div className="neon-info" style={{ padding: '2rem 0', textAlign: 'center', fontSize: '1.125rem' }}>
             History tab coming soon...
           </div>
         )}
         {activeTab === "Resources" && (
-          <div className="neon-info py-8 text-center text-lg">
+          <div className="neon-info" style={{ padding: '2rem 0', textAlign: 'center', fontSize: '1.125rem' }}>
             Resources tab coming soon...
           </div>
         )}

@@ -204,31 +204,37 @@ export default function CSVEmployeeUpload({
           <p className="text-gray-600">Review the parsed employees from your CSV file</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <p className="text-sm text-green-800">
-              <FiCheck className="inline mr-2" />
+        <div className="stats-grid">
+          <div className="neon-panel" style={{
+            backgroundColor: 'rgba(22, 163, 74, 0.1)',
+            border: '1px solid var(--text-success)'
+          }}>
+            <p style={{ fontSize: 'var(--font-size-base)', color: 'var(--text-success)' }}>
+              <FiCheck style={{ display: 'inline', marginRight: '0.5rem' }} />
               <strong>{validCount}</strong> valid employee{validCount !== 1 ? "s" : ""}
             </p>
           </div>
           {errorCount > 0 && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <p className="text-sm text-red-800">
-                <FiAlertCircle className="inline mr-2" />
+            <div className="neon-panel" style={{
+              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid var(--text-error)'
+            }}>
+              <p style={{ fontSize: 'var(--font-size-base)', color: 'var(--text-error)' }}>
+                <FiAlertCircle style={{ display: 'inline', marginRight: '0.5rem' }} />
                 <strong>{errorCount}</strong> row{errorCount !== 1 ? "s" : ""} with errors
               </p>
             </div>
           )}
         </div>
 
-        <div className="border border-gray-200 rounded-lg overflow-hidden">
-          <div className="overflow-x-auto max-h-96 overflow-y-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 sticky top-0">
+        <div className="neon-table" style={{ overflow: 'hidden' }}>
+          <div style={{ overflowX: 'auto', maxHeight: '384px', overflowY: 'auto' }}>
+            <table style={{ width: '100%', fontSize: 'var(--font-size-base)' }}>
+              <thead style={{ position: 'sticky', top: 0 }}>
                 <tr>
-                  <th className="px-3 py-2 text-left font-medium text-gray-700">Row</th>
-                  <th className="px-3 py-2 text-left font-medium text-gray-700">Status</th>
-                  <th className="px-3 py-2 text-left font-medium text-gray-700">Name</th>
+                  <th className="neon-table">Row</th>
+                  <th className="neon-table">Status</th>
+                  <th className="neon-table">Name</th>
                   <th className="px-3 py-2 text-left font-medium text-gray-700">Email</th>
                   <th className="px-3 py-2 text-left font-medium text-gray-700">Emp #</th>
                   <th className="px-3 py-2 text-left font-medium text-gray-700">Department</th>
@@ -266,20 +272,29 @@ export default function CSVEmployeeUpload({
         </div>
 
         {errorCount > 0 && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <p className="text-sm text-yellow-800">
-              <FiAlertCircle className="inline mr-2" />
+          <div className="neon-panel" style={{
+            backgroundColor: 'rgba(234, 179, 8, 0.1)',
+            border: '1px solid #eab308'
+          }}>
+            <p style={{ fontSize: 'var(--font-size-base)', color: '#eab308' }}>
+              <FiAlertCircle style={{ display: 'inline', marginRight: '0.5rem' }} />
               Employees with errors will be skipped. Only valid employees will be imported.
             </p>
           </div>
         )}
 
-        <div className="flex gap-3">
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
           <button
             type="button"
             onClick={handleConfirmImport}
             disabled={validCount === 0}
-            className="px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+            className="neon-btn-primary transition-colors"
+            style={{ 
+              opacity: validCount === 0 ? 0.5 : 1,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}
           >
             <FiCheck />
             Import {validCount} Employee{validCount !== 1 ? "s" : ""}
@@ -291,7 +306,7 @@ export default function CSVEmployeeUpload({
               setFile(null);
               setParsedEmployees([]);
             }}
-            className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            className="neon-btn-cancel transition-colors"
           >
             Upload Different File
           </button>
@@ -308,18 +323,31 @@ export default function CSVEmployeeUpload({
   }
 
   return (
-    <div className="space-y-6">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <div>
-        <h3 className="text-xl font-semibold mb-2 flex items-center gap-2">
-          <FiUpload className="text-orange-500" />
+        <h3 className="neon-heading" style={{ 
+          marginBottom: '0.5rem', 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '0.5rem' 
+        }}>
+          <FiUpload style={{ color: '#fa7a20' }} />
           Upload CSV File
         </h3>
-        <p className="text-gray-600">Select a CSV file containing employee data</p>
+        <p className="neon-text">Select a CSV file containing employee data</p>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg flex items-start gap-2">
-          <FiAlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+        <div className="neon-panel" style={{
+          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+          border: '1px solid var(--text-error)',
+          color: 'var(--text-error)',
+          padding: '0.75rem 1rem',
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '0.5rem'
+        }}>
+          <FiAlertCircle style={{ width: '20px', height: '20px', marginTop: '0.125rem', flexShrink: 0 }} />
           {error}
         </div>
       )}

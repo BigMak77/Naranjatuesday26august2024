@@ -91,8 +91,9 @@ export default function MyTasks() {
   };
 
   return (
-    <NeonPanel className="neon-form-padding max-w-2xl mx-auto">
-      <h2 className="neon-form-title">My Tasks</h2>
+    <div className="w-full max-w-full mx-auto lg:max-w-6xl">
+      <NeonPanel className="neon-form-padding">
+        <h2 className="neon-form-title">My Tasks</h2>
       {loading ? (
         <div>Loading tasks...</div>
       ) : error ? (
@@ -100,13 +101,15 @@ export default function MyTasks() {
       ) : tasks.length === 0 ? (
         <div className="neon-info">No tasks assigned.</div>
       ) : (
-        <NeonTable
-          columns={[
-            { header: "Title", accessor: "title" },
-            { header: "Type", accessor: "task_type" },
-            { header: "Area", accessor: "area" },
-            { header: "Frequency", accessor: "frequency" },
-            { header: "Due Date", accessor: "due_date", render: (_v, row) => {
+        <div className="w-full overflow-x-auto">
+          <div style={{ minWidth: '800px' }}>
+            <NeonTable
+            columns={[
+            { header: "Title", accessor: "title", width: "25%" },
+            { header: "Type", accessor: "task_type", width: "15%" },
+            { header: "Area", accessor: "area", width: "15%" },
+            { header: "Frequency", accessor: "frequency", width: "10%" },
+            { header: "Due Date", accessor: "due_date", width: "15%", render: (_v, row) => {
               // Calculate due date: assigned_date + frequency
               const assigned = row.assigned_date;
               let freq = row.frequency;
@@ -134,7 +137,7 @@ export default function MyTasks() {
               if (isNaN(due.getTime())) return "";
               return due.toLocaleDateString("en-GB");
             }},
-            { header: "Task Progress", accessor: "progress", render: (_v, row) => {
+            { header: "Progress", accessor: "progress", width: "10%", render: (_v, row) => {
               const assigned = row.assigned_date;
               let freq = row.frequency;
               // Explicitly check for boolean true or a non-null completed_at
@@ -169,7 +172,7 @@ export default function MyTasks() {
               }
               return null;
             }},
-            { header: "Actions", accessor: "actions", render: (_v, row) => {
+            { header: "Actions", accessor: "actions", width: "10%", render: (_v, row) => {
               // Only show if not completed
               if (!row.completed) {
                 return (
@@ -185,6 +188,8 @@ export default function MyTasks() {
           ]}
           data={tasks}
         />
+          </div>
+        </div>
       )}
       <OverlayDialog open={showCompleteTask.open} onClose={() => setShowCompleteTask({ open: false, assignmentId: null })} ariaLabelledby="complete-task-title">
         <CompleteTask
@@ -201,7 +206,29 @@ export default function MyTasks() {
           100% { opacity: 0.3; }
         }
         .flashing-red-dot { animation: flash 1s infinite alternate; }
+        
+        /* Responsive table styles */
+        @media (max-width: 768px) {
+          .neon-table {
+            font-size: 0.75rem;
+          }
+          .neon-table th,
+          .neon-table td {
+            padding: 0.5rem;
+          }
+        }
+        
+        @media (max-width: 640px) {
+          .neon-table {
+            font-size: 0.7rem;
+          }
+          .neon-table th,
+          .neon-table td {
+            padding: 0.375rem;
+          }
+        }
       `}</style>
-    </NeonPanel>
+      </NeonPanel>
+    </div>
   );
 }

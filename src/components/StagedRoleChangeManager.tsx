@@ -334,26 +334,37 @@ export default function StagedRoleChangeManager() {
     const stage = stages[stageName];
     
     return (
-      <div className="border rounded-lg p-4 mb-4">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="font-semibold text-lg">{title}</h3>
-          <div className="flex items-center gap-2">
-            {stage.completed && <span className="text-green-500">✅</span>}
-            {stage.loading && <span className="text-blue-500">🔄</span>}
-            {stage.error && <span className="text-red-500">❌</span>}
+      <div className="neon-panel" style={{ marginBottom: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+          <h3 className="neon-heading">{title}</h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            {stage.completed && <span style={{ color: 'var(--text-success)' }}>✅</span>}
+            {stage.loading && <span style={{ color: '#3b82f6' }}>🔄</span>}
+            {stage.error && <span style={{ color: 'var(--text-error)' }}>❌</span>}
           </div>
         </div>
         
-        <p className="text-gray-600 mb-3">{description}</p>
+        <p className="neon-text" style={{ marginBottom: '0.75rem' }}>{description}</p>
         
         {stage.result && (
-          <div className="bg-gray-100 p-2 rounded mb-3 text-sm">
+          <div className="neon-panel" style={{ 
+            backgroundColor: '#f3f4f6', 
+            padding: '0.5rem', 
+            marginBottom: '0.75rem', 
+            fontSize: 'var(--font-size-base)' 
+          }}>
             <pre>{JSON.stringify(stage.result, null, 2)}</pre>
           </div>
         )}
         
         {stage.error && (
-          <div className="bg-red-100 text-red-700 p-2 rounded mb-3 text-sm">
+          <div className="neon-panel" style={{ 
+            backgroundColor: 'rgba(239, 68, 68, 0.1)', 
+            color: 'var(--text-error)', 
+            padding: '0.5rem', 
+            marginBottom: '0.75rem', 
+            fontSize: 'var(--font-size-base)' 
+          }}>
             Error: {stage.error}
           </div>
         )}
@@ -361,13 +372,14 @@ export default function StagedRoleChangeManager() {
         <button
           onClick={onClick}
           disabled={disabled || stage.loading || stage.completed}
-          className={`px-4 py-2 rounded font-medium ${
+          className={
             disabled || stage.loading 
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              ? 'neon-btn-cancel opacity-50 cursor-not-allowed'
               : stage.completed
-              ? 'bg-green-500 text-white'
-              : 'bg-blue-500 text-white hover:bg-blue-600'
-          }`}
+              ? 'neon-btn-confirm'
+              : 'neon-btn-primary transition-colors'
+          }
+          style={{ fontWeight: '500' }}
         >
           {stage.loading ? 'Processing...' : stage.completed ? 'Completed' : `Execute ${title}`}
         </button>
@@ -376,42 +388,45 @@ export default function StagedRoleChangeManager() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">Staged Role Change Manager</h1>
-      <p className="text-gray-600 mb-8">
+    <div className="page-container">
+      <h1 className="neon-heading" style={{ fontSize: '1.875rem', marginBottom: '1.5rem' }}>Staged Role Change Manager</h1>
+      <p className="neon-text" style={{ marginBottom: '2rem' }}>
         This process ensures users don't carry legacy assignments when changing roles. 
         Each stage must be completed in order.
       </p>
 
       {/* Input Section */}
-      <div className="bg-gray-50 p-4 rounded-lg mb-8">
-        <h2 className="text-xl font-semibold mb-4">Setup</h2>
-        <div className="grid grid-cols-2 gap-4">
+      <div className="neon-panel" style={{ 
+        backgroundColor: '#f9fafb', 
+        marginBottom: '2rem' 
+      }}>
+        <h2 className="neon-heading" style={{ marginBottom: '1rem' }}>Setup</h2>
+        <div className="stats-grid">
           <div>
-            <label className="block text-sm font-medium mb-2">User ID</label>
+            <label className="neon-form-label">User ID</label>
             <input
               type="text"
               value={selectedUserId}
               onChange={(e) => setSelectedUserId(e.target.value)}
               placeholder="Enter user ID"
-              className="w-full px-3 py-2 border rounded-md"
+              className="neon-input"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2">New Role ID</label>
+            <label className="neon-form-label">New Role ID</label>
             <input
               type="text"
               value={newRoleId}
               onChange={(e) => setNewRoleId(e.target.value)}
               placeholder="Enter new role ID"
-              className="w-full px-3 py-2 border rounded-md"
+              className="neon-input"
             />
           </div>
         </div>
       </div>
 
       {/* Staged Process */}
-      <div className="space-y-4">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <StageButton
           stageName="validate"
           title="Stage 1: Validate"
@@ -453,7 +468,11 @@ export default function StagedRoleChangeManager() {
       </div>
 
       {/* Reset Button */}
-      <div className="mt-8 pt-4 border-t">
+      <div style={{
+        marginTop: '2rem',
+        paddingTop: '1rem',
+        borderTop: '1px solid rgba(64, 224, 208, 0.18)'
+      }}>
         <button
           onClick={resetProcess}
           className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"

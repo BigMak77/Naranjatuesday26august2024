@@ -138,7 +138,7 @@ export default function ViewFirstAidersDialog({ open, onClose }: ViewFirstAiders
     if (firstAider.training_completed) {
       return {
         status: "completed",
-        icon: <FiCheck style={{ color: "#22c55e" }} />,
+        icon: <FiCheck style={{ color: "var(--status-success)" }} />,
         text: "Training Completed",
         date: firstAider.assignment_created_at 
           ? `Completed: ${new Date(firstAider.assignment_created_at).toLocaleDateString()}`
@@ -147,14 +147,14 @@ export default function ViewFirstAidersDialog({ open, onClose }: ViewFirstAiders
     } else if (firstAider.assignment_created_at) {
       return {
         status: "assigned",
-        icon: <FiClock style={{ color: "#f59e0b" }} />,
+        icon: <FiClock style={{ color: "var(--status-warning)" }} />,
         text: "Training In Progress",
         date: `Assigned: ${new Date(firstAider.assignment_created_at).toLocaleDateString()}`
       };
     } else {
       return {
         status: "not_started",
-        icon: <FiX style={{ color: "#ef4444" }} />,
+        icon: <FiX style={{ color: "var(--status-danger)" }} />,
         text: "Training Not Started",
         date: "No training assignment found"
       };
@@ -165,15 +165,15 @@ export default function ViewFirstAidersDialog({ open, onClose }: ViewFirstAiders
     <OverlayDialog open={open} onClose={onClose}>
       <>
         <div style={{ display: "flex", alignItems: "center", marginBottom: 24 }}>
-          <FiUser className="neon-icon" style={{ color: "#ef4444", marginRight: 12 }} />
+          <FiUser className="neon-icon" style={{ color: "var(--status-danger)", marginRight: 12 }} />
           <h2 className="neon-dialog-title" style={{ margin: 0 }}>
             Trained First Aiders
           </h2>
         </div>
 
         {error && (
-          <div className="neon-error" style={{ marginBottom: 16, padding: 12, backgroundColor: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.3)", borderRadius: 6 }}>
-            <p style={{ color: "#ef4444", margin: 0 }}>{error}</p>
+          <div className="neon-error" style={{ marginBottom: 16 }}>
+            <p style={{ color: "var(--text-error)", margin: 0 }}>{error}</p>
           </div>
         )}
 
@@ -190,47 +190,47 @@ export default function ViewFirstAidersDialog({ open, onClose }: ViewFirstAiders
               }}>
                 <div style={{ 
                   padding: 12, 
-                  backgroundColor: '#22c55e', 
+                  backgroundColor: 'var(--status-success)', 
                   borderRadius: 6,
                   textAlign: 'center'
                 }}>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#ffffff' }}>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--text-white)' }}>
                     {firstAiders.filter(fa => fa.training_completed).length}
                   </div>
-                  <div style={{ fontSize: '0.875rem', color: '#ffffff' }}>Completed</div>
+                  <div style={{ fontSize: '0.875rem', color: 'var(--text-white)' }}>Completed</div>
                 </div>
                 <div style={{ 
                   padding: 12, 
-                  backgroundColor: '#f59e0b', 
+                  backgroundColor: 'var(--status-warning)', 
                   borderRadius: 6,
                   textAlign: 'center'
                 }}>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#ffffff' }}>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--text-white)' }}>
                     {firstAiders.filter(fa => fa.assignment_created_at && !fa.training_completed).length}
                   </div>
-                  <div style={{ fontSize: '0.875rem', color: '#ffffff' }}>In Progress</div>
+                  <div style={{ fontSize: '0.875rem', color: 'var(--text-white)' }}>In Progress</div>
                 </div>
                 <div style={{ 
                   padding: 12, 
-                  backgroundColor: '#ef4444', 
+                  backgroundColor: 'var(--status-danger)', 
                   borderRadius: 6,
                   textAlign: 'center'
                 }}>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#ffffff' }}>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--text-white)' }}>
                     {firstAiders.filter(fa => !fa.assignment_created_at).length}
                   </div>
-                  <div style={{ fontSize: '0.875rem', color: '#ffffff' }}>Not Started</div>
+                  <div style={{ fontSize: '0.875rem', color: 'var(--text-white)' }}>Not Started</div>
                 </div>
                 <div style={{ 
                   padding: 12, 
-                  backgroundColor: '#3b82f6', 
+                  backgroundColor: 'var(--status-info)', 
                   borderRadius: 6,
                   textAlign: 'center'
                 }}>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#ffffff' }}>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--text-white)' }}>
                     {firstAiders.length}
                   </div>
-                  <div style={{ fontSize: '0.875rem', color: '#ffffff' }}>Total</div>
+                  <div style={{ fontSize: '0.875rem', color: 'var(--text-white)' }}>Total</div>
                 </div>
               </div>
             </div>
@@ -241,9 +241,9 @@ export default function ViewFirstAidersDialog({ open, onClose }: ViewFirstAiders
               <div style={{
                 maxHeight: 500,
                 overflowY: 'scroll',
-                border: '1px solid #374151',
+                border: '1px solid var(--border)',
                 borderRadius: 6,
-                backgroundColor: '#1f2937'
+                backgroundColor: 'var(--panel)'
               }}>
                 {firstAiders.map(firstAider => {
                   const trainingStatus = getTrainingStatus(firstAider);
@@ -252,7 +252,7 @@ export default function ViewFirstAidersDialog({ open, onClose }: ViewFirstAiders
                       key={firstAider.id}
                       style={{
                         padding: '16px 24px',
-                        borderBottom: '1px solid #374151',
+                        borderBottom: '1px solid var(--border)',
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center'
@@ -268,8 +268,8 @@ export default function ViewFirstAidersDialog({ open, onClose }: ViewFirstAiders
                         <div style={{ textAlign: 'right' }}>
                           <div style={{ 
                             fontWeight: 'bold', 
-                            color: trainingStatus.status === 'completed' ? '#22c55e' :
-                                   trainingStatus.status === 'assigned' ? '#f59e0b' : '#ef4444'
+                            color: trainingStatus.status === 'completed' ? 'var(--status-success)' :
+                                   trainingStatus.status === 'assigned' ? 'var(--status-warning)' : 'var(--status-danger)'
                           }}>
                             {trainingStatus.text}
                           </div>
@@ -287,23 +287,23 @@ export default function ViewFirstAidersDialog({ open, onClose }: ViewFirstAiders
             <div style={{ 
               marginTop: 16,
               padding: 12,
-              backgroundColor: 'rgba(59, 130, 246, 0.1)',
-              border: '1px solid rgba(59, 130, 246, 0.3)',
+              backgroundColor: 'rgba(25, 230, 217, 0.1)',
+              border: '1px solid var(--status-info)',
               borderRadius: 6,
               fontSize: '0.875rem'
             }}>
-              <h4 style={{ margin: '0 0 8px 0', color: '#3b82f6' }}>Legend</h4>
+              <h4 style={{ margin: '0 0 8px 0', color: 'var(--status-info)' }}>Legend</h4>
               <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <FiCheck style={{ color: "#22c55e" }} />
+                  <FiCheck style={{ color: "var(--status-success)" }} />
                   <span>Training Completed (has completed_at date)</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <FiClock style={{ color: "#f59e0b" }} />
+                  <FiClock style={{ color: "var(--status-warning)" }} />
                   <span>Training In Progress (assigned but not completed)</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <FiX style={{ color: "#ef4444" }} />
+                  <FiX style={{ color: "var(--status-danger)" }} />
                   <span>Training Not Started (no assignment found)</span>
                 </div>
               </div>

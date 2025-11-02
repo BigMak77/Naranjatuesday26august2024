@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 type OverlayDialogProps = {
@@ -12,6 +12,7 @@ type OverlayDialogProps = {
   zIndexContent?: number; // defaults safe
   closeOnOutsideClick?: boolean;
   width?: number; // custom width in pixels
+  transparentOverlay?: boolean; // for login page background visibility
 };
 
 export default function OverlayDialog({
@@ -23,20 +24,19 @@ export default function OverlayDialog({
   zIndexContent = 60001,
   closeOnOutsideClick = true,
   width = 900,
+  transparentOverlay = false,
 }: OverlayDialogProps) {
   const mountRef = useRef<HTMLElement | null>(null);
-
-  // create a portal mount once
-  if (!mountRef.current && typeof document !== "undefined") {
-    const el = document.createElement("div");
-    el.setAttribute("data-portal", "overlay-dialog");
-    mountRef.current = el;
-  }
+  const [isMounted, setIsMounted] = useState(false);
 
   // mount/unmount the portal element
   useEffect(() => {
-    if (!mountRef.current) return;
-    document.body.appendChild(mountRef.current);
+    const el = document.createElement("div");
+    el.setAttribute("data-portal", "overlay-dialog");
+    mountRef.current = el;
+    document.body.appendChild(el);
+    setIsMounted(true);
+
     return () => {
       if (mountRef.current?.parentNode) {
         mountRef.current.parentNode.removeChild(mountRef.current);
@@ -64,12 +64,14 @@ export default function OverlayDialog({
     return () => document.removeEventListener("keydown", onKey, true);
   }, [open, onClose]);
 
-  if (!open || !mountRef.current) return null;
+  if (!open || !isMounted || !mountRef.current) return null;
 
   return createPortal(
     <div
-      className="ui-dialog-overlay"
-      style={{ zIndex: zIndexOverlay }}
+      className={`ui-dialog-overlay ${transparentOverlay ? 'transparent-overlay' : ''}`}
+      style={{
+        zIndex: zIndexOverlay,
+      }}
       onClick={(e) => {
         if (!closeOnOutsideClick) return;
         if (e.target === e.currentTarget) onClose();

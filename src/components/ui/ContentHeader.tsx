@@ -19,7 +19,7 @@ const ContentHeader: React.FC<ContentHeaderProps> = ({
       <div style={{ 
         width: "100%", 
         height: "3px", 
-        background: "#ff8c00",
+        background: "#fa7a20",
         marginTop: "10px",
         marginBottom: "10px"
       }}></div>

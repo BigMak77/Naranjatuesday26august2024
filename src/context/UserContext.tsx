@@ -19,6 +19,7 @@ type AppUser = {
   avatar_url?: string | null;
   access_level?: string | null;
   auth_id?: string; // <-- add auth_id for compatibility
+  permissions?: string[]; // <-- add permissions array
 };
 
 type Ctx = { user: AppUser | null; loading: boolean; error?: string | null };
@@ -49,7 +50,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       const { data, error: profileErr } = await supabase
         .from("users")
         .select(
-          "id,email,department_id,first_name,last_name,avatar_url,access_level",
+          "id,email,department_id,first_name,last_name,avatar_url,access_level,permissions",
         ) // select only what you need
         .eq("auth_id", authUser.id)
         .single();

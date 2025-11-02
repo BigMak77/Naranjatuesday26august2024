@@ -282,9 +282,9 @@ export default function Structure() {
 
   if (loading) return (
     <div className="after-hero global-content relative">
-      <div className="flex-1 min-w-0">
+      <div style={{ flex: 1, minWidth: 0 }}>
         <div className="neon-panel">
-          <div className="text-center py-8 text-neon">Loading…</div>
+          <div style={{ textAlign: 'center', padding: '2rem 0', color: 'var(--neon)' }}>Loading…</div>
         </div>
       </div>
     </div>
@@ -292,7 +292,7 @@ export default function Structure() {
 
   return (
     <div className="after-hero global-content relative">
-      <div className="flex-1 min-w-0">
+      <div style={{ flex: 1, minWidth: 0 }}>
         <div className="neon-panel" style={{ position: "relative", paddingTop: "3rem" }}>
           {/* Right-side button group: Add, Amend, Move Role */}
           <div style={{ position: "absolute", top: 16, right: 16, zIndex: 10, display: "flex", flexDirection: "row", gap: 8 }}>

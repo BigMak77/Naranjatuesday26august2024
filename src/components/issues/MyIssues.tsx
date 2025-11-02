@@ -49,39 +49,103 @@ export default function MyIssues() {
     fetchMyAssignedIssues();
   }, [user]);
   return (
-    <NeonPanel className="neon-form-padding max-w-2xl mx-auto">
-      <h2 className="neon-form-title">My Issues</h2>
-      {loading ? (
-        <div>Loading...</div>
-      ) : issues.length === 0 ? (
-        <div className="flex items-center">
-
-          No issues found.
-        </div>
-      ) : (
-        <ul>
-          {issues.map((issue) => (
-            <li key={issue.id} className="my-issues-list-item">
-              <div>
-                <div className="my-issues-title">{issue.title}</div>
-                <div className="my-issues-meta">
-                  Priority: {issue.priority} · Status: {issue.status} ·{" "}
-                  {new Date(issue.created_at).toLocaleDateString()}
+    <div className="w-full max-w-full mx-auto lg:max-w-4xl">
+      <NeonPanel className="neon-form-padding">
+        <h2 className="neon-form-title">My Issues</h2>
+        {loading ? (
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            padding: '2rem',
+            color: 'rgba(255, 255, 255, 0.7)',
+            fontSize: '1rem'
+          }}>Loading...</div>
+        ) : issues.length === 0 ? (
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            padding: '2rem',
+            color: 'rgba(255, 255, 255, 0.7)',
+            fontSize: '1rem'
+          }}>
+            No issues found.
+          </div>
+        ) : (
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            {issues.map((issue) => (
+              <li key={issue.id} className="my-issues-list-item" style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                justifyContent: 'space-between',
+                gap: '1rem',
+                padding: '1rem',
+                marginBottom: '0.5rem',
+                background: 'rgba(64, 224, 208, 0.05)',
+                border: '1px solid rgba(64, 224, 208, 0.2)',
+                borderRadius: '8px',
+                flexDirection: 'row'
+              }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="my-issues-title" style={{
+                    color: '#fff',
+                    fontWeight: 700,
+                    fontSize: '1rem',
+                    marginBottom: '0.5rem',
+                    wordWrap: 'break-word'
+                  }}>{issue.title}</div>
+                  <div className="my-issues-meta" style={{
+                    color: 'rgba(255, 255, 255, 0.8)',
+                    fontSize: '0.875rem',
+                    lineHeight: '1.4'
+                  }}>
+                    Priority: {issue.priority} · Status: {issue.status} ·{" "}
+                    {new Date(issue.created_at).toLocaleDateString()}
+                  </div>
                 </div>
-              </div>
-              <NeonIconButton
-                variant="view"
-                title="View Issue"
-                onClick={() =>
-                  (window.location.href = `/turkus/issues/${issue.id}`)
-                }
-              >
-                View
-              </NeonIconButton>
-            </li>
-          ))}
-        </ul>
-      )}
-    </NeonPanel>
+                <div style={{ flexShrink: 0 }}>
+                  <NeonIconButton
+                    variant="view"
+                    title="View Issue"
+                    onClick={() =>
+                      (window.location.href = `/turkus/issues/${issue.id}`)
+                    }
+                  >
+                    View
+                  </NeonIconButton>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </NeonPanel>
+      <style>{`
+        @media (max-width: 640px) {
+          .my-issues-list-item {
+            flex-direction: column !important;
+            align-items: stretch !important;
+          }
+          .my-issues-title {
+            font-size: 0.9rem !important;
+          }
+          .my-issues-meta {
+            font-size: 0.8rem !important;
+          }
+        }
+        
+        @media (max-width: 480px) {
+          .my-issues-title {
+            font-size: 0.85rem !important;
+          }
+          .my-issues-meta {
+            font-size: 0.75rem !important;
+          }
+          .my-issues-list-item {
+            padding: 0.75rem !important;
+          }
+        }
+      `}</style>
+    </div>
   );
 }

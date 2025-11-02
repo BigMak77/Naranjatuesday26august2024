@@ -46,6 +46,15 @@ export const PERMISSIONS = [
   'health-safety:view-policies',
   'health-safety:view-risk-assessments',
   'health-safety:view-accidents',
+  // First Aider permissions
+  'health-safety:add-first-aid-report',
+  'health-safety:edit-first-aid-report',
+  'health-safety:manage-first-aid',
+  // Safety Representative permissions
+  'health-safety:add-risk-assessment',
+  'health-safety:edit-risk-assessment',
+  'health-safety:manage-risk-assessments',
+  'health-safety:approve-risk-assessment',
   // HR
   'hr:view',
   'hr:manage',

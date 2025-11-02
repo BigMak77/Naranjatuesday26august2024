@@ -55,13 +55,18 @@ export default function IntelligentRoleMigration() {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6">
-      <h2 className="text-2xl font-bold mb-4 flex items-center">
-        <FiArrowRight className="mr-3 text-blue-600" />
+    <div className="neon-panel" style={{ backgroundColor: 'white', color: '#000' }}>
+      <h2 className="neon-heading" style={{ 
+        marginBottom: '1rem', 
+        display: 'flex', 
+        alignItems: 'center',
+        color: '#000'
+      }}>
+        <FiArrowRight style={{ marginRight: '0.75rem', color: '#2563eb' }} />
         Intelligent Role Migration
       </h2>
       
-      <p className="text-gray-600 mb-6">
+      <p className="neon-text" style={{ color: '#4b5563', marginBottom: '1.5rem' }}>
         Migrate user to a new role while intelligently handling assignments:
         <br />• <strong>Keep</strong> assignments that are still applicable
         <br />• <strong>Archive</strong> assignments that are no longer relevant
@@ -69,46 +74,60 @@ export default function IntelligentRoleMigration() {
       </p>
 
       {/* Input Form */}
-      <div className="grid md:grid-cols-2 gap-4 mb-6">
+      <div className="stats-grid" style={{ marginBottom: '1.5rem' }}>
         <div>
-          <label className="block text-sm font-medium mb-2">User ID</label>
+          <label className="neon-form-label" style={{ color: '#000' }}>User ID</label>
           <input
             type="text"
             value={userId}
             onChange={(e) => setUserId(e.target.value)}
             placeholder="Enter user ID"
-            className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+            className="neon-input"
             disabled={loading}
           />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-2">New Role ID</label>
+          <label className="neon-form-label" style={{ color: '#000' }}>New Role ID</label>
           <input
             type="text"
             value={newRoleId}
             onChange={(e) => setNewRoleId(e.target.value)}
             placeholder="Enter new role ID"
-            className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+            className="neon-input"
             disabled={loading}
           />
         </div>
       </div>
 
       {/* Action Buttons */}
-      <div className="flex gap-4 mb-6">
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
         <button
           onClick={handleMigration}
           disabled={loading || !userId || !newRoleId}
-          className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+          className="neon-btn-primary transition-colors"
+          style={{ 
+            opacity: (loading || !userId || !newRoleId) ? 0.5 : 1,
+            cursor: (loading || !userId || !newRoleId) ? 'not-allowed' : 'pointer',
+            display: 'flex',
+            alignItems: 'center'
+          }}
         >
           {loading ? (
             <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              <div style={{
+                width: '16px',
+                height: '16px',
+                border: '2px solid transparent',
+                borderBottom: '2px solid #fff',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite',
+                marginRight: '8px'
+              }}></div>
               Migrating...
             </>
           ) : (
             <>
-              <FiArrowRight className="mr-2" />
+              <FiArrowRight style={{ marginRight: '0.5rem' }} />
               Migrate Role
             </>
           )}
@@ -117,7 +136,8 @@ export default function IntelligentRoleMigration() {
         <button
           onClick={resetForm}
           disabled={loading}
-          className="px-6 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 disabled:opacity-50"
+          className="neon-btn-cancel transition-colors"
+          style={{ opacity: loading ? 0.5 : 1 }}
         >
           Reset
         </button>
@@ -125,7 +145,12 @@ export default function IntelligentRoleMigration() {
 
       {/* Error Display */}
       {error && (
-        <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+        <div className="neon-panel" style={{
+          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+          borderLeft: '4px solid var(--text-error)',
+          padding: '1rem',
+          marginBottom: '1.5rem'
+        }}>
           <div className="flex">
             <div className="ml-3">
               <p className="text-sm text-red-700">{error}</p>
@@ -136,48 +161,59 @@ export default function IntelligentRoleMigration() {
 
       {/* Results Display */}
       {result && (
-        <div className="bg-green-50 border-l-4 border-green-400 p-4 mb-6">
-          <div className="flex items-center mb-3">
-            <FiCheck className="text-green-400 mr-2" />
-            <h3 className="text-lg font-semibold text-green-800">Migration Completed Successfully!</h3>
+        <div className="neon-panel" style={{
+          backgroundColor: 'rgba(22, 163, 74, 0.1)',
+          borderLeft: '4px solid var(--text-success)',
+          padding: '1rem',
+          marginBottom: '1.5rem'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.75rem' }}>
+            <FiCheck style={{ color: '#4ade80', marginRight: '0.5rem' }} />
+            <h3 className="neon-heading" style={{ color: '#15803d' }}>Migration Completed Successfully!</h3>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-4 mt-4">
-            <div className="bg-white p-4 rounded-lg">
-              <div className="flex items-center">
-                <FiCheck className="text-green-600 mr-2" />
+          <div className="stats-grid" style={{ marginTop: '1rem' }}>
+            <div className="neon-panel" style={{ backgroundColor: 'white', color: '#000' }}>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <FiCheck style={{ color: '#16a34a', marginRight: '0.5rem' }} />
                 <div>
-                  <div className="text-2xl font-bold text-green-600">{result.kept}</div>
-                  <div className="text-sm text-gray-600">Assignments Kept</div>
-                  <div className="text-xs text-gray-500">Still applicable for new role</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#16a34a' }}>{result.kept}</div>
+                  <div style={{ fontSize: 'var(--font-size-base)', color: '#4b5563' }}>Assignments Kept</div>
+                  <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>Still applicable for new role</div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white p-4 rounded-lg">
-              <div className="flex items-center">
-                <FiArchive className="text-orange-600 mr-2" />
+            <div className="neon-panel" style={{ backgroundColor: 'white', color: '#000' }}>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <FiArchive style={{ color: '#ea580c', marginRight: '0.5rem' }} />
                 <div>
-                  <div className="text-2xl font-bold text-orange-600">{result.archived}</div>
-                  <div className="text-sm text-gray-600">Assignments Archived</div>
-                  <div className="text-xs text-gray-500">No longer relevant</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#ea580c' }}>{result.archived}</div>
+                  <div style={{ fontSize: 'var(--font-size-base)', color: '#4b5563' }}>Assignments Archived</div>
+                  <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>No longer relevant</div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white p-4 rounded-lg">
-              <div className="flex items-center">
-                <FiPlus className="text-blue-600 mr-2" />
+            <div className="neon-panel" style={{ backgroundColor: 'white', color: '#000' }}>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <FiPlus style={{ color: '#2563eb', marginRight: '0.5rem' }} />
                 <div>
-                  <div className="text-2xl font-bold text-blue-600">{result.added}</div>
-                  <div className="text-sm text-gray-600">New Assignments</div>
-                  <div className="text-xs text-gray-500">Required for new role</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#2563eb' }}>{result.added}</div>
+                  <div style={{ fontSize: 'var(--font-size-base)', color: '#4b5563' }}>New Assignments</div>
+                  <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>Required for new role</div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="mt-4 p-3 bg-gray-100 rounded text-sm">
+          <div className="neon-panel" style={{ 
+            marginTop: '1rem', 
+            padding: '0.75rem', 
+            backgroundColor: '#f3f4f6', 
+            fontSize: 'var(--font-size-base)',
+            color: '#000'
+          }}>
             <strong>Summary:</strong> User migrated from role {result.oldRoleId} to {result.newRoleId}.
             Total assignments after migration: {result.kept + result.added}
           </div>
@@ -185,9 +221,13 @@ export default function IntelligentRoleMigration() {
       )}
 
       {/* How it Works */}
-      <div className="mt-8 p-4 bg-blue-50 rounded-lg">
-        <h4 className="font-semibold text-blue-800 mb-2">How Intelligent Migration Works:</h4>
-        <ol className="text-sm text-blue-700 space-y-1">
+      <div className="neon-panel" style={{ 
+        marginTop: '2rem', 
+        backgroundColor: 'rgba(59, 130, 246, 0.1)', 
+        border: '1px solid #3b82f6'
+      }}>
+        <h4 className="neon-heading" style={{ color: '#1e40af', marginBottom: '0.5rem' }}>How Intelligent Migration Works:</h4>
+        <ol style={{ fontSize: 'var(--font-size-base)', color: '#1d4ed8', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
           <li>1. <strong>Analyze:</strong> Compare current assignments with new role requirements</li>
           <li>2. <strong>Keep:</strong> Assignments that are still applicable remain active</li>
           <li>3. <strong>Archive:</strong> Irrelevant assignments are moved to archive (with full audit trail)</li>

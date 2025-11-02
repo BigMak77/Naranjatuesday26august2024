@@ -5,12 +5,14 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase-client";
 import NeonIconButton from "@/components/ui/NeonIconButton";
 import { FiPlus } from "react-icons/fi";
+import { usePermissions } from "@/lib/usePermissions";
 
 export default function AddFirstAidWidget({
   onAdded,
 }: {
   onAdded?: () => void;
 }) {
+  const { canAddFirstAidReport, isFirstAider } = usePermissions();
   const [departments, setDepartments] = useState<{ id: string; name: string }[]>([]);
   const [selectedDept, setSelectedDept] = useState("");
   const [users, setUsers] = useState<{ id: string; first_name: string; last_name: string }[]>([]);
@@ -18,6 +20,11 @@ export default function AddFirstAidWidget({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+
+  // Check if user has permission to add first aiders
+  if (!canAddFirstAidReport) {
+    return null; // Don't render the widget if user doesn't have permission
+  }
 
   // Fetch departments on mount
   useEffect(() => {
@@ -164,7 +171,7 @@ export default function AddFirstAidWidget({
       </select>
       <div style={{ marginTop: 12 }}>
         <label className="neon-label">Users</label>
-        <div style={{ maxHeight: 200, overflowY: 'auto', border: '1px solid #222', borderRadius: 6, padding: 8, background: '#0a1a1a' }}>
+        <div style={{ maxHeight: 200, overflowY: 'auto', border: '1px solid var(--border)', borderRadius: 6, padding: 8, background: 'var(--field)' }}>
           {users.length === 0 && <div className="neon-info">No eligible users found.</div>}
           {users.map((u) => (
             <label key={u.id} style={{ display: 'block', marginBottom: 4, cursor: 'pointer' }}>

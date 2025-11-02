@@ -15,28 +15,66 @@ export default function CertificateTemplate({
   issuer,
 }: CertificateTemplateProps) {
   return (
-    <div className="w-[700px] h-[500px] bg-white border-4 border-teal-700 rounded-xl shadow-lg flex flex-col items-center justify-center mx-auto p-10 relative print:bg-white">
-      <div className="absolute top-8 left-8">
+    <div className="neon-panel" style={{ 
+      width: '700px', 
+      height: '500px', 
+      backgroundColor: 'white', 
+      border: '4px solid var(--neon)', 
+      display: 'flex', 
+      flexDirection: 'column', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      margin: '0 auto', 
+      padding: '2.5rem', 
+      position: 'relative',
+      color: '#000'
+    }}>
+      <div style={{ 
+        position: 'absolute', 
+        top: '2rem', 
+        left: '2rem' 
+      }}>
         <Image src="/logo2.png" alt="Logo" width={100} height={100} />
       </div>
-      <h1 className="text-3xl font-bold text-teal-800 mb-4 tracking-wide">
+      <h1 style={{ 
+        fontSize: '1.875rem', 
+        fontWeight: '700', 
+        color: '#0f766e', 
+        marginBottom: '1rem', 
+        letterSpacing: '0.025em' 
+      }}>
         Certificate of Completion
       </h1>
-      <p className="text-lg mb-2">This is to certify that</p>
-      <div className="text-2xl font-semibold text-gray-800 mb-2">
+      <p style={{ fontSize: '1.125rem', marginBottom: '0.5rem', color: '#000' }}>This is to certify that</p>
+      <div style={{ 
+        fontSize: '1.5rem', 
+        fontWeight: '600', 
+        color: '#1f2937', 
+        marginBottom: '0.5rem' 
+      }}>
         {userName}
       </div>
-      <p className="text-lg mb-2">has successfully completed the training</p>
-      <div className="text-xl font-semibold text-teal-700 mb-4">
+      <p style={{ fontSize: '1.125rem', marginBottom: '0.5rem', color: '#000' }}>has successfully completed the training</p>
+      <div style={{ 
+        fontSize: '1.25rem', 
+        fontWeight: '600', 
+        color: '#0f766e', 
+        marginBottom: '1rem' 
+      }}>
         {trainingName}
       </div>
-      <p className="text-md mb-6">
-        on <span className="font-semibold">{completionDate}</span>
+      <p style={{ fontSize: '1rem', marginBottom: '1.5rem', color: '#000' }}>
+        on <span style={{ fontWeight: '600' }}>{completionDate}</span>
       </p>
       {issuer && (
-        <div className="absolute bottom-10 right-10 text-right">
-          <div className="text-sm text-gray-500">Issued by</div>
-          <div className="font-semibold text-gray-700">{issuer}</div>
+        <div style={{ 
+          position: 'absolute', 
+          bottom: '2.5rem', 
+          right: '2.5rem', 
+          textAlign: 'right' 
+        }}>
+          <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Issued by</div>
+          <div style={{ fontWeight: '600', color: '#374151' }}>{issuer}</div>
         </div>
       )}
     </div>

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase-client";
 import { useUser } from "@/lib/useUser";
 import { FiEdit, FiTrash2, FiUserPlus } from "react-icons/fi";
+import "@/app/globals.css";
 
 interface TeamMember {
   id: string;
@@ -159,12 +160,12 @@ export default function MyTeamView() {
                   </td>
                   <td>{member.email || "—"}</td>
                   <td>
-                    <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                    <span className={`access-level-badge ${
                       member.access_level?.toLowerCase() === 'manager' 
-                        ? 'bg-orange-500 text-white'
+                        ? 'access-level-manager'
                         : member.access_level?.toLowerCase() === 'admin'
-                        ? 'bg-red-500 text-white'
-                        : 'bg-gray-600 text-gray-200'
+                        ? 'access-level-admin'
+                        : 'access-level-user'
                     }`}>
                       {member.access_level || "User"}
                     </span>

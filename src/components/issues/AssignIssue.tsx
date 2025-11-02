@@ -134,7 +134,7 @@ export default function AssignIssue({
           </div>
           <div className="centered-content">
             <form onSubmit={handleAssign}>
-              <div className="mb-2">
+              <div style={{ marginBottom: '0.5rem' }}>
                 <strong>Current Assignment:</strong>
                 <div>
                   User: {currentAssignment.user ? `${currentAssignment.user.first_name} ${currentAssignment.user.last_name}` : "None"}
@@ -144,7 +144,8 @@ export default function AssignIssue({
                 </div>
               </div>
               <input
-                className="neon-input mb-2"
+                className="neon-input"
+                style={{ marginBottom: '0.5rem' }}
                 placeholder="Search users..."
                 value={userSearch}
                 onChange={(e) => setUserSearch(e.target.value)}
@@ -162,7 +163,8 @@ export default function AssignIssue({
                 ))}
               </select>
               <input
-                className="neon-input mb-2 mt-2"
+                className="neon-input"
+                style={{ marginBottom: '0.5rem', marginTop: '0.5rem' }}
                 placeholder="Search departments..."
                 value={deptSearch}
                 onChange={(e) => setDeptSearch(e.target.value)}
@@ -181,8 +183,12 @@ export default function AssignIssue({
               </select>
               <NeonIconButton
                 icon={<FiCheckSquare />}
-                style={{ backgroundColor: '#d9ed92', color: '#333' }}
-                className="w-full mt-4"
+                style={{ 
+                  backgroundColor: 'var(--status-success)', 
+                  color: '#333', 
+                  width: '100%', 
+                  marginTop: '1rem' 
+                }}
                 type="submit"
                 disabled={loading || (!selectedUser && !selectedDepartment)}
                 variant="assign"
@@ -191,7 +197,7 @@ export default function AssignIssue({
                 {loading ? "Assigning..." : "Assign Issue"}
               </NeonIconButton>
               {success && (
-                <div className="neon-success mt-4">Assignment updated successfully!</div>
+                <div className="neon-success" style={{ marginTop: '1rem' }}>Assignment updated successfully!</div>
               )}
             </form>
           </div>

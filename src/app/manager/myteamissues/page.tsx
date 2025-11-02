@@ -13,9 +13,8 @@ export default function MyTeamIssuesPage() {
         title="My Team Issues"
         description="View and manage issues for your department"
       />
-      <div className="container mx-auto px-4 py-8">
-        
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg border border-gray-700 p-6">
+      <div className="page-container">
+        <div className="card-container">
           <DepartmentIssuesWidget />
         </div>
       </div>

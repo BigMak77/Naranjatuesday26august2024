@@ -96,7 +96,7 @@ export default function SearchableDropdown({
                 width: "100%",
                 maxWidth: 900,
                 zIndex: 1000,
-                background: "var(--dropdown-bg, #18181b)",
+                background: "var(--panel)",
                 borderRadius: 8,
               }}
               // Stop clicks from reaching the backdrop
@@ -107,7 +107,7 @@ export default function SearchableDropdown({
                 <div
                   style={{
                     padding: 16,
-                    borderBottom: "1px solid var(--border, #2b2b2b)",
+                    borderBottom: "1px solid var(--border)",
                   }}
                 >
                   <input
@@ -119,9 +119,9 @@ export default function SearchableDropdown({
                       width: "100%",
                       padding: 8,
                       borderRadius: 4,
-                      border: "1px solid var(--border, #2b2b2b)",
-                      background: "#232323",
-                      color: "#fff",
+                      border: "1px solid var(--border)",
+                      background: "var(--field)",
+                      color: "var(--text-white)",
                     }}
                     autoFocus
                   />
@@ -131,7 +131,7 @@ export default function SearchableDropdown({
               <ul
                 className="searchable-dropdown-list"
                 style={{
-                  background: "var(--dropdown-bg, #18181b)",
+                  background: "var(--panel)",
                   maxHeight: 320,
                   overflowY: "auto",
                   padding: 0,

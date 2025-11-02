@@ -320,7 +320,7 @@ export default function MyTeamComplianceMatrix() {
         </div>
         
         {lastUpdated && (
-          <p style={{ fontSize: 12, color: "#ccc", margin: 0 }}>
+          <p style={{ fontSize: 12, color: "var(--text-white)", opacity: 0.7, margin: 0 }}>
             Last updated: {lastUpdated.toLocaleTimeString()}
           </p>
         )}
@@ -328,21 +328,21 @@ export default function MyTeamComplianceMatrix() {
 
       {/* Legend for completion status */}
       <div style={{ marginBottom: 16 }}>
-        <div style={{ display: "flex", gap: 16, fontSize: 12, color: "#ccc", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 16, fontSize: 12, color: "var(--text-white)", opacity: 0.7, flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-            <div style={{ width: 12, height: 12, background: "#27ae60", borderRadius: 2 }}></div>
+            <div style={{ width: 12, height: 12, background: "var(--status-success)", borderRadius: 2 }}></div>
             <span>Completed</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-            <div style={{ width: 12, height: 12, background: "#95a5a6", borderRadius: 2 }}></div>
+            <div style={{ width: 12, height: 12, background: "var(--status-info)", borderRadius: 2 }}></div>
             <span>Historical Completion</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-            <div style={{ width: 12, height: 12, background: "#e74c3c", borderRadius: 2 }}></div>
+            <div style={{ width: 12, height: 12, background: "var(--status-danger)", borderRadius: 2 }}></div>
             <span>Incomplete</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-            <div style={{ width: 12, height: 12, background: "#ffffff", border: "1px solid #ccc", borderRadius: 2 }}></div>
+            <div style={{ width: 12, height: 12, background: "var(--text-white)", border: "1px solid var(--border)", borderRadius: 2 }}></div>
             <span>Not Assigned</span>
           </div>
         </div>
@@ -354,7 +354,7 @@ export default function MyTeamComplianceMatrix() {
           overflowX: "auto",
           overflowY: "auto",
           maxHeight: "calc(100vh - 300px)",
-          border: "1px solid #555",
+          border: "1px solid var(--border)",
           borderRadius: 8,
           position: "relative",
         }}
@@ -368,21 +368,21 @@ export default function MyTeamComplianceMatrix() {
           }}
         >
           <thead>
-            <tr style={{ position: "sticky", top: 0, zIndex: 20, backgroundColor: "#2a2a2a" }}>
+            <tr style={{ position: "sticky", top: 0, zIndex: 20, backgroundColor: "var(--panel)" }}>
               <th
                 style={{
                   width: USER_COL_WIDTH,
                   minWidth: USER_COL_WIDTH,
                   textAlign: "left",
                   padding: "6px 4px",
-                  borderBottom: "2px solid #555",
-                  borderRight: "1px solid #555",
+                  borderBottom: "2px solid var(--border)",
+                  borderRight: "1px solid var(--border)",
                   position: "sticky",
                   left: 0,
-                  backgroundColor: "#2a2a2a",
+                  backgroundColor: "var(--panel)",
                   zIndex: 21,
                   fontWeight: "bold",
-                  color: "#fff",
+                  color: "var(--text-white)",
                 }}
               >
                 User
@@ -396,10 +396,10 @@ export default function MyTeamComplianceMatrix() {
                     maxWidth: COL_WIDTH,
                     textAlign: "center",
                     padding: "6px 2px",
-                    borderBottom: "2px solid #555",
-                    borderRight: "1px solid #555",
-                    backgroundColor: "#2a2a2a",
-                    color: "#fff",
+                    borderBottom: "2px solid var(--border)",
+                    borderRight: "1px solid var(--border)",
+                    backgroundColor: "var(--panel)",
+                    color: "var(--text-white)",
                     fontWeight: "bold",
                     verticalAlign: "bottom",
                     height: 120,
@@ -431,18 +431,18 @@ export default function MyTeamComplianceMatrix() {
                     width: USER_COL_WIDTH,
                     minWidth: USER_COL_WIDTH,
                     padding: "4px",
-                    borderBottom: "1px solid #444",
-                    borderRight: "1px solid #555",
+                    borderBottom: "1px solid var(--border)",
+                    borderRight: "1px solid var(--border)",
                     position: "sticky",
                     left: 0,
-                    backgroundColor: "#1a1a1a",
+                    backgroundColor: "var(--field)",
                     zIndex: 10,
                   }}
                 >
-                  <div style={{ fontWeight: "bold", fontSize: 11, color: "#fff" }}>
+                  <div style={{ fontWeight: "bold", fontSize: 11, color: "var(--text-white)" }}>
                     {user.name || "(No Name)"}
                   </div>
-                  <div style={{ fontSize: 9, color: "#999", marginTop: 2 }}>
+                  <div style={{ fontSize: 9, color: "var(--text-white)", opacity: 0.7, marginTop: 2 }}>
                     {user.role}
                   </div>
                 </td>
@@ -451,14 +451,14 @@ export default function MyTeamComplianceMatrix() {
                   const a = aKey ? assignmentMap.get(aKey) : undefined;
                   const h = aKey ? historicalCompletionMap.get(aKey) : undefined;
 
-                  let bgColor = "#fff";
-                  let textColor = "#333";
+                  let bgColor = "var(--text-white)";
+                  let textColor = "var(--panel)";
                   let cellText = "";
 
                   if (a && a.completed_at) {
                     // Current assignment completed
-                    bgColor = "#27ae60";
-                    textColor = "#fff";
+                    bgColor = "var(--status-success)";
+                    textColor = "var(--text-white)";
                     const d = new Date(a.completed_at);
                     const day = String(d.getDate()).padStart(2, "0");
                     const month = String(d.getMonth() + 1).padStart(2, "0");
@@ -466,13 +466,13 @@ export default function MyTeamComplianceMatrix() {
                     cellText = `${day}/${month}/${year}`;
                   } else if (a && !a.completed_at) {
                     // Current assignment incomplete
-                    bgColor = "#e74c3c";
-                    textColor = "#fff";
+                    bgColor = "var(--status-danger)";
+                    textColor = "var(--text-white)";
                     cellText = "NO";
                   } else if (h && h.completed_at) {
                     // Historical completion (no current assignment)
-                    bgColor = "#95a5a6";
-                    textColor = "#fff";
+                    bgColor = "var(--status-info)";
+                    textColor = "var(--text-white)";
                     const d = new Date(h.completed_at);
                     const day = String(d.getDate()).padStart(2, "0");
                     const month = String(d.getMonth() + 1).padStart(2, "0");
@@ -490,8 +490,8 @@ export default function MyTeamComplianceMatrix() {
                         maxWidth: COL_WIDTH,
                         textAlign: "center",
                         padding: "2px",
-                        borderBottom: "1px solid #444",
-                        borderRight: "1px solid #444",
+                        borderBottom: "1px solid var(--border)",
+                        borderRight: "1px solid var(--border)",
                         backgroundColor: bgColor,
                         color: textColor,
                         fontSize: 9,
@@ -509,7 +509,7 @@ export default function MyTeamComplianceMatrix() {
         </table>
       </div>
       
-      <div style={{ marginTop: 16, fontSize: 12, color: "#ccc" }}>
+      <div style={{ marginTop: 16, fontSize: 12, color: "var(--text-white)", opacity: 0.7 }}>
         <p>
           Showing compliance status for {users.length} team member{users.length === 1 ? '' : 's'} 
           across {displayedItems.length} training item{displayedItems.length === 1 ? '' : 's'}

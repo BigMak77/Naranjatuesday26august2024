@@ -165,28 +165,11 @@ export default function IssueManager() {
     };
   }
 
-  const outerStyle: React.CSSProperties = { width: "100%", overflowX: "auto", padding: 0, margin: 0 };
-  const stripStyle: React.CSSProperties = {
-    display: "grid",
-    gridAutoFlow: "column",
-    gridAutoColumns: "minmax(320px, 1fr)", // reduced min width for each column
-    gap: "16px",
-    alignItems: "start",
-    minHeight: 320,
-    background: "none",
-    border: "none",
-    boxShadow: "none",
-    padding: 0,
-    margin: 0,
-  };
-  const colStyle: React.CSSProperties = { minWidth: 320, background: "none", border: "none", boxShadow: "none", padding: 0, margin: 0 };
-  const h3Style: React.CSSProperties = { margin: "0 0 8px 0" };
-
   // Check if user has permission to view issue management
   if (!user) {
     return (
-      <div style={outerStyle}>
-        <div style={{ textAlign: "center", padding: "2rem" }}>
+      <div className="neon-issue-manager-container">
+        <div className="neon-loading-center">
           <p>Loading user information...</p>
         </div>
       </div>
@@ -195,12 +178,12 @@ export default function IssueManager() {
 
   if (!canAssignIssues() && user.access_level !== "3") {
     return (
-      <div style={outerStyle}>
-        <div style={{ textAlign: "center", padding: "2rem" }}>
-          <p style={{ color: "var(--text)", marginBottom: "1rem" }}>
+      <div className="neon-issue-manager-container">
+        <div className="neon-access-denied">
+          <p className="neon-access-denied-title">
             Access Denied: You do not have permission to manage issues.
           </p>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
+          <p className="neon-access-denied-subtitle">
             Only managers and administrators can access issue management.
           </p>
         </div>
@@ -212,45 +195,45 @@ export default function IssueManager() {
   const isReadOnly = user.access_level === "3";
 
   return (
-    <div style={outerStyle}>
+    <div className="neon-issue-manager-container">
       {isReadOnly && (
-        <div style={{ marginBottom: 16, padding: "12px", backgroundColor: "var(--bg-secondary)", borderRadius: "8px" }}>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", margin: 0 }}>
+        <div className="neon-readonly-notice">
+          <p className="neon-readonly-text">
             <strong>Read-Only View:</strong> You can view issues but cannot assign them. Contact your manager for issue assignments.
           </p>
         </div>
       )}
 
       {/* Compliance summary */}
-      <div style={{ marginBottom: 16, fontWeight: 500 }}>
-        <span>Compliance: <span style={{ color: compliance.percent >= 80 ? '#2ecc40' : '#ff851b' }}>{compliance.percent}%</span></span>
-        <span style={{ marginLeft: 24 }}>Completed: {compliance.completed}</span>
-        <span style={{ marginLeft: 24 }}>Assigned (In Progress): {compliance.assigned}</span>
-        <span style={{ marginLeft: 24 }}>Total: {compliance.total}</span>
+      <div className="neon-compliance-summary">
+        <span>Compliance: <span className={`neon-compliance-percent ${compliance.percent >= 80 ? 'neon-compliance-good' : 'neon-compliance-warning'}`}>{compliance.percent}%</span></span>
+        <span className="neon-compliance-stat">Completed: {compliance.completed}</span>
+        <span className="neon-compliance-stat">Assigned (In Progress): {compliance.assigned}</span>
+        <span className="neon-compliance-stat">Total: {compliance.total}</span>
       </div>
-      <div style={stripStyle}>
+      <div className="neon-issue-grid">
         {/* Column 1: Unassigned */}
-        <div style={colStyle}>
-          <h3 className="neon-section-title" style={h3Style}>Unassigned</h3>
+        <div className="neon-issue-column">
+          <h3 className="neon-section-title">Unassigned</h3>
           <NeonTable
             columns={unassignedCols}
             data={issues.filter(i => !i.assigned_to && i.status !== "completed").map(toUnassignedRow)}
           />
         </div>
         {/* Column 2: Assigned (In Progress) */}
-        <div style={colStyle}>
-          <h3 className="neon-section-title" style={h3Style}>Assigned (In Progress)</h3>
+        <div className="neon-issue-column">
+          <h3 className="neon-section-title">Assigned (In Progress)</h3>
           <NeonTable
             columns={assignedCols}
             data={issues.filter(i => i.assigned_to && i.status !== "completed").map(toAssignedRow)}
           />
         </div>
         {/* Column 3: Completed list (no box) */}
-        <div style={colStyle}>
-          <h3 className="neon-section-title" style={h3Style}>Completed</h3>
-          <ul style={{ paddingLeft: 18, margin: 0 }}>
+        <div className="neon-issue-column">
+          <h3 className="neon-section-title">Completed</h3>
+          <ul className="neon-completed-list">
             {issues.filter(i => i.status === "completed").map(i => (
-              <li key={i.id} style={{ lineHeight: 1.6 }}>{i.title}</li>
+              <li key={i.id} className="neon-completed-item">{i.title}</li>
             ))}
           </ul>
         </div>
