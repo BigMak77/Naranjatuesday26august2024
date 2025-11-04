@@ -5,8 +5,8 @@ export default function IncompleteTrainingPage() {
   return (
     <>
       <ContentHeader
-        title="Incomplete Training"
-        description="View and manage incomplete training records"
+        title="Compliance Overview"
+        description="View and manage incomplete training assignments for users."
       />
       <IncompleteTraining />
     </>

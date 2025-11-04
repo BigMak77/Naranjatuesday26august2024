@@ -106,28 +106,12 @@ export default function UserManagementPanel() {
 
   const bulkSelectBoxRef = useRef<HTMLDivElement | null>(null);
 
-  // Handle click-away for bulk select column
-  useEffect(() => {
-    if (!showBulkSelectColumn) return;
-    function handleClickAway(e: MouseEvent) {
-      const table = document.getElementById("bulk-select-table");
-      // Check if click is inside table or floating message box
-      if (
-        (table && table.contains(e.target as Node)) ||
-        (bulkSelectBoxRef.current && bulkSelectBoxRef.current.contains(e.target as Node))
-      ) {
-        return;
-      }
-      setShowBulkSelectColumn(false);
-    }
-    document.addEventListener("mousedown", handleClickAway);
-    return () => document.removeEventListener("mousedown", handleClickAway);
-  }, [showBulkSelectColumn]);
-
   // store the element that opened the dialog (e.g. clicked name) to restore focus
   const openerRef = useRef<HTMLElement | null>(null);
   const firstNameRef = useRef<HTMLInputElement | null>(null);
   const [userSearch, setUserSearch] = useState("");
+  const [bulkDeptFilter, setBulkDeptFilter] = useState("");
+  const [bulkShiftFilter, setBulkShiftFilter] = useState("");
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -157,21 +141,48 @@ export default function UserManagementPanel() {
   // Debug: log users and search value
   console.log("UserManagementPanel: users", users);
   console.log("UserManagementPanel: userSearch", userSearch);
+  console.log("UserManagementPanel: bulkDeptFilter", bulkDeptFilter);
+  console.log("UserManagementPanel: bulkShiftFilter", bulkShiftFilter);
 
   // Filter users based on search and leaver status
   const filteredUsers = users.filter((u) => {
+    // First check leaver status
+    const leaverCheck = showLeavers ? true : !u.is_leaver;
+    if (!leaverCheck) return false;
+
+    // Check department filter (only when in bulk select mode)
+    if (bulkDeptFilter) {
+      const department = departments.find((d) => d.id === u.department_id)?.name || "";
+      if (!department.toLowerCase().includes(bulkDeptFilter.toLowerCase())) {
+        return false;
+      }
+    }
+
+    // Check shift filter (only when in bulk select mode)
+    if (bulkShiftFilter) {
+      const shift = u.shift_name || "";
+      if (!shift.toLowerCase().includes(bulkShiftFilter.toLowerCase())) {
+        return false;
+      }
+    }
+
+    // Check text search across all fields
     const search = userSearch.trim().toLowerCase();
-    if (!search) return showLeavers ? true : !u.is_leaver;
+    if (!search) return true; // If no search term, show all that passed previous filters
+
     const department = departments.find((d) => d.id === u.department_id)?.name || "";
     const role = roles.find((r) => r.id === u.role_id)?.title || "";
     const shift = u.shift_name || "";
+    const employeeNumber = u.employee_number || "";
+
     return (
       (u.first_name || "").toLowerCase().includes(search) ||
       (u.last_name || "").toLowerCase().includes(search) ||
       department.toLowerCase().includes(search) ||
       role.toLowerCase().includes(search) ||
-      shift.toLowerCase().includes(search)
-    ) && (showLeavers ? true : !u.is_leaver);
+      shift.toLowerCase().includes(search) ||
+      employeeNumber.toLowerCase().includes(search)
+    );
   });
   const totalPages = Math.max(1, Math.ceil(filteredUsers.length / pageSize));
   const pagedUsers = filteredUsers.slice((currentPage - 1) * pageSize, currentPage * pageSize);
@@ -179,7 +190,7 @@ export default function UserManagementPanel() {
   useEffect(() => {
     // Reset to first page if filter/search changes
     setCurrentPage(1);
-  }, [userSearch, showLeavers, pageSize]);
+  }, [userSearch, showLeavers, pageSize, bulkDeptFilter, bulkShiftFilter]);
 
   useEffect(() => {
     setLoading(true);
@@ -663,7 +674,215 @@ export default function UserManagementPanel() {
         message="User saved successfully!"
         autoCloseMs={1800}
       />
-      <div className="neon-table-panel container" style={{ justifyContent: "flex-start", display: "flex" }}>
+
+      {/* Bulk Select Panel - Fixed at top when active */}
+      {showBulkSelectColumn && !bulkAssignOpen && (
+        <div
+          ref={bulkSelectBoxRef}
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1000,
+            background: "linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(20, 20, 20, 0.98) 100%)",
+            backdropFilter: "blur(10px)",
+            borderBottom: "2px solid var(--neon)",
+            boxShadow: "0 4px 20px rgba(57, 255, 20, 0.3)",
+            padding: "1.5rem 2rem",
+            animation: "slideDown 0.3s ease-out"
+          }}
+        >
+          <div style={{ maxWidth: "1400px", margin: "0 auto" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
+              <div>
+                <div className="neon-form-title" style={{ marginBottom: "0.5rem", fontSize: "1.5rem" }}>
+                  Bulk User Selection Mode
+                </div>
+                <div style={{ fontSize: "0.95rem", color: "var(--neon-text)", opacity: 0.8 }}>
+                  Filter and select users for bulk assignment
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setShowBulkSelectColumn(false);
+                  setBulkSelectedUserIds([]);
+                  setUserSearch("");
+                  setBulkDeptFilter("");
+                  setBulkShiftFilter("");
+                }}
+                style={{
+                  padding: "0.5rem 1rem",
+                  fontSize: "0.9rem",
+                  background: "rgba(234, 28, 28, 0.2)",
+                  border: "1px solid rgba(234, 28, 28, 0.5)",
+                  borderRadius: "4px",
+                  color: "#ea1c1c",
+                  cursor: "pointer",
+                  fontWeight: "bold"
+                }}
+              >
+                ✕ Cancel
+              </button>
+            </div>
+
+            <div style={{ display: "flex", gap: "1.5rem", alignItems: "flex-end" }}>
+              {/* Department and Shift filters */}
+              <div style={{ flex: 1 }}>
+                <label className="neon-label" htmlFor="bulk-filter-dept-top" style={{ fontSize: "0.85rem", marginBottom: "0.25rem", display: "block" }}>
+                  Filter by Department
+                </label>
+                <select
+                  id="bulk-filter-dept-top"
+                  className="neon-input"
+                  style={{ width: "100%", fontSize: "0.9rem" }}
+                  value={bulkDeptFilter}
+                  onChange={(e) => {
+                    console.log("Department filter changed:", e.target.value);
+                    setBulkDeptFilter(e.target.value);
+                  }}
+                >
+                  <option value="">All Departments</option>
+                  {departments.map((d) => (
+                    <option key={d.id} value={d.name}>
+                      {d.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div style={{ flex: 1 }}>
+                <label className="neon-label" htmlFor="bulk-filter-shift-top" style={{ fontSize: "0.85rem", marginBottom: "0.25rem", display: "block" }}>
+                  Filter by Shift
+                </label>
+                <select
+                  id="bulk-filter-shift-top"
+                  className="neon-input"
+                  style={{ width: "100%", fontSize: "0.9rem" }}
+                  value={bulkShiftFilter}
+                  onChange={(e) => {
+                    console.log("Shift filter changed:", e.target.value);
+                    setBulkShiftFilter(e.target.value);
+                  }}
+                >
+                  <option value="">All Shifts</option>
+                  {shiftPatterns.map((s) => (
+                    <option key={s.id} value={s.name}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Quick selection buttons */}
+              <div style={{ flex: 1, display: "flex", gap: "0.5rem" }}>
+                <button
+                  onClick={() => {
+                    // Select all currently visible (filtered) users
+                    const visibleUserIds = filteredUsers.map(u => u.id);
+                    setBulkSelectedUserIds(prev => {
+                      const combined = [...new Set([...prev, ...visibleUserIds])];
+                      return combined;
+                    });
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: "0.6rem",
+                    fontSize: "0.85rem",
+                    background: "rgba(57, 255, 20, 0.15)",
+                    border: "1px solid rgba(57, 255, 20, 0.5)",
+                    borderRadius: "4px",
+                    color: "var(--neon)",
+                    cursor: "pointer",
+                    fontWeight: "600"
+                  }}
+                >
+                  Select All ({filteredUsers.length})
+                </button>
+                <button
+                  onClick={() => {
+                    // Deselect all currently visible (filtered) users
+                    const visibleUserIds = filteredUsers.map(u => u.id);
+                    setBulkSelectedUserIds(prev => prev.filter(id => !visibleUserIds.includes(id)));
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: "0.6rem",
+                    fontSize: "0.85rem",
+                    background: "rgba(234, 28, 28, 0.15)",
+                    border: "1px solid rgba(234, 28, 28, 0.5)",
+                    borderRadius: "4px",
+                    color: "#ea1c1c",
+                    cursor: "pointer",
+                    fontWeight: "600"
+                  }}
+                >
+                  Deselect Visible
+                </button>
+              </div>
+
+              {/* Clear filters + Selection summary + Next */}
+              <div style={{ flex: 1, display: "flex", gap: "0.5rem", alignItems: "flex-end" }}>
+                {(userSearch || bulkDeptFilter || bulkShiftFilter) && (
+                  <button
+                    onClick={() => {
+                      setUserSearch("");
+                      setBulkDeptFilter("");
+                      setBulkShiftFilter("");
+                    }}
+                    style={{
+                      padding: "0.6rem 1rem",
+                      fontSize: "0.85rem",
+                      background: "rgba(255, 165, 0, 0.15)",
+                      border: "1px solid rgba(255, 165, 0, 0.5)",
+                      borderRadius: "4px",
+                      color: "#ffa500",
+                      cursor: "pointer",
+                      whiteSpace: "nowrap"
+                    }}
+                  >
+                    Clear Filters
+                  </button>
+                )}
+
+                <div style={{
+                  padding: "0.6rem 1rem",
+                  background: "rgba(57, 255, 20, 0.1)",
+                  borderRadius: "4px",
+                  border: "1px solid rgba(57, 255, 20, 0.3)",
+                  color: "var(--neon)",
+                  fontWeight: "bold",
+                  whiteSpace: "nowrap",
+                  display: "flex",
+                  alignItems: "center"
+                }}>
+                  {bulkSelectedUserIds.length} Selected
+                </div>
+
+                <button
+                  className="neon-btn-primary"
+                  disabled={bulkSelectedUserIds.length === 0}
+                  style={{
+                    padding: "0.6rem 1.5rem",
+                    fontSize: "0.95rem",
+                    fontWeight: "bold",
+                    whiteSpace: "nowrap",
+                    opacity: bulkSelectedUserIds.length === 0 ? 0.5 : 1
+                  }}
+                  onClick={() => {
+                    setBulkAssignOpen(true);
+                    setShowBulkSelectColumn(false);
+                    setBulkAssignStep(2);
+                  }}
+                >
+                  Next →
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="neon-table-panel container" style={{ justifyContent: "flex-start", display: "flex", marginTop: showBulkSelectColumn ? "180px" : "0", transition: "margin-top 0.3s ease" }}>
         <div style={{ position: "relative", width: "100%" }}>
           {/* Toolbar rendered above the table */}
           <div className="neon-table-toolbar" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", padding: "0.75rem 1.25rem", background: "var(--accent)", borderRadius: 8, height: 64, minHeight: 64, maxHeight: 64, boxSizing: "border-box" }}>
@@ -673,11 +892,21 @@ export default function UserManagementPanel() {
                 type="search"
                 id="user-table-search"
                 className="neon-input"
-                placeholder="Search users…"
+                placeholder={showBulkSelectColumn ? "Filter users for selection…" : "Search users…"}
                 value={userSearch}
                 onChange={e => setUserSearch(e.target.value)}
                 aria-describedby="user-table-count"
-                style={{ width: 150, minWidth: 150, maxWidth: 150, height: 32, margin: 0 }}
+                style={{
+                  width: 150,
+                  minWidth: 150,
+                  maxWidth: 150,
+                  height: 32,
+                  margin: 0,
+                  ...(showBulkSelectColumn ? {
+                    border: "2px solid var(--neon)",
+                    boxShadow: "0 0 10px rgba(57, 255, 20, 0.5)"
+                  } : {})
+                }}
               />
               <span id="user-table-count" className="match-count neon-label" aria-live="polite" style={{ marginLeft: 12 }}>
                 Showing {filteredUsers.length} users
@@ -794,6 +1023,9 @@ export default function UserManagementPanel() {
                     setBulkFirstAid(false);
                     setBulkTrainer(false);
                     setBulkSelectedUserIds([]);
+                    setUserSearch(""); // Clear search to show all users
+                    setBulkDeptFilter(""); // Clear dept filter
+                    setBulkShiftFilter(""); // Clear shift filter
                   }}
                 />
               </CustomTooltip>
@@ -840,44 +1072,6 @@ export default function UserManagementPanel() {
 
           {/* Table below toolbar */}
           <div className="neon-table-scroll" style={{ justifyContent: "flex-start", display: "flex", position: "relative" }}>
-            {showBulkSelectColumn && !bulkAssignOpen && (
-              <div
-                ref={bulkSelectBoxRef}
-                className="ui-dialog-content neon-dialog"
-                style={{
-                  position: "absolute",
-                  left: "50%",
-                  top: 0,
-                  transform: "translateX(-50%)",
-                  zIndex: 20,
-                  width: 400,
-                  textAlign: "center",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: "1rem"
-                }}
-              >
-                <div className="neon-form-title" style={{ marginBottom: "1rem" }}>
-                  Please select users for the bulk assign
-                </div>
-                <CustomTooltip text="Proceed to configure bulk assignments for selected users">
-                  <button
-                    className="neon-btn-primary"
-                    disabled={bulkSelectedUserIds.length === 0}
-                    style={{ width: 160 }}
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent click-away from firing
-                      setBulkAssignOpen(true); // Now open modal
-                      setShowBulkSelectColumn(false); // Hide select column
-                      setBulkAssignStep(2); // Go to config step
-                    }}
-                  >
-                    Next
-                  </button>
-                </CustomTooltip>
-              </div>
-            )}
             <div id="bulk-select-table" style={{ width: "100%" }}>
               <NeonTable
                 columns={userTableColumns.map((col) => {
@@ -956,25 +1150,6 @@ export default function UserManagementPanel() {
               />
             </div>
           </div>
-
-          {/* Show Next button below table when selecting users for bulk assign */}
-          {showBulkSelectColumn && !bulkAssignOpen && (
-            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "1rem" }}>
-              <CustomTooltip text="Proceed to configure bulk assignments for selected users">
-                <button
-                  className="neon-btn neon-btn-primary"
-                  disabled={bulkSelectedUserIds.length === 0}
-                  onClick={() => {
-                    setBulkAssignOpen(true);
-                    setShowBulkSelectColumn(false); // Hide select column when modal opens
-                    setBulkAssignStep(2); // Start at config step
-                  }}
-                >
-                  Next
-                </button>
-              </CustomTooltip>
-            </div>
-          )}
 
           {/* Overlaid dialog rendered via portal */}
           <OverlayDialog open={dialogOpen} onClose={handleCloseDialog} ariaLabelledby="user-editor-title">

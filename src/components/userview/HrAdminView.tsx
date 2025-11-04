@@ -13,10 +13,12 @@ import UserPermissionsManager from "@/components/admin/UserPermissionsManager";
 import OverlayDialog from "@/components/ui/OverlayDialog";
 import SuccessModal from "@/components/ui/SuccessModal";
 import UserManagementPanel from "@/components/user/UserManagementPanel";
+import { sendWelcomeEmail } from "@/lib/email-service";
 
 const tabs: Tab[] = [
   { key: "people", label: "People" },
   { key: "users", label: "Users" },
+  { key: "newstarters", label: "New Starters" },
   { key: "roles", label: "Roles" },
   { key: "departments", label: "Structures" },
   { key: "shifts", label: "Shifts" },
@@ -37,7 +39,14 @@ const UserManager: React.FC = () => {
   const [filterDept, setFilterDept] = useState<string>("");
   const [filterStart, setFilterStart] = useState<string>("");
   const [filterEnd, setFilterEnd] = useState<string>("");
-  
+
+  // New Starters state
+  const [newStarters, setNewStarters] = useState<any[]>([]);
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [selectedStarter, setSelectedStarter] = useState<any>(null);
+  const [employeeNumber, setEmployeeNumber] = useState("");
+  const [assignLoading, setAssignLoading] = useState(false);
+
   // Dialog and Modal states
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
@@ -48,13 +57,35 @@ const UserManager: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      const [{ data: deptRows }, { data: userRows }] = await Promise.all([
-        supabase.from("departments").select("id, name"),
-        supabase.from("users").select("id, department_id, access_level, first_name, last_name, start_date")
-      ]);
-      setDepartments(deptRows || []);
-      setUsers(userRows || []);
-      setLoading(false);
+      try {
+        const [
+          { data: deptRows, error: deptError },
+          { data: userRows, error: userError },
+          { data: startersRows, error: startersError }
+        ] = await Promise.all([
+          supabase.from("departments").select("id, name"),
+          supabase.from("users").select("id, department_id, access_level, first_name, last_name, start_date"),
+          supabase.from("people_personal_information").select("*").is("user_id", null).order("created_at", { ascending: false })
+        ]);
+
+        if (deptError) console.error("Error fetching departments:", deptError);
+        if (userError) console.error("Error fetching users:", userError);
+        if (startersError) {
+          console.error("Error fetching new starters:", startersError);
+          setError(`Failed to fetch new starters: ${startersError.message}`);
+        }
+
+        setDepartments(deptRows || []);
+        setUsers(userRows || []);
+        setNewStarters(startersRows || []);
+
+        console.log("New starters fetched:", startersRows?.length || 0);
+      } catch (error: any) {
+        console.error("Error in fetchData:", error);
+        setError(error.message || "Failed to fetch data");
+      } finally {
+        setLoading(false);
+      }
     };
     fetchData();
   }, []);
@@ -148,22 +179,99 @@ const UserManager: React.FC = () => {
 
   const handleDeleteUser = async (userId: string) => {
     if (!confirm("Are you sure you want to delete this user?")) return;
-    
+
     try {
       setLoading(true);
       const { error } = await supabase.from('users').delete().eq('id', userId);
       if (error) throw error;
-      
+
       // Refresh users data
       const { data: userRows } = await supabase.from("users").select("id, department_id, access_level, first_name, last_name, start_date");
       setUsers(userRows || []);
-      
+
       setSuccessMessage("User deleted successfully!");
       setShowSuccess(true);
     } catch (error: any) {
       setError(error.message || "Failed to delete user");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Handle assigning new starter to users table
+  const handleAssignUser = async () => {
+    if (!selectedStarter || !employeeNumber.trim()) {
+      setError("Please enter an employee number");
+      return;
+    }
+
+    try {
+      setAssignLoading(true);
+      setError("");
+
+      // Create the user record in the users table
+      const newUser = {
+        employee_number: employeeNumber.trim(),
+        first_name: selectedStarter.first_name,
+        last_name: selectedStarter.last_name,
+        email: selectedStarter.email,
+        start_date: selectedStarter.start_date,
+        access_level: "user",
+        department_id: null, // Can be set later by manager
+      };
+
+      const { data: insertedUser, error: insertError } = await supabase
+        .from("users")
+        .insert([newUser])
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      // Update people_personal_information to link to the new user
+      const { error: updateError } = await supabase
+        .from("people_personal_information")
+        .update({
+          user_id: insertedUser.id,
+          status: "processed",
+          processed_at: new Date().toISOString(),
+        })
+        .eq("id", selectedStarter.id);
+
+      if (updateError) throw updateError;
+
+      // Send welcome email
+      const emailResult = await sendWelcomeEmail({
+        email: selectedStarter.email,
+        firstName: selectedStarter.first_name,
+        lastName: selectedStarter.last_name,
+        employeeNumber: employeeNumber.trim(),
+        startDate: selectedStarter.start_date,
+      });
+
+      // Refresh data
+      const [{ data: userRows }, { data: startersRows }] = await Promise.all([
+        supabase.from("users").select("id, department_id, access_level, first_name, last_name, start_date"),
+        supabase.from("people_personal_information").select("*").is("user_id", null).order("created_at", { ascending: false })
+      ]);
+      setUsers(userRows || []);
+      setNewStarters(startersRows || []);
+
+      setAssignDialogOpen(false);
+      setSelectedStarter(null);
+      setEmployeeNumber("");
+
+      if (emailResult.success) {
+        setSuccessMessage(`User assigned successfully! Welcome email sent to ${selectedStarter.email}`);
+      } else {
+        setSuccessMessage(`User assigned successfully! Note: Welcome email failed - ${emailResult.error}`);
+      }
+      setShowSuccess(true);
+    } catch (error: any) {
+      console.error("Error assigning user:", error);
+      setError(error.message || "Failed to assign user");
+    } finally {
+      setAssignLoading(false);
     }
   };
 
@@ -258,6 +366,75 @@ const UserManager: React.FC = () => {
                   </tbody>
                 </table>
               </div>
+            </div>
+          )
+        )}
+        {activeTab === "newstarters" && (
+          loading ? (
+            <div className="user-manager-loading">Loading new starters...</div>
+          ) : error ? (
+            <div className="user-manager-error">
+              <p>{error}</p>
+              <p style={{ marginTop: "0.5rem", fontSize: "0.875rem" }}>
+                Check the browser console for more details.
+              </p>
+            </div>
+          ) : (
+            <div>
+              <div style={{ marginBottom: "1rem" }}>
+                <h3 className="neon-heading user-manager-subheading">
+                  Pending New Starters ({newStarters.length})
+                </h3>
+                <p style={{ color: "#40e0d0", fontSize: "0.875rem", marginTop: "0.5rem" }}>
+                  These people have submitted their information but haven't been assigned to the users table yet.
+                </p>
+                {newStarters.length === 0 && (
+                  <p style={{ color: "#ffa500", fontSize: "0.875rem", marginTop: "0.5rem", fontStyle: "italic" }}>
+                    Note: New starters will appear here after they fill out the form at /new-starter.
+                    If you're expecting data and see nothing, check the browser console for errors.
+                  </p>
+                )}
+              </div>
+              <table className="neon-table user-manager-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Start Date</th>
+                    <th>Submitted</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {newStarters.length === 0 ? (
+                    <tr><td colSpan={6} className="user-manager-empty">No pending new starters</td></tr>
+                  ) : (
+                    newStarters.map((starter) => (
+                      <tr key={starter.id}>
+                        <td className="user-manager-name">{`${starter.first_name || ""} ${starter.last_name || ""}`.trim()}</td>
+                        <td>{starter.email}</td>
+                        <td>{starter.phone}</td>
+                        <td>{starter.start_date || "—"}</td>
+                        <td>{new Date(starter.created_at).toLocaleDateString()}</td>
+                        <td>
+                          <div className="user-manager-actions-cell">
+                            <NeonIconButton
+                              variant="add"
+                              onClick={() => {
+                                setSelectedStarter(starter);
+                                setEmployeeNumber("");
+                                setAssignDialogOpen(true);
+                              }}
+                              title="Assign to Users Table"
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
           )
         )}
@@ -450,6 +627,78 @@ const UserManager: React.FC = () => {
             onCancel={handleCloseDialog}
             isAddMode={isAddMode}
           />
+        )}
+      </OverlayDialog>
+
+      {/* Assign User Dialog */}
+      <OverlayDialog
+        open={assignDialogOpen}
+        onClose={() => {
+          setAssignDialogOpen(false);
+          setSelectedStarter(null);
+          setEmployeeNumber("");
+          setError("");
+        }}
+        ariaLabelledby="assign-user-title"
+      >
+        <div className="neon-form-title user-manager-dialog-title" id="assign-user-title">
+          Assign to Users Table
+        </div>
+
+        {error && (
+          <div className="neon-error-message user-manager-dialog-error">
+            {error}
+          </div>
+        )}
+
+        {selectedStarter && (
+          <div className="user-manager-form">
+            <div style={{ marginBottom: "1.5rem", padding: "1rem", background: "rgba(64, 224, 208, 0.1)", borderRadius: "8px" }}>
+              <h4 style={{ color: "#40e0d0", marginBottom: "0.5rem" }}>New Starter Information</h4>
+              <p style={{ margin: "0.25rem 0" }}><strong>Name:</strong> {selectedStarter.first_name} {selectedStarter.last_name}</p>
+              <p style={{ margin: "0.25rem 0" }}><strong>Email:</strong> {selectedStarter.email}</p>
+              <p style={{ margin: "0.25rem 0" }}><strong>Start Date:</strong> {selectedStarter.start_date}</p>
+            </div>
+
+            <div className="user-manager-form-field">
+              <label htmlFor="employee_number">Employee Number *</label>
+              <input
+                id="employee_number"
+                type="text"
+                value={employeeNumber}
+                onChange={(e) => setEmployeeNumber(e.target.value)}
+                placeholder="Enter employee number"
+                autoFocus
+              />
+              <small style={{ color: "#40e0d0", fontSize: "0.75rem", marginTop: "0.25rem", display: "block" }}>
+                This will create a user account and send a welcome email with login instructions.
+              </small>
+            </div>
+
+            <div className="user-manager-form-actions">
+              <button
+                type="button"
+                className="neon-btn-secondary"
+                onClick={() => {
+                  setAssignDialogOpen(false);
+                  setSelectedStarter(null);
+                  setEmployeeNumber("");
+                  setError("");
+                }}
+                disabled={assignLoading}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="neon-btn-primary"
+                onClick={handleAssignUser}
+                disabled={assignLoading || !employeeNumber.trim()}
+              >
+                {assignLoading ? "Assigning..." : "Assign & Send Welcome Email"}
+              </button>
+            </div>
+          </div>
         )}
       </OverlayDialog>
 

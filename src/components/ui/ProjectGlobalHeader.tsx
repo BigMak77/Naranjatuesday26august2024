@@ -287,10 +287,12 @@ export default function GlobalHeader({
             )}
 
             {/* Raise Issue button */}
-            <NeonRaiseIssueButton
-              onClick={() => raiseIssueModalCtx?.openRaiseIssue()}
-              title="Raise Issue"
-            />
+            {!loading && user && (
+              <NeonRaiseIssueButton
+                onClick={() => raiseIssueModalCtx?.openRaiseIssue()}
+                title="Raise Issue"
+              />
+            )}
           </div>
         </div>
       </header>
