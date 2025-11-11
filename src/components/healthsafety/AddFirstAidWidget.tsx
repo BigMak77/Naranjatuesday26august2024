@@ -21,11 +21,6 @@ export default function AddFirstAidWidget({
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  // Check if user has permission to add first aiders
-  if (!canAddFirstAidReport) {
-    return null; // Don't render the widget if user doesn't have permission
-  }
-
   // Fetch departments on mount
   useEffect(() => {
     supabase
@@ -86,6 +81,11 @@ export default function AddFirstAidWidget({
 
     fetchEligibleUsers();
   }, [selectedDept]);
+
+  // Check if user has permission to add first aiders
+  if (!canAddFirstAidReport) {
+    return null; // Don't render the widget if user doesn't have permission
+  }
 
   const handleCheckbox = (userId: string) => {
     setSelectedUsers((prev) =>

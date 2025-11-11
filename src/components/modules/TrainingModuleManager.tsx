@@ -19,7 +19,6 @@ import { ViewModuleTab } from "@/components/modules/ViewModuleTab";
 import AssignModuleTab from "@/components/modules/AssignModuleTab";
 import NeonIconButton from "@/components/ui/NeonIconButton";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
-import ContentHeader from "@/components/ui/ContentHeader";
 
 // Define Module type inline
 interface Module {
@@ -117,28 +116,9 @@ export default function TrainingModuleManager() {
     ? { ...selectedModule, version: Number(selectedModule.version) }
     : null;
 
-  // Get tab description based on active tab
-  const getTabDescription = () => {
-    switch (activeTab) {
-      case "add":
-        return "Create new training modules";
-      case "view":
-        return "View and edit existing training modules";
-      case "assign":
-        return "Assign modules to users";
-      case "archive":
-        return "Archive training modules";
-      default:
-        return "";
-    }
-  };
-
   return (
     <>
-      <ContentHeader
-        title="Training Module Manager"
-        description={getTabDescription()}
-      >
+      <div className="folder-container">
         <FolderTabs
           tabs={tabList.map(tab => ({
             ...tab,
@@ -149,10 +129,13 @@ export default function TrainingModuleManager() {
             setActiveTab(tabKey as typeof activeTab);
             setSelectedModule(null);
           }}
+          toolbar={
+            <div style={{ opacity: 0.7, fontSize: '0.875rem' }}>
+              Training Module Management
+            </div>
+          }
         />
-      </ContentHeader>
-      {/* Spacer for visual separation */}
-      <div style={{ height: 24 }} />
+      </div>
       {activeTab === "add" && (
         <AddModuleTab onSuccess={() => setActiveTab("view")} />
       )}

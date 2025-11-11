@@ -141,10 +141,12 @@ export default function EditDocumentPage() {
       const filePath = `${Date.now()}_${file.name}`;
       const { error: uploadError } = await supabase.storage
         .from("documents")
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          upsert: true // Allow overwriting if file exists
+        });
       if (uploadError) {
-        alert("File upload failed.");
         console.error("Upload error:", uploadError);
+        alert(`File upload failed: ${uploadError.message}`);
         return;
       }
       fileUrl = supabase.storage.from("documents").getPublicUrl(filePath)

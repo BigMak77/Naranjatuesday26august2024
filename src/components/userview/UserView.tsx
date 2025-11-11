@@ -6,6 +6,7 @@ import UserTrainingDashboard from "@/components/training/UserTrainingDashboard";
 import UserTrainingRequest from "@/components/user/UserTrainingRequest";
 import MyTasks from "@/components/tasks/MyTasks";
 import MyIssues from "@/components/issues/MyIssues";
+import { CalendarWidget } from "@/components/calendar";
 
 export default function UserView() {
   const { user, profile } = useUser() as {
@@ -18,16 +19,24 @@ export default function UserView() {
 
   if (!authId) {
     return (
-      <div style={{ textAlign: 'center', color: 'var(--text-white)', opacity: 0.7, padding: '2rem' }}>
+      <div className="text-center opacity-75 p-8">
         Loading your profile…
       </div>
     );
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-      <MyIssues />
-      <MyTasks />
+    <div className="flex-col gap-8">
+      {/* Top row with calendar and issues */}
+      <div className="grid gap-8 items-start" style={{ gridTemplateColumns: '1fr auto' }}>
+        <div className="flex-col gap-8">
+          <MyIssues />
+          <MyTasks />
+        </div>
+        <CalendarWidget title="My Assignments" />
+      </div>
+      
+      {/* Training sections */}
       <UserTrainingDashboard authId={authId} />
       <UserTrainingRequest userId={appUserId!} />
     </div>

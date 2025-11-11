@@ -119,30 +119,17 @@ export default function AddDocumentPage() {
           return;
         }
 
-        // Optional: check unique reference code
-        if (referenceCode.trim()) {
-          const { data: existing, error: checkError } = await supabase
-            .from("documents")
-            .select("id")
-            .eq("reference_code", referenceCode.trim());
-          if (checkError) {
-            alert("Error checking reference code.");
-            return;
-          }
-          if (existing && existing.length > 0) {
-            alert("A document with this reference code already exists.");
-            return;
-          }
-        }
-
         // Upload file
         const safeName = file.name.replace(/\s+/g, "_");
         const filePath = `${Date.now()}_${safeName}`;
         const { error: uploadError } = await supabase.storage
           .from("documents")
-          .upload(filePath, file);
+          .upload(filePath, file, {
+            upsert: true // Allow overwriting if file exists
+          });
         if (uploadError) {
-          alert("File upload failed.");
+          console.error("Upload error:", uploadError);
+          alert(`File upload failed: ${uploadError.message}`);
           return;
         }
 
@@ -155,29 +142,81 @@ export default function AddDocumentPage() {
           return;
         }
 
-        // Create document
-        const insertResult = await supabase
-          .from("documents")
-          .insert({
-            title,
-            reference_code: referenceCode || null,
-            file_url: publicUrl,
-            document_type_id: documentTypeId,
-            section_id: sectionId || null,
-            current_version: 1,
-            review_period_months: 12,
-            last_reviewed_at: new Date().toISOString(),
-            created_by: null,
-          })
-          .select()
-          .single();
-        const newDoc = insertResult.data as
-          | { id: string }
-          | null;
-        const docError = insertResult.error;
+        // Check if document with this reference_code already exists
+        let existingDoc = null;
+        const trimmedRefCode = referenceCode?.trim();
+        if (trimmedRefCode) {
+          console.log(`Checking for existing document with reference_code: "${trimmedRefCode}"`);
+          const { data: existing, error: checkErr } = await supabase
+            .from("documents")
+            .select("id")
+            .eq("reference_code", trimmedRefCode)
+            .maybeSingle();
+
+          if (checkErr) {
+            console.error("Error checking for existing document:", checkErr);
+          } else if (existing) {
+            console.log(`Found existing document with ID: ${existing.id}`);
+            existingDoc = existing;
+          } else {
+            console.log("No existing document found");
+          }
+        }
+
+        let newDoc = null;
+        let docError = null;
+
+        if (existingDoc) {
+          // Update existing document
+          const updateResult = await supabase
+            .from("documents")
+            .update({
+              title,
+              file_url: publicUrl,
+              document_type_id: documentTypeId,
+              section_id: sectionId || null,
+              review_period_months: 12,
+              last_reviewed_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", existingDoc.id)
+            .select()
+            .single();
+          newDoc = updateResult.data as { id: string } | null;
+          docError = updateResult.error;
+          if (!docError) {
+            console.log(`Updated existing document with reference_code: ${referenceCode}`);
+          }
+        } else {
+          // Insert new document
+          console.log(`Inserting new document with reference_code: "${trimmedRefCode || '(null)'}"`);
+          const insertResult = await supabase
+            .from("documents")
+            .insert({
+              title,
+              reference_code: trimmedRefCode || null,
+              file_url: publicUrl,
+              document_type_id: documentTypeId,
+              section_id: sectionId || null,
+              current_version: 1,
+              review_period_months: 12,
+              last_reviewed_at: new Date().toISOString(),
+              created_by: null,
+            })
+            .select()
+            .single();
+          newDoc = insertResult.data as { id: string } | null;
+          docError = insertResult.error;
+          if (!docError) {
+            console.log(`✓ Created new document with reference_code: ${trimmedRefCode || '(null)'}`);
+          } else {
+            console.error(`✗ Failed to insert document:`, docError);
+          }
+        }
 
         if (docError || !newDoc) {
-          alert("Failed to create document.");
+          console.error("Document save error:", docError);
+          alert(`Failed to save document: ${docError?.message || 'Unknown error'}`);
           return;
         }
 

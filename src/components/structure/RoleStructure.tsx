@@ -305,7 +305,7 @@ export default function Structure() {
 }
 
 // Simple amend button and modal for selecting and linking departments
-function AmendDepartmentButton({ departments }: { departments: TreeNode[] }) {
+export function AmendDepartmentButton({ departments }: { departments: TreeNode[] }) {
   const [open, setOpen] = useState(false);
   const [fromDept, setFromDept] = useState("");
   const [toDept, setToDept] = useState("");
@@ -426,7 +426,7 @@ function AmendDepartmentButton({ departments }: { departments: TreeNode[] }) {
 }
 
 // Add a new RoleAmendButton component for role move overlay
-function RoleAmendButton({ departments, roles }: { departments: Department[], roles: RoleRow[] }) {
+export function RoleAmendButton({ departments, roles }: { departments: Department[], roles: RoleRow[] }) {
   const [open, setOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState("");
   const [toDept, setToDept] = useState("");
@@ -513,7 +513,7 @@ function RoleAmendButton({ departments, roles }: { departments: Department[], ro
 }
 
 // Add Department Button and Modal
-function AddDepartmentButton({ onAdded }: { onAdded?: () => void }) {
+export function AddDepartmentButton({ onAdded }: { onAdded?: () => void }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [parentId, setParentId] = useState<string | null>(null);
@@ -616,7 +616,7 @@ function AddDepartmentButton({ onAdded }: { onAdded?: () => void }) {
 }
 
 // Add Role Button and Modal
-function AddRoleButton({ departments, onAdded }: { departments: Department[]; onAdded?: () => void }) {
+export function AddRoleButton({ departments, onAdded }: { departments: Department[]; onAdded?: () => void }) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [departmentId, setDepartmentId] = useState<string>("");

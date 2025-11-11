@@ -361,113 +361,105 @@ export default function HealthSafetyManager() {
             ]}
             activeTab={activeTab}
             onChange={tabKey => setActiveTab(tabKey as typeof activeTab)}
+            toolbar={
+              <>
+                {activeTab === "assessments" && (
+                  <>
+                    <NeonIconButton
+                      variant="add"
+                      title="Create Risk Assessment"
+                      onClick={() => console.log("Create assessment")}
+                    />
+                    <NeonIconButton
+                      variant="download"
+                      title="Download Risk Assessments"
+                      onClick={() => console.log("Download assessments")}
+                    />
+                    <NeonIconButton
+                      variant="upload"
+                      title="Upload Risk Assessment"
+                      onClick={() => console.log("Upload assessment")}
+                    />
+                  </>
+                )}
+
+                {activeTab === "incidents" && (
+                  <>
+                    <NeonIconButton
+                      variant="add"
+                      title="Report New Incident"
+                      onClick={() => console.log("New incident")}
+                    />
+                    <NeonIconButton
+                      variant="view"
+                      title="View All Incidents"
+                      onClick={() => console.log("View incidents")}
+                    />
+                    <NeonIconButton
+                      variant="download"
+                      title="Export Incidents"
+                      onClick={() => console.log("Export incidents")}
+                    />
+                  </>
+                )}
+
+                {activeTab === "policies" && (
+                  <>
+                    <NeonIconButton
+                      variant="add"
+                      title="Add Policy"
+                      onClick={() => console.log("Add policy")}
+                    />
+                    <NeonIconButton
+                      variant="view"
+                      title="View All Policies"
+                      onClick={() => console.log("View policies")}
+                    />
+                    <NeonIconButton
+                      variant="edit"
+                      title="Manage Categories"
+                      onClick={() => console.log("Manage categories")}
+                    />
+                  </>
+                )}
+
+                {activeTab === "firstaid" && (
+                  <>
+                    <NeonIconButton
+                      variant="add"
+                      title="Add First Aid Designation"
+                      onClick={() => setShowAddFirstAidDialog(true)}
+                    />
+                    <NeonIconButton
+                      variant="view"
+                      title="View Trained First Aiders"
+                      onClick={() => setShowViewFirstAidersDialog(true)}
+                    />
+                    <NeonIconButton
+                      variant="view"
+                      title="View All First Aiders"
+                      onClick={() => (window.location.href = "/health-safety/firstaid")}
+                    />
+                  </>
+                )}
+
+                {activeTab === "utilities" && (
+                  <>
+                    <NeonIconButton
+                      variant="edit"
+                      title="System Settings"
+                      onClick={() => (window.location.href = "/health-safety/settings")}
+                    />
+                    <NeonIconButton
+                      variant="view"
+                      title="View Audit Log"
+                      onClick={() => (window.location.href = "/health-safety/audit-log")}
+                    />
+                  </>
+                )}
+              </>
+            }
           />
-
-          {/* Toolbar with action buttons for each tab */}
-          <div style={{
-            padding: '1rem',
-            backgroundColor: 'rgba(0, 0, 0, 0.2)',
-            marginBottom: '1rem',
-            display: 'flex',
-            gap: '0.75rem',
-            alignItems: 'center',
-            flexWrap: 'wrap'
-          }}>
-            {activeTab === "assessments" && (
-              <>
-                <NeonIconButton
-                  variant="add"
-                  title="Create Risk Assessment"
-                  onClick={() => console.log("Create assessment")}
-                />
-                <NeonIconButton
-                  variant="download"
-                  title="Download Risk Assessments"
-                  onClick={() => console.log("Download assessments")}
-                />
-                <NeonIconButton
-                  variant="upload"
-                  title="Upload Risk Assessment"
-                  onClick={() => console.log("Upload assessment")}
-                />
-              </>
-            )}
-
-            {activeTab === "incidents" && (
-              <>
-                <NeonIconButton
-                  variant="add"
-                  title="Report New Incident"
-                  onClick={() => console.log("New incident")}
-                />
-                <NeonIconButton
-                  variant="view"
-                  title="View All Incidents"
-                  onClick={() => console.log("View incidents")}
-                />
-                <NeonIconButton
-                  variant="download"
-                  title="Export Incidents"
-                  onClick={() => console.log("Export incidents")}
-                />
-              </>
-            )}
-
-            {activeTab === "policies" && (
-              <>
-                <NeonIconButton
-                  variant="add"
-                  title="Add Policy"
-                  onClick={() => console.log("Add policy")}
-                />
-                <NeonIconButton
-                  variant="view"
-                  title="View All Policies"
-                  onClick={() => console.log("View policies")}
-                />
-                <NeonIconButton
-                  variant="edit"
-                  title="Manage Categories"
-                  onClick={() => console.log("Manage categories")}
-                />
-              </>
-            )}
-
-            {activeTab === "firstaid" && (
-              <>
-                <NeonIconButton
-                  variant="add"
-                  title="Add First Aid Designation"
-                  onClick={() => setShowAddFirstAidDialog(true)}
-                />
-                <NeonIconButton
-                  variant="view"
-                  title="View Trained First Aiders"
-                  onClick={() => setShowViewFirstAidersDialog(true)}
-                />
-                <NeonIconButton
-                  variant="view"
-                  title="View All First Aiders"
-                  onClick={() => (window.location.href = "/health-safety/firstaid")}
-                />
-              </>
-            )}
-
-            {activeTab === "utilities" && (
-              <>
-                <NeonIconButton
-                  variant="edit"
-                  title="System Settings"
-                  onClick={() => (window.location.href = "/health-safety/settings")}
-                />
-                <NeonIconButton
-                  variant="view"
-                  title="View Audit Log"
-                  onClick={() => (window.location.href = "/health-safety/audit-log")}
-                />
-              </>
-            )}
-          </div>
 
           {activeTab === "assessments" && <RiskAssessmentManager />}
 

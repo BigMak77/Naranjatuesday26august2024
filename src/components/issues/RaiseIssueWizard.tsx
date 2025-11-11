@@ -216,14 +216,18 @@ export default function RaiseIssueWizard({ onClose }: RaiseIssueWizardProps) {
             title="Cancel"
             onClick={onClose}
             disabled={submitting}
-          />
+          >
+            Cancel
+          </NeonIconButton>
           {stage > 0 && (
-            <NeonIconButton 
-              variant="back" 
-              title="Back" 
-              onClick={prev} 
+            <NeonIconButton
+              variant="back"
+              title="Back"
+              onClick={prev}
               disabled={submitting}
-            />
+            >
+              Back
+            </NeonIconButton>
           )}
           {stage < 2 && (
             <NeonIconButton
@@ -235,7 +239,9 @@ export default function RaiseIssueWizard({ onClose }: RaiseIssueWizardProps) {
                 (stage === 0 && !description) ||
                 (stage === 1 && !priority)
               }
-            />
+            >
+              Next
+            </NeonIconButton>
           )}
           {stage === 2 && (
             <NeonIconButton
@@ -243,7 +249,9 @@ export default function RaiseIssueWizard({ onClose }: RaiseIssueWizardProps) {
               title={submitting ? "Submitting..." : "Submit"}
               onClick={handleSubmit}
               disabled={submitting}
-            />
+            >
+              {submitting ? "Submitting..." : "Submit"}
+            </NeonIconButton>
           )}
         </div>
       </NeonPanel>

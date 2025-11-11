@@ -5,6 +5,16 @@ import { FiUserPlus, FiUser, FiEdit, FiTrash2, FiUsers, FiShield, FiToggleLeft, 
 import { supabase } from "@/lib/supabase-client";
 import RoleStructure from "@/components/structure/RoleStructure";
 import ManagerStructure from "@/components/structure/ManagerStructure";
+import {
+  AmendDepartmentButton,
+  RoleAmendButton,
+  AddDepartmentButton as RoleAddDepartmentButton,
+  AddRoleButton
+} from "@/components/structure/RoleStructure";
+import {
+  ChangeManagerButton,
+  AssignManagerButton
+} from "@/components/structure/ManagerStructure";
 import RotaByDepartment from "@/components/people/RotaByDepartment";
 import Rota from "@/components/people/Rota";
 import NeonIconButton from "@/components/ui/NeonIconButton";
@@ -19,6 +29,7 @@ const tabs: Tab[] = [
   { key: "people", label: "People" },
   { key: "users", label: "Users" },
   { key: "newstarters", label: "New Starters" },
+  { key: "leavers", label: "Leavers" },
   { key: "roles", label: "Roles" },
   { key: "departments", label: "Structures" },
   { key: "shifts", label: "Shifts" },
@@ -30,6 +41,7 @@ const UserManager: React.FC = () => {
   const [activeTab, setActiveTab] = useState("people");
   const [users, setUsers] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
+  const [roles, setRoles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const [structureView, setStructureView] = useState<'role' | 'manager'>('role');
@@ -47,6 +59,9 @@ const UserManager: React.FC = () => {
   const [employeeNumber, setEmployeeNumber] = useState("");
   const [assignLoading, setAssignLoading] = useState(false);
 
+  // Leavers state
+  const [leavers, setLeavers] = useState<any[]>([]);
+
   // Dialog and Modal states
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
@@ -61,23 +76,33 @@ const UserManager: React.FC = () => {
         const [
           { data: deptRows, error: deptError },
           { data: userRows, error: userError },
-          { data: startersRows, error: startersError }
+          { data: rolesRows, error: rolesError },
+          { data: startersRows, error: startersError },
+          { data: leaversRows, error: leaversError }
         ] = await Promise.all([
-          supabase.from("departments").select("id, name"),
-          supabase.from("users").select("id, department_id, access_level, first_name, last_name, start_date"),
-          supabase.from("people_personal_information").select("*").is("user_id", null).order("created_at", { ascending: false })
+          supabase.from("departments").select("id, name, parent_id, is_archived"),
+          supabase.from("users").select("id, department_id, access_level, first_name, last_name, start_date, email"),
+          supabase.from("roles").select("id, title, department_id"),
+          supabase.from("people_personal_information").select("*").is("user_id", null).order("created_at", { ascending: false }),
+          supabase.from("users").select("id, email, first_name, last_name, department_id, leaver_date, leaver_reason, start_date").eq("is_leaver", true).order("leaver_date", { ascending: false })
         ]);
 
         if (deptError) console.error("Error fetching departments:", deptError);
         if (userError) console.error("Error fetching users:", userError);
+        if (rolesError) console.error("Error fetching roles:", rolesError);
         if (startersError) {
           console.error("Error fetching new starters:", startersError);
           setError(`Failed to fetch new starters: ${startersError.message}`);
         }
+        if (leaversError) {
+          console.error("Error fetching leavers:", leaversError);
+        }
 
         setDepartments(deptRows || []);
         setUsers(userRows || []);
+        setRoles(rolesRows || []);
         setNewStarters(startersRows || []);
+        setLeavers(leaversRows || []);
 
         console.log("New starters fetched:", startersRows?.length || 0);
       } catch (error: any) {
@@ -89,6 +114,35 @@ const UserManager: React.FC = () => {
     };
     fetchData();
   }, []);
+
+  // Helper: build TreeNode structure from departments for AmendDepartmentButton
+  const buildTreeNodes = (): any[] => {
+    const deptMap = new Map();
+    departments.forEach((d) => {
+      deptMap.set(d.id, { id: d.id, name: d.name, children: [], roles: [] });
+    });
+    roles.forEach((r) => {
+      const node = deptMap.get(r.department_id);
+      if (node) {
+        node.roles.push({ id: r.id, title: r.title });
+      }
+    });
+    const tree: any[] = [];
+    departments.forEach((d) => {
+      const node = deptMap.get(d.id);
+      if (d.parent_id) {
+        const parent = deptMap.get(d.parent_id);
+        if (parent) {
+          parent.children.push(node);
+        } else {
+          tree.push(node);
+        }
+      } else {
+        tree.push(node);
+      }
+    });
+    return tree;
+  };
 
   // Helper: find users without a manager in their department
   const usersWithoutDepartment = users.filter(u => !u.department_id);
@@ -280,7 +334,405 @@ const UserManager: React.FC = () => {
       <div className="user-manager-header">
         <h2 className="neon-heading">User Manager</h2>
       </div>
-      <FolderTabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
+      <FolderTabs
+        tabs={tabs}
+        activeTab={activeTab}
+        onChange={setActiveTab}
+        toolbar={
+          <>
+            {activeTab === "people" && (
+              <>
+                <input
+                  type="search"
+                  className="neon-input"
+                  placeholder="Search users..."
+                  style={{
+                    width: '200px',
+                    height: '32px',
+                    margin: 0
+                  }}
+                />
+                <span style={{ opacity: 0.7, fontSize: '0.875rem', marginLeft: '0.5rem' }}>
+                  {users.length} users
+                </span>
+                <div style={{ flex: 1 }} />
+                <NeonIconButton
+                  variant="add"
+                  title="Add User"
+                  onClick={handleAddUser}
+                />
+                <NeonIconButton
+                  variant="send"
+                  title="Invite User"
+                  onClick={() => console.log("Invite user")}
+                />
+                <NeonIconButton
+                  variant="download"
+                  title="Download Users CSV"
+                  onClick={() => {
+                    // CSV export logic
+                    const csvRows = users.map((u) => ({
+                      id: u.id,
+                      email: u.email || "",
+                      first_name: u.first_name || "",
+                      last_name: u.last_name || "",
+                      department_id: u.department_id || "",
+                      access_level: u.access_level || "",
+                    }));
+                    const csv = [
+                      "id,email,first_name,last_name,department_id,access_level",
+                      ...csvRows.map((row) =>
+                        Object.values(row)
+                          .map((val) => `"${String(val).replace(/"/g, '""')}"`)
+                          .join(",")
+                      ),
+                    ].join("\n");
+                    const blob = new Blob([csv], { type: "text/csv" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = "users.csv";
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                  }}
+                />
+                <NeonIconButton
+                  variant="upload"
+                  title="Upload Users CSV"
+                  onClick={() => {
+                    const input = document.createElement("input");
+                    input.type = "file";
+                    input.accept = ".csv";
+                    input.onchange = async (e: any) => {
+                      const file = e.target?.files?.[0];
+                      if (!file) return;
+
+                      const reader = new FileReader();
+                      reader.onload = async (event) => {
+                        try {
+                          const csvText = event.target?.result as string;
+                          const lines = csvText.split("\n").filter((line) => line.trim());
+
+                          if (lines.length < 2) {
+                            alert("CSV file is empty or invalid");
+                            return;
+                          }
+
+                          const headers = lines[0].split(",").map((h) => h.trim().replace(/^"|"$/g, ''));
+                          const requiredHeaders = ["email", "first_name", "last_name"];
+                          const hasRequiredHeaders = requiredHeaders.every((h) => headers.includes(h));
+
+                          if (!hasRequiredHeaders) {
+                            alert("CSV must contain at least: email, first_name, last_name");
+                            return;
+                          }
+
+                          const usersToImport: any[] = [];
+                          for (let i = 1; i < lines.length; i++) {
+                            const values = lines[i].split(",").map((v) => {
+                              let val = v.trim();
+                              if (val.startsWith('"') && val.endsWith('"')) {
+                                val = val.slice(1, -1).replace(/""/g, '"');
+                              }
+                              return val === "" ? null : val;
+                            });
+
+                            const row: any = {};
+                            headers.forEach((header, index) => {
+                              row[header] = values[index];
+                            });
+
+                            // Build user object with only valid fields
+                            const userObj: any = {
+                              email: row.email,
+                              first_name: row.first_name,
+                              last_name: row.last_name,
+                            };
+
+                            // Add optional fields if present
+                            if (row.department_id) userObj.department_id = row.department_id;
+                            if (row.role_id) userObj.role_id = row.role_id;
+                            if (row.access_level) userObj.access_level = row.access_level;
+                            if (row.phone) userObj.phone = row.phone;
+                            if (row.start_date) userObj.start_date = row.start_date;
+
+                            if (userObj.email && userObj.first_name && userObj.last_name) {
+                              usersToImport.push(userObj);
+                            }
+                          }
+
+                          if (usersToImport.length === 0) {
+                            alert("No valid users found in CSV");
+                            return;
+                          }
+
+                          if (!confirm(`Upload ${usersToImport.length} users to the database?`)) {
+                            return;
+                          }
+
+                          // Insert users into Supabase
+                          const { error } = await supabase
+                            .from("users")
+                            .insert(usersToImport)
+                            .select();
+
+                          if (error) {
+                            alert(`Error uploading users: ${error.message}`);
+                            return;
+                          }
+
+                          alert(`Successfully uploaded ${usersToImport.length} users!`);
+
+                          // Refresh users data
+                          const { data: userRows } = await supabase
+                            .from("users")
+                            .select("id, department_id, access_level, first_name, last_name, start_date");
+                          setUsers(userRows || []);
+                        } catch (err: any) {
+                          alert(`Error processing CSV: ${err.message}`);
+                        }
+                      };
+                      reader.readAsText(file);
+                    };
+                    input.click();
+                  }}
+                />
+                <NeonIconButton
+                  variant="edit"
+                  title="Bulk Assign"
+                  onClick={() => console.log("Bulk assign")}
+                />
+              </>
+            )}
+            {activeTab === "users" && (
+              <>
+                <NeonIconButton
+                  variant="add"
+                  title="Add User"
+                  onClick={handleAddUser}
+                />
+                <div style={{ flex: 1 }} />
+                <span style={{ opacity: 0.7, fontSize: '0.875rem' }}>
+                  {usersWithoutManager.length} without manager • {usersWithoutDepartment.length} without department
+                </span>
+              </>
+            )}
+            {activeTab === "newstarters" && (
+              <>
+                <span style={{ opacity: 0.7, fontSize: '0.875rem' }}>
+                  {newStarters.length} pending new starters
+                </span>
+                <div style={{ flex: 1 }} />
+                <NeonIconButton
+                  variant="refresh"
+                  title="Refresh"
+                  onClick={() => window.location.reload()}
+                />
+              </>
+            )}
+            {activeTab === "leavers" && (
+              <>
+                <span style={{ opacity: 0.7, fontSize: '0.875rem' }}>
+                  {leavers.length} employees who have left
+                </span>
+                <div style={{ flex: 1 }} />
+                <NeonIconButton
+                  variant="download"
+                  title="Download Leavers CSV"
+                  onClick={() => {
+                    const csvRows = [
+                      ["Name", "Email", "Department", "Leave Date", "Leave Reason", "Start Date"],
+                      ...leavers.map(l => [
+                        `${l.first_name || ""} ${l.last_name || ""}`.trim(),
+                        l.email || "—",
+                        getDepartmentName(l.department_id),
+                        l.leaver_date || "—",
+                        l.leaver_reason || "—",
+                        l.start_date || "—"
+                      ])
+                    ];
+                    const csvContent = csvRows.map(r => r.map(x => `"${x.replace(/"/g, '""')}"`).join(",")).join("\n");
+                    const blob = new Blob([csvContent], { type: "text/csv" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `leavers-${new Date().toISOString().slice(0,10)}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    setTimeout(() => {
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                    }, 100);
+                  }}
+                />
+                <NeonIconButton
+                  variant="refresh"
+                  title="Refresh"
+                  onClick={() => window.location.reload()}
+                />
+              </>
+            )}
+            {activeTab === "roles" && (
+              <>
+                <span style={{ opacity: 0.7, fontSize: '0.875rem' }}>
+                  Role & Assignment Management
+                </span>
+                <div style={{ flex: 1 }} />
+                <NeonIconButton
+                  variant="refresh"
+                  title="Refresh Roles"
+                  onClick={() => window.location.reload()}
+                />
+              </>
+            )}
+            {activeTab === "departments" && (
+              <>
+                <div
+                  className="user-manager-structure-toggle"
+                  onClick={() => setStructureView(v => v === 'role' ? 'manager' : 'role')}
+                  style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.75rem' }}
+                >
+                  <span className={`user-manager-structure-label ${structureView === 'role' ? 'active' : ''}`}>
+                    Role Structure
+                  </span>
+                  <div className={`user-manager-structure-switch ${structureView === 'role' ? 'active' : ''}`}>
+                    <div className="user-manager-structure-switch-handle" />
+                  </div>
+                  <span className={`user-manager-structure-label ${structureView === 'manager' ? 'active' : ''}`}>
+                    Manager Structure
+                  </span>
+                </div>
+                <div style={{ flex: 1 }} />
+                {structureView === 'role' && (
+                  <>
+                    <AmendDepartmentButton departments={buildTreeNodes()} />
+                    <RoleAmendButton departments={departments} roles={roles} />
+                    <RoleAddDepartmentButton onAdded={() => window.location.reload()} />
+                    <AddRoleButton departments={departments} onAdded={() => window.location.reload()} />
+                  </>
+                )}
+                {structureView === 'manager' && (
+                  <>
+                    <ChangeManagerButton departments={departments} users={users} />
+                    <AssignManagerButton departments={departments} users={users} onAdded={() => window.location.reload()} />
+                  </>
+                )}
+                <NeonIconButton
+                  variant="refresh"
+                  title="Refresh Structure"
+                  onClick={() => window.location.reload()}
+                />
+              </>
+            )}
+            {activeTab === "shifts" && (
+              <>
+                <span style={{ opacity: 0.7, fontSize: '0.875rem' }}>
+                  Shift Management
+                </span>
+              </>
+            )}
+            {activeTab === "permissions" && (
+              <>
+                <span style={{ opacity: 0.7, fontSize: '0.875rem' }}>
+                  User Permissions
+                </span>
+              </>
+            )}
+            {activeTab === "startdate" && (
+              <>
+                <label className="user-manager-label" style={{ marginBottom: 0 }}>
+                  Department:
+                  <select
+                    value={filterDept}
+                    onChange={e => setFilterDept(e.target.value)}
+                    className="user-manager-select"
+                    style={{ marginLeft: '0.5rem' }}
+                  >
+                    <option value="">All Departments</option>
+                    {departments.map(dept => (
+                      <option key={dept.id} value={dept.id}>{dept.name}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="user-manager-label" style={{ marginBottom: 0 }}>
+                  From:
+                  <input
+                    type="date"
+                    value={filterStart}
+                    onChange={e => setFilterStart(e.target.value)}
+                    className="user-manager-input"
+                    style={{ marginLeft: '0.5rem', width: '150px' }}
+                  />
+                </label>
+                <label className="user-manager-label" style={{ marginBottom: 0 }}>
+                  To:
+                  <input
+                    type="date"
+                    value={filterEnd}
+                    onChange={e => setFilterEnd(e.target.value)}
+                    className="user-manager-input"
+                    style={{ marginLeft: '0.5rem', width: '150px' }}
+                  />
+                </label>
+                <NeonIconButton
+                  variant="refresh"
+                  title="Clear filters"
+                  onClick={() => {
+                    setFilterDept("");
+                    setFilterStart("");
+                    setFilterEnd("");
+                  }}
+                />
+                <NeonIconButton
+                  variant="download"
+                  title="Download filtered users as CSV"
+                  onClick={() => {
+                    const filtered = [...users]
+                      .filter(u => u.start_date)
+                      .filter(u => !filterDept || u.department_id === filterDept)
+                      .filter(u => {
+                        if (!filterStart && !filterEnd) return true;
+                        const date = u.start_date;
+                        if (!date) return false;
+                        if (filterStart && date < filterStart) return false;
+                        if (filterEnd && date > filterEnd) return false;
+                        return true;
+                      });
+                    const csvRows = [
+                      ["Name", "Start Date", "Department"],
+                      ...filtered.map(u => [
+                        `${u.first_name || ""} ${u.last_name || ""}`.trim(),
+                        u.start_date || "—",
+                        getDepartmentName(u.department_id)
+                      ])
+                    ];
+                    const csvContent = csvRows.map(r => r.map(x => `"${x.replace(/"/g, '""')}"`).join(",")).join("\n");
+                    const blob = new Blob([csvContent], { type: "text/csv" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `users-by-start-date-${new Date().toISOString().slice(0,10)}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    setTimeout(() => {
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                    }, 100);
+                  }}
+                />
+                <div style={{ flex: 1 }} />
+                <span style={{ opacity: 0.7, fontSize: '0.875rem' }}>
+                  {users.filter(u => u.start_date && (!filterDept || u.department_id === filterDept) &&
+                    (!filterStart || u.start_date >= filterStart) &&
+                    (!filterEnd || u.start_date <= filterEnd)).length} of {users.filter(u => u.start_date).length} users
+                </span>
+              </>
+            )}
+          </>
+        }
+      />
       <div className="user-manager-content">
         {activeTab === "people" && (
           <UserManagementPanel />
@@ -369,6 +821,54 @@ const UserManager: React.FC = () => {
             </div>
           )
         )}
+        {activeTab === "leavers" && (
+          loading ? (
+            <div className="user-manager-loading">Loading leavers...</div>
+          ) : error ? (
+            <div className="user-manager-error">{error}</div>
+          ) : (
+            <div>
+              <table className="neon-table user-manager-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Department</th>
+                    <th>Start Date</th>
+                    <th>Leave Date</th>
+                    <th>Leave Reason</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {leavers.length === 0 ? (
+                    <tr><td colSpan={7} className="user-manager-empty">No employees have left</td></tr>
+                  ) : (
+                    leavers.map((leaver) => (
+                      <tr key={leaver.id}>
+                        <td className="user-manager-name">{`${leaver.first_name || ""} ${leaver.last_name || ""}`.trim()}</td>
+                        <td>{leaver.email}</td>
+                        <td>{getDepartmentName(leaver.department_id)}</td>
+                        <td>{leaver.start_date || "—"}</td>
+                        <td>{leaver.leaver_date || "—"}</td>
+                        <td>{leaver.leaver_reason || "—"}</td>
+                        <td>
+                          <div className="user-manager-actions-cell">
+                            <NeonIconButton
+                              variant="view"
+                              onClick={() => handleEditUser(leaver)}
+                              title="View User"
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )
+        )}
         {activeTab === "newstarters" && (
           loading ? (
             <div className="user-manager-loading">Loading new starters...</div>
@@ -445,87 +945,6 @@ const UserManager: React.FC = () => {
             <div className="user-manager-error">{error}</div>
           ) : (
             <div>
-              <div className="user-manager-filters">
-                <label className="user-manager-label">
-                  Department:
-                  <select 
-                    value={filterDept} 
-                    onChange={e => setFilterDept(e.target.value)} 
-                    className="user-manager-select"
-                  >
-                    <option value="">All Departments</option>
-                    {departments.map(dept => (
-                      <option key={dept.id} value={dept.id}>{dept.name}</option>
-                    ))}
-                  </select>
-                </label>
-                <label className="user-manager-label">
-                  Start Date From:
-                  <input 
-                    type="date" 
-                    value={filterStart} 
-                    onChange={e => setFilterStart(e.target.value)} 
-                    className="user-manager-input"
-                  />
-                </label>
-                <label className="user-manager-label">
-                  Start Date To:
-                  <input 
-                    type="date" 
-                    value={filterEnd} 
-                    onChange={e => setFilterEnd(e.target.value)} 
-                    className="user-manager-input"
-                  />
-                </label>
-                <div className="user-manager-download">
-                  <NeonIconButton
-                    variant="refresh"
-                    title="Clear filters"
-                    onClick={() => {
-                      setFilterDept("");
-                      setFilterStart("");
-                      setFilterEnd("");
-                    }}
-                  />
-                  <NeonIconButton
-                    variant="download"
-                    title="Download filtered users as CSV"
-                    onClick={() => {
-                      const filtered = [...users]
-                        .filter(u => u.start_date)
-                        .filter(u => !filterDept || u.department_id === filterDept)
-                        .filter(u => {
-                          if (!filterStart && !filterEnd) return true;
-                          const date = u.start_date;
-                          if (!date) return false;
-                          if (filterStart && date < filterStart) return false;
-                          if (filterEnd && date > filterEnd) return false;
-                          return true;
-                        });
-                      const csvRows = [
-                        ["Name", "Start Date", "Department"],
-                        ...filtered.map(u => [
-                          `${u.first_name || ""} ${u.last_name || ""}`.trim(),
-                          u.start_date || "—",
-                          getDepartmentName(u.department_id)
-                        ])
-                      ];
-                      const csvContent = csvRows.map(r => r.map(x => `"${x.replace(/"/g, '""')}"`).join(",")).join("\n");
-                      const blob = new Blob([csvContent], { type: "text/csv" });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement("a");
-                      a.href = url;
-                      a.download = `users-by-start-date-${new Date().toISOString().slice(0,10)}.csv`;
-                      document.body.appendChild(a);
-                      a.click();
-                      setTimeout(() => {
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                      }, 100);
-                    }}
-                  />
-                </div>
-              </div>
               <table className="neon-table user-manager-table">
                 <thead>
                   <tr>
@@ -580,19 +999,6 @@ const UserManager: React.FC = () => {
         )}
         {activeTab === "roles" && (
           <RoleModuleDocumentAssignment />
-        )}
-        {activeTab === "departments" && (
-          <div className="user-manager-structure-toggle" onClick={() => setStructureView(v => v === 'role' ? 'manager' : 'role')}>
-            <span className={`user-manager-structure-label ${structureView === 'role' ? 'active' : ''}`}>
-              Role Structure
-            </span>
-            <div className={`user-manager-structure-switch ${structureView === 'role' ? 'active' : ''}`}>
-              <div className="user-manager-structure-switch-handle" />
-            </div>
-            <span className={`user-manager-structure-label ${structureView === 'manager' ? 'active' : ''}`}>
-              Manager Structure
-            </span>
-          </div>
         )}
         {activeTab === "departments" && (
           structureView === 'role' ? <RoleStructure /> : <ManagerStructure />

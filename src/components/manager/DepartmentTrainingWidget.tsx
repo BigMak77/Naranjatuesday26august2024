@@ -143,23 +143,29 @@ export default function DepartmentTrainingWidget({ departmentId, departmentName 
         
         if (moduleIds.length > 0) {
           const { data: modules, error: moduleError } = await supabase
-            .from("training_modules")
-            .select("id, module_name")
+            .from("modules")
+            .select("id, name")
             .in("id", moduleIds);
-          
-          if (!moduleError) {
+
+          if (moduleError) {
+            console.error('Error fetching module details:', moduleError);
+          } else {
             moduleDetails = modules || [];
+            console.log('Module details fetched:', moduleDetails.length, 'of', moduleIds.length, 'requested');
           }
         }
-        
+
         if (documentIds.length > 0) {
           const { data: documents, error: docError } = await supabase
             .from("documents")
             .select("id, document_title")
             .in("id", documentIds);
-          
-          if (!docError) {
+
+          if (docError) {
+            console.error('Error fetching document details:', docError);
+          } else {
             documentDetails = documents || [];
+            console.log('Document details fetched:', documentDetails.length, 'of', documentIds.length, 'requested');
           }
         }
         
@@ -171,7 +177,7 @@ export default function DepartmentTrainingWidget({ departmentId, departmentName 
         
         const moduleLookup = new Map();
         moduleDetails.forEach(module => {
-          moduleLookup.set(module.id, module.module_name);
+          moduleLookup.set(module.id, module.name);
         });
         
         const documentLookup = new Map();
@@ -184,6 +190,14 @@ export default function DepartmentTrainingWidget({ departmentId, departmentName 
           const itemName = item.item_type === 'module'
             ? moduleLookup.get(item.item_id) || `Module ${item.item_id}`
             : documentLookup.get(item.item_id) || `Document ${item.item_id}`;
+
+          // Log missing items
+          if (!moduleLookup.has(item.item_id) && item.item_type === 'module') {
+            console.warn(`Module not found in lookup: ID ${item.item_id}`);
+          }
+          if (!documentLookup.has(item.item_id) && item.item_type === 'document') {
+            console.warn(`Document not found in lookup: ID ${item.item_id}`);
+          }
 
           const status = item.completed_at ? 'Completed' : 'Pending';
           const assignedDate = item.assigned_at ? new Date(item.assigned_at).toLocaleDateString() : 'N/A';
@@ -433,7 +447,7 @@ export default function DepartmentTrainingWidget({ departmentId, departmentName 
       <OverlayDialog
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
-        width={600}
+        width={1200}
         ariaLabelledby="training-stats-dialog"
       >
         <div style={{ padding: "0" }}>

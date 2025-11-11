@@ -167,6 +167,7 @@ export default function ModuleTabs({
         tabs={tabList}
         activeTab={activeTab}
         onChange={setActiveTab}
+        toolbar={<div style={{ opacity: 0.7, fontSize: '0.875rem' }}>Module Tools</div>}
       />
       <NeonPanel className="neon-panel-module mt-4">
         {activeTab === "Overview" && (

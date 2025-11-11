@@ -352,7 +352,7 @@ export default function Structure() {
 }
 
 // Change Manager Button - allows changing a user's manager access level and department
-function ChangeManagerButton({
+export function ChangeManagerButton({
   departments,
   users,
 }: {
@@ -514,7 +514,7 @@ function ChangeManagerButton({
 }
 
 // Assign Manager Button - assigns a user as a manager to a department
-function AssignManagerButton({
+export function AssignManagerButton({
   departments,
   users,
   onAdded,

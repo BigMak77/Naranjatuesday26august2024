@@ -159,6 +159,11 @@ export default function AuditManager() {
             tabs={tabs}
             activeTab={activeTab}
             onChange={(tabKey) => handleTabChange(tabKey as TabKey)}
+            toolbar={
+              <div style={{ opacity: 0.7, fontSize: '0.875rem' }}>
+                Audit Management Tools
+              </div>
+            }
           />
           {/* Removed stats bar here */}
           <div key={activeTab}>

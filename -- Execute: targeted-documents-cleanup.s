@@ -1,1 +1,0 @@
--- Execute: targeted-documents-cleanup.sql

@@ -13,51 +13,71 @@ interface FolderTabsProps {
   tabs: Tab[];
   activeTab: string;
   onChange: (tabKey: string) => void;
+  toolbar: React.ReactNode;
 }
 
 export default function FolderTabs({
   tabs,
   activeTab,
   onChange,
+  toolbar,
 }: FolderTabsProps) {
   return (
-    <div className="folder-tabs">
-      {tabs.map((tab) => {
-        const tabContent = (
-          <div
-            key={tab.key}
-            className={`folder-tab${activeTab === tab.key ? " active" : ""}`}
-            onClick={() => onChange(tab.key)}
-            tabIndex={0}
-            role="button"
-            aria-pressed={activeTab === tab.key}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                onChange(tab.key);
-              }
-            }}
-          >
-            {tab.icon && (
-              <span
-                className="folder-tab-icon neon-icon-white"
-                aria-hidden="true"
-              >
-                {tab.icon}
-              </span>
-            )}
-            <span className="folder-tab-label">{tab.label}</span>
-          </div>
-        );
+    <>
+      <div className="folder-tabs">
+        {tabs.map((tab) => {
+          const tabContent = (
+            <div
+              key={tab.key}
+              className={`folder-tab${activeTab === tab.key ? " active" : ""}`}
+              onClick={() => onChange(tab.key)}
+              tabIndex={0}
+              role="button"
+              aria-pressed={activeTab === tab.key}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  onChange(tab.key);
+                }
+              }}
+            >
+              {tab.icon && (
+                <span
+                  className="folder-tab-icon neon-icon-white"
+                  aria-hidden="true"
+                >
+                  {tab.icon}
+                </span>
+              )}
+              <span className="folder-tab-label">{tab.label}</span>
+            </div>
+          );
 
-        return tab.tooltip ? (
-          <CustomTooltip key={tab.key} text={tab.tooltip}>
-            {tabContent}
-          </CustomTooltip>
-        ) : (
-          tabContent
-        );
-      })}
-    </div>
+          return tab.tooltip ? (
+            <CustomTooltip key={tab.key} text={tab.tooltip}>
+              {tabContent}
+            </CustomTooltip>
+          ) : (
+            tabContent
+          );
+        })}
+      </div>
+
+      {/* Toolbar renders directly underneath tabs */}
+      <div style={{
+        display: 'flex',
+        gap: '0.75rem',
+        alignItems: 'center',
+        padding: '0.75rem',
+        background: 'var(--panel)',
+        border: '1px solid #fa7a20',
+        borderRadius: '0 0 8px 8px',
+        marginTop: '0',
+        marginBottom: '1rem',
+        flexWrap: 'wrap'
+      }}>
+        {toolbar}
+      </div>
+    </>
   );
 }
 
@@ -90,6 +110,14 @@ export function FolderTabView() {
         tabs={categories.map((cat) => ({ key: cat.id, label: cat.name }))}
         activeTab={activeTab || ""}
         onChange={setActiveTab}
+        toolbar={
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            {/* Add toolbar content here */}
+            <span style={{ opacity: 0.7, fontSize: '0.875rem' }}>
+              {categories.length} categories
+            </span>
+          </div>
+        }
       />
 
       <div className="folder-content">

@@ -312,6 +312,7 @@ export default function TaskDashboard() {
         ]}
         activeTab={activeTab}
         onChange={setActiveTab}
+        toolbar={<div style={{ opacity: 0.7, fontSize: '0.875rem' }}>Task Management</div>}
       />
       <div className="mt-6">
         {activeTab === "nonconformances" ? (
