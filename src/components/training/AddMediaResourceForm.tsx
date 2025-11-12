@@ -71,7 +71,7 @@ export default function AddMediaResourceForm({ onSuccess }: { onSuccess?: () => 
         </button>
       </form>
       {showSuccess && (
-        <OverlayDialog open={showSuccess} onClose={() => setShowSuccess(false)} ariaLabelledby="media-success-title">
+        <OverlayDialog showCloseButton={true} open={showSuccess} onClose={() => setShowSuccess(false)} ariaLabelledby="media-success-title">
           <NeonPanel>
             <h2 id="media-success-title">Resource Added!</h2>
           </NeonPanel>

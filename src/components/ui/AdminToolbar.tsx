@@ -2,12 +2,14 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useUser } from "@/context/UserContext";
 import { FiMail, FiSettings } from "react-icons/fi";
 
 type AdminSection = "Dashboard" | "Users" | "Modules" | "Departments" | "Utilities";
 
 export default function AdminToolbar() {
   const router = useRouter();
+  const { user } = useUser();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedSection, setSelectedSection] = useState<AdminSection>("Dashboard");
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -157,7 +159,9 @@ export default function AdminToolbar() {
         </button>
       </div>
 
-      <span>Admin Toolbar</span>
+      <span style={{ minWidth: "200px", whiteSpace: "nowrap" }}>
+        {user?.first_name ? `${user.first_name}, Access level: Admin` : "Admin Toolbar"}
+      </span>
     </section>
   );
 }

@@ -147,7 +147,7 @@ export default function DocumentTypeTable() {
           ),
         }))}
       />
-      <OverlayDialog open={showDialog} onClose={() => setShowDialog(false)}>
+      <OverlayDialog showCloseButton={true} open={showDialog} onClose={() => setShowDialog(false)}>
         <NeonForm
           title="Add Document Type"
           onSubmit={handleAdd}
@@ -179,7 +179,7 @@ export default function DocumentTypeTable() {
           {error && <div className="neon-error mt-2">{error}</div>}
         </NeonForm>
       </OverlayDialog>
-      <OverlayDialog open={editDialog.open} onClose={() => setEditDialog({ open: false, id: null, name: '', summary: '' })}>
+      <OverlayDialog showCloseButton={true} open={editDialog.open} onClose={() => setEditDialog({ open: false, id: null, name: '', summary: '' })}>
         <NeonForm
           title="Edit Document Type"
           onSubmit={handleEditSave}

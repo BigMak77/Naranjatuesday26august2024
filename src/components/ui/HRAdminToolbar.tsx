@@ -2,12 +2,14 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useUser } from "@/context/UserContext";
 import { FiMail, FiUsers } from "react-icons/fi";
 
 type HRSection = "Dashboard" | "Employees" | "Compliance" | "Reports";
 
 export default function HRAdminToolbar() {
   const router = useRouter();
+  const { user } = useUser();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedSection, setSelectedSection] = useState<HRSection>("Dashboard");
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -156,7 +158,9 @@ export default function HRAdminToolbar() {
         </button>
       </div>
 
-      <span>HR Admin Toolbar (All Departments)</span>
+      <span style={{ minWidth: "200px", whiteSpace: "nowrap" }}>
+        {user?.first_name ? `${user.first_name}, Access level: HR Admin` : "HR Admin Toolbar"}
+      </span>
     </section>
   );
 }

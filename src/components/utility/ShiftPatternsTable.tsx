@@ -160,7 +160,7 @@ export default function ShiftPatternsTable() {
           ),
         }))}
       />
-      <OverlayDialog open={showDialog} onClose={() => setShowDialog(false)}>
+      <OverlayDialog showCloseButton={true} open={showDialog} onClose={() => setShowDialog(false)}>
         <NeonForm
           title="Add Shift Pattern"
           onSubmit={handleAdd}
@@ -195,7 +195,7 @@ export default function ShiftPatternsTable() {
           {error && <div className="neon-error" style={{ marginTop: '0.5rem' }}>{error}</div>}
         </NeonForm>
       </OverlayDialog>
-      <OverlayDialog open={!!editDialog} onClose={() => setEditDialog(null)}>
+      <OverlayDialog showCloseButton={true} open={!!editDialog} onClose={() => setEditDialog(null)}>
         <NeonForm
           title="Edit Shift Pattern"
           onSubmit={handleEditSave}

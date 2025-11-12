@@ -58,7 +58,7 @@ export default function LoginPage() {
   };
 
   return (
-    <OverlayDialog
+    <OverlayDialog showCloseButton={true}
         open={true}
         onClose={() => {}}
         closeOnOutsideClick={false}

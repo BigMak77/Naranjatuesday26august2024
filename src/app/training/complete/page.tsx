@@ -1,4 +1,4 @@
-import TrainerView from "@/components/userview/TrainerView";
+import TrainerView from "@/components/TrainerView";
 
 export default function CompleteTrainingPage() {
   return <TrainerView />;

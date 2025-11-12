@@ -396,7 +396,7 @@ export default function EditModulePage() {
 
       {/* Follow-up Assessment Dialog */}
       {showFollowUpDialog && (
-        <OverlayDialog
+        <OverlayDialog showCloseButton={true}
           open={showFollowUpDialog}
           onClose={() => setShowFollowUpDialog(false)}
           ariaLabelledby="follow-up-dialog-title-edit"

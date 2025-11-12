@@ -106,7 +106,7 @@ const TrainingMaterialsManagerDialog: React.FC<TrainingMaterialsManagerDialogPro
   ];
 
   return (
-    <OverlayDialog open={open} onClose={onClose}>
+    <OverlayDialog showCloseButton={true} open={open} onClose={onClose}>
       <div style={{ padding: 24, minWidth: 600, maxWidth: 1100 }}>
         <h3 style={{ fontSize: 22, fontWeight: 600, marginBottom: 16 }}>All Training Materials</h3>
         <div style={{ display: 'flex', gap: 16, marginBottom: 18, alignItems: 'center' }}>
@@ -146,7 +146,7 @@ const TrainingMaterialsManagerDialog: React.FC<TrainingMaterialsManagerDialogPro
         <NeonTable columns={materialColumns} data={materialsTableData} />
       </div>
       {showAddMaterial && (
-        <OverlayDialog open={showAddMaterial} onClose={() => setShowAddMaterial(false)}>
+        <OverlayDialog showCloseButton={true} open={showAddMaterial} onClose={() => setShowAddMaterial(false)}>
           <form onSubmit={handleUploadMaterial} style={{ background: "#fff", border: "2px solid #40e0d0", borderRadius: 8, padding: 24, minWidth: 340 }}>
             <h4 style={{ marginBottom: 16 }}>Add New Material</h4>
             <label style={{ display: 'block', marginBottom: 12 }}>

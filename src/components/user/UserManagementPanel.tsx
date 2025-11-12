@@ -1152,7 +1152,7 @@ export default function UserManagementPanel() {
           </div>
 
           {/* Overlaid dialog rendered via portal */}
-          <OverlayDialog open={dialogOpen} onClose={handleCloseDialog} ariaLabelledby="user-editor-title">
+          <OverlayDialog showCloseButton={true} open={dialogOpen} onClose={handleCloseDialog} ariaLabelledby="user-editor-title">
             <div className="neon-form-title" id="user-editor-title" style={{ marginBottom: "1.25rem" }}>
               {isAddMode ? "Add User" : "Edit User"}
             </div>
@@ -1610,7 +1610,7 @@ export default function UserManagementPanel() {
           </OverlayDialog>
 
           {/* Permissions Manager Dialog */}
-          <OverlayDialog
+          <OverlayDialog showCloseButton={true}
             open={permissionsDialogOpen}
             onClose={() => setPermissionsDialogOpen(false)}
             ariaLabelledby="permissions-manager-title"
@@ -1634,7 +1634,7 @@ export default function UserManagementPanel() {
 
           {/* Staged Bulk Assign Overlay */}
           {bulkAssignOpen && (
-            <OverlayDialog open={bulkAssignOpen} onClose={handleBulkAssignCancel} ariaLabelledby="bulk-assign-title">
+            <OverlayDialog showCloseButton={true} open={bulkAssignOpen} onClose={handleBulkAssignCancel} ariaLabelledby="bulk-assign-title">
               <div className="neon-form-title" id="bulk-assign-title" style={{ marginBottom: "1.25rem" }}>
                 Bulk Assign
               </div>

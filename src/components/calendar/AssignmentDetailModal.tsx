@@ -75,7 +75,7 @@ export default function AssignmentDetailModal({
   if (!date) return null;
 
   return (
-    <OverlayDialog open={isOpen} onClose={onClose}>
+    <OverlayDialog showCloseButton={true} open={isOpen} onClose={onClose}>
       <div className="assignment-detail-modal">
         <div className="assignment-detail-header">
           <div className="assignment-detail-date">

@@ -201,7 +201,7 @@ export default function AddFirstAidDialog({ open, onClose, onAdded }: AddFirstAi
   };
 
   return (
-    <OverlayDialog open={open} onClose={onClose}>
+    <OverlayDialog showCloseButton={true} open={open} onClose={onClose}>
       <div style={{ minWidth: 400, maxWidth: 600, padding: 24 }}>
         <div style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
           <FiHeart className="neon-icon" style={{ color: "#ef4444" }} />

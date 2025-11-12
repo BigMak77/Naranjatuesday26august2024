@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { FaLinkedin, FaEnvelope, FaXTwitter } from "react-icons/fa6";
 import {
-  SiLinkedin,
-  SiX,
-  SiYoutube,
-  SiFacebook,
-  SiInstagram,
-} from "react-icons/si";
+  Linkedin,
+  Twitter,
+  Youtube,
+  Facebook,
+  Instagram,
+  Mail,
+} from "react-feather";
 
 const NAV = [
   {
@@ -33,10 +33,10 @@ const NAV = [
   {
     title: "Company",
     items: [
-      { label: "Security", href: "#" },
-      { label: "Accessibility", href: "#" },
+      { label: "Security", href: "/homepage/security" },
+      { label: "Accessibility", href: "/homepage/accessibility" },
       { label: "Careers", href: "/homepage/careers" },
-      { label: "Press", href: "#" },
+      { label: "Press", href: "/homepage/press" },
     ],
   },
 ];
@@ -102,7 +102,7 @@ export default function GlobalFooter() {
                 className="footer__icon footer__icon--linkedin"
                 title="Follow us on LinkedIn"
               >
-                <SiLinkedin aria-hidden />
+                <Linkedin aria-hidden size={20} />
               </a>
               <a
                 href="https://x.com/naranjateam"
@@ -112,7 +112,7 @@ export default function GlobalFooter() {
                 className="footer__icon footer__icon--x"
                 title="Follow us on X"
               >
-                <SiX aria-hidden />
+                <Twitter aria-hidden size={20} />
               </a>
               <a
                 href="https://www.youtube.com/@naranja"
@@ -122,7 +122,7 @@ export default function GlobalFooter() {
                 className="footer__icon footer__icon--youtube"
                 title="Subscribe to our YouTube channel"
               >
-                <SiYoutube aria-hidden />
+                <Youtube aria-hidden size={20} />
               </a>
               <a
                 href="https://www.facebook.com/naranja"
@@ -132,7 +132,7 @@ export default function GlobalFooter() {
                 className="footer__icon footer__icon--facebook"
                 title="Like us on Facebook"
               >
-                <SiFacebook aria-hidden />
+                <Facebook aria-hidden size={20} />
               </a>
               <a
                 href="https://www.instagram.com/naranja"
@@ -142,7 +142,7 @@ export default function GlobalFooter() {
                 className="footer__icon footer__icon--instagram"
                 title="Follow us on Instagram"
               >
-                <SiInstagram aria-hidden />
+                <Instagram aria-hidden size={20} />
               </a>
               <a
                 href="mailto:support@naranja.co.uk"
@@ -150,7 +150,7 @@ export default function GlobalFooter() {
                 className="footer__icon footer__icon--email"
                 title="Send us an email"
               >
-                <FaEnvelope aria-hidden />
+                <Mail aria-hidden size={20} />
               </a>
             </div>
           </div>

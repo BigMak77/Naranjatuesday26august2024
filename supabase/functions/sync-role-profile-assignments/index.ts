@@ -70,6 +70,7 @@ async function syncRoleProfileAssignments(role_id: string): Promise<number> {
         auth_id: a.auth_id,
         item_id,
         item_type: a.type,
+        due_at: new Date().toISOString(), // Due immediately when assigned
       };
     });
     const { error: insertError } = await supabase.from("user_assignments").insert(toInsert);

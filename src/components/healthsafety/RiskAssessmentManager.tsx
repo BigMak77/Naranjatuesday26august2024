@@ -393,7 +393,7 @@ export default function RiskAssessmentManager() {
         </>
       )}
 
-      <OverlayDialog
+      <OverlayDialog showCloseButton={true}
         open={mode === "create" || mode === "edit"}
         onClose={handleCancel}
         ariaLabelledby="risk-assessment-form-title"

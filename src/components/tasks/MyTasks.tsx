@@ -191,7 +191,7 @@ export default function MyTasks() {
           </div>
         </div>
       )}
-      <OverlayDialog open={showCompleteTask.open} onClose={() => setShowCompleteTask({ open: false, assignmentId: null })} ariaLabelledby="complete-task-title">
+      <OverlayDialog showCloseButton={true} open={showCompleteTask.open} onClose={() => setShowCompleteTask({ open: false, assignmentId: null })} ariaLabelledby="complete-task-title">
         <CompleteTask
           taskAssignmentId={showCompleteTask.assignmentId || ""}
           onComplete={() => {

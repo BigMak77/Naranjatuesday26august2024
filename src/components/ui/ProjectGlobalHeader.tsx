@@ -3,7 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useMemo, useContext } from "react";
+import { useState, useMemo, useContext, useEffect } from "react";
 import { useUser } from "@/lib/useUser";
 import { supabase } from "@/lib/supabase-client";
 import { getDashboardUrl } from "@/lib/permissions";
@@ -17,6 +17,7 @@ import MyProfileModal from "@/components/user/MyProfileModal";
 import Modal from "@/components/modal";
 import { NeonRaiseIssueButton } from "@/components/ui/NeonIconButton";
 import { RaiseIssueModalContext } from "@/context/RaiseIssueModalContext";
+import { useGlobalSearch } from "@/context/GlobalSearchContext";
 
 type NavLink = {
   href?: string;
@@ -44,6 +45,25 @@ export default function GlobalHeader({
   const [signingOut, setSigningOut] = useState(false);
   const raiseIssueModalCtx = useContext(RaiseIssueModalContext);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const { openSearch } = useGlobalSearch();
+  const [isMac, setIsMac] = useState(false);
+
+  // Detect Mac for keyboard shortcut display
+  useEffect(() => {
+    setIsMac(navigator.userAgent.includes("Mac"));
+  }, []);
+
+  // Keyboard shortcut for search (Cmd/Ctrl + K)
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        openSearch();
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [openSearch]);
 
   // Close dropdowns when clicking outside
   React.useEffect(() => {
@@ -174,24 +194,37 @@ export default function GlobalHeader({
           )}
 
           {/* Search Bar */}
-          <form
+          <button
+            type="button"
             role="search"
-            aria-label="Site search"
+            aria-label="Open search"
             className="global-header-search-form"
-            onSubmit={(e) => e.preventDefault()}
+            onClick={() => {
+              console.log("Search button clicked");
+              openSearch();
+            }}
+            style={{ cursor: "pointer" }}
           >
             <span className="global-header-search-icon" aria-hidden="true">
               <FiSearch />
             </span>
-            <input
-              id="global-header-search"
-              type="search"
-              placeholder="Search..."
-              autoComplete="off"
-              name="search"
-              className="global-header-search-input"
-            />
-          </form>
+            <span className="global-header-search-input" style={{ textAlign: "left" }}>
+              Search...
+            </span>
+            <kbd
+              style={{
+                background: "rgba(255, 255, 255, 0.1)",
+                border: "1px solid rgba(255, 255, 255, 0.2)",
+                borderRadius: "4px",
+                padding: "0.125rem 0.375rem",
+                fontSize: "0.75rem",
+                color: "rgba(255, 255, 255, 0.6)",
+                marginLeft: "auto",
+              }}
+            >
+              {isMac ? "⌘" : "Ctrl"} K
+            </kbd>
+          </button>
 
           {/* Right: Auth area */}
           <div className="global-header-auth">

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
+import AccessControlWrapper from "@/components/AccessControlWrapper";
 import ContentHeader from "@/components/ui/ContentHeader";
 
 type Section = {
@@ -91,11 +92,16 @@ export default function StandardSectionPage() {
   );
 
   return (
-    <main className="standard-sections-page-wrapper">
-      <ContentHeader
-        title="Standard Sections"
-        description="Browse and filter compliance standard clauses and sections"
-      />
+    <AccessControlWrapper
+      requiredRoles={["Super Admin", "Admin"]}
+      redirectOnNoAccess={true}
+      noAccessMessage="You don't have permission to view standard sections."
+    >
+      <main className="standard-sections-page-wrapper">
+        <ContentHeader
+          title="Standard Sections"
+          description="Browse and filter compliance standard clauses and sections"
+        />
       <h1 className="standard-sections-title">Standard Sections</h1>
       <p className="standard-sections-desc">
         Below are the structured clauses and sub-clauses for each compliance
@@ -179,5 +185,6 @@ export default function StandardSectionPage() {
           })
       )}
     </main>
+    </AccessControlWrapper>
   );
 }

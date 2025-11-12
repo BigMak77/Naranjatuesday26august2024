@@ -261,7 +261,7 @@ export default function AddQuestionPackForm({ onSuccess }: { onSuccess?: () => v
       </form>
       {/* Add More Modal */}
       {showAddMore && (
-        <OverlayDialog open={showAddMore} onClose={handleFinish} ariaLabelledby="add-more-title">
+        <OverlayDialog showCloseButton={true} open={showAddMore} onClose={handleFinish} ariaLabelledby="add-more-title">
           <NeonPanel>
             <h2 id="add-more-title">Add More Questions?</h2>
             <p>Would you like to add questions from another category to this pack?</p>
@@ -278,7 +278,7 @@ export default function AddQuestionPackForm({ onSuccess }: { onSuccess?: () => v
       )}
       {/* Success Modal */}
       {success && (
-        <OverlayDialog open={success} onClose={() => setSuccess(false)} ariaLabelledby="success-title">
+        <OverlayDialog showCloseButton={true} open={success} onClose={() => setSuccess(false)} ariaLabelledby="success-title">
           <NeonPanel>
             <h2 id="success-title">Pack added!</h2>
             <div className="training-card training-badgePass">Question pack created successfully.</div>

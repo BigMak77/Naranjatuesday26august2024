@@ -23,7 +23,7 @@ export default function RaiseIssueModalProvider({ children }: RaiseIssueModalPro
   return (
     <RaiseIssueModalContext.Provider value={{ openRaiseIssue }}>
       {children}
-      <OverlayDialog
+      <OverlayDialog showCloseButton={true}
         open={isOpen}
         onClose={closeRaiseIssue}
         ariaLabelledby="raise-issue-title"

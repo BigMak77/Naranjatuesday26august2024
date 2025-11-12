@@ -23,15 +23,15 @@ import {
 } from "react-icons/fi";
 import { createClient } from "@supabase/supabase-js";
 import SignaturePad from "react-signature-canvas";
-import NeonTable from "../NeonTable";
-import NeonForm from "../NeonForm";
-import NeonPanel from "../NeonPanel";
+import NeonTable from "./NeonTable";
+import NeonForm from "./NeonForm";
+import NeonPanel from "./NeonPanel";
 import Image from "next/image";
 import TrainingMaterialsManagerDialog from "@/components/training/TrainingMaterialsManagerDialog";
-import TrainingQuestionsSection from "../training/TrainingQuestionsSection";
-import TrainingQuestionForm from "../training/TrainingQuestionForm";
-import TrainingQuestionCategoriesTable from "../training/TrainingQuestionCategoriesTable";
-import TrainingQuestionCategory from "../training/TrainingQuestionCategory";
+import TrainingQuestionsSection from "./training/TrainingQuestionsSection";
+import TrainingQuestionForm from "./training/TrainingQuestionForm";
+import TrainingQuestionCategoriesTable from "./training/TrainingQuestionCategoriesTable";
+import TrainingQuestionCategory from "./training/TrainingQuestionCategory";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 import ContentHeader from "@/components/ui/ContentHeader";
 

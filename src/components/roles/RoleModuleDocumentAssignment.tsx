@@ -191,7 +191,7 @@ export default function RoleModuleDocumentAssignment() {
   // Stage 2: Create a new role (simple form)
   if (stage === "create") {
     return (
-      <OverlayDialog open={true} onClose={() => setStage("choose")}> 
+      <OverlayDialog showCloseButton={true} open={true} onClose={() => setStage("choose")}> 
         <NeonForm
           title="Add New Role"
           submitLabel="Save Role"

@@ -2,6 +2,7 @@
 
 import UtilityWidget from "@/components/utility/UtilityWidget";
 import ContentHeader from "@/components/ui/ContentHeader";
+import AccessControlWrapper from "@/components/AccessControlWrapper";
 import { useState } from "react";
 import DocumentTypeTable from "@/components/documents/DocumentTypeTable";
 import ShiftPatternsTable from "@/components/utility/ShiftPatternsTable";
@@ -18,11 +19,16 @@ export default function UtilityPage() {
   const [openAuditors, setOpenAuditors] = useState(true);
 
   return (
-    <main className="after-hero">
-      <ContentHeader
-        title="Admin Utilities"
-        description="Utilities are similar to global settings, that improve the functionality of the platform."
-      />
+    <AccessControlWrapper
+      requiredRoles={["Super Admin", "Admin"]}
+      redirectOnNoAccess={true}
+      noAccessMessage="You don't have permission to access admin utilities."
+    >
+      <main className="after-hero">
+        <ContentHeader
+          title="Admin Utilities"
+          description="Utilities are similar to global settings, that improve the functionality of the platform."
+        />
       <div className="global-content">
         <section style={{ marginBottom: 32 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 0 }}>
@@ -88,5 +94,6 @@ export default function UtilityPage() {
         </section>
       </div>
     </main>
+    </AccessControlWrapper>
   );
 }

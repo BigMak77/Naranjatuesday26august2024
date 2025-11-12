@@ -39,30 +39,28 @@ export default function CompactAssignmentCalendar({
     if (!user?.auth_id) return;
 
     try {
-      // Fetch from turkus_unified_assignments table
-      const { data: turkusAssignments } = await supabase
-        .from("turkus_unified_assignments")
+      // Fetch from user_assignments table
+      const { data: userAssignments } = await supabase
+        .from("user_assignments")
         .select(`
           id,
-          reference_id,
-          assignment_type,
-          due_date,
-          status,
-          priority,
-          metadata
+          item_id,
+          item_type,
+          due_at,
+          completed_at,
+          assigned_at
         `)
-        .eq("assigned_to", user.auth_id)
-        .neq("status", "completed")
-        .neq("status", "cancelled")
-        .not("due_date", "is", null);
+        .eq("auth_id", user.auth_id)
+        .is("completed_at", null)
+        .not("due_at", "is", null);
 
-      const formattedAssignments: Assignment[] = (turkusAssignments || []).map(ta => ({
-        id: ta.id,
-        item_id: ta.reference_id,
-        item_type: ta.assignment_type,
-        due_date: ta.due_date,
-        title: ta.metadata?.title || `${ta.assignment_type.charAt(0).toUpperCase() + ta.assignment_type.slice(1)} Assignment`,
-        priority: ta.priority
+      const formattedAssignments: Assignment[] = (userAssignments || []).map(ua => ({
+        id: ua.id,
+        item_id: ua.item_id,
+        item_type: ua.item_type,
+        due_date: ua.due_at,
+        title: `${ua.item_type.charAt(0).toUpperCase() + ua.item_type.slice(1)} Assignment`,
+        priority: 'medium' // Default priority since not stored in user_assignments
       }));
 
       setAssignments(formattedAssignments);
@@ -210,10 +208,17 @@ export default function CompactAssignmentCalendar({
 
       {/* Compact Stats */}
       <div className="compact-calendar-stats">
-        <div className="compact-stat">
-          <FiClock size={12} />
-          <span>{assignments.length} due this month</span>
-        </div>
+        {assignments.length > 0 ? (
+          <div className="compact-stat">
+            <FiClock size={12} />
+            <span>{assignments.length} due this month</span>
+          </div>
+        ) : (
+          <div className="compact-stat" style={{ opacity: 0.7, fontSize: '0.9em' }}>
+            <FiClock size={12} />
+            <span>No assignments with due dates</span>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -5,10 +5,15 @@ import Link from "next/link";
 import { FiUsers, FiSettings, FiRefreshCw, FiPlus } from "react-icons/fi";
 import ContentHeader from "@/components/ui/ContentHeader";
 import AssignmentSyncButtons from "@/components/AssignmentSyncButtons";
+import AccessControlWrapper from "@/components/AccessControlWrapper";
 
 export default function RolesManagementPage() {
   return (
-    <>
+    <AccessControlWrapper
+      requiredRoles={["Super Admin", "Admin"]}
+      redirectOnNoAccess={true}
+      noAccessMessage="You don't have permission to manage roles."
+    >
       <ContentHeader title="Role Management" />
       
       <div className="max-w-6xl mx-auto p-6 space-y-6">
@@ -65,6 +70,6 @@ export default function RolesManagementPage() {
         </div>
 
       </div>
-    </>
+    </AccessControlWrapper>
   );
 }

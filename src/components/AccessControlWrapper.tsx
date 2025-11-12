@@ -84,7 +84,14 @@ export default function AccessControlWrapper({
       // Check role-based access
       if (requiredRoles) {
         const allowedLevels = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles];
+        console.log('[AccessControlWrapper] Checking access:', {
+          userAccessLevel: user.access_level,
+          userAccessLevelType: typeof user.access_level,
+          requiredRoles: allowedLevels,
+          normalizedUserLevel: user.access_level?.toLowerCase(),
+        });
         hasAccess = canAccessRoute(user.access_level, allowedLevels);
+        console.log('[AccessControlWrapper] Access result:', hasAccess);
       }
 
       // Check permission-based access (only if role check passed)

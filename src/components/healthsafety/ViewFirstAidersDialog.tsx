@@ -162,7 +162,7 @@ export default function ViewFirstAidersDialog({ open, onClose }: ViewFirstAiders
   };
 
   return (
-    <OverlayDialog open={open} onClose={onClose}>
+    <OverlayDialog showCloseButton={true} open={open} onClose={onClose}>
       <>
         <div style={{ display: "flex", alignItems: "center", marginBottom: 24 }}>
           <FiUser className="neon-icon" style={{ color: "var(--status-danger)", marginRight: 12 }} />

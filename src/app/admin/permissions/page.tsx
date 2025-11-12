@@ -3,6 +3,7 @@
 import ContentHeader from "@/components/ui/ContentHeader";
 import QuickPermissionAssign from "@/components/user/QuickPermissionAssign";
 import UserPermissionsManager from "@/components/user/UserPermissionsManager";
+import AccessControlWrapper from "@/components/AccessControlWrapper";
 import { useState } from "react";
 import { FiShield, FiUsers } from "react-icons/fi";
 
@@ -10,11 +11,16 @@ export default function PermissionsPage() {
   const [activeTab, setActiveTab] = useState<"quick" | "advanced">("quick");
 
   return (
-    <div className="page-container">
-      <ContentHeader
-        title="User Permissions"
-        description="Assign and manage user permissions for health & safety roles"
-      />
+    <AccessControlWrapper
+      requiredRoles={["Super Admin", "Admin"]}
+      redirectOnNoAccess={true}
+      noAccessMessage="You don't have permission to manage user permissions."
+    >
+      <div className="page-container">
+        <ContentHeader
+          title="User Permissions"
+          description="Assign and manage user permissions for health & safety roles"
+        />
 
       <div className="neon-card p-6 mb-6">
         <div className="flex gap-4 border-b border-cyan-500/20 mb-6">
@@ -117,5 +123,6 @@ export default function PermissionsPage() {
         </div>
       </div>
     </div>
+    </AccessControlWrapper>
   );
 }

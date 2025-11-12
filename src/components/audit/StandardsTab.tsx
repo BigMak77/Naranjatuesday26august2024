@@ -297,7 +297,7 @@ export default function StandardsTab() {
       )}
       {/* Description Edit Overlay */}
       {descEditSection && (
-        <OverlayDialog open={!!descEditSection} onClose={() => setDescEditSection(null)}>
+        <OverlayDialog showCloseButton={true} open={!!descEditSection} onClose={() => setDescEditSection(null)}>
           <div className="standards-modal-wide">
             <h3>Edit Section Description</h3>
             <form
@@ -354,7 +354,7 @@ export default function StandardsTab() {
       )}
       {/* Questions Management Overlay */}
       {modalOpen && (
-        <OverlayDialog open={!!modalOpen} onClose={() => setModalOpen(null)}>
+        <OverlayDialog showCloseButton={true} open={!!modalOpen} onClose={() => setModalOpen(null)}>
           <div className="standards-modal-wide">
             <h3>Manage Questions</h3>
             <form onSubmit={handleAddQuestions}>

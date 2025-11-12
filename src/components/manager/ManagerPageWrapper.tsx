@@ -122,18 +122,14 @@ export default function ManagerPageWrapper() {
   };
 
   return (
-    <div className="after-hero">
-      <div className="global-content">
-        <main className="global-content">
-          <ContentHeader
-            title={headerInfo.title}
-            description={headerInfo.description}
-          />
+    <>
+      <ContentHeader
+        title={headerInfo.title}
+        description={headerInfo.description}
+      />
 
-          {/* Render the selected view */}
-          {renderCurrentView()}
-        </main>
-      </div>
-    </div>
+      {/* Render the selected view */}
+      {renderCurrentView()}
+    </>
   );
 }

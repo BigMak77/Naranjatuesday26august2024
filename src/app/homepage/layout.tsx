@@ -1,19 +1,14 @@
 
-// app/layout.tsx  (SERVER component — no "use client")
+// app/homepage/layout.tsx  (SERVER component — no "use client")
 import "../globals.css";
 import type { ReactNode } from "react";
-import ProjectGlobalHeader from "@/components/ui/ProjectGlobalHeader";
-import AuthListener from "@/app/AuthListener";
+import GlobalFooter from "@/components/ui/GlobalFooter";
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default function HomepageLayout({ children }: { children: ReactNode }) {
   return (
     <>
-      <AuthListener />
-      <ProjectGlobalHeader />
       <main className="content">{children}</main>
-      <footer className="site-footer">
-        <div className="inner">© Naranja</div>
-      </footer>
+      <GlobalFooter />
     </>
   );
 }

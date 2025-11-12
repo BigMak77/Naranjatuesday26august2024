@@ -221,7 +221,9 @@ export default function ManagerToolbar({
         </div>
       </div>
 
-      <span>Manager Toolbar</span>
+      <span style={{ minWidth: "200px", whiteSpace: "nowrap" }}>
+        {user?.first_name ? `${user.first_name}, Access level: Manager` : "Manager Toolbar"}
+      </span>
     </section>
   );
 }

@@ -30,25 +30,43 @@ export default function IssueManager() {
   // Check if user can assign issues
   const canAssignIssues = () => {
     if (!user) return false;
-    const accessLevel = user.access_level;
-    // Admin (level 5) can assign any issues, Managers (level 4) can assign department issues
-    return accessLevel === "5" || accessLevel === "4";
+    const accessLevel = user.access_level?.toLowerCase();
+    // Super Admin, Admin, Dept. Manager, Manager, HR Admin, H&S Admin can assign issues
+    return (
+      accessLevel === "super admin" ||
+      accessLevel === "admin" ||
+      accessLevel === "dept. manager" ||
+      accessLevel === "manager" ||
+      accessLevel === "hr admin" ||
+      accessLevel === "h&s admin" ||
+      // Legacy numeric levels
+      accessLevel === "5" ||
+      accessLevel === "4"
+    );
   };
 
   // Check if user can assign a specific issue (for managers - only their department)
   const canAssignSpecificIssue = (issue: Issue) => {
     if (!user) return false;
-    const accessLevel = user.access_level;
-    
-    // Admin can assign any issue
-    if (accessLevel === "5") return true;
-    
-    // Managers can only assign issues from their department
-    if (accessLevel === "4") {
+    const accessLevel = user.access_level?.toLowerCase();
+
+    // Super Admin and Admin can assign any issue
+    if (accessLevel === "super admin" || accessLevel === "admin" || accessLevel === "5") {
+      return true;
+    }
+
+    // Dept. Manager, Manager, HR Admin, H&S Admin can assign department issues
+    if (
+      accessLevel === "dept. manager" ||
+      accessLevel === "manager" ||
+      accessLevel === "hr admin" ||
+      accessLevel === "h&s admin" ||
+      accessLevel === "4"
+    ) {
       // The issue should be from the same department as the user
       return true; // We'll validate this in the fetchIssues function
     }
-    
+
     // Users cannot assign issues
     return false;
   };
@@ -69,19 +87,25 @@ export default function IssueManager() {
       return;
     }
 
-    const accessLevel = user.access_level;
+    const accessLevel = user.access_level?.toLowerCase();
     let query = supabase
       .from("issues")
       .select("id, title, status, priority, created_at, assigned_at, assigned_to, department_id, assigned_user:users(id, first_name, last_name)");
 
-    // Admin (level 5) can see all issues, Managers (level 4) see only their department
-    if (accessLevel === "5") {
+    // Super Admin and Admin can see all issues
+    if (accessLevel === "super admin" || accessLevel === "admin" || accessLevel === "5") {
       // Admin sees all issues - no filter needed
-    } else if (accessLevel === "4") {
-      // Manager sees only their department issues
+    } else if (
+      accessLevel === "dept. manager" ||
+      accessLevel === "manager" ||
+      accessLevel === "hr admin" ||
+      accessLevel === "h&s admin" ||
+      accessLevel === "4"
+    ) {
+      // Manager/HR/H&S sees only their department issues
       query = query.eq("department_id", user.department_id);
     } else {
-      // Users (level 3 and below) cannot manage issues
+      // Users (basic level) cannot manage issues
       setIssues([]);
       setCompliance({ percent: 0, completed: 0, assigned: 0, total: 0 });
       setLoading(false);
@@ -176,7 +200,11 @@ export default function IssueManager() {
     );
   }
 
-  if (!canAssignIssues() && user.access_level !== "3") {
+  // Allow users with level 3 (or "User") to view read-only
+  const accessLevel = user?.access_level?.toLowerCase();
+  const canViewReadOnly = accessLevel === "3" || accessLevel === "user";
+
+  if (!canAssignIssues() && !canViewReadOnly) {
     return (
       <div className="neon-issue-manager-container">
         <div className="neon-access-denied">

@@ -1,5 +1,8 @@
+"use client";
+
 import ContentHeader from "@/components/ui/ContentHeader";
 import NeonFeatureCard from "@/components/NeonFeatureCard";
+import AccessControlWrapper from "@/components/AccessControlWrapper";
 import {
   FiBarChart2,
   FiGrid,
@@ -56,7 +59,11 @@ export default function TurkusHomePage() {
     },
   ];
   return (
-    <>
+    <AccessControlWrapper
+      requiredRoles={["Super Admin", "Admin", "HR Admin", "H&S Admin", "Dept. Manager", "Manager"]}
+      redirectOnNoAccess={true}
+      noAccessMessage="You don't have permission to access the Turkus Management System."
+    >
       <ContentHeader
         title="Turkus Management System"
         description="Comprehensive compliance and quality management platform"
@@ -77,6 +84,6 @@ export default function TurkusHomePage() {
           </div>
         ))}
       </div>
-    </>
+    </AccessControlWrapper>
   );
 }

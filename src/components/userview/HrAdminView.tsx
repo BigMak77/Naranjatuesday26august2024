@@ -1014,7 +1014,7 @@ const UserManager: React.FC = () => {
       </div>
 
       {/* User Edit/Add Dialog */}
-      <OverlayDialog open={dialogOpen} onClose={handleCloseDialog} ariaLabelledby="user-editor-title">
+      <OverlayDialog showCloseButton={true} open={dialogOpen} onClose={handleCloseDialog} ariaLabelledby="user-editor-title">
         <div className="neon-form-title user-manager-dialog-title" id="user-editor-title">
           {isAddMode ? "Add User" : "Edit User"}
         </div>
@@ -1037,7 +1037,7 @@ const UserManager: React.FC = () => {
       </OverlayDialog>
 
       {/* Assign User Dialog */}
-      <OverlayDialog
+      <OverlayDialog showCloseButton={true}
         open={assignDialogOpen}
         onClose={() => {
           setAssignDialogOpen(false);

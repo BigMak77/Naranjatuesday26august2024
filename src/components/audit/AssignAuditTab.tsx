@@ -273,7 +273,7 @@ export default function AssignAuditTab() {
         </div>
 
         {/* Overlay dialog for department users */}
-        <OverlayDialog open={showUserDialog} onClose={() => setShowUserDialog(false)}>
+        <OverlayDialog showCloseButton={true} open={showUserDialog} onClose={() => setShowUserDialog(false)}>
           <h3>Select User in Department</h3>
           {dialogUsers.map((u) => (
             <label key={u.auth_id}>

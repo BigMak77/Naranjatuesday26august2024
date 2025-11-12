@@ -2,13 +2,42 @@
 
 import React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import NeonFeatureCard from "@/components/NeonFeatureCard";
 
 export default function AboutPage() {
+  const router = useRouter();
+
   return (
     <div className="neon-panel">
       {/* Hero Section */}
       <div className="main-header-container with-subtitle">
+        {/* Close Button */}
+        <div className="page-close-button">
+          <button
+            onClick={() => router.push('/')}
+            aria-label="Close and return to homepage"
+            className="overlay-close-button"
+            title="Return to Homepage"
+          >
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 12 12"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              style={{ display: 'block' }}
+            >
+              <path
+                d="M2 2L10 10M10 2L2 10"
+                stroke="white"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+            </svg>
+          </button>
+        </div>
+        
         <h1 className="main-header">About Naranja</h1>
         <p className="main-subheader">
           Transforming food manufacturing through intelligent training and compliance solutions that keep your team audit-ready and your operations running smoothly.
@@ -125,6 +154,46 @@ export default function AboutPage() {
           </Link>
         </div>
       </div>
+
+      <style jsx>{`
+        .main-header-container {
+          position: relative;
+        }
+
+        .page-close-button {
+          position: absolute;
+          top: 16px;
+          right: 16px;
+          z-index: 1000;
+        }
+
+        .overlay-close-button {
+          position: relative;
+          width: 26px;
+          height: 26px;
+          border-radius: 50%;
+          border: 2px solid white;
+          background-color: transparent;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0;
+          margin: 0;
+          box-sizing: border-box;
+          z-index: 1;
+          transition: background-color 0.2s ease;
+        }
+
+        .overlay-close-button:hover {
+          background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .overlay-close-button:focus-visible {
+          outline: 2px solid var(--neon);
+          outline-offset: 2px;
+        }
+      `}</style>
     </div>
   );
 }

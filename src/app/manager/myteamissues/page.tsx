@@ -13,11 +13,7 @@ export default function MyTeamIssuesPage() {
         title="My Team Issues"
         description="View and manage issues for your department"
       />
-      <div className="page-container">
-        <div className="card-container">
-          <DepartmentIssuesWidget />
-        </div>
-      </div>
+      <DepartmentIssuesWidget />
     </AccessControlWrapper>
   );
 }

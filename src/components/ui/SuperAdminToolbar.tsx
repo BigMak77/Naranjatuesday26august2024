@@ -2,12 +2,14 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useUser } from "@/context/UserContext";
 import { FiMail, FiShield, FiHeart } from "react-icons/fi";
 
 type AdminSection = "Dashboard" | "Roles" | "HR" | "Compliance" | "Reports" | "Utilities" | "Trainer";
 
 export default function SuperAdminToolbar() {
   const router = useRouter();
+  const { user } = useUser();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedSection, setSelectedSection] = useState<AdminSection>("Dashboard");
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -191,7 +193,9 @@ export default function SuperAdminToolbar() {
         <FiMail size={18} />
       </button>
 
-      <span style={{ gridColumn: "5 / -1", paddingLeft: "0.5rem" }}>Super Admin Toolbar</span>
+      <span style={{ gridColumn: "5 / -1", paddingLeft: "0.5rem", minWidth: "200px", whiteSpace: "nowrap" }}>
+        {user?.first_name ? `${user.first_name}, Access level: Super Admin` : "Super Admin Toolbar"}
+      </span>
     </section>
   );
 }

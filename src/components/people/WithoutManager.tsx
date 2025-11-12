@@ -121,7 +121,7 @@ export default function WithoutManager() {
         </ul>
       )}
       {showOverlay && selectedDept && (
-        <OverlayDialog open={showOverlay} onClose={() => setShowOverlay(false)}>
+        <OverlayDialog showCloseButton={true} open={showOverlay} onClose={() => setShowOverlay(false)}>
           <div style={{ minWidth: 320 }}>
             <h3 style={{ marginBottom: 12 }}>{selectedDept.name} - Users</h3>
             {error && <div style={{ color: 'red', marginBottom: 8 }}>{error}</div>}

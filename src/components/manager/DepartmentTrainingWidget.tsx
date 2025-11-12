@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
-import { FiCheckCircle, FiAlertCircle, FiClock, FiHash, FiX } from "react-icons/fi";
+import { FiCheckCircle, FiAlertCircle, FiClock, FiHash } from "react-icons/fi";
 import OverlayDialog from "@/components/ui/OverlayDialog";
 
 interface DepartmentTrainingStats {
@@ -449,39 +449,21 @@ export default function DepartmentTrainingWidget({ departmentId, departmentName 
         onClose={() => setDialogOpen(false)}
         width={1200}
         ariaLabelledby="training-stats-dialog"
+        showCloseButton={true}
       >
         <div style={{ padding: "0" }}>
-          <div style={{ 
-            display: "flex", 
-            justifyContent: "space-between", 
-            alignItems: "center", 
+          <div style={{
             marginBottom: "1.5rem",
             paddingBottom: "1rem",
             borderBottom: "1px solid rgba(64, 224, 208, 0.2)"
           }}>
-            <h3 id="training-stats-dialog" style={{ 
-              color: "var(--header-text)", 
-              margin: "0", 
-              fontSize: "1.25rem" 
+            <h3 id="training-stats-dialog" style={{
+              color: "var(--header-text)",
+              margin: "0",
+              fontSize: "1.25rem"
             }}>
               Training Statistics Details
             </h3>
-            <button
-              onClick={() => setDialogOpen(false)}
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                padding: "0.5rem",
-                borderRadius: "4px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center"
-              }}
-              title="Close"
-            >
-              <FiX size={20} color="var(--text-white)" />
-            </button>
           </div>
 
           {activeCard === 'total' && (

@@ -657,7 +657,7 @@ export default function HealthSafetyManager() {
       </div>
 
       {/* Overlay Dialog for feedback messages */}
-      <OverlayDialog
+      <OverlayDialog showCloseButton={true}
         open={showDialog}
         onClose={() => setShowDialog(false)}
         ariaLabelledby="feedback-dialog-title"

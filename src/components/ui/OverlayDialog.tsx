@@ -13,6 +13,7 @@ type OverlayDialogProps = {
   closeOnOutsideClick?: boolean;
   width?: number; // custom width in pixels
   transparentOverlay?: boolean; // for login page background visibility
+  showCloseButton?: boolean; // show circular X button in top-right corner
 };
 
 export default function OverlayDialog({
@@ -25,6 +26,7 @@ export default function OverlayDialog({
   closeOnOutsideClick = true,
   width = 900,
   transparentOverlay = false,
+  showCloseButton = false,
 }: OverlayDialogProps) {
   const mountRef = useRef<HTMLElement | null>(null);
   const [isMounted, setIsMounted] = useState(false);
@@ -83,8 +85,54 @@ export default function OverlayDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby={ariaLabelledby}
-        style={{ zIndex: zIndexContent, width: width, maxWidth: '95vw' }}
+        style={{ zIndex: zIndexContent, width: width, maxWidth: '95vw', position: 'relative' }}
       >
+        {showCloseButton && (
+          <button
+            onClick={onClose}
+            aria-label="Close dialog"
+            style={{
+              position: 'absolute',
+              top: '16px',
+              right: '16px',
+              width: '26px',
+              height: '26px',
+              borderRadius: '50%',
+              border: '2px solid white',
+              backgroundColor: 'transparent',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '0',
+              margin: '0',
+              boxSizing: 'border-box',
+              zIndex: 1,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+          >
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 12 12"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              style={{ display: 'block' }}
+            >
+              <path
+                d="M2 2L10 10M10 2L2 10"
+                stroke="white"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+            </svg>
+          </button>
+        )}
         {children}
       </div>
     </div>,

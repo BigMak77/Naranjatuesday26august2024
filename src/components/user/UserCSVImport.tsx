@@ -161,7 +161,7 @@ const UserCSVImport: React.FC<UserCSVImportProps> = ({ onImport, onError }) => {
           onClick={() => setModalOpen(true)}
         />
       </CustomTooltip>
-      <OverlayDialog open={modalOpen} onClose={() => setModalOpen(false)}>
+      <OverlayDialog showCloseButton={true} open={modalOpen} onClose={() => setModalOpen(false)}>
         <div>
           <div style={{ marginBottom: 16 }}>
             <strong>Step {step} of 4:</strong> {step === 1 ? "Select File" : step === 2 ? "Preview Data" : step === 3 ? "Select Columns" : "Upload Complete"}

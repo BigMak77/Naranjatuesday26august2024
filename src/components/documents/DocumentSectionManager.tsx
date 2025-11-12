@@ -766,7 +766,7 @@ export default function DocumentManager() {
       )}
 
       {/* ===== CSV Upload Modal ===== */}
-      <OverlayDialog
+      <OverlayDialog showCloseButton={true}
         open={showCsvUploadModal}
         onClose={() => {
           setShowCsvUploadModal(false);
@@ -845,7 +845,7 @@ export default function DocumentManager() {
       </OverlayDialog>
 
       {/* ===== Archive confirmation dialog ===== */}
-      <OverlayDialog
+      <OverlayDialog showCloseButton={true}
         open={showArchiveModal}
         onClose={() => {
           setShowArchiveModal(false);
@@ -898,7 +898,7 @@ export default function DocumentManager() {
       </OverlayDialog>
 
       {/* ===== Add/Edit Document Sheet ===== */}
-      <OverlayDialog
+      <OverlayDialog showCloseButton={true}
         open={viewMode === "add" || (viewMode === "edit" && !!activeDocId)}
         onClose={() => { setViewMode("list"); setActiveDocId(null); }}
       >
@@ -925,7 +925,7 @@ export default function DocumentManager() {
       </OverlayDialog>
 
       {/* ===== Edit Section Dialog ===== */}
-      <OverlayDialog
+      <OverlayDialog showCloseButton={true}
         open={editSectionModalOpen}
         onClose={() => {
           setEditSectionModalOpen(false);
@@ -1006,7 +1006,7 @@ export default function DocumentManager() {
       </OverlayDialog>
 
       {/* ===== Edit Stage Modal ===== */}
-      <OverlayDialog
+      <OverlayDialog showCloseButton={true}
         open={showEditStageModal}
         onClose={() => {
           setShowEditStageModal(false);
@@ -1890,7 +1890,7 @@ function SummaryTabContent({
       )}
 
       {/* Success Modal */}
-      <OverlayDialog
+      <OverlayDialog showCloseButton={true}
         open={showSuccessModal}
         onClose={() => setShowSuccessModal(false)}
       >
@@ -2558,7 +2558,7 @@ function SectionsTabContent({
       )}
 
       {/* Success Modal */}
-      <OverlayDialog
+      <OverlayDialog showCloseButton={true}
         open={showSuccessModal}
         onClose={() => setShowSuccessModal(false)}
       >
@@ -2590,7 +2590,7 @@ function SectionsTabContent({
       </OverlayDialog>
 
       {/* Add Section Modal */}
-      <OverlayDialog
+      <OverlayDialog showCloseButton={true}
         open={showAddSectionModal}
         onClose={() => {
           setShowAddSectionModal(false);
@@ -2920,7 +2920,7 @@ function StandardsTabContent({
       )}
 
       {/* Add Standard Modal */}
-      <OverlayDialog
+      <OverlayDialog showCloseButton={true}
         open={showAddModal}
         onClose={() => {
           setShowAddModal(false);
@@ -2986,7 +2986,7 @@ function StandardsTabContent({
       </OverlayDialog>
 
       {/* Edit Standard Modal */}
-      <OverlayDialog
+      <OverlayDialog showCloseButton={true}
         open={showEditModal}
         onClose={() => {
           setShowEditModal(false);

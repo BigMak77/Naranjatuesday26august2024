@@ -4,6 +4,7 @@ import { FiCalendar, FiGrid, FiLayers, FiAlertTriangle } from "react-icons/fi";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 import Rota from "@/components/people/Rota";
 import ContentHeader from "@/components/ui/ContentHeader";
+import AccessControlWrapper from "@/components/AccessControlWrapper";
 
 // Custom tooltip added
 import TrainingMatrix from "@/components/training/TrainingMatrix";
@@ -21,7 +22,11 @@ export default function RotaPage() {
   const departmentId = "your-department-id";
 
   return (
-    <>
+    <AccessControlWrapper
+      requiredRoles={["Super Admin", "Admin", "HR Admin", "Dept. Manager", "Manager"]}
+      redirectOnNoAccess={true}
+      noAccessMessage="You don't have permission to access reports."
+    >
       <ContentHeader
         title="Reports"
         description="Access various reporting tools and views"
@@ -112,6 +117,6 @@ export default function RotaPage() {
         <WithoutManager />
       )}
     </div>
-    </>
+    </AccessControlWrapper>
   );
 }

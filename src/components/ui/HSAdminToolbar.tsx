@@ -2,12 +2,14 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useUser } from "@/context/UserContext";
 import { FiMail, FiAlertTriangle } from "react-icons/fi";
 
 type HSSection = "Dashboard" | "Incidents" | "Risk Assessments" | "First Aiders" | "Compliance";
 
 export default function HSAdminToolbar() {
   const router = useRouter();
+  const { user } = useUser();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedSection, setSelectedSection] = useState<HSSection>("Dashboard");
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -162,7 +164,9 @@ export default function HSAdminToolbar() {
         </button>
       </div>
 
-      <span>H&S Admin Toolbar (All Departments)</span>
+      <span style={{ minWidth: "200px", whiteSpace: "nowrap" }}>
+        {user?.first_name ? `${user.first_name}, Access level: H&S Admin` : "H&S Admin Toolbar"}
+      </span>
     </section>
   );
 }

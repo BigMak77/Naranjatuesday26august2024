@@ -268,7 +268,7 @@ const TrainingMaterialsManager: React.FC<TrainingMaterialsManagerProps> = ({ sho
       </div>
 
       {/* Browse & Filter dialog */}
-      <OverlayDialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+      <OverlayDialog showCloseButton={true} open={dialogOpen} onClose={() => setDialogOpen(false)}>
         <div style={{ padding: 24, minWidth: 600, maxWidth: 1100 }}>
           <h3 className="neon-modal-title" style={{ marginBottom: 16 }}>All Training Materials</h3>
           <div style={{ display: "flex", gap: 16, marginBottom: 18, alignItems: "center" }}>
@@ -348,7 +348,7 @@ const TrainingMaterialsManager: React.FC<TrainingMaterialsManagerProps> = ({ sho
       </OverlayDialog>
 
       {/* Add Material modal */}
-      <OverlayDialog open={showAddMaterial} onClose={() => setShowAddMaterial(false)}>
+      <OverlayDialog showCloseButton={true} open={showAddMaterial} onClose={() => setShowAddMaterial(false)}>
         <form
           onSubmit={handleUploadMaterial}
           style={{ background: "#fff", border: "2px solid #40e0d0", borderRadius: 8, padding: 24, minWidth: 340 }}
@@ -399,7 +399,7 @@ const TrainingMaterialsManager: React.FC<TrainingMaterialsManagerProps> = ({ sho
 
       {/* Render the form as a modal or inline below the button */}
       {((typeof showAddQuestionProp === 'boolean' && showAddQuestionProp) || showAddQuestion) && (
-        <OverlayDialog open onClose={() => {
+        <OverlayDialog showCloseButton={true} open onClose={() => {
           setShowAddQuestion(false);
           if (onCloseAddQuestion) onCloseAddQuestion();
         }}>

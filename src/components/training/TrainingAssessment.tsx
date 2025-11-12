@@ -537,7 +537,7 @@ export default function TrainingAssessment() {
 
       {/* Sign-off Dialog */}
       {showSignOffDialog && selectedAssignment && (
-        <OverlayDialog
+        <OverlayDialog showCloseButton={true}
           open={showSignOffDialog}
           onClose={closeSignOffDialog}
           width={1100}

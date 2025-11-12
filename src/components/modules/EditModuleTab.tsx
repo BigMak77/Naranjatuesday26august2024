@@ -302,7 +302,7 @@ export default function EditModuleTab({ module, onSuccess }: EditModuleTabProps)
 
       {/* Version Confirmation Modal */}
       {showVersionModal && (
-        <OverlayDialog
+        <OverlayDialog showCloseButton={true}
           open={showVersionModal}
           onClose={() => setShowVersionModal(false)}
           ariaLabelledby="version-dialog-title"
@@ -337,7 +337,7 @@ export default function EditModuleTab({ module, onSuccess }: EditModuleTabProps)
 
       {/* Follow-up Assessment Dialog */}
       {showFollowUpDialog && (
-        <OverlayDialog
+        <OverlayDialog showCloseButton={true}
           open={showFollowUpDialog}
           onClose={() => setShowFollowUpDialog(false)}
           ariaLabelledby="follow-up-dialog-title-edit"

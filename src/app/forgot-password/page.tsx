@@ -37,7 +37,7 @@ export default function ForgotPasswordPage() {
         <div className="login-bg-overlay" aria-hidden="true" />
       </div>
 
-      <OverlayDialog
+      <OverlayDialog showCloseButton={true}
         open={true}
         onClose={() => {}}
         closeOnOutsideClick={false}

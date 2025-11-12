@@ -26,17 +26,10 @@ export default function UserView() {
   }
 
   return (
-    <div className="flex-col gap-8">
-      {/* Top row with calendar and issues */}
-      <div className="grid gap-8 items-start" style={{ gridTemplateColumns: '1fr auto' }}>
-        <div className="flex-col gap-8">
-          <MyIssues />
-          <MyTasks />
-        </div>
-        <CalendarWidget title="My Assignments" />
-      </div>
-      
-      {/* Training sections */}
+    <div className="flex flex-col gap-8">
+      <MyIssues />
+      <MyTasks />
+      <CalendarWidget title="My Assignments" />
       <UserTrainingDashboard authId={authId} />
       <UserTrainingRequest userId={appUserId!} />
     </div>

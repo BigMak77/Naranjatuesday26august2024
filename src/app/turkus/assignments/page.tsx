@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
+import AccessControlWrapper from "@/components/AccessControlWrapper";
 import NeonForm from "@/components/NeonForm";
 import NeonTable from "@/components/NeonTable";
 import { FiAlertCircle, FiClock } from "react-icons/fi";
@@ -158,7 +159,11 @@ export default function TurkusAssignmentsPage() {
   };
 
   return (
-    <>
+    <AccessControlWrapper
+      requiredRoles={["Super Admin", "Admin", "HR Admin", "H&S Admin", "Dept. Manager", "Manager"]}
+      redirectOnNoAccess={true}
+      noAccessMessage="You don't have permission to manage Turkus assignments."
+    >
       <div className="centered-content">
         <div className="max-w-6xl w-full px-8 mt-10 overflow-visible">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
@@ -292,6 +297,6 @@ export default function TurkusAssignmentsPage() {
           )}
         </div>
       </div>
-    </>
+    </AccessControlWrapper>
   );
 }

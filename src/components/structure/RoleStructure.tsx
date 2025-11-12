@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/lib/supabase-client";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 import NeonIconButton from "@/components/ui/NeonIconButton";
+import OverlayDialog from "@/components/ui/OverlayDialog";
 import { FiPlus, FiTool, FiGlobe } from "react-icons/fi";
 
 /* ===========================
@@ -386,41 +387,44 @@ export function AmendDepartmentButton({ departments }: { departments: TreeNode[]
         title="Amend department structure"
         onClick={() => setOpen(true)}
       />
-      {open && (
-        <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "#0008", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setOpen(false)}>
-          <div style={{ background: "#23232e", padding: 24, borderRadius: 12, minWidth: 320, position: "relative" }} onClick={e => e.stopPropagation()}>
-            <div style={{ fontWeight: 600, color: "#fff", marginBottom: 12 }}>Amend Department Link</div>
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ color: "#fff", fontSize: 13 }}>Select department:</label>
-              <select value={fromDept} onChange={e => setFromDept(e.target.value)} style={{ width: "100%", marginTop: 4, marginBottom: 8 }}>
-                <option value="">-- Select --</option>
-                {allNames.map(name => <option key={name} value={name}>{name}</option>)}
-              </select>
-              <label style={{ color: "#fff", fontSize: 13 }}>Link to new parent:</label>
-              <select value={toDept} onChange={e => setToDept(e.target.value)} style={{ width: "100%", marginTop: 4 }}>
-                <option value="">-- Select --</option>
-                {allNames.map(name => <option key={name} value={name}>{name}</option>)}
-              </select>
-            </div>
-            {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
-            {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
-            <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
-              <NeonIconButton
-                variant="submit"
-                title="Submit changes"
-                disabled={loading}
-                style={{ opacity: loading ? 0.6 : 1 }}
-                onClick={handleSubmit}
-              />
-              <NeonIconButton
-                variant="cancel"
-                title="Cancel"
-                onClick={() => setOpen(false)}
-              />
-            </div>
+      <OverlayDialog
+        open={open}
+        onClose={() => setOpen(false)}
+        width={400}
+        showCloseButton={true}
+      >
+        <div style={{ padding: 24 }}>
+          <div style={{ fontWeight: 600, color: "#fff", marginBottom: 12 }}>Amend Department Link</div>
+          <div style={{ marginBottom: 12 }}>
+            <label style={{ color: "#fff", fontSize: 13 }}>Select department:</label>
+            <select value={fromDept} onChange={e => setFromDept(e.target.value)} style={{ width: "100%", marginTop: 4, marginBottom: 8 }}>
+              <option value="">-- Select --</option>
+              {allNames.map(name => <option key={name} value={name}>{name}</option>)}
+            </select>
+            <label style={{ color: "#fff", fontSize: 13 }}>Link to new parent:</label>
+            <select value={toDept} onChange={e => setToDept(e.target.value)} style={{ width: "100%", marginTop: 4 }}>
+              <option value="">-- Select --</option>
+              {allNames.map(name => <option key={name} value={name}>{name}</option>)}
+            </select>
+          </div>
+          {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
+          {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
+          <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
+            <NeonIconButton
+              variant="submit"
+              title="Submit changes"
+              disabled={loading}
+              style={{ opacity: loading ? 0.6 : 1 }}
+              onClick={handleSubmit}
+            />
+            <NeonIconButton
+              variant="cancel"
+              title="Cancel"
+              onClick={() => setOpen(false)}
+            />
           </div>
         </div>
-      )}
+      </OverlayDialog>
     </>
   );
 }
@@ -473,41 +477,44 @@ export function RoleAmendButton({ departments, roles }: { departments: Departmen
         title="Move role to new department"
         onClick={() => setOpen(true)}
       />
-      {open && (
-        <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "#0008", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setOpen(false)}>
-          <div style={{ background: "#23232e", padding: 24, borderRadius: 12, minWidth: 320, position: "relative" }} onClick={e => e.stopPropagation()}>
-            <div style={{ fontWeight: 600, color: "#fff", marginBottom: 12 }}>Move Role to Department</div>
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ color: "#fff", fontSize: 13 }}>Select role:</label>
-              <select value={selectedRole} onChange={e => setSelectedRole(e.target.value)} style={{ width: "100%", marginTop: 4, marginBottom: 8 }}>
-                <option value="">-- Select --</option>
-                {roleTitles.map(title => <option key={title} value={title}>{title}</option>)}
-              </select>
-              <label style={{ color: "#fff", fontSize: 13 }}>Move to department:</label>
-              <select value={toDept} onChange={e => setToDept(e.target.value)} style={{ width: "100%", marginTop: 4 }}>
-                <option value="">-- Select --</option>
-                {deptNames.map(name => <option key={name} value={name}>{name}</option>)}
-              </select>
-            </div>
-            {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
-            {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
-            <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
-              <NeonIconButton
-                variant="submit"
-                title="Submit changes"
-                disabled={loading}
-                style={{ opacity: loading ? 0.6 : 1 }}
-                onClick={handleSubmit}
-              />
-              <NeonIconButton
-                variant="cancel"
-                title="Cancel"
-                onClick={() => setOpen(false)}
-              />
-            </div>
+      <OverlayDialog
+        open={open}
+        onClose={() => setOpen(false)}
+        width={400}
+        showCloseButton={true}
+      >
+        <div style={{ padding: 24 }}>
+          <div style={{ fontWeight: 600, color: "#fff", marginBottom: 12 }}>Move Role to Department</div>
+          <div style={{ marginBottom: 12 }}>
+            <label style={{ color: "#fff", fontSize: 13 }}>Select role:</label>
+            <select value={selectedRole} onChange={e => setSelectedRole(e.target.value)} style={{ width: "100%", marginTop: 4, marginBottom: 8 }}>
+              <option value="">-- Select --</option>
+              {roleTitles.map(title => <option key={title} value={title}>{title}</option>)}
+            </select>
+            <label style={{ color: "#fff", fontSize: 13 }}>Move to department:</label>
+            <select value={toDept} onChange={e => setToDept(e.target.value)} style={{ width: "100%", marginTop: 4 }}>
+              <option value="">-- Select --</option>
+              {deptNames.map(name => <option key={name} value={name}>{name}</option>)}
+            </select>
+          </div>
+          {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
+          {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
+          <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
+            <NeonIconButton
+              variant="submit"
+              title="Submit changes"
+              disabled={loading}
+              style={{ opacity: loading ? 0.6 : 1 }}
+              onClick={handleSubmit}
+            />
+            <NeonIconButton
+              variant="cancel"
+              title="Cancel"
+              onClick={() => setOpen(false)}
+            />
           </div>
         </div>
-      )}
+      </OverlayDialog>
     </>
   );
 }
@@ -578,39 +585,42 @@ export function AddDepartmentButton({ onAdded }: { onAdded?: () => void }) {
         title="Add department"
         onClick={() => setOpen(true)}
       />
-      {open && (
-        <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "#0008", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setOpen(false)}>
-          <div style={{ background: "#23232e", padding: 24, borderRadius: 12, minWidth: 320, position: "relative" }} onClick={e => e.stopPropagation()}>
-            <div style={{ fontWeight: 600, color: "#fff", marginBottom: 12 }}>Add Department</div>
-            <form onSubmit={handleSubmit}>
-              <label style={{ color: "#fff", fontSize: 13 }}>Department name:</label>
-              <input value={name} onChange={e => setName(e.target.value)} style={{ width: "100%", marginTop: 4, marginBottom: 12, padding: 6, borderRadius: 6, border: "1px solid #444", background: "#181824", color: "#fff" }} />
-              <label style={{ color: "#fff", fontSize: 13 }}>Parent department (optional):</label>
-              <select value={parentId || ""} onChange={e => setParentId(e.target.value || null)} style={{ width: "100%", marginTop: 4, marginBottom: 12 }}>
-                <option value="">-- None (top level) --</option>
-                {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-              </select>
-              {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
-              {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
-              <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
-                <NeonIconButton
-                  variant="add"
-                  title="Add department"
-                  disabled={loading}
-                  type="submit"
-                  style={{ opacity: loading ? 0.6 : 1 }}
-                />
-                <NeonIconButton
-                  variant="cancel"
-                  title="Cancel"
-                  onClick={() => setOpen(false)}
-                  type="button"
-                />
-              </div>
-            </form>
-          </div>
+      <OverlayDialog
+        open={open}
+        onClose={() => setOpen(false)}
+        width={400}
+        showCloseButton={true}
+      >
+        <div style={{ padding: 24 }}>
+          <div style={{ fontWeight: 600, color: "#fff", marginBottom: 12 }}>Add Department</div>
+          <form onSubmit={handleSubmit}>
+            <label style={{ color: "#fff", fontSize: 13 }}>Department name:</label>
+            <input value={name} onChange={e => setName(e.target.value)} style={{ width: "100%", marginTop: 4, marginBottom: 12, padding: 6, borderRadius: 6, border: "1px solid #444", background: "#181824", color: "#fff" }} />
+            <label style={{ color: "#fff", fontSize: 13 }}>Parent department (optional):</label>
+            <select value={parentId || ""} onChange={e => setParentId(e.target.value || null)} style={{ width: "100%", marginTop: 4, marginBottom: 12 }}>
+              <option value="">-- None (top level) --</option>
+              {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+            </select>
+            {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
+            {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
+            <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
+              <NeonIconButton
+                variant="add"
+                title="Add department"
+                disabled={loading}
+                type="submit"
+                style={{ opacity: loading ? 0.6 : 1 }}
+              />
+              <NeonIconButton
+                variant="cancel"
+                title="Cancel"
+                onClick={() => setOpen(false)}
+                type="button"
+              />
+            </div>
+          </form>
         </div>
-      )}
+      </OverlayDialog>
     </>
   );
 }
@@ -665,39 +675,42 @@ export function AddRoleButton({ departments, onAdded }: { departments: Departmen
         title="Add role"
         onClick={() => setOpen(true)}
       />
-      {open && (
-        <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "#0008", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setOpen(false)}>
-          <div style={{ background: "#23232e", padding: 24, borderRadius: 12, minWidth: 320, position: "relative" }} onClick={e => e.stopPropagation()}>
-            <div style={{ fontWeight: 600, color: "#fff", marginBottom: 12 }}>Add Role</div>
-            <form onSubmit={handleSubmit}>
-              <label style={{ color: "#fff", fontSize: 13 }}>Role title:</label>
-              <input value={title} onChange={e => setTitle(e.target.value)} style={{ width: "100%", marginTop: 4, marginBottom: 12, padding: 6, borderRadius: 6, border: "1px solid #444", background: "#181824", color: "#fff" }} />
-              <label style={{ color: "#fff", fontSize: 13 }}>Department:</label>
-              <select value={departmentId} onChange={e => setDepartmentId(e.target.value)} style={{ width: "100%", marginTop: 4, marginBottom: 12 }}>
-                <option value="">-- Select department --</option>
-                {visibleDepts.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-              </select>
-              {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
-              {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
-              <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
-                <NeonIconButton
-                  variant="add"
-                  title="Add role"
-                  disabled={loading}
-                  type="submit"
-                  style={{ opacity: loading ? 0.6 : 1 }}
-                />
-                <NeonIconButton
-                  variant="cancel"
-                  title="Cancel"
-                  onClick={() => setOpen(false)}
-                  type="button"
-                />
-              </div>
-            </form>
-          </div>
+      <OverlayDialog
+        open={open}
+        onClose={() => setOpen(false)}
+        width={400}
+        showCloseButton={true}
+      >
+        <div style={{ padding: 24 }}>
+          <div style={{ fontWeight: 600, color: "#fff", marginBottom: 12 }}>Add Role</div>
+          <form onSubmit={handleSubmit}>
+            <label style={{ color: "#fff", fontSize: 13 }}>Role title:</label>
+            <input value={title} onChange={e => setTitle(e.target.value)} style={{ width: "100%", marginTop: 4, marginBottom: 12, padding: 6, borderRadius: 6, border: "1px solid #444", background: "#181824", color: "#fff" }} />
+            <label style={{ color: "#fff", fontSize: 13 }}>Department:</label>
+            <select value={departmentId} onChange={e => setDepartmentId(e.target.value)} style={{ width: "100%", marginTop: 4, marginBottom: 12 }}>
+              <option value="">-- Select department --</option>
+              {visibleDepts.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+            </select>
+            {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
+            {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
+            <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
+              <NeonIconButton
+                variant="add"
+                title="Add role"
+                disabled={loading}
+                type="submit"
+                style={{ opacity: loading ? 0.6 : 1 }}
+              />
+              <NeonIconButton
+                variant="cancel"
+                title="Cancel"
+                onClick={() => setOpen(false)}
+                type="button"
+              />
+            </div>
+          </form>
         </div>
-      )}
+      </OverlayDialog>
     </>
   );
 }
@@ -749,67 +762,44 @@ function RoleWithUsers({ roleId, roleTitle, departmentId }: { roleId: string; ro
       >
         {roleTitle}
       </li>
-      {showUsers && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            background: "#0008",
-            zIndex: 2147483647,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-          onClick={() => setShowUsers(false)}
-        >
-          <div
-            style={{
-              background: "#23232e",
-              color: "#00fff7",
-              borderRadius: 10,
-              padding: 24,
-              minWidth: 280,
-              maxWidth: 400,
-              maxHeight: "60vh",
-              overflowY: "auto",
-              boxShadow: "0 2px 32px #000c, 0 0 0 2px #00fff7aa",
-              position: "relative",
-            }}
-            onClick={e => e.stopPropagation()}
-          >
-            <div style={{ fontWeight: 600, color: "#00fff7", marginBottom: 12, fontSize: 16 }}>
-              Users for: <span style={{ color: "#fff" }}>{roleTitle}</span>
-            </div>
-            {loading ? (
-              <div>Loading users…</div>
-            ) : error ? (
-              <div style={{ color: "#ff4444" }}>{error}</div>
-            ) : users && users.length === 0 ? (
-              <div style={{ color: "#888" }}>(No users found)</div>
-            ) : Array.isArray(users) && users.length > 0 ? (
-              <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
-                {users.map((u) => (
-                  <li key={u.id} style={{ color: "#fff", fontSize: 13, marginBottom: 6 }}>
-                    {`${u.first_name || ""} ${u.last_name || ""}`.trim() || u.email || u.id}
-                    {u.email ? <span style={{ color: '#00fff7', fontSize: 12 }}> ({u.email})</span> : null}
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-            <div style={{ marginTop: 18, display: "flex", justifyContent: "flex-end" }}>
-              <NeonIconButton
-                variant="close"
-                title="Close"
-                onClick={() => setShowUsers(false)}
-                type="button"
-              />
-            </div>
+      <OverlayDialog
+        open={showUsers}
+        onClose={() => setShowUsers(false)}
+        width={400}
+        showCloseButton={true}
+        zIndexOverlay={2147483647}
+        zIndexContent={2147483648}
+      >
+        <div style={{ padding: 24 }}>
+          <div style={{ fontWeight: 600, color: "#00fff7", marginBottom: 12, fontSize: 16 }}>
+            Users for: <span style={{ color: "#fff" }}>{roleTitle}</span>
+          </div>
+          {loading ? (
+            <div style={{ color: "#00fff7" }}>Loading users…</div>
+          ) : error ? (
+            <div style={{ color: "#ff4444" }}>{error}</div>
+          ) : users && users.length === 0 ? (
+            <div style={{ color: "#888" }}>(No users found)</div>
+          ) : Array.isArray(users) && users.length > 0 ? (
+            <ul style={{ margin: 0, padding: 0, listStyle: "none", maxHeight: "50vh", overflowY: "auto" }}>
+              {users.map((u) => (
+                <li key={u.id} style={{ color: "#fff", fontSize: 13, marginBottom: 6 }}>
+                  {`${u.first_name || ""} ${u.last_name || ""}`.trim() || u.email || u.id}
+                  {u.email ? <span style={{ color: '#00fff7', fontSize: 12 }}> ({u.email})</span> : null}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          <div style={{ marginTop: 18, display: "flex", justifyContent: "flex-end" }}>
+            <NeonIconButton
+              variant="close"
+              title="Close"
+              onClick={() => setShowUsers(false)}
+              type="button"
+            />
           </div>
         </div>
-      )}
+      </OverlayDialog>
     </>
   );
 }

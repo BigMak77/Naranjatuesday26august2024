@@ -147,7 +147,7 @@ const CareersPage: React.FC = () => {
         data={data}
       />
       {modalOpen && (
-        <OverlayDialog open={modalOpen} onClose={() => setModalOpen(false)} ariaLabelledby="apply-dialog-title">
+        <OverlayDialog showCloseButton={true} open={modalOpen} onClose={() => setModalOpen(false)} ariaLabelledby="apply-dialog-title">
           <div className="neon-form-title" id="apply-dialog-title" style={{ marginBottom: "1.25rem" }}>
             Apply for: {selectedRole?.title || "Role"}
           </div>

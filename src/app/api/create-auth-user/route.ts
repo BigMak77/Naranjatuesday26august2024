@@ -53,8 +53,10 @@ export async function POST(req: Request) {
     console.log("🔎 userMeta:", userMeta);
     console.log("🔎 metaError:", metaError);
 
-    if (metaError || !userMeta || userMeta.access_level !== "Admin") {
-      console.log("⛔ Access denied. Not an Admin.");
+    // Allow both Super Admin and Admin
+    const allowedLevels = ["Super Admin", "Admin"];
+    if (metaError || !userMeta || !allowedLevels.includes(userMeta.access_level)) {
+      console.log("⛔ Access denied. Not an Admin or Super Admin.");
       return NextResponse.json(
         { code: "not_admin", message: "User not allowed" },
         { status: 403 },

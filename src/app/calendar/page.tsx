@@ -47,7 +47,7 @@ export default function CalendarPage() {
       </div>
 
       {/* Help Modal */}
-      <OverlayDialog open={showInfo} onClose={() => setShowInfo(false)}>
+      <OverlayDialog showCloseButton={true} open={showInfo} onClose={() => setShowInfo(false)}>
         <div className="calendar-help-modal">
           <h2 className="neon-heading">Calendar Help</h2>
           

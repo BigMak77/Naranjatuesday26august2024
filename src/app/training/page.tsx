@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import TrainerRecordingPage from "@/components/userview/TrainerView";
+import TrainerRecordingPage from "@/components/TrainerView";
 import AccessControlWrapper from "@/components/AccessControlWrapper";
 
 export default function TrainingPage() {

@@ -62,7 +62,8 @@ export async function POST(req: NextRequest) {
           auth_id: user.auth_id,
           item_id: item_id,
           item_type: a.type,
-          assigned_at: new Date().toISOString()
+          assigned_at: new Date().toISOString(),
+          due_at: new Date().toISOString() // Due immediately when assigned
         });
       }
     }
