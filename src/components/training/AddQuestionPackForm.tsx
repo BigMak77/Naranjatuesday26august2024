@@ -4,6 +4,8 @@ import { supabase } from "@/lib/supabase-client";
 import OverlayDialog from "@/components/ui/OverlayDialog";
 import NeonPanel from "@/components/NeonPanel";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
+import SuccessModal from "@/components/ui/SuccessModal";
+import TextIconButton from "@/components/ui/TextIconButtons";
 
 export default function AddQuestionPackForm({ onSuccess }: { onSuccess?: () => void }) {
   const [form, setForm] = useState({
@@ -240,23 +242,30 @@ export default function AddQuestionPackForm({ onSuccess }: { onSuccess?: () => v
               />
               {questions.length > 1 && (
                 <CustomTooltip text="Remove this question field">
-                  <button type="button" className="neon-btn neon-btn-icon neon-btn-danger" onClick={() => removeQuestionField(idx)}>
-                    <span className="neonicon-cancel" />
-                  </button>
+                  <TextIconButton
+                    variant="delete"
+                    label="Remove"
+                    onClick={() => removeQuestionField(idx)}
+                  />
                 </CustomTooltip>
               )}
             </div>
           ))}
           <CustomTooltip text="Add another question input field">
-            <button type="button" className="neon-btn neon-btn-icon neon-btn-primary" onClick={addQuestionField}>
-              <span className="neonicon-plus" /> Add Question
-            </button>
+            <TextIconButton
+              variant="add"
+              label="Add Question"
+              onClick={addQuestionField}
+            />
           </CustomTooltip>
         </div>
         <CustomTooltip text={loading ? "Creating question pack..." : createdPackId ? "Add questions from another category" : "Create the question pack"}>
-          <button className="neon-btn neon-btn-next" type="submit" disabled={loading}>
-            {loading ? "Adding…" : createdPackId ? "Add More from Category" : "Add Pack"}
-          </button>
+          <TextIconButton
+            variant="next"
+            label={loading ? "Adding…" : createdPackId ? "Add More from Category" : "Add Pack"}
+            type="submit"
+            disabled={loading}
+          />
         </CustomTooltip>
       </form>
       {/* Add More Modal */}
@@ -267,29 +276,30 @@ export default function AddQuestionPackForm({ onSuccess }: { onSuccess?: () => v
             <p>Would you like to add questions from another category to this pack?</p>
             <div style={{ display: 'flex', gap: 16, marginTop: 24 }}>
               <CustomTooltip text="Add questions from another category to this pack">
-                <button className="neon-btn neon-btn-primary" onClick={handleAddAnotherCategory}>Yes, add from another category</button>
+                <TextIconButton
+                  variant="primary"
+                  label="Yes, add from another category"
+                  onClick={handleAddAnotherCategory}
+                />
               </CustomTooltip>
               <CustomTooltip text="Finish creating this question pack">
-                <button className="neon-btn neon-btn-secondary" onClick={handleFinish}>No, finish</button>
+                <TextIconButton
+                  variant="secondary"
+                  label="No, finish"
+                  onClick={handleFinish}
+                />
               </CustomTooltip>
             </div>
           </NeonPanel>
         </OverlayDialog>
       )}
       {/* Success Modal */}
-      {success && (
-        <OverlayDialog showCloseButton={true} open={success} onClose={() => setSuccess(false)} ariaLabelledby="success-title">
-          <NeonPanel>
-            <h2 id="success-title">Pack added!</h2>
-            <div className="training-card training-badgePass">Question pack created successfully.</div>
-            <CustomTooltip text="Close success message">
-              <button className="neon-btn neon-btn-secondary mt-4" style={{ marginTop: "1rem" }} onClick={() => setSuccess(false)}>
-                Close
-              </button>
-            </CustomTooltip>
-          </NeonPanel>
-        </OverlayDialog>
-      )}
+      <SuccessModal
+        open={success}
+        onClose={() => setSuccess(false)}
+        title="Pack added!"
+        message="Question pack created successfully."
+      />
     </>
   );
 }

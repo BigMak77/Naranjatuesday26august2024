@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import NeonIconButton from "./ui/NeonIconButton";
+import TextIconButton from "./ui/TextIconButtons";
 import { FiX } from "react-icons/fi";
 
 // NOTE: All styling for NeonForm is provided by global neon design system classes in globals.css
@@ -27,16 +27,19 @@ export default function NeonForm({
       {title && <h2 className="neon-form-title">{title}</h2>}
       {children}
       <div className="neon-form-actions">
-        <NeonIconButton
-          variant="close"
-          icon={<FiX />}
-          title="Cancel"
-          type="button"
-          onClick={onCancel ? onCancel : () => window.history.back()}
-          className="neon-btn-close"
-        />
-        <NeonIconButton
+        {onCancel && (
+          <TextIconButton
+            variant="close"
+            icon={<FiX />}
+            label="Cancel"
+            type="button"
+            onClick={onCancel}
+            className="neon-btn-close"
+          />
+        )}
+        <TextIconButton
           variant="save"
+          label={submitLabel}
           title={submitLabel}
           type="submit"
           className="neon-btn-square-form"

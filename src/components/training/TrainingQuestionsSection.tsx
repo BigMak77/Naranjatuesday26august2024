@@ -5,7 +5,7 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase-client";
 import QuestionEditor from "../audit/QuestionEditor";
 import type { Question, Department } from "@/types";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import { FiPlus } from "react-icons/fi";
 
 export default function TrainingQuestionsSection({ moduleId }: { moduleId: string }) {
@@ -175,7 +175,7 @@ export default function TrainingQuestionsSection({ moduleId }: { moduleId: strin
         addQuestion={addQuestion}
         bulkAddQuestions={bulkAddQuestions}
       />
-      <NeonIconButton variant="add" icon={<FiPlus />} title="Add Question" onClick={addQuestion} className="neon-add-btn" />
+      <TextIconButton variant="add" icon={<FiPlus />} label="Add Question" onClick={addQuestion} className="neon-add-btn" />
     </div>
   );
 }

@@ -5,7 +5,7 @@ import NeonTable from "@/components/NeonTable";
 import CreateTask from "@/components/tasks/CreateTask";
 import FolderTabs from "@/components/FolderTabs";
 import { FiList, FiPlus, FiArchive, FiEdit } from "react-icons/fi";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import EditTaskStages from "@/components/tasks/EditTaskStages";
 import AddTaskStepsModal from "@/components/tasks/AddTaskStepsModal";
 import AssignTask from "@/components/tasks/AssignTask";
@@ -428,9 +428,9 @@ export default function TaskDashboard() {
                 { header: "Title", accessor: "title" },
                 { header: "Type", accessor: "task_type" },
                 { header: "Assign", accessor: "assign", render: (_: any, row: any) => (
-                  <NeonIconButton
+                  <TextIconButton
                     variant="assign"
-                    title="Assign Task"
+                    label="Assign Task"
                     onClick={() => setAssignTaskId(row.id)}
                   />
                 ) },
@@ -453,19 +453,19 @@ export default function TaskDashboard() {
                 { header: "Type", accessor: "task_type" },
                 { header: "Actions", accessor: "actions", render: (_: any, row: any) => (
                   <div style={{ display: 'flex', gap: 8 }}>
-                    <NeonIconButton
+                    <TextIconButton
                       variant="archive"
-                      title="Archive Task"
+                      label="Archive Task"
                       onClick={() => handleArchive(row.id)}
                     />
-                    <NeonIconButton
+                    <TextIconButton
                       variant="edit"
-                      title="Edit Task"
+                      label="Edit Task"
                       onClick={() => handleEditTask(row.id)}
                     />
-                    <NeonIconButton
+                    <TextIconButton
                       variant="view"
-                      title="Edit Steps"
+                      label="Edit Steps"
                       onClick={() => handleEditSteps(row.id)}
                     />
                   </div>

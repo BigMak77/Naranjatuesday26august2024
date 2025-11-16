@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase-client";
 import { FiX, FiCheck, FiShield } from "react-icons/fi";
+import TextIconButton from "@/components/ui/TextIconButtons";
 
 interface CreateRoleModalProps {
   isOpen: boolean;
@@ -231,47 +232,21 @@ export default function CreateRoleModal({
 
           {/* Actions */}
           <div style={{ display: 'flex', gap: '0.75rem', paddingTop: '1rem' }}>
-            <button
-              type="button"
+            <TextIconButton
+              variant="cancel"
+              label="Cancel"
               onClick={handleClose}
               disabled={loading}
-              className="neon-btn-cancel transition-colors"
-              style={{ flex: 1, opacity: loading ? 0.5 : 1 }}
-            >
-              Cancel
-            </button>
-            <button
+              style={{ flex: 1 }}
+            />
+            <TextIconButton
+              variant="primary"
+              icon={loading ? null : <FiCheck style={{ width: '16px', height: '16px' }} />}
+              label={loading ? "Creating..." : "Create Role"}
               type="submit"
               disabled={loading || !roleName.trim() || !departmentId || departments.length === 0}
-              className="neon-btn-primary transition-colors"
-              style={{ 
-                flex: 1, 
-                opacity: (loading || !roleName.trim() || !departmentId || departments.length === 0) ? 0.5 : 1,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.5rem'
-              }}
-            >
-              {loading ? (
-                <>
-                  <div style={{
-                    width: '16px',
-                    height: '16px',
-                    border: '2px solid #fff',
-                    borderTop: '2px solid transparent',
-                    borderRadius: '50%',
-                    animation: 'spin 1s linear infinite'
-                  }} />
-                  Creating...
-                </>
-              ) : (
-                <>
-                  <FiCheck style={{ width: '16px', height: '16px' }} />
-                  Create Role
-                </>
-              )}
-            </button>
+              style={{ flex: 1 }}
+            />
           </div>
         </form>
       </div>

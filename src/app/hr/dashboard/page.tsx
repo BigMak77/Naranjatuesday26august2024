@@ -14,9 +14,7 @@ export default function HrDashboardPage() {
         title="HR Admin Dashboard"
         description="Manage people, users, roles, structures, and permissions"
       />
-      <main className="after-hero global-content">
-        <HrAdminView />
-      </main>
+      <HrAdminView />
     </AccessControlWrapper>
   );
 }

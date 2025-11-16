@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-client";
 import { FiPlus, FiCheck } from "react-icons/fi";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 
 interface Department {
   id: string;
@@ -96,17 +96,17 @@ export default function AddRolePage() {
 
           {error && <p className="add-role-error">{error}</p>}
 
-          <NeonIconButton
+          <TextIconButton
             variant="add"
             icon={<FiPlus />}
-            title="Add Role"
+            label="Add Role"
             type="submit"
             disabled={loading}
           />
-          <NeonIconButton
+          <TextIconButton
             variant="save"
             icon={<FiCheck />}
-            title="Save Role"
+            label="Save Role"
             type="submit"
             disabled={loading}
           />

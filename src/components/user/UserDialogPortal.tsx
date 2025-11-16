@@ -7,7 +7,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import BehaviourSelector from "@/components/BehaviourSelector";
 import { FiSave, FiX } from "react-icons/fi";
 
@@ -156,17 +156,18 @@ export default function UserDialogPortal({
           </div>
         )}
         <DialogFooter className="mt-4">
-          <NeonIconButton
+          <TextIconButton
             variant="close"
             icon={<FiX />}
-            title="Close"
+            label="Close"
             type="button"
             onClick={() => onOpenChange(false)}
             className="neon-btn-close"
           />
-          <NeonIconButton
+          <TextIconButton
             variant="save"
             icon={<FiSave />}
+            label={saving ? "Saving..." : "Save Changes"}
             title={saving ? "Saving..." : "Save Changes"}
             onClick={handleSave}
             disabled={saving}

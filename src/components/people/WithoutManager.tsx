@@ -144,7 +144,6 @@ export default function WithoutManager() {
                 ))
               )}
             </ul>
-            <button className="neon-btn" style={{ marginTop: 16 }} onClick={() => setShowOverlay(false)}>Close</button>
           </div>
         </OverlayDialog>
       )}

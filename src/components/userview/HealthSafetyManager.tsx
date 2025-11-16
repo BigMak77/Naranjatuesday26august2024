@@ -15,7 +15,7 @@ import NeonPanel from "@/components/NeonPanel";
 import FolderTabs from "@/components/FolderTabs";
 import HealthSafetyPolicyManager from "@/components/healthsafety/HealthSafetyPolicyManager";
 // If the file is named 'NeonIconButton.tsx' and located in 'src/components', use:
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 // Or, if using absolute imports, ensure the file exists at 'src/components/NeonIconButton.tsx'
 import IncidentFormMinimal from "@/components/safety/IncidentFormMinimal";
 import type { MinimalIncidentForm } from "@/components/safety/IncidentFormMinimal";
@@ -365,19 +365,19 @@ export default function HealthSafetyManager() {
               <>
                 {activeTab === "assessments" && (
                   <>
-                    <NeonIconButton
+                    <TextIconButton
                       variant="add"
-                      title="Create Risk Assessment"
+                      label="Create Risk Assessment"
                       onClick={() => console.log("Create assessment")}
                     />
-                    <NeonIconButton
+                    <TextIconButton
                       variant="download"
-                      title="Download Risk Assessments"
+                      label="Download Risk Assessments"
                       onClick={() => console.log("Download assessments")}
                     />
-                    <NeonIconButton
+                    <TextIconButton
                       variant="upload"
-                      title="Upload Risk Assessment"
+                      label="Upload Risk Assessment"
                       onClick={() => console.log("Upload assessment")}
                     />
                   </>
@@ -385,19 +385,19 @@ export default function HealthSafetyManager() {
 
                 {activeTab === "incidents" && (
                   <>
-                    <NeonIconButton
+                    <TextIconButton
                       variant="add"
-                      title="Report New Incident"
+                      label="Report New Incident"
                       onClick={() => console.log("New incident")}
                     />
-                    <NeonIconButton
+                    <TextIconButton
                       variant="view"
-                      title="View All Incidents"
+                      label="View All Incidents"
                       onClick={() => console.log("View incidents")}
                     />
-                    <NeonIconButton
+                    <TextIconButton
                       variant="download"
-                      title="Export Incidents"
+                      label="Export Incidents"
                       onClick={() => console.log("Export incidents")}
                     />
                   </>
@@ -405,19 +405,19 @@ export default function HealthSafetyManager() {
 
                 {activeTab === "policies" && (
                   <>
-                    <NeonIconButton
+                    <TextIconButton
                       variant="add"
-                      title="Add Policy"
+                      label="Add Policy"
                       onClick={() => console.log("Add policy")}
                     />
-                    <NeonIconButton
+                    <TextIconButton
                       variant="view"
-                      title="View All Policies"
+                      label="View All Policies"
                       onClick={() => console.log("View policies")}
                     />
-                    <NeonIconButton
+                    <TextIconButton
                       variant="edit"
-                      title="Manage Categories"
+                      label="Manage Categories"
                       onClick={() => console.log("Manage categories")}
                     />
                   </>
@@ -425,19 +425,19 @@ export default function HealthSafetyManager() {
 
                 {activeTab === "firstaid" && (
                   <>
-                    <NeonIconButton
+                    <TextIconButton
                       variant="add"
-                      title="Add First Aid Designation"
+                      label="Add First Aid Designation"
                       onClick={() => setShowAddFirstAidDialog(true)}
                     />
-                    <NeonIconButton
+                    <TextIconButton
                       variant="view"
-                      title="View Trained First Aiders"
+                      label="View Trained First Aiders"
                       onClick={() => setShowViewFirstAidersDialog(true)}
                     />
-                    <NeonIconButton
+                    <TextIconButton
                       variant="view"
-                      title="View All First Aiders"
+                      label="View All First Aiders"
                       onClick={() => (window.location.href = "/health-safety/firstaid")}
                     />
                   </>
@@ -445,14 +445,14 @@ export default function HealthSafetyManager() {
 
                 {activeTab === "utilities" && (
                   <>
-                    <NeonIconButton
+                    <TextIconButton
                       variant="edit"
-                      title="System Settings"
+                      label="System Settings"
                       onClick={() => (window.location.href = "/health-safety/settings")}
                     />
-                    <NeonIconButton
+                    <TextIconButton
                       variant="view"
-                      title="View Audit Log"
+                      label="View Audit Log"
                       onClick={() => (window.location.href = "/health-safety/audit-log")}
                     />
                   </>
@@ -524,20 +524,22 @@ export default function HealthSafetyManager() {
                     Manage sites, areas, and zones for incident reporting and risk assessments.
                   </p>
                   <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                    <NeonIconButton
+                    <TextIconButton
                       variant="view"
                       icon={<FiClipboard />}
-                      title="Manage Locations"
+                      label="Manage Locations"
                       onClick={() => (window.location.href = "/health-safety/locations")}
                     />
-                    <NeonIconButton
+                    <TextIconButton
                       variant="download"
+                      label={isDownloading ? "Downloading..." : "Download CSV"}
                       title={isDownloading ? "Downloading..." : "Download CSV"}
                       onClick={handleDownloadLocations}
                       disabled={isDownloading}
                     />
-                    <NeonIconButton
+                    <TextIconButton
                       variant="upload"
+                      label={isUploading ? "Uploading..." : "Upload CSV"}
                       title={isUploading ? "Uploading..." : "Upload CSV"}
                       onClick={handleUploadLocations}
                       disabled={isUploading}
@@ -558,10 +560,10 @@ export default function HealthSafetyManager() {
                   <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.875rem' }}>
                     View incident trends, weather correlations, and safety metrics.
                   </p>
-                  <NeonIconButton
+                  <TextIconButton
                     variant="view"
                     icon={<FiAlertCircle />}
-                    title="View Reports"
+                    label="View Reports"
                     onClick={() => (window.location.href = "/health-safety/reports")}
                   />
                 </div>
@@ -579,10 +581,10 @@ export default function HealthSafetyManager() {
                   <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.875rem' }}>
                     Access and customize safety forms, checklists, and documentation templates.
                   </p>
-                  <NeonIconButton
+                  <TextIconButton
                     variant="view"
                     icon={<FiFileText />}
-                    title="View Templates"
+                    label="View Templates"
                     onClick={() => (window.location.href = "/health-safety/templates")}
                   />
                 </div>
@@ -600,10 +602,10 @@ export default function HealthSafetyManager() {
                   <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.875rem' }}>
                     Manage emergency contact lists and notification settings.
                   </p>
-                  <NeonIconButton
+                  <TextIconButton
                     variant="view"
                     icon={<FiHeart />}
-                    title="Manage Contacts"
+                    label="Manage Contacts"
                     onClick={() => (window.location.href = "/health-safety/emergency-contacts")}
                   />
                 </div>
@@ -621,10 +623,10 @@ export default function HealthSafetyManager() {
                   <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.875rem' }}>
                     Review system activity logs and compliance audit history.
                   </p>
-                  <NeonIconButton
+                  <TextIconButton
                     variant="view"
                     icon={<FiClipboard />}
-                    title="View Audit Log"
+                    label="View Audit Log"
                     onClick={() => (window.location.href = "/health-safety/audit-log")}
                   />
                 </div>
@@ -642,10 +644,10 @@ export default function HealthSafetyManager() {
                   <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.875rem' }}>
                     Configure notification preferences, incident types, and system defaults.
                   </p>
-                  <NeonIconButton
+                  <TextIconButton
                     variant="edit"
                     icon={<FiTool />}
-                    title="Settings"
+                    label="Settings"
                     onClick={() => (window.location.href = "/health-safety/settings")}
                   />
                 </div>
@@ -687,17 +689,17 @@ export default function HealthSafetyManager() {
           <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
             {dialogContent?.type === "confirm" ? (
               <>
-                <NeonIconButton
+                <TextIconButton
                   variant="cancel"
-                  title="Cancel"
+                  label="Cancel"
                   onClick={() => {
                     setShowDialog(false);
                     setIsUploading(false);
                   }}
                 />
-                <NeonIconButton
+                <TextIconButton
                   variant="save"
-                  title="Confirm"
+                  label="Confirm"
                   onClick={() => {
                     if (dialogContent.onConfirm) {
                       dialogContent.onConfirm();
@@ -706,9 +708,9 @@ export default function HealthSafetyManager() {
                 />
               </>
             ) : (
-              <NeonIconButton
+              <TextIconButton
                 variant="cancel"
-                title="Close"
+                label="Close"
                 onClick={() => setShowDialog(false)}
               />
             )}

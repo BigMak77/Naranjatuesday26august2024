@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import FolderTabs from "@/components/FolderTabs";
 import NeonPanel from "@/components/NeonPanel";
-import NeonIconButton from "../ui/NeonIconButton";
+import TextIconButton from "../ui/TextIconButtons";
 import { FiEdit, FiEye } from "react-icons/fi";
 import EditModuleTab from "./EditModuleTab";
 
@@ -245,18 +245,18 @@ export default function ModuleTabs({
               </span>
             </div>
             {onEdit && (
-              <NeonIconButton
+              <TextIconButton
                 variant="edit"
                 icon={<FiEdit color="white" />}
-                title="Edit Module"
+                label="Edit Module"
                 onClick={onEdit}
               />
             )}
             {onCancel && (
-              <NeonIconButton
+              <TextIconButton
                 variant="cancel"
                 icon={<FiEye color="white" />}
-                title="Cancel"
+                label="Cancel"
                 onClick={onCancel}
               />
             )}

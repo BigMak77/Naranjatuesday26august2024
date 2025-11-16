@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import NeonPanel from "@/components/NeonPanel";
 import NeonTable from "@/components/NeonTable";
 import OverlayDialog from "@/components/ui/OverlayDialog";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import NeonForm from "@/components/NeonForm";
 import { supabase } from "@/lib/supabase-client";
 
@@ -112,9 +112,9 @@ export default function DocumentTypeTable() {
         justifyContent: 'flex-end', 
         marginBottom: '1rem' 
       }}>
-        <NeonIconButton
+        <TextIconButton
           variant="add"
-          title="Add Document Type"
+          label="Add Document Type"
           onClick={() => setShowDialog(true)}
         />
       </div>
@@ -133,14 +133,14 @@ export default function DocumentTypeTable() {
           created_by: dt.created_by,
           actions: (
             <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-              <NeonIconButton
+              <TextIconButton
                 variant="edit"
-                title="Edit Document Type"
+                label="Edit Document Type"
                 onClick={() => handleEdit(dt)}
               />
-              <NeonIconButton
+              <TextIconButton
                 variant="archive"
-                title="Archive Document Type"
+                label="Archive Document Type"
                 onClick={() => handleArchive(dt.id)}
               />
             </div>
@@ -152,7 +152,6 @@ export default function DocumentTypeTable() {
           title="Add Document Type"
           onSubmit={handleAdd}
           submitLabel={saving ? "Saving..." : "Add"}
-          onCancel={() => setShowDialog(false)}
         >
           <input
             className="neon-input"
@@ -184,7 +183,6 @@ export default function DocumentTypeTable() {
           title="Edit Document Type"
           onSubmit={handleEditSave}
           submitLabel={saving ? "Saving..." : "Save"}
-          onCancel={() => setEditDialog({ open: false, id: null, name: '', summary: '' })}
         >
           <input
             className="neon-input"

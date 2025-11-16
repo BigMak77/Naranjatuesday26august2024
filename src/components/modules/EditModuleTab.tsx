@@ -3,9 +3,10 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase-client";
 import NeonForm from "@/components/NeonForm";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import { FiPlus, FiX } from "react-icons/fi";
 import OverlayDialog from "@/components/ui/OverlayDialog";
+import ModuleFileAttachments, { ModuleAttachment } from "@/components/modules/ModuleFileAttachments";
 
 interface Module {
   id: string;
@@ -22,6 +23,7 @@ interface Module {
   thumbnail_url?: string;
   requires_follow_up?: boolean;
   review_period?: string;
+  attachments?: ModuleAttachment[];
 }
 
 interface EditModuleTabProps {
@@ -50,6 +52,7 @@ export default function EditModuleTab({ module, onSuccess }: EditModuleTabProps)
   const [thumbnailUrl, setThumbnailUrl] = useState(module.thumbnail_url || "");
   const [requiresFollowUp, setRequiresFollowUp] = useState(module.requires_follow_up || false);
   const [reviewPeriod, setReviewPeriod] = useState(module.review_period || "0");
+  const [attachments, setAttachments] = useState<ModuleAttachment[]>(module.attachments || []);
 
   // Update state when module prop changes
   useEffect(() => {
@@ -65,6 +68,7 @@ export default function EditModuleTab({ module, onSuccess }: EditModuleTabProps)
     setThumbnailUrl(module.thumbnail_url || "");
     setRequiresFollowUp(module.requires_follow_up || false);
     setReviewPeriod(module.review_period || "0");
+    setAttachments(module.attachments || []);
   }, [module]);
 
   const addTag = () => {
@@ -120,6 +124,7 @@ export default function EditModuleTab({ module, onSuccess }: EditModuleTabProps)
       thumbnail_url: thumbnailUrl,
       requires_follow_up: requiresFollowUp,
       review_period: requiresFollowUp ? reviewPeriod : "0",
+      attachments: attachments.length > 0 ? attachments : [],
       updated_at: new Date().toISOString(),
     };
 
@@ -268,10 +273,10 @@ export default function EditModuleTab({ module, onSuccess }: EditModuleTabProps)
               className="add-module-tab-input neon-input"
               style={{ flex: 1 }}
             />
-            <NeonIconButton
+            <TextIconButton
               variant="add"
               icon={<FiPlus size={16} />}
-              title="Add Tag"
+              label="Add Tag"
               onClick={addTag}
               disabled={!tagInput.trim()}
             />
@@ -280,16 +285,27 @@ export default function EditModuleTab({ module, onSuccess }: EditModuleTabProps)
             {tags.map((t, i) => (
               <span key={i} className="add-module-tab-tag">
                 {t}
-                <NeonIconButton
+                <TextIconButton
                   variant="delete"
                   icon={<FiX color="white" />}
-                  title="Remove"
+                  label="Remove"
                   onClick={() => setTags(tags.filter((_, idx) => idx !== i))}
                   className="add-module-tab-tag-remove"
                 />
               </span>
             ))}
           </div>
+        </div>
+
+        <div className="add-module-tab-field">
+          <label className="add-module-tab-label">Attachments</label>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>
+            Upload training materials such as presentations, SCORM packages, PDFs, videos, etc.
+          </p>
+          <ModuleFileAttachments
+            attachments={attachments}
+            onChange={setAttachments}
+          />
         </div>
 
         {error && <p className="add-module-tab-error">{error}</p>}
@@ -318,16 +334,10 @@ export default function EditModuleTab({ module, onSuccess }: EditModuleTabProps)
               If yes, the version number will be incremented automatically from {version} to {version + 1}.
             </p>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-              <NeonIconButton
-                variant="delete"
-                icon={<FiX size={16} />}
-                title="No, keep version"
-                onClick={() => handleVersionConfirm(false)}
-              />
-              <NeonIconButton
+              <TextIconButton
                 variant="add"
                 icon={<FiPlus size={16} />}
-                title="Yes, new version"
+                label="Yes, new version"
                 onClick={() => handleVersionConfirm(true)}
               />
             </div>
@@ -350,17 +360,6 @@ export default function EditModuleTab({ module, onSuccess }: EditModuleTabProps)
               >
                 Follow-up Assessment Configuration
               </h3>
-              <NeonIconButton
-                variant="delete"
-                icon={<FiX size={18} />}
-                title="Close"
-                onClick={() => {
-                  setShowFollowUpDialog(false);
-                  if (!requiresFollowUp) {
-                    setReviewPeriod("0");
-                  }
-                }}
-              />
             </div>
 
             <div style={{ marginBottom: "20px" }}>
@@ -404,10 +403,10 @@ export default function EditModuleTab({ module, onSuccess }: EditModuleTabProps)
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-              <NeonIconButton
+              <TextIconButton
                 variant="add"
                 icon={<FiPlus size={16} />}
-                title="Save Configuration"
+                label="Save Configuration"
                 onClick={() => setShowFollowUpDialog(false)}
               />
             </div>

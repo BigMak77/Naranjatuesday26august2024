@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import NeonPanel from "@/components/NeonPanel";
 import NeonTable from "@/components/NeonTable";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import { supabase } from "@/lib/supabase-client";
 import { useUser } from "@/lib/useUser";
 
@@ -157,22 +157,25 @@ export default function MyTeamTraining() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <h2>My Team Training Assignments</h2>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <NeonIconButton
+          <TextIconButton
             variant="list"
             className={filter === 'all' ? '' : 'neon-btn-outline'}
             onClick={() => setFilter('all')}
+            label={`Show all assignments (${teamTraining.length})`}
             title={`Show all assignments (${teamTraining.length})`}
           />
-          <NeonIconButton
+          <TextIconButton
             variant="clock"
             className={filter === 'pending' ? '' : 'neon-btn-outline'}
             onClick={() => setFilter('pending')}
+            label={`Show pending assignments (${teamTraining.filter(t => t.status === 'Pending').length})`}
             title={`Show pending assignments (${teamTraining.filter(t => t.status === 'Pending').length})`}
           />
-          <NeonIconButton
+          <TextIconButton
             variant="checkCircle"
             className={filter === 'completed' ? '' : 'neon-btn-outline'}
             onClick={() => setFilter('completed')}
+            label={`Show completed assignments (${teamTraining.filter(t => t.status === 'Completed').length})`}
             title={`Show completed assignments (${teamTraining.filter(t => t.status === 'Completed').length})`}
           />
         </div>

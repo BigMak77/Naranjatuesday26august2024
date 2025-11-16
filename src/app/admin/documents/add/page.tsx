@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase-client";
 import { useRouter } from "next/navigation";
 import NeonForm from "@/components/NeonForm";
 import Modal from "@/components/modal";
+import { STORAGE_BUCKETS } from "@/lib/storage-config";
 
 type Std = { id: string; name: string };
 type Sec = { id: string; code: string; title: string };
@@ -123,7 +124,7 @@ export default function AddDocumentPage() {
         const safeName = file.name.replace(/\s+/g, "_");
         const filePath = `${Date.now()}_${safeName}`;
         const { error: uploadError } = await supabase.storage
-          .from("documents")
+          .from(STORAGE_BUCKETS.DOCUMENTS)
           .upload(filePath, file, {
             upsert: true // Allow overwriting if file exists
           });
@@ -134,7 +135,7 @@ export default function AddDocumentPage() {
         }
 
         const urlResult = supabase.storage
-          .from("documents")
+          .from(STORAGE_BUCKETS.DOCUMENTS)
           .getPublicUrl(filePath);
         const publicUrl = urlResult.data.publicUrl;
         if (!publicUrl) {
@@ -216,7 +217,31 @@ export default function AddDocumentPage() {
 
         if (docError || !newDoc) {
           console.error("Document save error:", docError);
-          alert(`Failed to save document: ${docError?.message || 'Unknown error'}`);
+
+          // Check if it's a unique constraint violation
+          if (docError?.code === '23505' || docError?.message.includes('duplicate') || docError?.message.includes('unique')) {
+            // Try to find the existing document with this reference code
+            // Note: reference_code is globally unique, not per-section
+            const { data: existingDoc } = await supabase
+              .from('documents')
+              .select('id, title, reference_code')
+              .eq('reference_code', trimmedRefCode)
+              .maybeSingle();
+
+            if (existingDoc) {
+              alert(
+                `Reference code "${trimmedRefCode}" is already used by "${existingDoc.title}". ` +
+                `Please use a different reference code.`
+              );
+            } else {
+              alert(
+                `Reference code "${trimmedRefCode}" is already in use. ` +
+                `Please use a different reference code.`
+              );
+            }
+          } else {
+            alert(`Failed to save document: ${docError?.message || 'Unknown error'}`);
+          }
           return;
         }
 

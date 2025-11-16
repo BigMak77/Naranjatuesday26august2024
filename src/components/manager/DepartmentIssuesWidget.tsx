@@ -5,7 +5,7 @@ import { useUser } from "@/lib/useUser";
 import { Dialog } from "@headlessui/react";
 import { FiAlertCircle, FiEdit, FiEye, FiX, FiCheck } from "react-icons/fi";
 import NeonTable from "@/components/NeonTable";
-import NeonIconButton from "../ui/NeonIconButton";
+import TextIconButton from "../ui/TextIconButtons";
 
 interface Issue {
   id: string;
@@ -189,27 +189,27 @@ export default function DepartmentIssuesWidget() {
             department: issue.department?.name || "—",
             actions: (
               <div className="flex gap-2">
-                <NeonIconButton
+                <TextIconButton
                   as="button"
                   variant="view"
                   icon={<FiEye />}
-                  title="View Issue"
+                  label="View Issue"
                   onClick={() => setViewIssue(issue)}
                 />
-                <NeonIconButton
+                <TextIconButton
                   as="button"
                   variant="edit"
                   icon={<FiEdit />}
-                  title="Edit Issue"
+                  label="Edit Issue"
                   onClick={() => {
                     /* TODO: implement edit logic or navigation */
                   }}
                 />
-                <NeonIconButton
+                <TextIconButton
                   as="button"
                   variant="archive"
                   icon={<FiCheck />}
-                  title="Mark as Resolved"
+                  label="Mark as Resolved"
                   onClick={() => {
                     /* TODO: implement resolve logic */
                   }}
@@ -248,10 +248,10 @@ export default function DepartmentIssuesWidget() {
               <b>Department:</b> {viewIssue.department?.name || ""}
             </p>
             <div className="flex justify-end gap-2">
-              <NeonIconButton
+              <TextIconButton
                 variant="close"
                 icon={<FiX />}
-                title="Cancel"
+                label="Cancel"
                 type="button"
                 onClick={() => setViewIssue(null)}
                 className="neon-btn-close"
@@ -336,18 +336,18 @@ export default function DepartmentIssuesWidget() {
               <p className="neon-error text-sm mb-2">{assignError}</p>
             )}
             <div className="neon-flex gap-2 justify-end">
-              <NeonIconButton
+              <TextIconButton
                 variant="close"
                 icon={<FiX />}
-                title="Cancel"
+                label="Cancel"
                 type="button"
                 onClick={() => setAssignIssue(null)}
                 className="neon-btn-close"
               />
-              <NeonIconButton
+              <TextIconButton
                 variant="save"
                 icon={<FiCheck />}
-                title="Save"
+                label="Save"
                 disabled={
                   assignLoading ||
                   (assignIssue.mode === "assign"
@@ -367,7 +367,7 @@ export default function DepartmentIssuesWidget() {
                 }
               >
                 {assignLoading ? "Saving..." : "Save"}
-              </NeonIconButton>
+              </TextIconButton>
             </div>
           </div>
         </Dialog>

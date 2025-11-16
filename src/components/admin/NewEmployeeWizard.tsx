@@ -11,7 +11,7 @@ import CSVEmployeeUpload from "./CSVEmployeeUpload";
 import CreateDepartmentModal from "./CreateDepartmentModal";
 import CreateRoleModal from "./CreateRoleModal";
 import ContentHeader from "@/components/ui/ContentHeader";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import { sendWelcomeEmail as sendEmail, sendBulkWelcomeEmails } from "@/lib/email-service";
 
 // Types
@@ -1731,9 +1731,9 @@ export default function NewEmployeeWizard() {
 
     return (
       <div className="flex justify-between items-center pt-6 border-t mt-8">
-        <NeonIconButton
+        <TextIconButton
           variant="back"
-          title="Go back to previous step"
+          label="Go back to previous step"
           onClick={() => {
             if (mode === "single" && singleStep === 1) {
               setMode(null);
@@ -1752,8 +1752,9 @@ export default function NewEmployeeWizard() {
         )}
 
         {isLastStep ? (
-          <NeonIconButton
+          <TextIconButton
             variant="save"
+            label={`Create ${mode === "bulk" ? "all employees" : "employee"}`}
             title={`Create ${mode === "bulk" ? "all employees" : "employee"}`}
             disabled={loading}
             onClick={async (e) => {
@@ -1778,9 +1779,9 @@ export default function NewEmployeeWizard() {
             }}
           />
         ) : (
-          <NeonIconButton
+          <TextIconButton
             variant="next"
-            title="Continue to next step"
+            label="Continue to next step"
             type="button"
             disabled={loading}
             onClick={async (e) => {

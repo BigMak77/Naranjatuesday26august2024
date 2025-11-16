@@ -7,8 +7,9 @@ import NeonModuleForm, {
   NeonModuleFormField,
 } from "@/components/NeonModuleForm";
 import OverlayDialog from "@/components/ui/OverlayDialog";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import { FiPlus, FiX } from "react-icons/fi";
+import ModuleFileAttachments, { ModuleAttachment } from "@/components/modules/ModuleFileAttachments";
 
 // --- helpers ---
 const isUuid = (v: unknown): v is string =>
@@ -41,6 +42,7 @@ export interface Module {
   thumbnail_url?: string;
   created_at?: string;
   updated_at?: string;
+  attachments?: ModuleAttachment[];
 }
 
 export function ViewModuleTab({ module }: { module: Module }) {
@@ -100,6 +102,18 @@ export function ViewModuleTab({ module }: { module: Module }) {
             : "—"}
         </span>
       </div>
+      {module.attachments && module.attachments.length > 0 && (
+        <div className="view-module-meta" style={{ marginTop: '16px' }}>
+          <div style={{ marginBottom: '8px', fontWeight: 600, color: 'var(--accent)' }}>
+            Attachments:
+          </div>
+          <ModuleFileAttachments
+            attachments={module.attachments}
+            onChange={() => {}} // Read-only mode
+            disabled={true}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -409,17 +423,6 @@ export default function EditModulePage() {
               >
                 Follow-up Assessment Configuration
               </h3>
-              <NeonIconButton
-                variant="delete"
-                icon={<FiX size={18} />}
-                title="Close"
-                onClick={() => {
-                  setShowFollowUpDialog(false);
-                  if (!requiresFollowUp) {
-                    setReviewPeriod("0");
-                  }
-                }}
-              />
             </div>
 
             <div style={{ marginBottom: "20px" }}>
@@ -463,20 +466,10 @@ export default function EditModulePage() {
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-              <NeonIconButton
-                variant="delete"
-                icon={<FiX size={16} />}
-                title="Cancel"
-                onClick={() => {
-                  setShowFollowUpDialog(false);
-                  setRequiresFollowUp(false);
-                  setReviewPeriod("0");
-                }}
-              />
-              <NeonIconButton
+              <TextIconButton
                 variant="add"
                 icon={<FiPlus size={16} />}
-                title="Save Configuration"
+                label="Save Configuration"
                 onClick={() => setShowFollowUpDialog(false)}
               />
             </div>

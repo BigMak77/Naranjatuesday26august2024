@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase-client";
 import NeonPanel from "@/components/NeonPanel";
 import NeonTable from "@/components/NeonTable";
-import NeonIconButton from "../ui/NeonIconButton";
+import TextIconButton from "../ui/TextIconButtons";
 import { FiX, FiDownload, FiCheck, FiCircle, FiAlertCircle } from "react-icons/fi";
 import jsPDF from "jspdf";
 
@@ -332,12 +332,12 @@ export default function UserTrainingDashboard({ authId, completedDropdown }: { a
   // --- UI rendering ---------------------------------------------------------
   const statusIcon = (completed_at: string | null, opened_at: string | null) => {
     if (completed_at) {
-      return <FiCheck style={{ color: "#40E0D0" }} title="Completed" />; // neon teal
+      return <FiCheck style={{ color: "#40E0D0" }} />; // neon teal
     }
     if (opened_at) {
-      return <FiCircle style={{ color: "#FFD700" }} title="Opened" />; // gold
+      return <FiCircle style={{ color: "#FFD700" }} />; // gold
     }
-    return <FiAlertCircle style={{ color: "#FF6347" }} title="Incomplete" />; // tomato
+    return <FiAlertCircle style={{ color: "#FF6347" }} />; // tomato
   };
 
   const allRows = assignments.map((a) => ({
@@ -348,9 +348,10 @@ export default function UserTrainingDashboard({ authId, completedDropdown }: { a
     actions: (
       <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
         {a.type !== "behaviour" && (
-          <NeonIconButton
+          <TextIconButton
             as="button"
             variant="view"
+            label={`View ${a.type === "module" ? "Module" : "Document"}`}
             title={`View ${a.type === "module" ? "Module" : "Document"}`}
             className="neon-btn-view"
             onClick={() =>
@@ -361,20 +362,20 @@ export default function UserTrainingDashboard({ authId, completedDropdown }: { a
           />
         )}
         {!a.completed_at && (
-          <NeonIconButton
+          <TextIconButton
             as="button"
             variant="submit"
-            title="Mark Complete"
+            label="Mark Complete"
             className="neon-btn-confirm"
             onClick={() => handleComplete(a)}
             disabled={completing.has(rowKey(a))}
           />
         )}
         {a.completed_at && (
-          <NeonIconButton
+          <TextIconButton
             as="button"
             variant="download"
-            title="Certificate"
+            label="Certificate"
             className="neon-btn-download"
             onClick={() => handleDownloadCertificatePDFDirect(a)}
           />
@@ -435,17 +436,17 @@ export default function UserTrainingDashboard({ authId, completedDropdown }: { a
                       when: whenOf(a),
                       action: (
                         <div style={{ display: "flex", gap: 16 }}>
-                          <NeonIconButton
+                          <TextIconButton
                             as="button"
                             variant="view"
-                            title="View Module"
+                            label="View Module"
                             className="neon-btn-view"
                             onClick={() => handleViewModule({ id: a.id, name: a.name })}
                           />
-                          <NeonIconButton
+                          <TextIconButton
                             as="button"
                             variant="submit"
-                            title="Mark Complete"
+                            label="Mark Complete"
                             className="neon-btn-confirm"
                             onClick={() => handleComplete(a)}
                             disabled={completing.has(rowKey(a))}
@@ -471,17 +472,17 @@ export default function UserTrainingDashboard({ authId, completedDropdown }: { a
                       when: whenOf(a),
                       action: (
                         <div style={{ display: "flex", gap: 16 }}>
-                          <NeonIconButton
+                          <TextIconButton
                             as="button"
                             variant="view"
-                            title="View Document"
+                            label="View Document"
                             className="neon-btn-view"
                             onClick={() => handleViewDocument({ id: a.id, name: a.name })}
                           />
-                          <NeonIconButton
+                          <TextIconButton
                             as="button"
                             variant="submit"
-                            title="Mark Complete"
+                            label="Mark Complete"
                             className="neon-btn-confirm"
                             onClick={() => handleComplete(a)}
                             disabled={completing.has(rowKey(a))}
@@ -516,10 +517,10 @@ export default function UserTrainingDashboard({ authId, completedDropdown }: { a
               {selectedCompleted && (
                 <div style={{ marginTop: 12 }}>
                   <strong>Certificate:</strong>
-                  <NeonIconButton
+                  <TextIconButton
                     as="button"
                     variant="download"
-                    title="Certificate"
+                    label="Certificate"
                     className="neon-btn-download"
                     onClick={() => {
                       const a = completed.find(x => x.id === selectedCompleted);
@@ -538,10 +539,10 @@ export default function UserTrainingDashboard({ authId, completedDropdown }: { a
                   type: a.type,
                   completed_at: fmt(a.completed_at),
                   certificate: (
-                    <NeonIconButton
+                    <TextIconButton
                       as="button"
                       variant="download"
-                      title="Certificate"
+                      label="Certificate"
                       className="neon-btn-download"
                       onClick={() => handleDownloadCertificatePDFDirect(a)}
                       disabled={a.status !== "completed" || !a.completed_at}
@@ -558,9 +559,9 @@ export default function UserTrainingDashboard({ authId, completedDropdown }: { a
       {viewingModule && (
         <div className="neon-modal-overlay">
           <div className="neon-modal neon-modal-module">
-            <NeonIconButton
+            <TextIconButton
               variant="close"
-              title="Close"
+              label="Close"
               className="neon-btn-close neon-modal-close-btn"
               onClick={() => {
                 setViewingModule(null);
@@ -579,9 +580,9 @@ export default function UserTrainingDashboard({ authId, completedDropdown }: { a
       {viewingDocument && (
         <div className="neon-modal-overlay">
           <div className="neon-modal neon-modal-document">
-            <NeonIconButton
+            <TextIconButton
               variant="close"
-              title="Close"
+              label="Close"
               className="neon-btn-close neon-modal-close-btn"
               onClick={() => {
                 setViewingDocument(null);

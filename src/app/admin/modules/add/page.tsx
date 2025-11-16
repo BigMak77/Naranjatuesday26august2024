@@ -1,11 +1,11 @@
 import AddModuleTab from "@/components/modules/AddModuleTab";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import { FiPlus } from "react-icons/fi";
 
 export default function AddModulePage() {
   return (
     <>
-      <NeonIconButton variant="add" icon={<FiPlus />} title="Add Module" />
+      <TextIconButton variant="add" icon={<FiPlus />} label="Add Module" />
       <AddModuleTab />
     </>
   );

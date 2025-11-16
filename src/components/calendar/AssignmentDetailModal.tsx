@@ -4,6 +4,7 @@ import React from "react";
 import { FiClock, FiAlertTriangle, FiCheckCircle, FiUser, FiCalendar } from "react-icons/fi";
 import OverlayDialog from "@/components/ui/OverlayDialog";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
+import TextIconButton from "@/components/ui/TextIconButtons";
 
 interface Assignment {
   id: string;
@@ -149,25 +150,25 @@ export default function AssignmentDetailModal({
 
                 <div className="assignment-actions">
                   <CustomTooltip text="View details">
-                    <button 
-                      className="neon-btn neon-btn-secondary assignment-action-btn"
+                    <TextIconButton
+                      variant="view"
+                      label="View"
+                      className="assignment-action-btn"
                       onClick={() => {
                         // Navigate to assignment details or open assignment
                         console.log('View assignment:', assignment.id);
                       }}
-                    >
-                      View
-                    </button>
+                    />
                   </CustomTooltip>
-                  
+
                   {onMarkComplete && (
                     <CustomTooltip text="Mark as complete">
-                      <button 
-                        className="neon-btn neon-btn-save assignment-action-btn"
+                      <TextIconButton
+                        variant="save"
+                        label="Complete"
+                        className="assignment-action-btn"
                         onClick={() => onMarkComplete(assignment.id)}
-                      >
-                        Complete
-                      </button>
+                      />
                     </CustomTooltip>
                   )}
                 </div>
@@ -177,9 +178,11 @@ export default function AssignmentDetailModal({
         </div>
 
         <div className="assignment-detail-footer">
-          <button className="neon-btn neon-btn-secondary" onClick={onClose}>
-            Close
-          </button>
+          <TextIconButton
+            variant="secondary"
+            label="Close"
+            onClick={onClose}
+          />
         </div>
       </div>
     </OverlayDialog>

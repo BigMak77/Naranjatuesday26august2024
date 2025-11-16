@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import NeonPanel from "@/components/NeonPanel";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import { FiFileText, FiCheck, FiPlus } from "react-icons/fi";
 
 export default function AddPolicyPage() {
@@ -66,10 +66,10 @@ export default function AddPolicyPage() {
           </p>
         )}
         <div className="add-policy-actions">
-          <NeonIconButton
+          <TextIconButton
             variant="add"
             icon={<FiPlus />}
-            title="Add Policy"
+            label="Add Policy"
           />
         </div>
       </form>

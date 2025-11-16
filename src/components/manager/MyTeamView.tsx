@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import "../../app/globals.css";
 import { supabase } from "@/lib/supabase-client";
 import { useUser } from "@/lib/useUser";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import DepartmentTrainingWidget from "./DepartmentTrainingWidget";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 import { FiHelpCircle } from "react-icons/fi";
@@ -247,9 +247,9 @@ export default function MyTeamView() {
                     <td>
                       <div className="neon-actions-cell">
                         <CustomTooltip text="Send a notification to HR Admin to request updates or changes for this team member">
-                          <NeonIconButton
+                          <TextIconButton
                             variant="send"
-                            title="Notify HR Admin"
+                            label="Notify HR Admin"
                             onClick={() => handleNotifyHR(member)}
                           />
                         </CustomTooltip>

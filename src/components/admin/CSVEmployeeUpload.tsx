@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import Papa from "papaparse";
 import { FiUpload, FiDownload, FiCheck, FiX, FiAlertCircle } from "react-icons/fi";
+import TextIconButton from "@/components/ui/TextIconButtons";
 
 interface CSVEmployee {
   first_name: string;
@@ -284,39 +285,27 @@ export default function CSVEmployeeUpload({
         )}
 
         <div style={{ display: 'flex', gap: '0.75rem' }}>
-          <button
-            type="button"
+          <TextIconButton
+            variant="primary"
+            icon={<FiCheck />}
+            label={`Import ${validCount} Employee${validCount !== 1 ? "s" : ""}`}
             onClick={handleConfirmImport}
             disabled={validCount === 0}
-            className="neon-btn-primary transition-colors"
-            style={{ 
-              opacity: validCount === 0 ? 0.5 : 1,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem'
-            }}
-          >
-            <FiCheck />
-            Import {validCount} Employee{validCount !== 1 ? "s" : ""}
-          </button>
-          <button
-            type="button"
+          />
+          <TextIconButton
+            variant="cancel"
+            label="Upload Different File"
             onClick={() => {
               setStep("upload");
               setFile(null);
               setParsedEmployees([]);
             }}
-            className="neon-btn-cancel transition-colors"
-          >
-            Upload Different File
-          </button>
-          <button
-            type="button"
+          />
+          <TextIconButton
+            variant="secondary"
+            label="Cancel"
             onClick={onCancel}
-            className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            Cancel
-          </button>
+          />
         </div>
       </div>
     );

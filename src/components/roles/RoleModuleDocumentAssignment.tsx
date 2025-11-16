@@ -6,7 +6,7 @@ import NeonForm from "@/components/NeonForm";
 import NeonPanel from "@/components/NeonPanel";
 import OverlayDialog from "@/components/ui/OverlayDialog";
 import SuccessModal from "@/components/ui/SuccessModal";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 
 interface Role {
   id: string;
@@ -173,14 +173,14 @@ export default function RoleModuleDocumentAssignment() {
       <NeonPanel>
         <h2 className="neon-heading">Role Training Assignment</h2>
         <div style={{ display: "flex", gap: "12px", marginTop: "16px" }}>
-          <NeonIconButton 
+          <TextIconButton 
             variant="add"
-            title="Add New Role"
+            label="Add New Role"
             onClick={() => setStage("create")}
           />
-          <NeonIconButton 
+          <TextIconButton 
             variant="edit"
-            title="Assign Training to Existing Role"
+            label="Assign Training to Existing Role"
             onClick={() => setStage("amend")}
           />
         </div>
@@ -191,11 +191,10 @@ export default function RoleModuleDocumentAssignment() {
   // Stage 2: Create a new role (simple form)
   if (stage === "create") {
     return (
-      <OverlayDialog showCloseButton={true} open={true} onClose={() => setStage("choose")}> 
+      <OverlayDialog showCloseButton={true} open={true} onClose={() => setStage("choose")}>
         <NeonForm
           title="Add New Role"
           submitLabel="Save Role"
-          onCancel={() => setStage("choose")}
           onSubmit={async (e) => {
             e.preventDefault();
             setCreatingRole(true);
@@ -293,14 +292,14 @@ export default function RoleModuleDocumentAssignment() {
                   />
                 </div>
                 <div style={{ marginTop: 16, display: "flex", gap: "12px" }}>
-                  <NeonIconButton
+                  <TextIconButton
                     variant="next"
-                    title="Next Step"
+                    label="Next Step"
                     onClick={() => setAssignmentStep("documents")}
                   />
-                  <NeonIconButton
+                  <TextIconButton
                     variant="back"
-                    title="Go Back"
+                    label="Go Back"
                     onClick={() => {
                       setStage("choose");
                       setSelectedRoleId("");
@@ -324,14 +323,14 @@ export default function RoleModuleDocumentAssignment() {
                   />
                 </div>
                 <div style={{ marginTop: 16, display: "flex", gap: "12px" }}>
-                  <NeonIconButton
+                  <TextIconButton
                     variant="back"
-                    title="Go Back"
+                    label="Go Back"
                     onClick={() => setAssignmentStep("modules")}
                   />
-                  <NeonIconButton
+                  <TextIconButton
                     variant="save"
-                    title="Save Assignments"
+                    label="Save Assignments"
                     onClick={() => handleSave(selectedRoleId)}
                   />
                 </div>
@@ -341,9 +340,9 @@ export default function RoleModuleDocumentAssignment() {
         )}
         {!selectedRoleId && (
           <div style={{ marginTop: 24 }}>
-            <NeonIconButton 
+            <TextIconButton 
               variant="back"
-              title="Go Back"
+              label="Go Back"
               onClick={() => setStage("choose")}
             />
           </div>

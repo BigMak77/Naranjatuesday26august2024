@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import NeonTable from "@/components/NeonTable";
 import OverlayDialog from "@/components/ui/OverlayDialog";
 import { createClient } from "@supabase/supabase-js";
+import { STORAGE_BUCKETS } from "@/lib/storage-config";
 
 type MaterialType = "video" | "image" | "document";
 interface TrainingMaterial {
@@ -11,7 +12,7 @@ interface TrainingMaterial {
   url: string;
 }
 
-const SUPABASE_BUCKET = "documents";
+const SUPABASE_BUCKET = STORAGE_BUCKETS.TRAINING;
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -135,13 +136,6 @@ const TrainingMaterialsManagerDialog: React.FC<TrainingMaterialsManagerDialogPro
           >
             + Add Material
           </button>
-          <button
-            type="button"
-            onClick={onClose}
-            style={{ padding: '8px 18px', fontWeight: 600, background: '#c75c00', color: '#fff', border: 0, borderRadius: 6 }}
-          >
-            Close
-          </button>
         </div>
         <NeonTable columns={materialColumns} data={materialsTableData} />
       </div>
@@ -172,9 +166,6 @@ const TrainingMaterialsManagerDialog: React.FC<TrainingMaterialsManagerDialogPro
             <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
               <button type="submit" disabled={uploading} style={{ padding: '6px 16px', fontWeight: 600, background: '#40e0d0', color: '#012b2b', border: 0, borderRadius: 6 }}>
                 {uploading ? 'Uploading…' : 'Upload'}
-              </button>
-              <button type="button" onClick={() => setShowAddMaterial(false)} style={{ padding: '6px 16px', fontWeight: 600, background: '#eee', color: '#333', border: 0, borderRadius: 6 }}>
-                Cancel
               </button>
             </div>
           </form>

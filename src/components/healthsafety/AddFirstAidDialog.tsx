@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { FiHeart, FiUser, FiCheck, FiUpload } from "react-icons/fi";
 import OverlayDialog from "@/components/ui/OverlayDialog";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import { supabase } from "@/lib/supabase-client";
 
 interface User {
@@ -340,15 +340,10 @@ export default function AddFirstAidDialog({ open, onClose, onAdded }: AddFirstAi
               required
             />
 
-            <div style={{ display: 'flex', gap: 8 }}>
-              <NeonIconButton
-                variant="cancel"
-                title="Back"
-                onClick={() => setStage(1)}
-              />
-              <NeonIconButton
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <TextIconButton
                 variant="next"
-                title="Continue"
+                label="Continue"
                 onClick={handleStage2Continue}
               />
             </div>
@@ -398,16 +393,11 @@ export default function AddFirstAidDialog({ open, onClose, onAdded }: AddFirstAi
               </p>
             </div>
 
-            <div style={{ display: 'flex', gap: 8 }}>
-              <NeonIconButton
-                variant="cancel"
-                title="Back"
-                onClick={() => setStage(2)}
-                disabled={loading}
-              />
-              <NeonIconButton
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <TextIconButton
                 variant="submit"
                 icon={<FiCheck />}
+                label={loading ? "Processing..." : "Complete"}
                 title={loading ? "Processing..." : "Complete"}
                 onClick={handleSubmit}
                 disabled={loading}

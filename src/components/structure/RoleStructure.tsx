@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/lib/supabase-client";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import OverlayDialog from "@/components/ui/OverlayDialog";
 import { FiPlus, FiTool, FiGlobe } from "react-icons/fi";
 
@@ -290,17 +290,8 @@ export default function Structure() {
 
   return (
     <div style={{ position: "relative" }}>
-      {/* Right-side button group: Add, Amend, Move Role */}
-      <div style={{ position: "absolute", top: 0, right: 0, zIndex: 10, display: "flex", flexDirection: "row", gap: 8, marginBottom: "1rem" }}>
-        <AddDepartmentButton onAdded={() => {}} />
-        <AddRoleButton departments={departments} onAdded={() => {}} />
-        <AmendDepartmentButton departments={tree} />
-        <RoleAmendButton departments={departments} roles={roles} />
-      </div>
-
-      <div style={{ paddingTop: "3rem" }}>
-        <StructureTree nodes={tree} level={2} />
-      </div>
+      {/* Buttons moved to parent FolderTabs toolbar */}
+      <StructureTree nodes={tree} level={2} />
     </div>
   );
 }
@@ -381,10 +372,10 @@ export function AmendDepartmentButton({ departments }: { departments: TreeNode[]
 
   return (
     <>
-      <NeonIconButton
+      <TextIconButton
         variant="edit"
         icon={<FiGlobe />}
-        title="Amend department structure"
+        label="Amend department structure"
         onClick={() => setOpen(true)}
       />
       <OverlayDialog
@@ -409,18 +400,13 @@ export function AmendDepartmentButton({ departments }: { departments: TreeNode[]
           </div>
           {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
           {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
-          <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
-            <NeonIconButton
+          <div style={{ display: "flex", gap: "8px", marginTop: "12px", justifyContent: "flex-end" }}>
+            <TextIconButton
               variant="submit"
-              title="Submit changes"
+              label="Submit changes"
               disabled={loading}
               style={{ opacity: loading ? 0.6 : 1 }}
               onClick={handleSubmit}
-            />
-            <NeonIconButton
-              variant="cancel"
-              title="Cancel"
-              onClick={() => setOpen(false)}
             />
           </div>
         </div>
@@ -471,10 +457,10 @@ export function RoleAmendButton({ departments, roles }: { departments: Departmen
 
   return (
     <>
-      <NeonIconButton
+      <TextIconButton
         variant="edit"
         icon={<FiTool />}
-        title="Move role to new department"
+        label="Move role to new department"
         onClick={() => setOpen(true)}
       />
       <OverlayDialog
@@ -499,18 +485,13 @@ export function RoleAmendButton({ departments, roles }: { departments: Departmen
           </div>
           {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
           {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
-          <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
-            <NeonIconButton
+          <div style={{ display: "flex", gap: "8px", marginTop: "12px", justifyContent: "flex-end" }}>
+            <TextIconButton
               variant="submit"
-              title="Submit changes"
+              label="Submit changes"
               disabled={loading}
               style={{ opacity: loading ? 0.6 : 1 }}
               onClick={handleSubmit}
-            />
-            <NeonIconButton
-              variant="cancel"
-              title="Cancel"
-              onClick={() => setOpen(false)}
             />
           </div>
         </div>
@@ -580,9 +561,9 @@ export function AddDepartmentButton({ onAdded }: { onAdded?: () => void }) {
 
   return (
     <>
-      <NeonIconButton
+      <TextIconButton
         variant="add"
-        title="Add department"
+        label="Add department"
         onClick={() => setOpen(true)}
       />
       <OverlayDialog
@@ -604,18 +585,12 @@ export function AddDepartmentButton({ onAdded }: { onAdded?: () => void }) {
             {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
             {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
             <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
-              <NeonIconButton
+              <TextIconButton
                 variant="add"
-                title="Add department"
+                label="Add department"
                 disabled={loading}
                 type="submit"
                 style={{ opacity: loading ? 0.6 : 1 }}
-              />
-              <NeonIconButton
-                variant="cancel"
-                title="Cancel"
-                onClick={() => setOpen(false)}
-                type="button"
               />
             </div>
           </form>
@@ -670,9 +645,9 @@ export function AddRoleButton({ departments, onAdded }: { departments: Departmen
 
   return (
     <>
-      <NeonIconButton
+      <TextIconButton
         variant="add"
-        title="Add role"
+        label="Add role"
         onClick={() => setOpen(true)}
       />
       <OverlayDialog
@@ -694,18 +669,12 @@ export function AddRoleButton({ departments, onAdded }: { departments: Departmen
             {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
             {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
             <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
-              <NeonIconButton
+              <TextIconButton
                 variant="add"
-                title="Add role"
+                label="Add role"
                 disabled={loading}
                 type="submit"
                 style={{ opacity: loading ? 0.6 : 1 }}
-              />
-              <NeonIconButton
-                variant="cancel"
-                title="Cancel"
-                onClick={() => setOpen(false)}
-                type="button"
               />
             </div>
           </form>
@@ -790,14 +759,6 @@ function RoleWithUsers({ roleId, roleTitle, departmentId }: { roleId: string; ro
               ))}
             </ul>
           ) : null}
-          <div style={{ marginTop: 18, display: "flex", justifyContent: "flex-end" }}>
-            <NeonIconButton
-              variant="close"
-              title="Close"
-              onClick={() => setShowUsers(false)}
-              type="button"
-            />
-          </div>
         </div>
       </OverlayDialog>
     </>

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/lib/supabase-client";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import { FiTool, FiGlobe } from "react-icons/fi";
 
 /* ===========================
@@ -384,10 +384,10 @@ function AmendDepartmentButton({ departments }: { departments: TreeNode[] }) {
 
   return (
     <>
-      <NeonIconButton
+      <TextIconButton
         variant="edit"
         icon={<FiGlobe />}
-        title="Amend department structure"
+        label="Amend department structure"
         onClick={() => setOpen(true)}
       />
       {open && (
@@ -409,16 +409,16 @@ function AmendDepartmentButton({ departments }: { departments: TreeNode[] }) {
             {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
             {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
             <div style={{ display: "flex", gap: "8px" }}>
-              <NeonIconButton
+              <TextIconButton
                 variant="submit"
-                title="Submit changes"
+                label="Submit changes"
                 disabled={loading}
                 style={{ opacity: loading ? 0.6 : 1 }}
                 onClick={handleSubmit}
               />
-              <NeonIconButton
+              <TextIconButton
                 variant="cancel"
-                title="Cancel"
+                label="Cancel"
                 onClick={() => setOpen(false)}
               />
             </div>
@@ -471,10 +471,10 @@ function RoleAmendButton({ departments, roles }: { departments: Department[], ro
 
   return (
     <>
-      <NeonIconButton
+      <TextIconButton
         variant="edit"
         icon={<FiTool />}
-        title="Move role to new department"
+        label="Move role to new department"
         onClick={() => setOpen(true)}
       />
       {open && (
@@ -496,16 +496,16 @@ function RoleAmendButton({ departments, roles }: { departments: Department[], ro
             {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
             {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
             <div style={{ display: "flex", gap: "8px" }}>
-              <NeonIconButton
+              <TextIconButton
                 variant="submit"
-                title="Submit changes"
+                label="Submit changes"
                 disabled={loading}
                 style={{ opacity: loading ? 0.6 : 1 }}
                 onClick={handleSubmit}
               />
-              <NeonIconButton
+              <TextIconButton
                 variant="cancel"
-                title="Cancel"
+                label="Cancel"
                 onClick={() => setOpen(false)}
               />
             </div>
@@ -577,9 +577,9 @@ function AddDepartmentButton({ onAdded }: { onAdded?: () => void }) {
 
   return (
     <>
-      <NeonIconButton
+      <TextIconButton
         variant="add"
-        title="Add department"
+        label="Add department"
         onClick={() => setOpen(true)}
       />
       {open && (
@@ -597,16 +597,16 @@ function AddDepartmentButton({ onAdded }: { onAdded?: () => void }) {
               {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
               {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
               <div style={{ display: "flex", gap: "8px" }}>
-                <NeonIconButton
+                <TextIconButton
                   variant="add"
-                  title="Add department"
+                  label="Add department"
                   disabled={loading}
                   type="submit"
                   style={{ opacity: loading ? 0.6 : 1 }}
                 />
-                <NeonIconButton
+                <TextIconButton
                   variant="cancel"
-                  title="Cancel"
+                  label="Cancel"
                   onClick={() => setOpen(false)}
                   type="button"
                 />
@@ -664,9 +664,9 @@ function AddRoleButton({ departments, onAdded }: { departments: Department[]; on
 
   return (
     <>
-      <NeonIconButton
+      <TextIconButton
         variant="add"
-        title="Add role"
+        label="Add role"
         onClick={() => setOpen(true)}
       />
       {open && (
@@ -684,16 +684,16 @@ function AddRoleButton({ departments, onAdded }: { departments: Department[]; on
               {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
               {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
               <div style={{ display: "flex", gap: "8px" }}>
-                <NeonIconButton
+                <TextIconButton
                   variant="add"
-                  title="Add role"
+                  label="Add role"
                   disabled={loading}
                   type="submit"
                   style={{ opacity: loading ? 0.6 : 1 }}
                 />
-                <NeonIconButton
+                <TextIconButton
                   variant="cancel"
-                  title="Cancel"
+                  label="Cancel"
                   onClick={() => setOpen(false)}
                   type="button"
                 />
@@ -804,9 +804,9 @@ function RoleWithUsers({ roleId, roleTitle, departmentId }: { roleId: string; ro
               </ul>
             ) : null}
             <div style={{ marginTop: 18, textAlign: "right" }}>
-              <NeonIconButton
+              <TextIconButton
                 variant="close"
-                title="Close"
+                label="Close"
                 onClick={() => setShowUsers(false)}
                 type="button"
               />

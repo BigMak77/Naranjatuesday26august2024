@@ -6,7 +6,7 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase-client";
 import QuestionEditor from "./QuestionEditor";
 import type { Question, Department } from "@/types";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import { FiPlus } from "react-icons/fi";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
@@ -177,7 +177,7 @@ export default function QuestionTab() {
         bulkAddQuestions={bulkAddQuestions}
       />
       <CustomTooltip text="Add a new audit question">
-        <NeonIconButton variant="add" icon={<FiPlus />} title="Add Question" onClick={addQuestion} className="neon-add-btn" />
+        <TextIconButton variant="add" icon={<FiPlus />} label="Add Question" onClick={addQuestion} className="neon-add-btn" />
       </CustomTooltip>
     </div>
   );

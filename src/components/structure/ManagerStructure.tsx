@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/lib/supabase-client";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import OverlayDialog from "@/components/ui/OverlayDialog";
 import { FiTool, FiUserPlus } from "react-icons/fi";
 
@@ -328,26 +328,8 @@ export default function Structure() {
 
   return (
     <div style={{ position: "relative" }}>
-      {/* Right-side button group: Assign, Change Manager */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          right: 0,
-          zIndex: 10,
-          display: "flex",
-          flexDirection: "row",
-          gap: 8,
-          marginBottom: "1rem",
-        }}
-      >
-        <AssignManagerButton departments={departments} users={users} onAdded={() => {}} />
-        <ChangeManagerButton departments={departments} users={users} />
-      </div>
-
-      <div style={{ paddingTop: "3rem" }}>
-        <StructureTree nodes={tree} level={2} users={users} />
-      </div>
+      {/* Buttons moved to parent FolderTabs toolbar */}
+      <StructureTree nodes={tree} level={2} users={users} />
     </div>
   );
 }
@@ -415,10 +397,10 @@ export function ChangeManagerButton({
 
   return (
     <>
-      <NeonIconButton
+      <TextIconButton
         variant="edit"
         icon={<FiTool />}
-        title="Change manager department"
+        label="Change manager department"
         onClick={() => setOpen(true)}
       />
       <OverlayDialog
@@ -474,18 +456,13 @@ export function ChangeManagerButton({
           </div>
           {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
           {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
-          <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
-            <NeonIconButton
+          <div style={{ display: "flex", gap: "8px", marginTop: "12px", justifyContent: "flex-end" }}>
+            <TextIconButton
               variant="submit"
-              title="Submit changes"
+              label="Submit changes"
               disabled={loading}
               style={{ opacity: loading ? 0.6 : 1 }}
               onClick={handleSubmit}
-            />
-            <NeonIconButton
-              variant="cancel"
-              title="Cancel"
-              onClick={() => setOpen(false)}
             />
           </div>
         </div>
@@ -566,10 +543,10 @@ export function AssignManagerButton({
 
   return (
     <>
-      <NeonIconButton
+      <TextIconButton
         variant="add"
         icon={<FiUserPlus />}
-        title="Assign manager to department"
+        label="Assign manager to department"
         onClick={() => setOpen(true)}
       />
       <OverlayDialog
@@ -637,19 +614,13 @@ export function AssignManagerButton({
 
             {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
             {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
-            <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
-              <NeonIconButton
+            <div style={{ display: "flex", gap: "8px", marginTop: "12px", justifyContent: "flex-end" }}>
+              <TextIconButton
                 variant="save"
-                title="Assign manager"
+                label="Assign manager"
                 disabled={loading}
                 type="submit"
                 style={{ opacity: loading ? 0.6 : 1 }}
-              />
-              <NeonIconButton
-                variant="cancel"
-                title="Cancel"
-                onClick={() => setOpen(false)}
-                type="button"
               />
             </div>
           </form>

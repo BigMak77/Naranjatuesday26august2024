@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import OverlayDialog from "@/components/ui/OverlayDialog";
 import NeonPanel from "@/components/NeonPanel";
+import TextIconButton from "@/components/ui/TextIconButtons";
 
 export default function AddMediaResourceForm({ onSuccess }: { onSuccess?: () => void }) {
   const [url, setUrl] = useState("");
@@ -66,9 +67,12 @@ export default function AddMediaResourceForm({ onSuccess }: { onSuccess?: () => 
           />
         </label>
         {error && <div className="training-card training-danger">{error}</div>}
-        <button className="neon-btn neon-btn-next" type="submit" disabled={loading}>
-          {loading ? "Adding…" : "Add Resource"}
-        </button>
+        <TextIconButton
+          variant="next"
+          label={loading ? "Adding…" : "Add Resource"}
+          type="submit"
+          disabled={loading}
+        />
       </form>
       {showSuccess && (
         <OverlayDialog showCloseButton={true} open={showSuccess} onClose={() => setShowSuccess(false)} ariaLabelledby="media-success-title">

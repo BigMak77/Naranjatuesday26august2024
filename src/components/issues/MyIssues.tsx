@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import { useUser } from "@/lib/useUser";
 import NeonPanel from "@/components/NeonPanel";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 
 interface Issue {
   id: number;
@@ -105,15 +105,15 @@ export default function MyIssues() {
                   </div>
                 </div>
                 <div style={{ flexShrink: 0 }}>
-                  <NeonIconButton
+                  <TextIconButton
                     variant="view"
-                    title="View Issue"
+                    label="View Issue"
                     onClick={() =>
                       (window.location.href = `/turkus/issues/${issue.id}`)
                     }
                   >
                     View
-                  </NeonIconButton>
+                  </TextIconButton>
                 </div>
               </li>
             ))}

@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { FiMail, FiHeart, FiShield } from "react-icons/fi";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import { usePermissions } from "@/lib/usePermissions";
 import { useUser } from "@/context/UserContext";
 
@@ -20,29 +20,29 @@ export default function UserToolbar() {
       <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
         {/* First Aider Button */}
         {canAddFirstAidReport && (
-          <NeonIconButton
+          <TextIconButton
             icon={<FiHeart />}
             variant="add"
-            title="Add First Aid Report"
+            label="Add First Aid Report"
             onClick={() => (window.location.href = "/health-safety/firstaid")}
           />
         )}
 
         {/* Safety Rep Button */}
         {canAddRiskAssessment && (
-          <NeonIconButton
+          <TextIconButton
             icon={<FiShield />}
             variant="add"
-            title="Add Risk Assessment"
+            label="Add Risk Assessment"
             onClick={() => (window.location.href = "/health-safety")}
           />
         )}
 
         {/* Contact Admin Button */}
-        <NeonIconButton
+        <TextIconButton
           icon={<FiMail />}
           variant="send"
-          title="Contact Admin"
+          label="Contact Admin"
           onClick={handleContactAdmin}
         />
       </div>

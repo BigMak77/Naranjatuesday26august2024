@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import NeonPanel from "@/components/NeonPanel";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase-client";
 
@@ -179,9 +179,9 @@ export default function HealthSafetyPolicyManager() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
         <h2 className="neon-heading" style={{ margin: 0 }}>Health & Safety Policies</h2>
         {!showForm && (
-          <NeonIconButton
+          <TextIconButton
             variant="add"
-            title="Add New Policy"
+            label="Add New Policy"
             onClick={handleAdd}
           />
         )}
@@ -243,15 +243,16 @@ export default function HealthSafetyPolicyManager() {
           </div>
           
           <div style={{ display: "flex", gap: "12px" }}>
-            <NeonIconButton
+            <TextIconButton
               variant="save"
+              label={saving ? "Saving..." : editingId ? "Update Policy" : "Create Policy"}
               title={saving ? "Saving..." : editingId ? "Update Policy" : "Create Policy"}
               type="submit"
               disabled={saving}
             />
-            <NeonIconButton
+            <TextIconButton
               variant="cancel"
-              title="Cancel"
+              label="Cancel"
               onClick={handleCancel}
               disabled={saving}
               type="button"
@@ -360,14 +361,14 @@ export default function HealthSafetyPolicyManager() {
                   </div>
                   
                   <div style={{ display: "flex", gap: "0.5rem" }}>
-                    <NeonIconButton
+                    <TextIconButton
                       variant="edit"
-                      title="Edit Policy"
+                      label="Edit Policy"
                       onClick={() => handleEdit(document)}
                     />
-                    <NeonIconButton
+                    <TextIconButton
                       variant="archive"
-                      title="Archive Policy"
+                      label="Archive Policy"
                       onClick={() => handleArchive(document.id)}
                     />
                   </div>

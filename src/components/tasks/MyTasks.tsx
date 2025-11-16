@@ -5,7 +5,7 @@ import NeonTable from "@/components/NeonTable";
 import { useUser } from "@/lib/useUser";
 import CompleteTask from "./CompleteTask";
 import OverlayDialog from "../ui/OverlayDialog";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 
 export default function MyTasks() {
   const { user } = useUser();
@@ -176,9 +176,9 @@ export default function MyTasks() {
               // Only show if not completed
               if (!row.completed) {
                 return (
-                  <NeonIconButton
+                  <TextIconButton
                     variant="save"
-                    title="Complete Task"
+                    label="Complete Task"
                     onClick={() => setShowCompleteTask({ open: true, assignmentId: String(row.assignment_id) })}
                   />
                 );

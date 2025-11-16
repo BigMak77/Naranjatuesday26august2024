@@ -5,7 +5,7 @@ import { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "@/lib/supabase-client";
 import NeonTable from "@/components/NeonTable";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import {
   FiSave,
   FiEdit,
@@ -19,7 +19,8 @@ import {
   FiChevronLeft,
   FiChevronRight,
   FiUserX,
-  FiKey
+  FiKey,
+  FiUsers
 } from "react-icons/fi";
 import { useUser } from "@/lib/useUser";
 import OverlayDialog from "@/components/ui/OverlayDialog";
@@ -29,6 +30,7 @@ import { PERMISSIONS, PermissionKey } from "@/types/userPermissions";
 import SuccessModal from "../ui/SuccessModal";
 import UserCSVImport from "./UserCSVImport";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
+import DepartmentRoleManager from "./DepartmentRoleManager";
 
 interface User {
   id: string;
@@ -73,8 +75,27 @@ function formatDateUK(dateStr: string | undefined | null): string {
   return `${day}/${month}/${year}`;
 }
 
+interface UserManagementPanelProps {
+  onControlsReady?: (controls: {
+    userSearch: string;
+    setUserSearch: (val: string) => void;
+    filteredUsersCount: number;
+    pageSize: number;
+    setPageSize: (val: number) => void;
+    currentPage: number;
+    setCurrentPage: (val: number) => void;
+    totalPages: number;
+    handleBulkAssign: () => void;
+    handleAddUser: (e: any) => void;
+    handleExportUsers: () => void;
+    showLeavers: boolean;
+    setShowLeavers: (val: boolean) => void;
+    UserCSVImportComponent: React.ReactNode;
+  }) => void;
+}
+
 // ---------------------- Main component ----------------------
-export default function UserManagementPanel() {
+export default function UserManagementPanel({ onControlsReady }: UserManagementPanelProps) {
   useUser();
   const [users, setUsers] = useState<User[]>([]);
   const [departments, setDepartments] = useState<{ id: string; name: string }[]>([]);
@@ -121,6 +142,10 @@ export default function UserManagementPanel() {
   const [permissionsUser, setPermissionsUser] = useState<User | null>(null);
   const [permissions, setPermissions] = useState<PermissionKey[]>([]);
 
+  // Department/Role Manager state
+  const [deptRoleDialogOpen, setDeptRoleDialogOpen] = useState(false);
+  const [deptRoleUser, setDeptRoleUser] = useState<User | null>(null);
+
   // Helper to open permissions dialog and fetch permissions
   const handleOpenPermissions = async (user: User) => {
     setPermissionsUser(user);
@@ -135,6 +160,45 @@ export default function UserManagementPanel() {
       setPermissions(data.permissions as PermissionKey[]);
     } else {
       setPermissions([]);
+    }
+  };
+
+  // Helper to open department/role manager
+  const handleOpenDeptRoleManager = (user: User) => {
+    setDeptRoleUser(user);
+    setDeptRoleDialogOpen(true);
+  };
+
+  // Handler for successful dept/role change
+  const handleDeptRoleSuccess = async () => {
+    // Refresh users list
+    const { data: refreshedUsers } = await supabase.from("users").select("*, shift_id");
+    if (refreshedUsers) {
+      const usersWithNames = refreshedUsers.map((user) => {
+        const role = roles.find((role) => role.id === user.role_id);
+        const department = departments.find((dept) => dept.id === user.department_id);
+        return {
+          ...user,
+          access_level: typeof user.access_level === "string" ? user.access_level : String(user.access_level ?? "User"),
+          shift_name: shiftPatterns?.find((sp) => sp.id === user.shift_id)?.name || "",
+          shift_id: user.shift_id || "",
+          role_title: role ? role.title : "—",
+          department_name: department ? department.name : "—",
+          receive_notifications: user.receive_notifications === true
+        };
+      });
+      setUsers(usersWithNames);
+    }
+    // Also update selectedUser if it's still open
+    if (selectedUser && deptRoleUser && selectedUser.id === deptRoleUser.id) {
+      const updatedUser = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", selectedUser.id)
+        .single();
+      if (updatedUser.data) {
+        setSelectedUser({ ...selectedUser, ...updatedUser.data });
+      }
     }
   };
 
@@ -191,6 +255,89 @@ export default function UserManagementPanel() {
     // Reset to first page if filter/search changes
     setCurrentPage(1);
   }, [userSearch, showLeavers, pageSize, bulkDeptFilter, bulkShiftFilter]);
+
+  // Expose controls to parent component
+  useEffect(() => {
+    if (onControlsReady) {
+      onControlsReady({
+        userSearch,
+        setUserSearch,
+        filteredUsersCount: filteredUsers.length,
+        pageSize,
+        setPageSize,
+        currentPage,
+        setCurrentPage,
+        totalPages,
+        handleBulkAssign: () => {
+          setShowBulkSelectColumn(true);
+          setBulkAssignOpen(false);
+          setBulkAssignStep(1);
+          setBulkAssignType("");
+          setBulkDeptId("");
+          setBulkRoleId("");
+          setBulkShiftId("");
+          setBulkFirstAid(false);
+          setBulkTrainer(false);
+          setBulkSelectedUserIds([]);
+          setUserSearch("");
+          setBulkDeptFilter("");
+          setBulkShiftFilter("");
+        },
+        handleAddUser: (e: any) => {
+          handleOpenDialog(
+            {
+              id: "",
+              email: "",
+              first_name: "",
+              last_name: "",
+              department_id: "",
+              role_id: "",
+              access_level: "User",
+              phone: "",
+              nationality: "",
+              is_first_aid: false,
+              is_trainer: false,
+              start_date: "",
+              receive_notifications: false
+            },
+            true,
+            (e?.currentTarget as HTMLElement) ?? null
+          );
+        },
+        handleExportUsers: handleExportUsers,
+        showLeavers,
+        setShowLeavers,
+        UserCSVImportComponent: (
+          <UserCSVImport
+            onImport={async (usersToImport: User[]) => {
+              const validUsers = usersToImport
+                .map(cleanUserFields)
+                .filter(validateUser);
+              if (validUsers.length === 0) {
+                setErrorMsg("No valid users to import. Please check your CSV.");
+                return;
+              }
+              try {
+                await supabase.from("users").upsert(validUsers, { onConflict: "id" });
+                const { data: u } = await supabase.from("users").select("*");
+                setUsers(u || []);
+                setShowSuccess(true);
+                setTimeout(() => setShowSuccess(false), 1000);
+                if (validUsers.length < usersToImport.length) {
+                  setErrorMsg(`Imported ${validUsers.length} users. ${usersToImport.length - validUsers.length} were skipped due to missing required fields.`);
+                } else {
+                  setErrorMsg("");
+                }
+              } catch (err: any) {
+                setErrorMsg("Failed to import users. " + (err.message || ""));
+              }
+            }}
+            onError={setErrorMsg}
+          />
+        )
+      });
+    }
+  }, [userSearch, filteredUsers.length, pageSize, currentPage, totalPages, showLeavers, onControlsReady]);
 
   useEffect(() => {
     setLoading(true);
@@ -495,14 +642,14 @@ export default function UserManagementPanel() {
           }
         }
       } else {
+        // For existing users, exclude department_id and role_id from updates
+        // (those should only be changed via DepartmentRoleManager)
         const { error: userErr } = await supabase
           .from("users")
           .update({
             first_name: cleanedUser.first_name,
             last_name: cleanedUser.last_name,
             email: cleanedUser.email,
-            department_id: cleanedUser.department_id,
-            role_id: cleanedUser.role_id,
             access_level: cleanedUser.access_level,
             phone: cleanedUser.phone,
             shift_id: cleanedUser.shift_id,
@@ -522,29 +669,9 @@ export default function UserManagementPanel() {
           return;
         }
         setUsers(users.map((u) => (u.id === cleanedUser.id ? { ...u, ...cleanedUser } : u)));
-        
-        // If the user's role changed, update their training assignments
-        if (roleChanged && cleanedUser.id) {
-          try {
-            const syncResponse = await fetch("/api/update-user-role-assignments", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ 
-                user_id: cleanedUser.id,
-                new_role_id: cleanedUser.role_id,
-                old_role_id: originalUser?.role_id || null
-              }),
-            });
-            if (!syncResponse.ok) {
-              console.warn("Failed to sync role assignments for user role change:", await syncResponse.text());
-            } else {
-              const syncResult = await syncResponse.json();
-              console.log("Role assignments synced successfully:", syncResult);
-            }
-          } catch (syncErr) {
-            console.warn("Error syncing role assignments for user role change:", syncErr);
-          }
-        }
+
+        // Note: Role changes are now handled exclusively via DepartmentRoleManager
+        // This ensures proper history tracking and assignment syncing
       }
       setShowSuccess(true);
       // Optimistically update the table before re-fetching from supabase
@@ -858,24 +985,16 @@ export default function UserManagementPanel() {
                   {bulkSelectedUserIds.length} Selected
                 </div>
 
-                <button
-                  className="neon-btn-primary"
+                <TextIconButton
+                  variant="primary"
+                  label="Next →"
                   disabled={bulkSelectedUserIds.length === 0}
-                  style={{
-                    padding: "0.6rem 1.5rem",
-                    fontSize: "0.95rem",
-                    fontWeight: "bold",
-                    whiteSpace: "nowrap",
-                    opacity: bulkSelectedUserIds.length === 0 ? 0.5 : 1
-                  }}
                   onClick={() => {
                     setBulkAssignOpen(true);
                     setShowBulkSelectColumn(false);
                     setBulkAssignStep(2);
                   }}
-                >
-                  Next →
-                </button>
+                />
               </div>
             </div>
           </div>
@@ -884,193 +1003,7 @@ export default function UserManagementPanel() {
 
       <div className="neon-table-panel container" style={{ justifyContent: "flex-start", display: "flex", marginTop: showBulkSelectColumn ? "180px" : "0", transition: "margin-top 0.3s ease" }}>
         <div style={{ position: "relative", width: "100%" }}>
-          {/* Toolbar rendered above the table */}
-          <div className="neon-table-toolbar" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", padding: "0.75rem 1.25rem", background: "var(--accent)", borderRadius: 8, height: 64, minHeight: 64, maxHeight: 64, boxSizing: "border-box" }}>
-            <div className="neon-table-toolbar-search" style={{ flex: "1 1 0", minWidth: 0, maxWidth: "33.33%", display: "flex", alignItems: "center", height: "100%" }}>
-              {/* ...search input and count... */}
-              <input
-                type="search"
-                id="user-table-search"
-                className="neon-input"
-                placeholder={showBulkSelectColumn ? "Filter users for selection…" : "Search users…"}
-                value={userSearch}
-                onChange={e => setUserSearch(e.target.value)}
-                aria-describedby="user-table-count"
-                style={{
-                  width: 150,
-                  minWidth: 150,
-                  maxWidth: 150,
-                  height: 32,
-                  margin: 0,
-                  ...(showBulkSelectColumn ? {
-                    border: "2px solid var(--neon)",
-                    boxShadow: "0 0 10px rgba(57, 255, 20, 0.5)"
-                  } : {})
-                }}
-              />
-              <span id="user-table-count" className="match-count neon-label" aria-live="polite" style={{ marginLeft: 12 }}>
-                Showing {filteredUsers.length} users
-              </span>
-            </div>
-            <div className="neon-table-toolbar-actions" style={{ flex: "1 1 0", minWidth: 0, maxWidth: "33.33%", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.75rem", height: "100%" }}>
-              {/* ...action buttons... */}
-              <CustomTooltip text="Add new user to the system">
-                <NeonIconButton
-                  variant="add"
-                  icon={<FiUserPlus />}
-                  title="Add User"
-                  onClick={(e: any) => {
-                    handleOpenDialog(
-                      {
-                        id: "",
-                        email: "",
-                        first_name: "",
-                        last_name: "",
-                        department_id: "",
-                        role_id: "",
-                        access_level: "User",
-                        phone: "",
-                        nationality: "",
-                        is_first_aid: false,
-                        is_trainer: false,
-                        start_date: "",
-                        receive_notifications: false
-                      },
-                      true,
-                      (e?.currentTarget as HTMLElement) ?? null
-                    );
-                  }}
-                />
-              </CustomTooltip>
-              <CustomTooltip text="Send invitation email to a new user">
-                <NeonIconButton
-                  variant="send"
-                  title="Invite User"
-                  onClick={() => {
-                    // TODO: Implement invite user functionality
-                    console.log("Invite user clicked");
-                  }}
-                />
-              </CustomTooltip>
-              <CustomTooltip text="Export all users data to CSV file">
-                <NeonIconButton
-                  icon={<FiDownload />}
-                  title="Download Users CSV"
-                  variant="download"
-                  onClick={handleExportUsers}
-                />
-              </CustomTooltip>
-              {/* Upload button removed as requested */}
-              <input
-                type="file"
-                ref={fileInputRef}
-                style={{ display: "none" }}
-                accept=".csv"
-                onChange={e => {
-                  // handle file upload logic here, e.g. pass to UserCSVImport or your handler
-                  // Example: if (e.target.files?.[0]) handleCSVFile(e.target.files[0]);
-                }}
-              />
-              <UserCSVImport
-                onImport={async (usersToImport: User[]) => {
-                  // Clean and validate imported users
-                  const validUsers = usersToImport
-                    .map(cleanUserFields)
-                    .filter(validateUser);
-                  if (validUsers.length === 0) {
-                    setErrorMsg("No valid users to import. Please check your CSV.");
-                    return;
-                  }
-                  try {
-                    await supabase.from("users").upsert(validUsers, { onConflict: "id" });
-                    const { data: u } = await supabase.from("users").select("*");
-                    setUsers(u || []);
-                    setShowSuccess(true);
-                    setTimeout(() => setShowSuccess(false), 1000);
-                    if (validUsers.length < usersToImport.length) {
-                      setErrorMsg(`Imported ${validUsers.length} users. ${usersToImport.length - validUsers.length} were skipped due to missing required fields.`);
-                    } else {
-                      setErrorMsg("");
-                    }
-                  } catch (err: any) {
-                    setErrorMsg("Failed to import users. " + (err.message || ""));
-                  }
-                }}
-                onError={setErrorMsg}
-              />
-              <CustomTooltip text={showLeavers ? "Hide employees who have left" : "Show employees who have left"}>
-                <NeonIconButton
-                  icon={<FiUserX />}
-                  title={showLeavers ? "Hide Leavers" : "Show Leavers"}
-                  variant={showLeavers ? "archive" : "edit"}
-                  className="neon-btn-leavers"
-                  onClick={() => setShowLeavers((prev) => !prev)}
-                />
-              </CustomTooltip>
-              <CustomTooltip text="Assign roles, shifts, or permissions to multiple users at once">
-                <NeonIconButton
-                  icon={<FiEdit />}
-                  title="Bulk Assign"
-                  variant="edit"
-                  onClick={() => {
-                    setShowBulkSelectColumn(true); // Show select column for user selection
-                    setBulkAssignOpen(false); // Modal should not open yet
-                    setBulkAssignStep(1); // Start at select users step
-                    setBulkAssignType("");
-                    setBulkDeptId("");
-                    setBulkRoleId("");
-                    setBulkShiftId("");
-                    setBulkFirstAid(false);
-                    setBulkTrainer(false);
-                    setBulkSelectedUserIds([]);
-                    setUserSearch(""); // Clear search to show all users
-                    setBulkDeptFilter(""); // Clear dept filter
-                    setBulkShiftFilter(""); // Clear shift filter
-                  }}
-                />
-              </CustomTooltip>
-            </div>
-            <div className="neon-table-toolbar-pagination" style={{ flex: "1 1 0", minWidth: 0, maxWidth: "33.33%", display: "flex", alignItems: "center", justifyContent: "flex-end", height: "100%" }}>
-              <label htmlFor="rows-per-page-select" className="neon-label" style={{ display: "inline-block", verticalAlign: "middle", minWidth: 22, textAlign: "right", margin: 0, padding: 0 }}>Rows:</label>
-              <select
-                id="rows-per-page-select"
-                value={pageSize}
-                onChange={e => setPageSize(Number(e.target.value))}
-                className="neon-input"
-                style={{ display: "inline-block", verticalAlign: "middle", minWidth: 28, width: 32, padding: "0 2px", margin: "0 1px", textAlign: "center" }}
-                aria-label="Rows per page"
-              >
-                {[10, 20, 50, 100].map(size => (
-                  <option key={size} value={size}>{size}</option>
-                ))}
-              </select>
-              <CustomTooltip text="Go to previous page">
-                <NeonIconButton
-                  icon={<FiChevronLeft />}
-                  title="Previous Page"
-                  variant="back"
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  style={{ minWidth: 24, display: "inline-block", verticalAlign: "middle", margin: "0 1px" }}
-                />
-              </CustomTooltip>
-              <CustomTooltip text="Go to next page">
-                <NeonIconButton
-                  icon={<FiChevronRight />}
-                  title="Next Page"
-                  variant="next"
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  style={{ minWidth: 24, display: "inline-block", verticalAlign: "middle", margin: "0 1px" }}
-                />
-              </CustomTooltip>
-              <span className="neon-label" style={{ marginLeft: 4, verticalAlign: "middle", display: "inline-block" }}>
-                {currentPage} / {totalPages}
-              </span>
-            </div>
-          </div>
-
-          {/* Table below toolbar */}
+          {/* Table - all controls are now in parent FolderTabs toolbar */}
           <div className="neon-table-scroll" style={{ justifyContent: "flex-start", display: "flex", position: "relative" }}>
             <div id="bulk-select-table" style={{ width: "100%" }}>
               <NeonTable
@@ -1135,9 +1068,9 @@ export default function UserManagementPanel() {
                     ),
                     actions: (
                       <CustomTooltip text="Edit this user's details">
-                        <NeonIconButton
+                        <TextIconButton
                           icon={<FiEdit />}
-                          title="Edit User"
+                          label="Edit User"
                           variant="edit"
                           onClick={(e: any) => {
                             handleOpenDialog(user, false, (e?.currentTarget as HTMLElement) ?? null);
@@ -1163,395 +1096,481 @@ export default function UserManagementPanel() {
               </div>
             )}
 
-            {selectedUser && (
-              <div
-                className="neon-form-grid neon-form-padding"
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                  gap: "1.5rem",
-                  rowGap: "2rem",
-                  alignItems: "start"
-                }}
-              >
-                {/* first_name */}
-                <div>
-                  <label className="neon-label" htmlFor="first-name-input" style={{ color: "var(--neon-text, #fff)" }}>
-                    First Name
-                  </label>
-                  <input
-                    id="first-name-input"
-                    ref={firstNameRef}
-                    className="neon-input"
-                    value={selectedUser.first_name || ""}
-                    onChange={(e) =>
-                      setSelectedUser({
-                        ...selectedUser,
-                        first_name: e.target.value
-                      })
-                    }
-                    placeholder="First Name"
-                    style={{ color: "var(--neon-text, #fff)" }}
-                  />
-                </div>
-                {/* last_name */}
-                <div>
-                  <label className="neon-label" htmlFor="last-name-input" style={{ color: "var(--neon-text, #fff)" }}>
-                    Last Name
-                  </label>
-                  <input
-                    id="last-name-input"
-                    className="neon-input"
-                    value={selectedUser.last_name || ""}
-                    onChange={(e) =>
-                      setSelectedUser({
-                        ...selectedUser,
-                        last_name: e.target.value
-                      })
-                    }
-                    placeholder="Last Name"
-                    style={{ color: "var(--neon-text, #fff)" }}
-                  />
-                </div>
-                {/* email */}
-                <div>
-                  <label className="neon-label" htmlFor="email-input" style={{ color: "var(--neon-text, #fff)" }}>
-                    Email
-                  </label>
-                  <input
-                    id="email-input"
-                    className="neon-input"
-                    value={selectedUser.email || ""}
-                    onChange={(e) =>
-                      setSelectedUser({
-                        ...selectedUser,
-                        email: e.target.value
-                      })
-                    }
-                    placeholder="Email"
-                    inputMode="email"
-                    autoComplete="email"
-                    style={{ color: "var(--neon-text, #fff)" }}
-                  />
-                </div>
-                {/* department_id */}
-                <div>
-                  <label className="neon-label" htmlFor="dept-select" style={{ color: "var(--neon-text, #fff)" }}>
-                    Department
-                  </label>
-                  <select
-                    id="dept-select"
-                    className="neon-input"
-                    value={selectedUser.department_id || ""}
-                    onChange={(e) => {
-                      setSelectedUser({
-                        ...selectedUser,
-                        department_id: e.target.value,
-                        role_id: "" // Reset role when department changes
-                      });
+{selectedUser && (
+              <>
+                {/* PERSONAL DETAILS SECTION */}
+                <div style={{ marginBottom: "2rem" }}>
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      color: "#40e0d0",
+                      marginBottom: "1rem",
+                      fontSize: "1.1rem",
+                      borderBottom: "2px solid rgba(64, 224, 208, 0.3)",
+                      paddingBottom: "0.5rem"
                     }}
-                    style={{ color: "var(--neon-text, #fff)" }}
                   >
-                    <option value="">Select Department</option>
-                    {departments.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                {/* role_id */}
-                <div>
-                  <label className="neon-label" htmlFor="role-select" style={{ color: "var(--neon-text, #fff)" }}>
-                    Role
-                  </label>
-                  <select
-                    id="role-select"
-                    className="neon-input"
-                    value={selectedUser.role_id || ""}
-                    onChange={(e) =>
-                      setSelectedUser({
-                        ...selectedUser,
-                        role_id: e.target.value
-                      })
-                    }
-                    disabled={!selectedUser.department_id}
-                    style={{ color: "var(--neon-text, #fff)" }}
-                  >
-                    <option value="">Select Role</option>
-                    {roles
-                      .filter((r) => r.department_id === selectedUser.department_id)
-                      .map((r) => (
-                        <option key={r.id} value={r.id}>
-                          {r.title}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-                {/* access_level */}
-                <div>
-                  <label className="neon-label" htmlFor="access-select" style={{ color: "var(--neon-text, #fff)" }}>
-                    Access Level
-                  </label>
-                  <select
-                    id="access-select"
-                    className="neon-input"
-                    value={selectedUser.access_level || "User"}
-                    onChange={(e) =>
-                      setSelectedUser({
-                        ...selectedUser,
-                        access_level: e.target.value
-                      })
-                    }
-                    style={{ color: "var(--neon-text, #fff)" }}
-                  >
-                    <option value="Super Admin">Super Admin - System owners, full access</option>
-                    <option value="Admin">Admin - IT administrators</option>
-                    <option value="HR Admin">HR Admin - Human Resources team</option>
-                    <option value="H&S Admin">H&S Admin - Health & Safety officers</option>
-                    <option value="Dept. Manager">Dept. Manager - Department managers (see all shifts)</option>
-                    <option value="Manager">Manager - Shift managers (see only their shift)</option>
-                    <option value="Trainer">Trainer - Training coordinators</option>
-                    <option value="User">User - Regular employees</option>
-                  </select>
-                </div>
-                {/* phone */}
-                <div>
-                  <label className="neon-label" htmlFor="phone-input" style={{ color: "var(--neon-text, #fff)" }}>
-                    Phone
-                  </label>
-                  <input
-                    id="phone-input"
-                    className="neon-input"
-                    value={selectedUser.phone || ""}
-                    onChange={(e) =>
-                      setSelectedUser({
-                        ...selectedUser,
-                        phone: e.target.value
-                      })
-                    }
-                    placeholder="Phone"
-                    inputMode="tel"
-                    autoComplete="tel"
-                    style={{ color: "var(--neon-text, #fff)" }}
-                  />
-                </div>
-                {/* nationality */}
-                <div>
-                  <label className="neon-label" htmlFor="nationality-select" style={{ color: "var(--neon-text, #fff)" }}>
-                    Nationality
-                  </label>
-                  <select
-                    id="nationality-select"
-                    className="neon-input"
-                    value={selectedUser.nationality || ""}
-                    onChange={(e) =>
-                      setSelectedUser({
-                        ...selectedUser,
-                        nationality: e.target.value
-                      })
-                    }
-                    style={{ color: "var(--neon-text, #fff)" }}
-                  >
-                    <option value="">Select Nationality</option>
-                    {nationalities.map((nat: { name: string; flag: string }) => (
-                      <option key={nat.name} value={nat.name}>
-                        {nat.flag} {nat.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                {/* is_first_aid */}
-                <div>
-                  <label className="neon-label" htmlFor="firstaid-select" style={{ color: "var(--neon-text, #fff)" }}>
-                    First Aid
-                  </label>
-                  <select
-                    id="firstaid-select"
-                    className="neon-input"
-                    value={selectedUser.is_first_aid ? "true" : "false"}
-                    onChange={(e) =>
-                      setSelectedUser({
-                        ...selectedUser,
-                        is_first_aid: e.target.value === "true"
-                      })
-                    }
-                    style={{ color: "var(--neon-text, #fff)" }}
-                  >
-                    <option value="false">No</option>
-                    <option value="true">Yes</option>
-                  </select>
-                </div>
-                {/* is_trainer */}
-                <div>
-                  <label className="neon-label" htmlFor="trainer-select" style={{ color: "var(--neon-text, #fff)" }}>
-                    Trainer
-                  </label>
-                  <select
-                    id="trainer-select"
-                    className="neon-input"
-                    value={selectedUser.is_trainer ? "true" : "false"}
-                    onChange={(e) =>
-                      setSelectedUser({
-                        ...selectedUser,
-                        is_trainer: e.target.value === "true"
-                      })
-                    }
-                    style={{ color: "var(--neon-text, #fff)" }}
-                  >
-                    <option value="false">No</option>
-                    <option value="true">Yes</option>
-                  </select>
-                </div>
-                {/* shift_id */}
-                <div>
-                  <label className="neon-label" htmlFor="shift-select" style={{ color: "var(--neon-text, #fff)" }}>
-                    Shift
-                  </label>
-                  <select
-                    id="shift-select"
-                    className="neon-input"
-                    value={selectedUser.shift_id || ""}
-                    onChange={(e) => {
-                      const selectedPattern = shiftPatterns?.find((s) => s.id === e.target.value);
-                      setSelectedUser({
-                        ...selectedUser,
-                        shift_id: e.target.value,
-                        shift_name: selectedPattern ? selectedPattern.name : ""
-                      });
-                    }}
-                    style={{ color: "var(--neon-text, #fff)" }}
-                  >
-                    <option value="">Select Shift</option>
-                    {shiftPatterns?.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                {/* start_date */}
-                <div>
-                  <label className="neon-label" htmlFor="startdate-input" style={{ color: "var(--neon-text, #fff)" }}>
-                    Start Date
-                  </label>
-                  <input
-                    id="startdate-input"
-                    className="neon-input"
-                    type="date"
-                    value={selectedUser.start_date || ""}
-                    onChange={(e) =>
-                      setSelectedUser({
-                        ...selectedUser,
-                        start_date: e.target.value
-                      })
-                    }
-                    placeholder="Start Date"
-                    style={{ color: "var(--neon-text, #fff)" }}
-                  />
-                </div>
-                {/* is_leaver */}
-                <div>
-                  <label className="neon-label" htmlFor="leaver-select" style={{ color: "var(--neon-text, #fff)" }}>
-                    Leaver
-                  </label>
-                  <select
-                    id="leaver-select"
-                    className="neon-input"
-                    value={selectedUser.is_leaver ? "true" : "false"}
-                    onChange={(e) =>
-                      setSelectedUser({
-                        ...selectedUser,
-                        is_leaver: e.target.value === "true"
-                      })
-                    }
-                    style={{ color: "var(--neon-text, #fff)" }}
-                  >
-                    <option value="false">No</option>
-                    <option value="true">Yes</option>
-                  </select>
-                </div>
-                {/* leaver_reason (only show if is_leaver) */}
-                {selectedUser.is_leaver && (
-                  <div>
-                    <label className="neon-label" htmlFor="leaver-reason-select" style={{ color: "var(--neon-text, #fff)" }}>
-                      Leaver Reason
-                    </label>
-                    <select
-                      id="leaver-reason-select"
-                      className="neon-input"
-                      value={selectedUser.leaver_reason || ""}
-                      onChange={(e) =>
-                        setSelectedUser({
-                          ...selectedUser,
-                          leaver_reason: e.target.value
-                        })
-                      }
-                      style={{ color: "var(--neon-text, #fff)" }}
-                    >
-                      <option value="">Select Reason</option>
-                      <option value="Resignation">Resignation</option>
-                      <option value="Termination">Termination</option>
-                      <option value="Retirement">Retirement</option>
-                      <option value="End of Contract">End of Contract</option>
-                      <option value="Other">Other</option>
-                    </select>
+                    Personal Details
                   </div>
-                )}
-                {/* leaver_date */}
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                      gap: "1.5rem"
+                    }}
+                  >
+                    {/* first_name */}
+                    <div>
+                      <label className="neon-label" htmlFor="first-name-input">
+                        First Name
+                      </label>
+                      <input
+                        id="first-name-input"
+                        ref={firstNameRef}
+                        className="neon-input"
+                        value={selectedUser.first_name || ""}
+                        onChange={(e) =>
+                          setSelectedUser({
+                            ...selectedUser,
+                            first_name: e.target.value
+                          })
+                        }
+                        placeholder="First Name"
+                      />
+                    </div>
+                    {/* last_name */}
+                    <div>
+                      <label className="neon-label" htmlFor="last-name-input">
+                        Last Name
+                      </label>
+                      <input
+                        id="last-name-input"
+                        className="neon-input"
+                        value={selectedUser.last_name || ""}
+                        onChange={(e) =>
+                          setSelectedUser({
+                            ...selectedUser,
+                            last_name: e.target.value
+                          })
+                        }
+                        placeholder="Last Name"
+                      />
+                    </div>
+                    {/* email */}
+                    <div>
+                      <label className="neon-label" htmlFor="email-input">
+                        Email
+                      </label>
+                      <input
+                        id="email-input"
+                        className="neon-input"
+                        value={selectedUser.email || ""}
+                        onChange={(e) =>
+                          setSelectedUser({
+                            ...selectedUser,
+                            email: e.target.value
+                          })
+                        }
+                        placeholder="Email"
+                        inputMode="email"
+                        autoComplete="email"
+                      />
+                    </div>
+                    {/* phone */}
+                    <div>
+                      <label className="neon-label" htmlFor="phone-input">
+                        Phone
+                      </label>
+                      <input
+                        id="phone-input"
+                        className="neon-input"
+                        value={selectedUser.phone || ""}
+                        onChange={(e) =>
+                          setSelectedUser({
+                            ...selectedUser,
+                            phone: e.target.value
+                          })
+                        }
+                        placeholder="Phone"
+                        inputMode="tel"
+                        autoComplete="tel"
+                      />
+                    </div>
+                    {/* nationality */}
+                    <div>
+                      <label className="neon-label" htmlFor="nationality-select">
+                        Nationality
+                      </label>
+                      <select
+                        id="nationality-select"
+                        className="neon-input"
+                        value={selectedUser.nationality || ""}
+                        onChange={(e) =>
+                          setSelectedUser({
+                            ...selectedUser,
+                            nationality: e.target.value
+                          })
+                        }
+                      >
+                        <option value="">Select Nationality</option>
+                        {nationalities.map((nat: { name: string; flag: string }) => (
+                          <option key={nat.name} value={nat.name}>
+                            {nat.flag} {nat.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    {/* start_date */}
+                    <div>
+                      <label className="neon-label" htmlFor="startdate-input">
+                        Start Date
+                      </label>
+                      <input
+                        id="startdate-input"
+                        className="neon-input"
+                        type="date"
+                        value={selectedUser.start_date || ""}
+                        onChange={(e) =>
+                          setSelectedUser({
+                            ...selectedUser,
+                            start_date: e.target.value
+                          })
+                        }
+                        placeholder="Start Date"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* ROLE & ACCESS SECTION */}
+                <div style={{ marginBottom: "2rem" }}>
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      color: "#ffa500",
+                      marginBottom: "1rem",
+                      fontSize: "1.1rem",
+                      borderBottom: "2px solid rgba(255, 165, 0, 0.3)",
+                      paddingBottom: "0.5rem"
+                    }}
+                  >
+                    Role & Access
+                  </div>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                      gap: "1.5rem"
+                    }}
+                  >
+                    {/* department_id */}
+                    <div>
+                      <label className="neon-label" htmlFor="dept-select">
+                        Department {!isAddMode && "(read-only)"}
+                      </label>
+                      <select
+                        id="dept-select"
+                        className="neon-input"
+                        value={selectedUser.department_id || ""}
+                        onChange={(e) => {
+                          setSelectedUser({
+                            ...selectedUser,
+                            department_id: e.target.value,
+                            role_id: "" // Reset role when department changes
+                          });
+                        }}
+                        disabled={!isAddMode}
+                        style={{
+                          opacity: !isAddMode ? 0.6 : 1,
+                          cursor: !isAddMode ? "not-allowed" : "default"
+                        }}
+                      >
+                        <option value="">Select Department</option>
+                        {departments.map((d) => (
+                          <option key={d.id} value={d.id}>
+                            {d.name}
+                          </option>
+                        ))}
+                      </select>
+                      {!isAddMode && (
+                        <div style={{ fontSize: "0.85rem", color: "#ffa500", marginTop: "0.5rem" }}>
+                          Use "Change Dept/Role" button to modify
+                        </div>
+                      )}
+                    </div>
+                    {/* role_id */}
+                    <div>
+                      <label className="neon-label" htmlFor="role-select">
+                        Role {!isAddMode && "(read-only)"}
+                      </label>
+                      <select
+                        id="role-select"
+                        className="neon-input"
+                        value={selectedUser.role_id || ""}
+                        onChange={(e) =>
+                          setSelectedUser({
+                            ...selectedUser,
+                            role_id: e.target.value
+                          })
+                        }
+                        disabled={!isAddMode || !selectedUser.department_id}
+                        style={{
+                          opacity: !isAddMode ? 0.6 : 1,
+                          cursor: !isAddMode ? "not-allowed" : "default"
+                        }}
+                      >
+                        <option value="">Select Role</option>
+                        {roles
+                          .filter((r) => r.department_id === selectedUser.department_id)
+                          .map((r) => (
+                            <option key={r.id} value={r.id}>
+                              {r.title}
+                            </option>
+                          ))}
+                      </select>
+                      {!isAddMode && (
+                        <div style={{ fontSize: "0.85rem", color: "#ffa500", marginTop: "0.5rem" }}>
+                          Use "Change Dept/Role" button to modify
+                        </div>
+                      )}
+                    </div>
+                    {/* access_level */}
+                    <div>
+                      <label className="neon-label" htmlFor="access-select">
+                        Access Level
+                      </label>
+                      <select
+                        id="access-select"
+                        className="neon-input"
+                        value={selectedUser.access_level || "User"}
+                        onChange={(e) =>
+                          setSelectedUser({
+                            ...selectedUser,
+                            access_level: e.target.value
+                          })
+                        }
+                      >
+                        <option value="Super Admin">Super Admin - System owners, full access</option>
+                        <option value="Admin">Admin - IT administrators</option>
+                        <option value="HR Admin">HR Admin - Human Resources team</option>
+                        <option value="H&S Admin">H&S Admin - Health & Safety officers</option>
+                        <option value="Dept. Manager">Dept. Manager - Department managers (see all shifts)</option>
+                        <option value="Manager">Manager - Shift managers (see only their shift)</option>
+                        <option value="Trainer">Trainer - Training coordinators</option>
+                        <option value="User">User - Regular employees</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* WORK DETAILS SECTION */}
+                <div style={{ marginBottom: "2rem" }}>
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      color: "#39ff14",
+                      marginBottom: "1rem",
+                      fontSize: "1.1rem",
+                      borderBottom: "2px solid rgba(57, 255, 20, 0.3)",
+                      paddingBottom: "0.5rem"
+                    }}
+                  >
+                    Work Details
+                  </div>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+                      gap: "1.5rem"
+                    }}
+                  >
+                    {/* shift_id */}
+                    <div>
+                      <label className="neon-label" htmlFor="shift-select">
+                        Shift
+                      </label>
+                      <select
+                        id="shift-select"
+                        className="neon-input"
+                        value={selectedUser.shift_id || ""}
+                        onChange={(e) => {
+                          const selectedPattern = shiftPatterns?.find((s) => s.id === e.target.value);
+                          setSelectedUser({
+                            ...selectedUser,
+                            shift_id: e.target.value,
+                            shift_name: selectedPattern ? selectedPattern.name : ""
+                          });
+                        }}
+                      >
+                        <option value="">Select Shift</option>
+                        {shiftPatterns?.map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    {/* is_first_aid */}
+                    <div>
+                      <label className="neon-label" htmlFor="firstaid-select">
+                        First Aid
+                      </label>
+                      <select
+                        id="firstaid-select"
+                        className="neon-input"
+                        value={selectedUser.is_first_aid ? "true" : "false"}
+                        onChange={(e) =>
+                          setSelectedUser({
+                            ...selectedUser,
+                            is_first_aid: e.target.value === "true"
+                          })
+                        }
+                      >
+                        <option value="false">No</option>
+                        <option value="true">Yes</option>
+                      </select>
+                    </div>
+                    {/* is_trainer */}
+                    <div>
+                      <label className="neon-label" htmlFor="trainer-select">
+                        Trainer
+                      </label>
+                      <select
+                        id="trainer-select"
+                        className="neon-input"
+                        value={selectedUser.is_trainer ? "true" : "false"}
+                        onChange={(e) =>
+                          setSelectedUser({
+                            ...selectedUser,
+                            is_trainer: e.target.value === "true"
+                          })
+                        }
+                      >
+                        <option value="false">No</option>
+                        <option value="true">Yes</option>
+                      </select>
+                    </div>
+                    {/* receive_notifications */}
+                    <div>
+                      <label
+                        className="neon-label"
+                        htmlFor="receive-notifications-select"
+                      >
+                        Receive Notifications
+                      </label>
+                      <select
+                        id="receive-notifications-select"
+                        className="neon-input"
+                        value={selectedUser.receive_notifications === true ? "true" : "false"}
+                        onChange={(e) =>
+                          setSelectedUser({
+                            ...selectedUser,
+                            receive_notifications: e.target.value === "true"
+                          })
+                        }
+                      >
+                        <option value="false">No</option>
+                        <option value="true">Yes</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* LEAVER INFORMATION SECTION - Only show if is_leaver is true */}
                 {selectedUser.is_leaver && (
-                  <div>
-                    <label className="neon-label" htmlFor="leaver-date-input" style={{ color: "var(--neon-text, #fff)" }}>
-                      Leaver Date
-                    </label>
-                    <input
-                      id="leaver-date-input"
-                      className="neon-input"
-                      type="date"
-                      value={selectedUser.leaver_date || ""}
-                      onChange={(e) =>
-                        setSelectedUser({
-                          ...selectedUser,
-                          leaver_date: e.target.value
-                        })
-                      }
-                      placeholder="Leaver Date"
-                      style={{ color: "var(--neon-text, #fff)" }}
-                    />
-                    <div style={{ marginTop: "0.5rem", color: "var(--neon-text, #fff)" }}>
-                      {formatDateUK(selectedUser.leaver_date)}
+                  <div style={{ marginBottom: "2rem" }}>
+                    <div
+                      style={{
+                        fontWeight: 600,
+                        color: "#ea1c1c",
+                        marginBottom: "1rem",
+                        fontSize: "1.1rem",
+                        borderBottom: "2px solid rgba(234, 28, 28, 0.3)",
+                        paddingBottom: "0.5rem"
+                      }}
+                    >
+                      Leaver Information
+                    </div>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                        gap: "1.5rem"
+                      }}
+                    >
+                      {/* is_leaver */}
+                      <div>
+                        <label className="neon-label" htmlFor="leaver-select">
+                          Is Leaver
+                        </label>
+                        <select
+                          id="leaver-select"
+                          className="neon-input"
+                          value={selectedUser.is_leaver ? "true" : "false"}
+                          onChange={(e) =>
+                            setSelectedUser({
+                              ...selectedUser,
+                              is_leaver: e.target.value === "true"
+                            })
+                          }
+                        >
+                          <option value="false">No</option>
+                          <option value="true">Yes</option>
+                        </select>
+                      </div>
+                      {/* leaver_date */}
+                      <div>
+                        <label className="neon-label" htmlFor="leaver-date-input">
+                          Leaver Date
+                        </label>
+                        <input
+                          id="leaver-date-input"
+                          className="neon-input"
+                          type="date"
+                          value={selectedUser.leaver_date || ""}
+                          onChange={(e) =>
+                            setSelectedUser({
+                              ...selectedUser,
+                              leaver_date: e.target.value
+                            })
+                          }
+                          placeholder="Leaver Date"
+                        />
+                        <div style={{ marginTop: "0.5rem", fontSize: "0.85rem", opacity: 0.8 }}>
+                          {formatDateUK(selectedUser.leaver_date)}
+                        </div>
+                      </div>
+                      {/* leaver_reason */}
+                      <div>
+                        <label className="neon-label" htmlFor="leaver-reason-select">
+                          Leaver Reason
+                        </label>
+                        <select
+                          id="leaver-reason-select"
+                          className="neon-input"
+                          value={selectedUser.leaver_reason || ""}
+                          onChange={(e) =>
+                            setSelectedUser({
+                              ...selectedUser,
+                              leaver_reason: e.target.value
+                            })
+                          }
+                        >
+                          <option value="">Select Reason</option>
+                          <option value="Resignation">Resignation</option>
+                          <option value="Termination">Termination</option>
+                          <option value="Retirement">Retirement</option>
+                          <option value="End of Contract">End of Contract</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
                 )}
-                {/* receive_notifications */}
-                <div>
-                  <label
-                    className="neon-label"
-                    htmlFor="receive-notifications-select"
-                    style={{ color: "var(--neon-text, #fff)" }}
-                  >
-                    Receive Notifications
-                  </label>
-                  <select
-                    id="receive-notifications-select"
-                    className="neon-input"
-                    value={selectedUser.receive_notifications === true ? "true" : "false"}
-                    onChange={(e) =>
-                      setSelectedUser({
-                        ...selectedUser,
-                        receive_notifications: e.target.value === "true"
-                      })
-                    }
-                    style={{ color: "var(--neon-text, #fff)" }}
-                  >
-                    <option value="false">No</option>
-                    <option value="true">Yes</option>
-                  </select>
-                </div>
-              </div>
+              </>
             )}
 
-            <div
+<div
               className="neon-panel-actions"
               style={{
                 display: "flex",
@@ -1563,10 +1582,10 @@ export default function UserManagementPanel() {
               {/* Register as Leaver button, only if not already a leaver */}
               {!selectedUser?.is_leaver && (
                 <CustomTooltip text="Mark this user as having left the company">
-                  <NeonIconButton
+                  <TextIconButton
                     variant="archive"
                     icon={<FiArchive />}
-                    title="Register as Leaver"
+                    label="Register as Leaver"
                     onClick={() => {
                       setSelectedUser({
                         ...selectedUser!,
@@ -1578,29 +1597,39 @@ export default function UserManagementPanel() {
                 </CustomTooltip>
               )}
               {!isAddMode && selectedUser && (
-                <CustomTooltip text="Manage user's system permissions and access levels">
-                  <NeonIconButton
-                    variant="edit"
-                    icon={<FiKey />}
-                    title="Manage Permissions"
-                    onClick={() => handleOpenPermissions(selectedUser)}
-                  />
-                </CustomTooltip>
+                <>
+                  <CustomTooltip text="Change user's department and role with history tracking">
+                    <TextIconButton
+                      variant="edit"
+                      icon={<FiUsers />}
+                      label="Change Dept/Role"
+                      onClick={() => handleOpenDeptRoleManager(selectedUser)}
+                    />
+                  </CustomTooltip>
+                  <CustomTooltip text="Manage user's system permissions and access levels">
+                    <TextIconButton
+                      variant="edit"
+                      icon={<FiKey />}
+                      label="Manage Permissions"
+                      onClick={() => handleOpenPermissions(selectedUser)}
+                    />
+                  </CustomTooltip>
+                </>
               )}
               <CustomTooltip text={saving ? "Saving user changes..." : "Save all changes to this user"}>
-                <NeonIconButton
+                <TextIconButton
                   variant="save"
                   icon={saving ? <span className="neon-spinner" style={{ marginRight: 8 }} /> : <FiSave />}
-                  title={saving ? "Saving..." : "Save Changes"}
+                  label={saving ? "Saving..." : "Save Changes"}
                   onClick={handleSave}
                   disabled={saving}
                 />
               </CustomTooltip>
               <CustomTooltip text="Cancel changes and close dialog">
-                <NeonIconButton
+                <TextIconButton
                   variant="close"
                   icon={<FiX />}
-                  title="Cancel"
+                  label="Cancel"
                   type="button"
                   onClick={handleCloseDialog}
                   className="neon-btn-close"
@@ -1631,6 +1660,22 @@ export default function UserManagementPanel() {
               />
             )}
           </OverlayDialog>
+
+          {/* Department/Role Manager Dialog */}
+          {deptRoleUser && (
+            <OverlayDialog
+              showCloseButton={true}
+              open={deptRoleDialogOpen}
+              onClose={() => setDeptRoleDialogOpen(false)}
+              ariaLabelledby="dept-role-manager-title"
+            >
+              <DepartmentRoleManager
+                user={deptRoleUser}
+                onClose={() => setDeptRoleDialogOpen(false)}
+                onSuccess={handleDeptRoleSuccess}
+              />
+            </OverlayDialog>
+          )}
 
           {/* Staged Bulk Assign Overlay */}
           {bulkAssignOpen && (
@@ -1714,18 +1759,18 @@ export default function UserManagementPanel() {
                   </div>
                   <div className="neon-dialog-actions">
                     <CustomTooltip text="Cancel bulk assignment and close dialog">
-                      <NeonIconButton
+                      <TextIconButton
                         variant="close"
                         icon={<FiX />}
-                        title="Cancel"
+                        label="Cancel"
                         onClick={handleBulkAssignCancel}
                       />
                     </CustomTooltip>
                     <CustomTooltip text="Proceed to configure selected assignment type">
-                      <NeonIconButton
+                      <TextIconButton
                         variant="next"
                         icon={<FiChevronRight />}
-                        title="Next"
+                        label="Next"
                         onClick={() => setBulkAssignStep(3)}
                         disabled={!bulkAssignType}
                       />
@@ -1859,18 +1904,18 @@ export default function UserManagementPanel() {
                   )}
                   <div className="neon-dialog-actions">
                     <CustomTooltip text="Go back to assignment type selection">
-                      <NeonIconButton
+                      <TextIconButton
                         variant="back"
                         icon={<FiChevronLeft />}
-                        title="Back"
+                        label="Back"
                         onClick={() => setBulkAssignStep(2)}
                       />
                     </CustomTooltip>
                     <CustomTooltip text="Proceed to confirmation screen">
-                      <NeonIconButton
+                      <TextIconButton
                         variant="next"
                         icon={<FiChevronRight />}
-                        title="Next"
+                        label="Next"
                         onClick={() => setBulkAssignStep(4)}
                         disabled={(bulkAssignType === "role" && (!bulkDeptId || !bulkRoleId)) || (bulkAssignType === "shift" && !bulkShiftId)}
                       />
@@ -1916,10 +1961,10 @@ export default function UserManagementPanel() {
                   </div>
                   <div className="neon-dialog-actions">
                     <CustomTooltip text={bulkAssignLoading ? "Processing bulk assignments..." : "Apply these assignments to all selected users"}>
-                      <NeonIconButton
+                      <TextIconButton
                         variant="save"
                         icon={bulkAssignLoading ? <span className="neon-spinner" style={{ marginRight: 8 }} /> : <FiSave />}
-                        title={bulkAssignLoading ? "Assigning..." : "Confirm & Assign"}
+                        label={bulkAssignLoading ? "Assigning..." : "Confirm & Assign"}
                         onClick={handleBulkAssignConfirm}
                         disabled={bulkAssignLoading}
                       />

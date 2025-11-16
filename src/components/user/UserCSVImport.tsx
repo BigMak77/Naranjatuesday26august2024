@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import Papa from "papaparse";
 import OverlayDialog from "../ui/OverlayDialog";
-import NeonIconButton from "../ui/NeonIconButton";
+import TextIconButton from "../ui/TextIconButtons";
 import { CustomTooltip } from "../ui/CustomTooltip";
 
 const AVAILABLE_COLUMNS = [
@@ -155,9 +155,9 @@ const UserCSVImport: React.FC<UserCSVImportProps> = ({ onImport, onError }) => {
   return (
     <>
       <CustomTooltip text="Import users from CSV file">
-        <NeonIconButton
+        <TextIconButton
           variant="upload"
-          title="Import CSV"
+          label="Import CSV"
           onClick={() => setModalOpen(true)}
         />
       </CustomTooltip>

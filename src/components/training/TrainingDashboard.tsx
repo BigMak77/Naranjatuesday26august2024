@@ -5,6 +5,8 @@ import { supabase } from "@/lib/supabase-client";
 import { FiUsers, FiCheckCircle, FiAlertCircle, FiClock, FiTrendingUp, FiRefreshCw, FiDownload } from "react-icons/fi";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 import ContentHeader from "@/components/ui/ContentHeader";
+import OverlayDialog from "@/components/ui/OverlayDialog";
+import NeonTable from "@/components/NeonTable";
 
 /* ===========================
    TRAINING DASHBOARD
@@ -45,6 +47,35 @@ interface RecentActivity {
   type: 'completion' | 'assignment';
 }
 
+interface UserDetail {
+  id: string;
+  name: string;
+  email: string;
+  department: string;
+  totalAssignments: number;
+  completedAssignments: number;
+  complianceRate: number;
+}
+
+interface AssignmentDetail {
+  id: string;
+  userName: string;
+  userEmail: string;
+  moduleName: string;
+  assignedAt: string;
+  completedAt?: string;
+  status: string;
+}
+
+interface FollowUpDetail {
+  id: string;
+  userName: string;
+  moduleName: string;
+  dueDate: string;
+  completedAt?: string;
+  status: string;
+}
+
 export default function TrainingDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -62,6 +93,11 @@ export default function TrainingDashboard() {
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  // Dialog states
+  const [dialogOpen, setDialogOpen] = useState<string | null>(null);
+  const [dialogData, setDialogData] = useState<UserDetail[] | AssignmentDetail[] | FollowUpDetail[]>([]);
+  const [dialogLoading, setDialogLoading] = useState(false);
 
   const fetchComplianceData = async () => {
     setLoading(true);
@@ -252,6 +288,168 @@ export default function TrainingDashboard() {
     };
   }, [autoRefresh]);
 
+  const fetchUsersDetail = async () => {
+    setDialogLoading(true);
+    try {
+      const { data: usersData, error: usersError } = await supabase
+        .from('users')
+        .select('id, auth_id, first_name, last_name, email, department_id, departments(name)');
+
+      if (usersError) throw usersError;
+
+      const { data: assignmentsData, error: assignmentsError } = await supabase
+        .from('user_assignments')
+        .select('auth_id, completed_at')
+        .eq('item_type', 'module');
+
+      if (assignmentsError) throw assignmentsError;
+
+      const assignmentsByUser = new Map<string, { total: number; completed: number }>();
+      assignmentsData?.forEach(a => {
+        if (!assignmentsByUser.has(a.auth_id)) {
+          assignmentsByUser.set(a.auth_id, { total: 0, completed: 0 });
+        }
+        const stats = assignmentsByUser.get(a.auth_id)!;
+        stats.total++;
+        if (a.completed_at) stats.completed++;
+      });
+
+      const details: UserDetail[] = usersData?.map(u => {
+        const stats = assignmentsByUser.get(u.auth_id) || { total: 0, completed: 0 };
+        return {
+          id: u.id,
+          name: `${u.first_name} ${u.last_name}`,
+          email: u.email || 'N/A',
+          department: (u.departments as any)?.name || 'N/A',
+          totalAssignments: stats.total,
+          completedAssignments: stats.completed,
+          complianceRate: stats.total > 0 ? (stats.completed / stats.total) * 100 : 0,
+        };
+      }) || [];
+
+      setDialogData(details);
+    } catch (err) {
+      console.error('Error fetching users detail:', err);
+    } finally {
+      setDialogLoading(false);
+    }
+  };
+
+  const fetchAssignmentsDetail = async (type: 'completed' | 'incomplete') => {
+    setDialogLoading(true);
+    try {
+      const { data: assignmentsData, error: assignmentsError } = await supabase
+        .from('user_assignments')
+        .select('id, auth_id, item_id, assigned_at, completed_at')
+        .eq('item_type', 'module');
+
+      if (assignmentsError) throw assignmentsError;
+
+      const filtered = type === 'completed'
+        ? assignmentsData?.filter(a => a.completed_at)
+        : assignmentsData?.filter(a => !a.completed_at);
+
+      const { data: usersData } = await supabase
+        .from('users')
+        .select('auth_id, first_name, last_name, email');
+
+      const { data: modulesData } = await supabase
+        .from('modules')
+        .select('id, name');
+
+      const userMap = new Map(usersData?.map(u => [u.auth_id, u]) || []);
+      const moduleMap = new Map(modulesData?.map(m => [m.id, m.name]) || []);
+
+      const details: AssignmentDetail[] = filtered?.map(a => {
+        const user = userMap.get(a.auth_id);
+        return {
+          id: a.id,
+          userName: user ? `${user.first_name} ${user.last_name}` : 'Unknown',
+          userEmail: user?.email || 'N/A',
+          moduleName: moduleMap.get(a.item_id) || 'Unknown',
+          assignedAt: new Date(a.assigned_at).toLocaleDateString(),
+          completedAt: a.completed_at ? new Date(a.completed_at).toLocaleDateString() : undefined,
+          status: a.completed_at ? 'Completed' : 'Incomplete',
+        };
+      }) || [];
+
+      setDialogData(details);
+    } catch (err) {
+      console.error('Error fetching assignments detail:', err);
+    } finally {
+      setDialogLoading(false);
+    }
+  };
+
+  const fetchFollowUpsDetail = async (type: 'upcoming' | 'overdue') => {
+    setDialogLoading(true);
+    try {
+      const { data: assignmentsData, error: assignmentsError } = await supabase
+        .from('user_assignments')
+        .select('id, auth_id, item_id, follow_up_due_date, follow_up_completed_at')
+        .eq('item_type', 'module')
+        .eq('follow_up_required', true)
+        .not('follow_up_due_date', 'is', null);
+
+      if (assignmentsError) throw assignmentsError;
+
+      const today = new Date();
+      const filtered = assignmentsData?.filter(a => {
+        if (a.follow_up_completed_at) return false;
+        const dueDate = new Date(a.follow_up_due_date);
+        return type === 'upcoming' ? dueDate > today : dueDate <= today;
+      });
+
+      const { data: usersData } = await supabase
+        .from('users')
+        .select('auth_id, first_name, last_name');
+
+      const { data: modulesData } = await supabase
+        .from('modules')
+        .select('id, name');
+
+      const userMap = new Map(usersData?.map(u => [u.auth_id, `${u.first_name} ${u.last_name}`]) || []);
+      const moduleMap = new Map(modulesData?.map(m => [m.id, m.name]) || []);
+
+      const details: FollowUpDetail[] = filtered?.map(a => ({
+        id: a.id,
+        userName: userMap.get(a.auth_id) || 'Unknown',
+        moduleName: moduleMap.get(a.item_id) || 'Unknown',
+        dueDate: new Date(a.follow_up_due_date).toLocaleDateString(),
+        completedAt: a.follow_up_completed_at ? new Date(a.follow_up_completed_at).toLocaleDateString() : undefined,
+        status: a.follow_up_completed_at ? 'Completed' : type === 'overdue' ? 'Overdue' : 'Upcoming',
+      })) || [];
+
+      setDialogData(details);
+    } catch (err) {
+      console.error('Error fetching follow-ups detail:', err);
+    } finally {
+      setDialogLoading(false);
+    }
+  };
+
+  const handleCardClick = async (cardType: string) => {
+    setDialogOpen(cardType);
+
+    switch (cardType) {
+      case 'users':
+        await fetchUsersDetail();
+        break;
+      case 'completed':
+        await fetchAssignmentsDetail('completed');
+        break;
+      case 'incomplete':
+        await fetchAssignmentsDetail('incomplete');
+        break;
+      case 'upcoming-followups':
+        await fetchFollowUpsDetail('upcoming');
+        break;
+      case 'overdue-followups':
+        await fetchFollowUpsDetail('overdue');
+        break;
+    }
+  };
+
   const downloadComplianceReport = () => {
     const rows: string[] = [];
 
@@ -361,7 +559,13 @@ export default function TrainingDashboard() {
 
       {/* Key Metrics Grid */}
       <div className="stats-grid" style={{ marginBottom: '32px', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
-        <div className="stat-card">
+        <div
+          className="stat-card"
+          onClick={() => handleCardClick('users')}
+          style={{ cursor: 'pointer', transition: 'transform 0.2s' }}
+          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+        >
           <div className="icon-wrapper" style={{ marginBottom: '12px' }}>
             <FiUsers size={32} style={{ color: 'var(--neon)' }} />
           </div>
@@ -369,7 +573,13 @@ export default function TrainingDashboard() {
           <div className="stat-card-label">Total Users</div>
         </div>
 
-        <div className="stat-card">
+        <div
+          className="stat-card"
+          onClick={() => handleCardClick('completed')}
+          style={{ cursor: 'pointer', transition: 'transform 0.2s' }}
+          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+        >
           <div className="icon-wrapper" style={{ marginBottom: '12px' }}>
             <FiCheckCircle size={32} style={{ color: 'var(--text-success)' }} />
           </div>
@@ -379,7 +589,13 @@ export default function TrainingDashboard() {
           <div className="stat-card-label">Completed</div>
         </div>
 
-        <div className="stat-card">
+        <div
+          className="stat-card"
+          onClick={() => handleCardClick('incomplete')}
+          style={{ cursor: 'pointer', transition: 'transform 0.2s' }}
+          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+        >
           <div className="icon-wrapper" style={{ marginBottom: '12px' }}>
             <FiAlertCircle size={32} style={{ color: 'var(--text-error)' }} />
           </div>
@@ -399,7 +615,13 @@ export default function TrainingDashboard() {
           <div className="stat-card-label">Compliance Rate</div>
         </div>
 
-        <div className="stat-card">
+        <div
+          className="stat-card"
+          onClick={() => handleCardClick('upcoming-followups')}
+          style={{ cursor: 'pointer', transition: 'transform 0.2s' }}
+          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+        >
           <div className="icon-wrapper" style={{ marginBottom: '12px' }}>
             <FiClock size={32} style={{ color: '#f59e0b' }} />
           </div>
@@ -409,7 +631,13 @@ export default function TrainingDashboard() {
           <div className="stat-card-label">Upcoming Follow-ups</div>
         </div>
 
-        <div className="stat-card">
+        <div
+          className="stat-card"
+          onClick={() => handleCardClick('overdue-followups')}
+          style={{ cursor: 'pointer', transition: 'transform 0.2s' }}
+          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+        >
           <div className="icon-wrapper" style={{ marginBottom: '12px' }}>
             <FiAlertCircle size={32} style={{ color: 'var(--text-error)' }} />
           </div>
@@ -559,6 +787,166 @@ export default function TrainingDashboard() {
           </div>
         )}
       </div>
+
+      {/* Dialogs */}
+      <OverlayDialog
+        open={dialogOpen === 'users'}
+        onClose={() => setDialogOpen(null)}
+        width={1200}
+        showCloseButton
+      >
+        <div style={{ padding: '24px' }}>
+          <h2 className="neon-heading" style={{ marginBottom: '24px' }}>All Users</h2>
+          {dialogLoading ? (
+            <div style={{ textAlign: 'center', padding: '40px' }}>
+              <FiRefreshCw className="animate-spin" size={32} style={{ color: 'var(--neon)' }} />
+            </div>
+          ) : (
+            <NeonTable
+              columns={[
+                { header: 'Name', accessor: 'name', width: 200 },
+                { header: 'Email', accessor: 'email', width: 250 },
+                { header: 'Department', accessor: 'department', width: 180 },
+                { header: 'Total Assignments', accessor: 'totalAssignments', width: 150 },
+                { header: 'Completed', accessor: 'completedAssignments', width: 120 },
+                {
+                  header: 'Compliance Rate',
+                  accessor: 'complianceRate',
+                  width: 150,
+                  render: (value) => {
+                    const rate = value as number;
+                    return (
+                      <span style={{
+                        color: rate >= 80 ? 'var(--text-success)' : rate >= 50 ? '#f59e0b' : 'var(--text-error)',
+                        fontWeight: 'bold'
+                      }}>
+                        {rate.toFixed(1)}%
+                      </span>
+                    );
+                  }
+                },
+              ]}
+              data={dialogData as unknown as Record<string, unknown>[]}
+            />
+          )}
+        </div>
+      </OverlayDialog>
+
+      <OverlayDialog
+        open={dialogOpen === 'completed'}
+        onClose={() => setDialogOpen(null)}
+        width={1200}
+        showCloseButton
+      >
+        <div style={{ padding: '24px' }}>
+          <h2 className="neon-heading" style={{ marginBottom: '24px' }}>Completed Assignments</h2>
+          {dialogLoading ? (
+            <div style={{ textAlign: 'center', padding: '40px' }}>
+              <FiRefreshCw className="animate-spin" size={32} style={{ color: 'var(--neon)' }} />
+            </div>
+          ) : (
+            <NeonTable
+              columns={[
+                { header: 'User Name', accessor: 'userName', width: 200 },
+                { header: 'Email', accessor: 'userEmail', width: 250 },
+                { header: 'Module', accessor: 'moduleName', width: 250 },
+                { header: 'Assigned', accessor: 'assignedAt', width: 130 },
+                { header: 'Completed', accessor: 'completedAt', width: 130 },
+                { header: 'Status', accessor: 'status', width: 120 },
+              ]}
+              data={dialogData as unknown as Record<string, unknown>[]}
+            />
+          )}
+        </div>
+      </OverlayDialog>
+
+      <OverlayDialog
+        open={dialogOpen === 'incomplete'}
+        onClose={() => setDialogOpen(null)}
+        width={1200}
+        showCloseButton
+      >
+        <div style={{ padding: '24px' }}>
+          <h2 className="neon-heading" style={{ marginBottom: '24px' }}>Incomplete Assignments</h2>
+          {dialogLoading ? (
+            <div style={{ textAlign: 'center', padding: '40px' }}>
+              <FiRefreshCw className="animate-spin" size={32} style={{ color: 'var(--neon)' }} />
+            </div>
+          ) : (
+            <NeonTable
+              columns={[
+                { header: 'User Name', accessor: 'userName', width: 200 },
+                { header: 'Email', accessor: 'userEmail', width: 250 },
+                { header: 'Module', accessor: 'moduleName', width: 250 },
+                { header: 'Assigned', accessor: 'assignedAt', width: 130 },
+                { header: 'Status', accessor: 'status', width: 120 },
+              ]}
+              data={dialogData as unknown as Record<string, unknown>[]}
+            />
+          )}
+        </div>
+      </OverlayDialog>
+
+      <OverlayDialog
+        open={dialogOpen === 'upcoming-followups'}
+        onClose={() => setDialogOpen(null)}
+        width={1200}
+        showCloseButton
+      >
+        <div style={{ padding: '24px' }}>
+          <h2 className="neon-heading" style={{ marginBottom: '24px' }}>Upcoming Follow-ups</h2>
+          {dialogLoading ? (
+            <div style={{ textAlign: 'center', padding: '40px' }}>
+              <FiRefreshCw className="animate-spin" size={32} style={{ color: 'var(--neon)' }} />
+            </div>
+          ) : (
+            <NeonTable
+              columns={[
+                { header: 'User Name', accessor: 'userName', width: 200 },
+                { header: 'Module', accessor: 'moduleName', width: 300 },
+                { header: 'Due Date', accessor: 'dueDate', width: 130 },
+                { header: 'Status', accessor: 'status', width: 120 },
+              ]}
+              data={dialogData as unknown as Record<string, unknown>[]}
+            />
+          )}
+        </div>
+      </OverlayDialog>
+
+      <OverlayDialog
+        open={dialogOpen === 'overdue-followups'}
+        onClose={() => setDialogOpen(null)}
+        width={1200}
+        showCloseButton
+      >
+        <div style={{ padding: '24px' }}>
+          <h2 className="neon-heading" style={{ marginBottom: '24px' }}>Overdue Follow-ups</h2>
+          {dialogLoading ? (
+            <div style={{ textAlign: 'center', padding: '40px' }}>
+              <FiRefreshCw className="animate-spin" size={32} style={{ color: 'var(--neon)' }} />
+            </div>
+          ) : (
+            <NeonTable
+              columns={[
+                { header: 'User Name', accessor: 'userName', width: 200 },
+                { header: 'Module', accessor: 'moduleName', width: 300 },
+                { header: 'Due Date', accessor: 'dueDate', width: 130 },
+                {
+                  header: 'Status',
+                  accessor: 'status',
+                  width: 120,
+                  render: (value) => (
+                    <span style={{ color: 'var(--text-error)', fontWeight: 'bold' }}>
+                      {value as string}
+                    </span>
+                  )
+                },
+              ]}
+              data={dialogData as unknown as Record<string, unknown>[]}
+            />
+          )}
+        </div>
+      </OverlayDialog>
     </>
   );
 }

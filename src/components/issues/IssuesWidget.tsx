@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import { useUser } from "@/lib/useUser";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 
 interface Issue {
   id: string;
@@ -103,21 +103,21 @@ export default function IssuesWidget() {
               <span className="issues-widget-label">Priority: {issue.priority}</span>
               <span className="issues-widget-label">Status: {issue.status}</span>
               <div className="issues-widget-actions-inline">
-                <NeonIconButton
+                <TextIconButton
                   as="button"
                   variant="assign"
-                  title="Assign"
+                  label="Assign"
                   className="neon-btn-assign"
                   onClick={() => setAssignModal({ open: true, issue })}
                 >
-                </NeonIconButton>
-                <NeonIconButton
+                </TextIconButton>
+                <TextIconButton
                   as="button"
                   variant="submit"
-                  title="Completed"
+                  label="Completed"
                   className="neon-btn-confirm"
                   onClick={() => { /* TODO: completed handler */ }}
-                >                </NeonIconButton>
+                >                </TextIconButton>
               </div>
             </div>
           </div>
@@ -128,14 +128,14 @@ export default function IssuesWidget() {
           <div className="neon-modal" style={{ minWidth: 340, maxWidth: 400 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 className="neon-modal-title" style={{ marginBottom: 0 }}>Assign Issue</h2>
-              <NeonIconButton
+              <TextIconButton
                 as="button"
                 variant="close"
-                title="Close"
+                label="Close"
                 className="neon-btn-close"
                 onClick={() => setAssignModal({ open: false, issue: null })}
               >
-              </NeonIconButton>
+              </TextIconButton>
             </div>
             <div className="neon-modal-content">
               <div style={{ marginBottom: 16 }}>
@@ -167,11 +167,11 @@ export default function IssuesWidget() {
                   ))}
                 </select>
               </div>
-              <NeonIconButton
+              <TextIconButton
                 as="button"
                 variant="submit"
                 className="neon-btn-confirm"
-                title="Assign Issue"
+                label="Assign Issue"
                 disabled={!selectedDept || !selectedUser}
                 onClick={async () => {
                   if (!assignModal.issue || !selectedDept || !selectedUser) return;
@@ -199,7 +199,7 @@ export default function IssuesWidget() {
                 }}
               >
                 Assign
-              </NeonIconButton>
+              </TextIconButton>
             </div>
           </div>
         </div>

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import NeonTable from "@/components/NeonTable";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import AssignIssue from "@/components/issues/AssignIssue";
 import { supabase } from "@/lib/supabase-client";
 import { useUser } from "@/lib/useUser";
@@ -146,10 +146,10 @@ export default function IssueManager() {
     const showAssignButton = canAssignIssues() && canAssignSpecificIssue(issue);
     
     const assignButton = showAssignButton ? (
-      <NeonIconButton
+      <TextIconButton
         icon={<FiUserPlus />}
         variant="assign"
-        title="Assign Issue"
+        label="Assign Issue"
         onClick={() => setAssigningIssue(issue.id)}
       />
     ) : "—";

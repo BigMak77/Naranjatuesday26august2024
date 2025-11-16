@@ -79,23 +79,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. Remove ALL existing assignments for this user
-    const { count: removedCount, error: removeError } = await supabase
-      .from("user_assignments")
-      .delete({ count: "exact" })
-      .eq("auth_id", user.auth_id);
-
-    if (removeError) {
-      console.error("Error removing old assignments:", removeError);
-      return NextResponse.json({ 
-        error: "Failed to remove old assignments", 
-        details: removeError 
-      }, { status: 500 });
-    }
-
-    console.log(`✅ Removed ${removedCount || 0} old assignments`);
-
-    // 3. Update user's role in database
+    // 3. Update user's role in database FIRST
     const { error: updateError } = await supabase
       .from("users")
       .update({ role_id: new_role_id })
@@ -103,9 +87,9 @@ export async function POST(req: NextRequest) {
 
     if (updateError) {
       console.error("Error updating user role:", updateError);
-      return NextResponse.json({ 
-        error: "Failed to update user role", 
-        details: updateError 
+      return NextResponse.json({
+        error: "Failed to update user role",
+        details: updateError
       }, { status: 500 });
     }
 
@@ -117,13 +101,13 @@ export async function POST(req: NextRequest) {
 
     if (roleError) {
       console.error("Error fetching new role assignments:", roleError);
-      return NextResponse.json({ 
-        error: "Failed to fetch new role assignments", 
-        details: roleError 
+      return NextResponse.json({
+        error: "Failed to fetch new role assignments",
+        details: roleError
       }, { status: 500 });
     }
 
-    // 5. Deduplicate new assignments
+    // 5. Deduplicate new role assignments
     const assignmentMap = new Map();
     (newRoleAssignments || []).forEach(a => {
       const itemId = a.module_id || a.document_id;
@@ -134,38 +118,109 @@ export async function POST(req: NextRequest) {
     });
     const uniqueAssignments = Array.from(assignmentMap.values());
 
-    // 6. Get existing completions for this user
-    const { data: existingCompletions, error: completionsError } = await supabase
+    // 6. Create set of new role's item IDs for quick lookup
+    const newRoleItemSet = new Set(
+      uniqueAssignments.map(a => {
+        const itemId = a.document_id || a.module_id;
+        return `${itemId}|${a.type}`;
+      })
+    );
+
+    // 7. Remove ONLY incomplete assignments that are NOT in the new role
+    // This preserves:
+    // - ALL completed assignments (regardless of role)
+    // - Incomplete assignments that are also in the new role
+    const { data: currentAssignments } = await supabase
+      .from("user_assignments")
+      .select("id, item_id, item_type, completed_at")
+      .eq("auth_id", user.auth_id)
+      .is("completed_at", null); // Only get incomplete assignments
+
+    let removedCount = 0;
+    if (currentAssignments && currentAssignments.length > 0) {
+      const assignmentsToDelete = currentAssignments.filter(a => {
+        const key = `${a.item_id}|${a.item_type}`;
+        return !newRoleItemSet.has(key); // Delete if NOT in new role
+      });
+
+      if (assignmentsToDelete.length > 0) {
+        const idsToDelete = assignmentsToDelete.map(a => a.id);
+        const { error: deleteError, count } = await supabase
+          .from("user_assignments")
+          .delete({ count: "exact" })
+          .in("id", idsToDelete);
+
+        if (deleteError) {
+          console.error("Error removing old incomplete assignments:", deleteError);
+        } else {
+          removedCount = count || 0;
+        }
+      }
+    }
+
+    console.log(`✅ Removed ${removedCount} incomplete assignments not in new role (preserved completed training and overlapping incomplete)`);
+
+    // 8. Get ALL existing assignments (both completed and incomplete that we kept)
+    const { data: allExistingAssignments, error: existingError } = await supabase
+      .from("user_assignments")
+      .select("item_id, item_type, completed_at")
+      .eq("auth_id", user.auth_id);
+
+    if (existingError) {
+      console.warn("Failed to fetch existing assignments:", existingError);
+    }
+
+    // Create a map of all existing assignments
+    const existingMap = new Map();
+    (allExistingAssignments || []).forEach(assignment => {
+      const key = `${assignment.item_id}|${assignment.item_type}`;
+      existingMap.set(key, assignment);
+    });
+
+    // Get historical completions for items that aren't currently assigned
+    const { data: historicalCompletions, error: completionsError } = await supabase
       .from("user_training_completions")
       .select("item_id, item_type, completed_at")
       .eq("auth_id", user.auth_id);
 
     if (completionsError) {
-      console.warn("Failed to fetch existing completions:", completionsError);
+      console.warn("Failed to fetch historical completions:", completionsError);
     }
 
-    // Create a map of completed items for quick lookup
+    // Create a map of historical completed items for quick lookup
     const completionMap = new Map();
-    (existingCompletions || []).forEach(completion => {
+    (historicalCompletions || []).forEach(completion => {
       const key = `${completion.item_id}|${completion.item_type}`;
-      completionMap.set(key, completion.completed_at);
+      // Only add to map if not already in existing assignments
+      if (!existingMap.has(key)) {
+        completionMap.set(key, completion.completed_at);
+      }
     });
 
-    // 7. Create new assignments for this user, restoring completion dates where applicable
-    const newAssignments = uniqueAssignments.map(a => {
-      const itemId = a.document_id || a.module_id;
-      const completionKey = `${itemId}|${a.type}`;
-      const existingCompletion = completionMap.get(completionKey);
-      
-      return {
-        auth_id: user.auth_id,
-        item_id: itemId,
-        item_type: a.type,
-        assigned_at: new Date().toISOString(),
-        // Restore completion date if user previously completed this training
-        completed_at: existingCompletion || null
-      };
-    });
+    // 9. Create new assignments ONLY for items that don't already exist
+    const newAssignments = uniqueAssignments
+      .map(a => {
+        const itemId = a.document_id || a.module_id;
+        const completionKey = `${itemId}|${a.type}`;
+
+        // Skip if this assignment already exists (either completed or incomplete)
+        if (existingMap.has(completionKey)) {
+          return null;
+        }
+
+        // Check for historical completion
+        const existingCompletion = completionMap.get(completionKey);
+
+        return {
+          auth_id: user.auth_id,
+          item_id: itemId,
+          item_type: a.type,
+          assigned_at: new Date().toISOString(),
+          // Restore completion date if user previously completed this training
+          completed_at: existingCompletion || null
+        };
+      })
+      .filter(a => a !== null); // Remove nulls (duplicates)
 
     let addedCount = 0;
     let restoredCompletions = 0;

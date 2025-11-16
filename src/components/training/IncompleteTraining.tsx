@@ -349,187 +349,183 @@ export default function IncompleteTraining() {
   );
 
   return (
-    <div className="after-hero">
-      <div className="global-content">
-        <main className="page-main">
-          {/* Compliance summary panel */}
-          <div className="neon-panel" style={{ marginBottom: "2rem", background: "#0d3c47", color: "#fff", borderRadius: "18px", boxShadow: "0 2px 8px rgba(0,0,0,0.10)", padding: "2rem 2rem 1.5rem 2rem", display: "flex", alignItems: "center", gap: "2.5rem" }}>
-            <div style={{ flex: 1 }}>
-              <h2 style={{ margin: 0, fontSize: "1.35rem", fontWeight: 700, color: "#19e6d9" }}>Overall Compliance</h2>
-              <ul style={{ margin: "1rem 0 0 0", fontSize: "1.08rem", fontWeight: 500, color: "#fff", listStyle: "none", padding: 0 }}>
-                <li>Assigned modules: <strong>{totalAssignments}</strong></li>
-                <li>Completed modules: <strong>{totalCompleted}</strong></li>
-                <li>Overdue modules: <strong>{totalOverdue}</strong></li>
-                <li>Compliance rate: <strong>{compliancePercent}%</strong></li>
-              </ul>
-            </div>
-            <div style={{ flex: "0 0 120px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              {/* Circular compliance percent visual */}
-              <div style={{ width: 90, height: 90, borderRadius: "50%", background: "#19e6d9", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 8px #19e6d9" }}>
-                <span style={{ fontSize: "2.2rem", fontWeight: 700, color: "#0d3c47" }}>{compliancePercent}%</span>
-              </div>
+    <>
+      {/* Compliance summary panel */}
+      <div className="neon-panel" style={{ marginBottom: "2rem", background: "#0d3c47", color: "#fff", borderRadius: "18px", boxShadow: "0 2px 8px rgba(0,0,0,0.10)", padding: "2rem 2rem 1.5rem 2rem", display: "flex", alignItems: "center", gap: "2.5rem" }}>
+        <div style={{ flex: 1 }}>
+          <h2 style={{ margin: 0, fontSize: "1.35rem", fontWeight: 700, color: "#19e6d9" }}>Overall Compliance</h2>
+          <ul style={{ margin: "1rem 0 0 0", fontSize: "1.08rem", fontWeight: 500, color: "#fff", listStyle: "none", padding: 0 }}>
+            <li>Assigned modules: <strong>{totalAssignments}</strong></li>
+            <li>Completed modules: <strong>{totalCompleted}</strong></li>
+            <li>Overdue modules: <strong>{totalOverdue}</strong></li>
+            <li>Compliance rate: <strong>{compliancePercent}%</strong></li>
+          </ul>
+        </div>
+        <div style={{ flex: "0 0 120px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          {/* Circular compliance percent visual */}
+          <div style={{ width: 90, height: 90, borderRadius: "50%", background: "#19e6d9", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 8px #19e6d9" }}>
+            <span style={{ fontSize: "2.2rem", fontWeight: 700, color: "#0d3c47" }}>{compliancePercent}%</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Top 10 and Bottom 10 Departments */}
+      {!loading && departmentStats.length > 0 && (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem", marginBottom: "2rem" }}>
+          {/* Top 10 */}
+          <div className="neon-panel" style={{ background: "#0d3c47", color: "#fff", borderRadius: "18px", padding: "1.5rem" }}>
+            <h3 style={{ margin: "0 0 1rem 0", fontSize: "1.2rem", fontWeight: 600, color: "#19e6d9", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <FiTrendingUp size={20} /> Top 10 Departments
+            </h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+              {top10Departments.map((dept, index) => (
+                <div key={dept.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.5rem 0.75rem", background: "rgba(25, 230, 217, 0.1)", borderRadius: "8px", borderLeft: `4px solid ${index < 3 ? "#22c55e" : "#19e6d9"}` }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                    <span style={{ fontSize: "0.9rem", fontWeight: 600, color: "#19e6d9", minWidth: "1.5rem" }}>#{index + 1}</span>
+                    <span style={{ fontSize: "0.95rem", fontWeight: 500 }}>{dept.name}</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                    <span style={{ fontSize: "0.85rem", opacity: 0.8 }}>{dept.completedAssignments}/{dept.totalAssignments}</span>
+                    <span style={{ fontSize: "1rem", fontWeight: 700, color: "#22c55e" }}>{dept.complianceRate}%</span>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Top 10 and Bottom 10 Departments */}
-          {!loading && departmentStats.length > 0 && (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem", marginBottom: "2rem" }}>
-              {/* Top 10 */}
-              <div className="neon-panel" style={{ background: "#0d3c47", color: "#fff", borderRadius: "18px", padding: "1.5rem" }}>
-                <h3 style={{ margin: "0 0 1rem 0", fontSize: "1.2rem", fontWeight: 600, color: "#19e6d9", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <FiTrendingUp size={20} /> Top 10 Departments
-                </h3>
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                  {top10Departments.map((dept, index) => (
-                    <div key={dept.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.5rem 0.75rem", background: "rgba(25, 230, 217, 0.1)", borderRadius: "8px", borderLeft: `4px solid ${index < 3 ? "#22c55e" : "#19e6d9"}` }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                        <span style={{ fontSize: "0.9rem", fontWeight: 600, color: "#19e6d9", minWidth: "1.5rem" }}>#{index + 1}</span>
-                        <span style={{ fontSize: "0.95rem", fontWeight: 500 }}>{dept.name}</span>
-                      </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                        <span style={{ fontSize: "0.85rem", opacity: 0.8 }}>{dept.completedAssignments}/{dept.totalAssignments}</span>
-                        <span style={{ fontSize: "1rem", fontWeight: 700, color: "#22c55e" }}>{dept.complianceRate}%</span>
-                      </div>
-                    </div>
-                  ))}
+          {/* Bottom 10 */}
+          <div className="neon-panel" style={{ background: "#0d3c47", color: "#fff", borderRadius: "18px", padding: "1.5rem" }}>
+            <h3 style={{ margin: "0 0 1rem 0", fontSize: "1.2rem", fontWeight: 600, color: "#ef4444", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <FiTrendingDown size={20} /> Bottom 10 Departments
+            </h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+              {bottom10Departments.map((dept, index) => (
+                <div key={dept.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.5rem 0.75rem", background: "rgba(239, 68, 68, 0.1)", borderRadius: "8px", borderLeft: `4px solid ${index < 3 ? "#ef4444" : "#f97316"}` }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                    <span style={{ fontSize: "0.9rem", fontWeight: 600, color: "#ef4444", minWidth: "1.5rem" }}>#{departmentStats.length - index}</span>
+                    <span style={{ fontSize: "0.95rem", fontWeight: 500 }}>{dept.name}</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                    <span style={{ fontSize: "0.85rem", opacity: 0.8 }}>{dept.completedAssignments}/{dept.totalAssignments}</span>
+                    <span style={{ fontSize: "1rem", fontWeight: 700, color: "#ef4444" }}>{dept.complianceRate}%</span>
+                  </div>
                 </div>
-              </div>
-
-              {/* Bottom 10 */}
-              <div className="neon-panel" style={{ background: "#0d3c47", color: "#fff", borderRadius: "18px", padding: "1.5rem" }}>
-                <h3 style={{ margin: "0 0 1rem 0", fontSize: "1.2rem", fontWeight: 600, color: "#ef4444", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <FiTrendingDown size={20} /> Bottom 10 Departments
-                </h3>
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                  {bottom10Departments.map((dept, index) => (
-                    <div key={dept.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.5rem 0.75rem", background: "rgba(239, 68, 68, 0.1)", borderRadius: "8px", borderLeft: `4px solid ${index < 3 ? "#ef4444" : "#f97316"}` }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                        <span style={{ fontSize: "0.9rem", fontWeight: 600, color: "#ef4444", minWidth: "1.5rem" }}>#{departmentStats.length - index}</span>
-                        <span style={{ fontSize: "0.95rem", fontWeight: 500 }}>{dept.name}</span>
-                      </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                        <span style={{ fontSize: "0.85rem", opacity: 0.8 }}>{dept.completedAssignments}/{dept.totalAssignments}</span>
-                        <span style={{ fontSize: "1rem", fontWeight: 700, color: "#ef4444" }}>{dept.complianceRate}%</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              ))}
             </div>
+          </div>
+        </div>
+      )}
+
+      <div className="neon-panel">
+        <div className="neon-panel-content">
+          {/* Filters */}
+          <div className="neon-form-row">
+            <div className="neon-form-group">
+              <CustomTooltip text="Search by user first name or last name">
+                <label className="neon-form-label">
+                  Search Users
+                </label>
+              </CustomTooltip>
+              <input
+                type="search"
+                placeholder="Search users..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="neon-input"
+              />
+            </div>
+
+            <div className="neon-form-group">
+              <CustomTooltip text="Filter by department to narrow down results">
+                <label className="neon-form-label">
+                  Department
+                </label>
+              </CustomTooltip>
+              <select
+                value={selectedDept}
+                onChange={(e) => {
+                  setSelectedDept(e.target.value);
+                  setSelectedRole("All");
+                }}
+                className="neon-input"
+              >
+                <option value="All">All Departments</option>
+                {departments.map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="neon-form-group">
+              <CustomTooltip text="Filter by role within selected department">
+                <label className="neon-form-label">
+                  Role
+                </label>
+              </CustomTooltip>
+              <select
+                value={selectedRole}
+                onChange={(e) => setSelectedRole(e.target.value)}
+                className="neon-input"
+              >
+                <option value="All">All Roles</option>
+                {rolesForCurrentDept.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="neon-form-group">
+              <CustomTooltip text="Filter by specific training module">
+                <label className="neon-form-label">
+                  Module
+                </label>
+              </CustomTooltip>
+              <select
+                value={selectedModule}
+                onChange={(e) => setSelectedModule(e.target.value)}
+                className="neon-input"
+              >
+                <option value="All">All Modules</option>
+                {allModules.map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Errors / Loading / Table */}
+          {error && (
+            <p className="text-red-500 text-sm mt-2">
+              Failed to load incomplete training: {error}
+            </p>
           )}
 
-          <div className="neon-panel">
-            <div className="neon-panel-content">
-              {/* Filters */}
-              <div className="neon-form-row">
-                <div className="neon-form-group">
-                  <CustomTooltip text="Search by user first name or last name">
-                    <label className="neon-form-label">
-                      Search Users
-                    </label>
-                  </CustomTooltip>
-                  <input
-                    type="search"
-                    placeholder="Search users..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="neon-input"
-                  />
-                </div>
-
-                <div className="neon-form-group">
-                  <CustomTooltip text="Filter by department to narrow down results">
-                    <label className="neon-form-label">
-                      Department
-                    </label>
-                  </CustomTooltip>
-                  <select
-                    value={selectedDept}
-                    onChange={(e) => {
-                      setSelectedDept(e.target.value);
-                      setSelectedRole("All");
-                    }}
-                    className="neon-input"
-                  >
-                    <option value="All">All Departments</option>
-                    {departments.map((d) => (
-                      <option key={d} value={d}>
-                        {d}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="neon-form-group">
-                  <CustomTooltip text="Filter by role within selected department">
-                    <label className="neon-form-label">
-                      Role
-                    </label>
-                  </CustomTooltip>
-                  <select
-                    value={selectedRole}
-                    onChange={(e) => setSelectedRole(e.target.value)}
-                    className="neon-input"
-                  >
-                    <option value="All">All Roles</option>
-                    {rolesForCurrentDept.map((r) => (
-                      <option key={r} value={r}>
-                        {r}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="neon-form-group">
-                  <CustomTooltip text="Filter by specific training module">
-                    <label className="neon-form-label">
-                      Module
-                    </label>
-                  </CustomTooltip>
-                  <select
-                    value={selectedModule}
-                    onChange={(e) => setSelectedModule(e.target.value)}
-                    className="neon-input"
-                  >
-                    <option value="All">All Modules</option>
-                    {allModules.map((m) => (
-                      <option key={m} value={m}>
-                        {m}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Errors / Loading / Table */}
-              {error && (
-                <p className="text-red-500 text-sm mt-2">
-                  Failed to load incomplete training: {error}
-                </p>
-              )}
-
-              {loading ? (
-                <div className="neon-table-wrapper">
-                  <div className="p-6 text-sm opacity-80">Loading…</div>
-                </div>
-              ) : (
-                <div className="neon-table-wrapper">
-                  <NeonTable
-                    columns={[
-                      { header: "User", accessor: "user" },
-                      { header: "Department", accessor: "department" },
-                      { header: "Role", accessor: "role" },
-                      { header: "Module", accessor: "module" },
-                      { header: "Document", accessor: "document" },
-                    ]}
-                    data={tableData}
-                  />
-                </div>
-              )}
+          {loading ? (
+            <div className="neon-table-wrapper">
+              <div className="p-6 text-sm opacity-80">Loading…</div>
             </div>
-          </div>
-        </main>
+          ) : (
+            <div className="neon-table-wrapper">
+              <NeonTable
+                columns={[
+                  { header: "User", accessor: "user" },
+                  { header: "Department", accessor: "department" },
+                  { header: "Role", accessor: "role" },
+                  { header: "Module", accessor: "module" },
+                  { header: "Document", accessor: "document" },
+                ]}
+                data={tableData}
+              />
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

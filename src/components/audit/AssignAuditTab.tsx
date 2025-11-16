@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import NeonForm from "@/components/NeonForm";
 import OverlayDialog from "@/components/ui/OverlayDialog";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
 type AuditTemplate = {
@@ -291,9 +291,9 @@ export default function AssignAuditTab() {
             </label>
           ))}
           <CustomTooltip text="Cancel user selection and close dialog">
-            <NeonIconButton
+            <TextIconButton
               variant="cancel"
-              title="Cancel"
+              label="Cancel"
               onClick={() => setShowUserDialog(false)}
               className="neon-btn-close"
             />

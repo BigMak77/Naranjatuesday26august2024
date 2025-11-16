@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import { FiAlertCircle } from "react-icons/fi";
 import NeonPanel from "@/components/NeonPanel";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 
 export default function IssueDetailsPage() {
   const params = useParams();
@@ -59,21 +59,21 @@ export default function IssueDetailsPage() {
             <div style={{ marginTop: 4 }}>{issue.description || "No description provided."}</div>
           </div>
           <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
-            <NeonIconButton
+            <TextIconButton
               variant="close"
-              title="Close"
+              label="Close"
               className="neon-btn-close"
               onClick={() => window.history.back()}
             />
-            <NeonIconButton
+            <TextIconButton
               variant="delete"
-              title="Delete"
+              label="Delete"
               className="neon-btn-delete"
               onClick={() => {/* TODO: handle delete logic */}}
             />
-            <NeonIconButton
+            <TextIconButton
               variant="assign"
-              title="Assign"
+              label="Assign"
               className="neon-btn-assign"
               onClick={() => {/* TODO: open assign modal or handle assign logic */}}
             />

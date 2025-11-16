@@ -9,7 +9,7 @@ import {
   DialogPortal,
   DialogOverlay,
 } from "@/components/ui/dialog";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import { FiCheckSquare, FiX } from "react-icons/fi";
 
 interface User {
@@ -123,10 +123,10 @@ export default function AssignIssue({
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
             <DialogTitle>Assign Issue</DialogTitle>
             {onClose && (
-              <NeonIconButton
+              <TextIconButton
                 icon={<FiX />}
                 variant="close"
-                title="Close"
+                label="Close"
                 onClick={onClose}
                 style={{ padding: 8 }}
               />
@@ -181,7 +181,7 @@ export default function AssignIssue({
                   </option>
                 ))}
               </select>
-              <NeonIconButton
+              <TextIconButton
                 icon={<FiCheckSquare />}
                 style={{ 
                   backgroundColor: 'var(--status-success)', 
@@ -192,10 +192,11 @@ export default function AssignIssue({
                 type="submit"
                 disabled={loading || (!selectedUser && !selectedDepartment)}
                 variant="assign"
+                label={loading ? "Assigning..." : "Assign Issue"}
                 title={loading ? "Assigning..." : "Assign Issue"}
               >
                 {loading ? "Assigning..." : "Assign Issue"}
-              </NeonIconButton>
+              </TextIconButton>
               {success && (
                 <div className="neon-success" style={{ marginTop: '1rem' }}>Assignment updated successfully!</div>
               )}

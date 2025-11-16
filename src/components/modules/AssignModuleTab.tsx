@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import {
   FiSend,
 } from "react-icons/fi";
@@ -291,9 +291,9 @@ If this persists, check Row Level Security policies on "user_assignments".`);
 
             <div className="neon-dialog-actions">
               <CustomTooltip text={!canGoNextFrom1 ? "Please select a module first" : "Continue to department selection"}>
-                <NeonIconButton
+                <TextIconButton
                   variant="next"
-                  title="Next"
+                  label="Next"
                   onClick={() => setStep(2)}
                   disabled={!canGoNextFrom1}
                   aria-label="Next to departments"
@@ -332,17 +332,17 @@ If this persists, check Row Level Security policies on "user_assignments".`);
             </div>
             <div className="neon-dialog-actions">
               <CustomTooltip text="Go back to module selection">
-                <NeonIconButton
+                <TextIconButton
                   variant="back"
-                  title="Back"
+                  label="Back"
                   onClick={() => setStep(1)}
                   aria-label="Back to module selection"
                 />
               </CustomTooltip>
               <CustomTooltip text={!canGoNextFrom2 ? "Please select at least one department" : "Continue to user selection"}>
-                <NeonIconButton
+                <TextIconButton
                   variant="next"
-                  title="Next"
+                  label="Next"
                   onClick={() => {
                     setSelectedUserAuthIds([]);
                     setStep(3);
@@ -421,17 +421,18 @@ If this persists, check Row Level Security policies on "user_assignments".`);
 
             <div className="neon-dialog-actions">
               <CustomTooltip text="Go back to department selection">
-                <NeonIconButton
+                <TextIconButton
                   variant="back"
-                  title="Back"
+                  label="Back"
                   onClick={() => setStep(2)}
                   aria-label="Back to departments"
                   disabled={assigning}
                 />
               </CustomTooltip>
               <CustomTooltip text={!canAssign ? "Please select at least one user" : assigning ? "Assigning module to selected users..." : "Assign module to selected users"}>
-                <NeonIconButton
+                <TextIconButton
                   variant="assign"
+                  label={assigning ? "Assigning…" : "Assign Module"}
                   title={assigning ? "Assigning…" : "Assign Module"}
                   onClick={handleAssign}
                   disabled={assigning || !canAssign}

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import NeonPanel from "@/components/NeonPanel";
 import NeonTable from "@/components/NeonTable";
 import OverlayDialog from "@/components/ui/OverlayDialog";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import NeonForm from "@/components/NeonForm";
 import { supabase } from "@/lib/supabase-client";
 
@@ -125,9 +125,9 @@ export default function ShiftPatternsTable() {
         justifyContent: 'flex-end', 
         marginBottom: '1rem' 
       }}>
-        <NeonIconButton
+        <TextIconButton
           variant="add"
-          title="Add Shift Pattern"
+          label="Add Shift Pattern"
           onClick={() => setShowDialog(true)}
         />
       </div>
@@ -146,14 +146,14 @@ export default function ShiftPatternsTable() {
           end_time: p.end_time ? p.end_time.slice(0,5) : "",
           actions: (
             <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-              <NeonIconButton
+              <TextIconButton
                 variant="edit"
-                title="Edit Shift Pattern"
+                label="Edit Shift Pattern"
                 onClick={() => handleEdit(p)}
               />
-              <NeonIconButton
+              <TextIconButton
                 variant="archive"
-                title="Archive Shift Pattern"
+                label="Archive Shift Pattern"
                 onClick={() => handleArchive(p.id)}
               />
             </div>
@@ -165,7 +165,6 @@ export default function ShiftPatternsTable() {
           title="Add Shift Pattern"
           onSubmit={handleAdd}
           submitLabel={saving ? "Saving..." : "Add"}
-          onCancel={() => setShowDialog(false)}
         >
           <input
             className="neon-input"
@@ -200,7 +199,6 @@ export default function ShiftPatternsTable() {
           title="Edit Shift Pattern"
           onSubmit={handleEditSave}
           submitLabel={saving ? "Saving..." : "Save"}
-          onCancel={() => setEditDialog(null)}
         >
           <input
             className="neon-input"

@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import { useUser } from "@/lib/useUser";
 import NeonPanel from "@/components/NeonPanel";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 
 /* ===========================
    MyTeamComplianceMatrix - Shows training compliance matrix for manager's team only
@@ -264,14 +264,14 @@ export default function MyTeamComplianceMatrix() {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
           <h2 className="neon-heading">My Team Compliance Matrix</h2>
           <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-            <NeonIconButton
+            <TextIconButton
               variant="refresh"
-              title="Refresh Data"
+              label="Refresh Data"
               onClick={() => window.location.reload()}
             />
-            <NeonIconButton
+            <TextIconButton
               variant="download"
-              title="Download CSV"
+              label="Download CSV"
               onClick={() => {
                 // Download CSV of team compliance matrix with historical completions
                 const rows: string[] = [];

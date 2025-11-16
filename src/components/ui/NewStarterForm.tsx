@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import { FiUser, FiMail, FiPhone, FiCalendar, FiCheck, FiAlertCircle, FiSearch, FiMapPin } from "react-icons/fi";
-import NeonIconButton from "./NeonIconButton";
+import TextIconButton from "./TextIconButtons";
 import ContentHeader from "./ContentHeader";
 import nationalities from "@/data/nationalities.json";
 
@@ -579,9 +579,10 @@ export default function NewStarterForm() {
                   placeholder="e.g., SW1A 1AA"
                   style={{ flex: 1 }}
                 />
-                <NeonIconButton
+                <TextIconButton
                   variant="view"
                   icon={<FiSearch />}
+                  label={loadingAddress ? "Looking up..." : "Find Address"}
                   title={loadingAddress ? "Looking up..." : "Find Address"}
                   type="button"
                   onClick={lookupPostcode}
@@ -839,9 +840,9 @@ export default function NewStarterForm() {
 
         {/* Step 1 Actions */}
         <div className="neon-form-actions" style={{ marginTop: "2rem" }}>
-          <NeonIconButton
+          <TextIconButton
             variant="save"
-            title="Next: Medical Questionnaire"
+            label="Next: Medical Questionnaire"
             type="submit"
             className="neon-btn-square-form"
           />
@@ -1038,15 +1039,16 @@ export default function NewStarterForm() {
 
             {/* Step 2 Actions */}
             <div className="neon-form-actions" style={{ marginTop: "2rem", display: "flex", gap: "1rem" }}>
-              <NeonIconButton
+              <TextIconButton
                 variant="close"
-                title="Back"
+                label="Back"
                 type="button"
                 onClick={handlePreviousStep}
                 className="neon-btn-square"
               />
-              <NeonIconButton
+              <TextIconButton
                 variant="save"
+                label={loading ? "Submitting..." : "Submit Information"}
                 title={loading ? "Submitting..." : "Submit Information"}
                 type="submit"
                 className="neon-btn-square-form"

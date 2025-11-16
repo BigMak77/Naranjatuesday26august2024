@@ -8,10 +8,13 @@ import NeonTable from "@/components/NeonTable";
 import FolderTabs, { type Tab } from "@/components/FolderTabs";
 import { FiArchive, FiFileText, FiBookOpen, FiClipboard, FiChevronLeft, FiChevronRight, FiRefreshCw, FiFolder, FiLayers, FiList } from "react-icons/fi";
 import { useUser } from "@/lib/useUser";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import OverlayDialog from "@/components/ui/OverlayDialog";
 import NeonForm from "@/components/NeonForm";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
+import StorageFileBrowser from "@/components/ui/StorageFileBrowser";
+import { STORAGE_BUCKETS } from "@/lib/storage-config";
+import SuccessModal from "@/components/ui/SuccessModal";
 
 interface DocumentType {
   id: string;
@@ -229,18 +232,19 @@ export default function DocumentManager() {
       return;
     }
     if (!archiveDocId) return;
-    setShowArchiveModal(false);
+    
+    // Clear any previous error messages
+    setArchiveErrorMsg("");
+    
     setButtonLoading(archiveDocId);
     await archiveDocument(archiveDocId, changeSummary);
-    setArchiveDocId(null);
-    setChangeSummary("");
     setButtonLoading(null);
   };
 
   const archiveDocument = async (id: string, summary: string) => {
     setLoading(true);
     if (!user?.auth_id) {
-      alert("Cannot archive: user not loaded. Please refresh and try again.");
+      setArchiveErrorMsg("Cannot archive: user not loaded. Please refresh and try again.");
       setLoading(false);
       return;
     }
@@ -251,7 +255,7 @@ export default function DocumentManager() {
       .eq("id", id)
       .single();
     if (fetchError || !doc) {
-      alert("Failed to fetch document for archiving.");
+      setArchiveErrorMsg("Failed to fetch document for archiving.");
       setLoading(false);
       return;
     }
@@ -275,7 +279,7 @@ export default function DocumentManager() {
 
     if (archiveError) {
       console.error("Error archiving document:", archiveError);
-      alert("Failed to archive document: " + archiveError.message);
+      setArchiveErrorMsg("Failed to archive document: " + archiveError.message);
       setLoading(false);
       return;
     }
@@ -286,10 +290,16 @@ export default function DocumentManager() {
       .eq("id", id);
 
     if (error) {
-      alert("Failed to archive document.");
+      setArchiveErrorMsg("Failed to archive document.");
+      setLoading(false);
+      return;
     } else {
       setDocuments((prev) => prev.filter((d) => d.id !== id));
-      alert("Document archived.");
+      // Success - close modal and show success message
+      setShowArchiveModal(false);
+      setArchiveDocId(null);
+      setChangeSummary("");
+      alert("Document archived successfully.");
     }
     setLoading(false);
   };
@@ -425,6 +435,9 @@ export default function DocumentManager() {
   const [editStageDocId, setEditStageDocId] = useState<string | null>(null);
   // Add stage state for edit modal
   const [editStage, setEditStage] = useState<string | null>(null);
+  // Success modal state
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   // Active tab state
   const [activeTab, setActiveTab] = useState<string>("documents");
@@ -436,7 +449,7 @@ export default function DocumentManager() {
   const [csvImportError, setCsvImportError] = useState<string | null>(null);
   const [csvImportSuccess, setCsvImportSuccess] = useState<string | null>(null);
 
-  // Handle CSV Download
+  // Handle CSV Download - Safari-optimized approach
   const handleDownloadCsv = useCallback(() => {
     try {
       // Define CSV headers
@@ -489,24 +502,97 @@ export default function DocumentManager() {
       const csvContent = [headers.join(','), ...rows].join('\n');
       const BOM = '\uFEFF'; // UTF-8 BOM for proper encoding
       const csvData = BOM + csvContent;
+      const filename = `documents_export_${new Date().toISOString().slice(0, 10)}.csv`;
 
-      // Safari-compatible download using application/octet-stream
-      const blob = new Blob([csvData], { type: 'application/octet-stream' });
-
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = `documents_export_${new Date().toISOString().slice(0, 10)}.csv`;
-      link.target = '_self'; // Force download in same window
-
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      // Clean up blob URL
-      setTimeout(() => URL.revokeObjectURL(link.href), 100);
+      // Detect Safari
+      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      
+      if (isSafari) {
+        // Safari-specific approach: Use data URL directly
+        const dataUrl = `data:text/csv;charset=utf-8,${encodeURIComponent(csvData)}`;
+        
+        // Create and trigger download link
+        const link = document.createElement('a');
+        link.setAttribute('href', dataUrl);
+        link.setAttribute('download', filename);
+        link.style.display = 'none';
+        
+        // Must be in document for Safari
+        document.body.appendChild(link);
+        
+        // Trigger download with proper Safari event handling
+        setTimeout(() => {
+          link.click();
+          document.body.removeChild(link);
+        }, 100);
+        
+      } else {
+        // Non-Safari browsers: Use blob approach
+        const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.style.display = 'none';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Clean up blob URL
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+      }
+      
     } catch (error) {
       console.error('Error downloading CSV:', error);
-      alert('Failed to download CSV');
+      
+      // Ultimate fallback: Show data in new window for manual save
+      try {
+        const headers = ['id', 'title', 'reference_code', 'document_type_id', 'document_type_name',
+                        'section_id', 'section_code', 'section_title', 'standard_id', 'standard_name',
+                        'file_url', 'notes', 'current_version', 'review_period_months',
+                        'last_reviewed_at', 'created_at', 'archived'];
+        
+        const rows = documents.map(doc => {
+          const section = sections.find(s => s.id === doc.section_id);
+          const standard = section?.standard_id ? standards.find(st => st.id === section.standard_id) : null;
+          return [
+            doc.id || '', `"${(doc.title || '').replace(/"/g, '""')}"`,
+            doc.reference_code || '', doc.document_type_id || '',
+            `"${(doc.document_type_name || '').replace(/"/g, '""')}"`,
+            doc.section_id || '', section?.code || '',
+            `"${(section?.title || '').replace(/"/g, '""')}"`,
+            section?.standard_id || '', `"${(standard?.name || '').replace(/"/g, '""')}"`,
+            doc.file_url || '', `"${(doc.notes || '').replace(/"/g, '""')}"`,
+            doc.current_version || '', doc.review_period_months || '',
+            doc.last_reviewed_at || '', doc.created_at || '',
+            doc.archived ? 'true' : 'false'
+          ].join(',');
+        });
+        
+        const csvContent = [headers.join(','), ...rows].join('\n');
+        const newWindow = window.open('', '_blank');
+        
+        if (newWindow) {
+          newWindow.document.write(`
+            <html>
+              <head><title>Documents Export - Copy and Save as CSV</title></head>
+              <body style="font-family: monospace; padding: 20px;">
+                <h3>Copy the text below and save as a .csv file:</h3>
+                <textarea style="width: 100%; height: 400px; font-family: monospace;">${csvContent}</textarea>
+                <p><em>Select all text above, copy it, and paste into a text editor. Save with .csv extension.</em></p>
+              </body>
+            </html>
+          `);
+          newWindow.document.close();
+        } else {
+          alert('Download failed and popup blocked. Please allow popups or try a different browser.');
+        }
+      } catch (fallbackError) {
+        console.error('Fallback failed:', fallbackError);
+        alert('Download failed completely. Please try refreshing the page or use a different browser.');
+      }
     }
   }, [documents, sections, standards]);
 
@@ -677,11 +763,6 @@ export default function DocumentManager() {
             tabs={tabs}
             activeTab={activeTab}
             onChange={setActiveTab}
-            toolbar={
-              <div style={{ opacity: 0.7, fontSize: '0.875rem' }}>
-                Document & Section Management
-              </div>
-            }
           />
 
           <div className="folder-content">
@@ -816,9 +897,9 @@ export default function DocumentManager() {
 
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
             <CustomTooltip text="Cancel upload">
-              <button
-                type="button"
-                className="neon-btn neon-btn-secondary"
+              <TextIconButton
+                variant="cancel"
+                label="Cancel"
                 onClick={() => {
                   setShowCsvUploadModal(false);
                   setCsvFile(null);
@@ -826,19 +907,15 @@ export default function DocumentManager() {
                   setCsvImportSuccess(null);
                 }}
                 disabled={csvImportLoading}
-              >
-                Cancel
-              </button>
+              />
             </CustomTooltip>
             <CustomTooltip text="Upload and process CSV file">
-              <button
-                type="button"
-                className="neon-btn neon-btn-save"
+              <TextIconButton
+                variant="upload"
+                label={csvImportLoading ? 'Importing...' : 'Import CSV'}
                 onClick={handleCsvUpload}
                 disabled={!csvFile || csvImportLoading}
-              >
-                {csvImportLoading ? 'Importing...' : 'Import CSV'}
-              </button>
+              />
             </CustomTooltip>
           </div>
         </div>
@@ -872,12 +949,6 @@ export default function DocumentManager() {
               handleArchiveSubmit();
             }}
             submitLabel={buttonLoading ? "Archiving..." : "Archive"}
-            onCancel={() => {
-              setShowArchiveModal(false);
-              setArchiveDocId(null);
-              setChangeSummary("");
-              setButtonLoading(null);
-            }}
           >
             <label className="neon-label" htmlFor="changeSummary">
               Change Summary <span className="danger-text">*</span>
@@ -1037,7 +1108,8 @@ export default function DocumentManager() {
                   setArchiveDocId(null);
                   setChangeSummary("");
                   setArchiveErrorMsg("");
-                  alert("Document archived.");
+                  setSuccessMessage("Document archived.");
+                  setShowSuccessModal(true);
                 }}
                 submitLabel="Archive"
                 onCancel={() => {
@@ -1080,9 +1152,10 @@ export default function DocumentManager() {
                     .eq("id", editStageDocId);
                   setShowEditStageModal(false);
                   setEditStage(null);
-                  alert("Review date updated.");
                   // Refresh the data to show updated review date
                   fetchAllData();
+                  setSuccessMessage("Review date updated.");
+                  setShowSuccessModal(true);
                 }}
                 submitLabel="Confirm Review"
                 onCancel={() => {
@@ -1110,7 +1183,8 @@ export default function DocumentManager() {
                     setEditStage(null);
                     setEditStageDocId(null);
                     fetchAllData();
-                    alert("Document details updated.");
+                    setSuccessMessage("Document details updated.");
+                    setShowSuccessModal(true);
                   }}
                 />
               )}
@@ -1123,10 +1197,10 @@ export default function DocumentManager() {
               </p>
               <div style={{ display: 'flex', gap: 16, width: '100%' }}>
                 <CustomTooltip text="Review (update last reviewed date)">
-                  <NeonIconButton
+                  <TextIconButton
                     variant="refresh"
                     className="neon-btn-review"
-                    title=""
+                    label="Review"
                     aria-label="Review"
                     onClick={() => {
                       setEditStage("review");
@@ -1134,10 +1208,10 @@ export default function DocumentManager() {
                   />
                 </CustomTooltip>
                 <CustomTooltip text="Create New Version">
-                  <NeonIconButton
+                  <TextIconButton
                     variant="edit"
                     className="neon-btn-pen-tool"
-                    title=""
+                    label="New Version"
                     aria-label="Create New Version"
                     onClick={() => {
                       setShowEditStageModal(false);
@@ -1147,10 +1221,10 @@ export default function DocumentManager() {
                   />
                 </CustomTooltip>
                 <CustomTooltip text="Amend Details (no date/version change)">
-                  <NeonIconButton
+                  <TextIconButton
                     variant="list"
                     className="neon-btn-amend"
-                    title="Amend Details"
+                    label="Amend Details"
                     aria-label="Amend Details"
                     onClick={() => {
                       setEditStage("amend");
@@ -1158,9 +1232,9 @@ export default function DocumentManager() {
                   />
                 </CustomTooltip>
                 <CustomTooltip text="Archive document">
-                  <NeonIconButton
+                  <TextIconButton
                     variant="archive"
-                    title=""
+                    label="Archive"
                     aria-label="Archive document"
                     className="neon-btn-archive"
                     onClick={() => {
@@ -1173,6 +1247,14 @@ export default function DocumentManager() {
           )}
         </div>
       </OverlayDialog>
+
+      {/* Success Modal */}
+      <SuccessModal
+        open={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title="Success"
+        message={successMessage}
+      />
     </>
   );
 }
@@ -1493,13 +1575,11 @@ function SummaryTabContent({
 
         {hasActiveFilters && (
           <CustomTooltip text="Clear all filters">
-            <button
+            <TextIconButton
+              variant="cancel"
+              label="Clear"
               onClick={clearFilters}
-              className="neon-btn neon-btn-secondary"
-              style={{ height: '32px', padding: '0 12px', fontSize: '0.85rem' }}
-            >
-              Clear
-            </button>
+            />
           </CustomTooltip>
         )}
 
@@ -1514,9 +1594,9 @@ function SummaryTabContent({
         {/* Action Buttons */}
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <CustomTooltip text="Refresh">
-            <NeonIconButton
+            <TextIconButton
               variant="refresh"
-              title=""
+              label="Refresh"
               aria-label="Refresh data"
               onClick={onRefresh}
             />
@@ -1843,18 +1923,18 @@ function SummaryTabContent({
                     {isEditing ? (
                       <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
                         <CustomTooltip text="Save changes">
-                          <NeonIconButton
+                          <TextIconButton
                             variant="save"
-                            title=""
+                            label="Save"
                             aria-label="Save"
                             onClick={handleSave}
                             disabled={saving}
                           />
                         </CustomTooltip>
                         <CustomTooltip text="Cancel editing">
-                          <NeonIconButton
+                          <TextIconButton
                             variant="cancel"
-                            title=""
+                            label="Cancel"
                             aria-label="Cancel"
                             onClick={handleCancel}
                             disabled={saving}
@@ -1863,9 +1943,9 @@ function SummaryTabContent({
                       </div>
                     ) : (
                       <CustomTooltip text="Edit document">
-                        <NeonIconButton
+                        <TextIconButton
                           variant="edit"
-                          title=""
+                          label="Edit"
                           aria-label="Edit"
                           onClick={() => handleEditStart(item.id)}
                         />
@@ -1890,36 +1970,12 @@ function SummaryTabContent({
       )}
 
       {/* Success Modal */}
-      <OverlayDialog showCloseButton={true}
+      <SuccessModal
         open={showSuccessModal}
         onClose={() => setShowSuccessModal(false)}
-      >
-        <div style={{ padding: '2rem', minWidth: '400px', textAlign: 'center' }}>
-          <div style={{
-            fontSize: '3rem',
-            marginBottom: '1rem',
-            color: '#19e68c'
-          }}>
-            ✓
-          </div>
-          <h3 className="neon-heading" style={{ marginBottom: '1rem', color: '#19e68c' }}>
-            Success!
-          </h3>
-          <p className="neon-text" style={{ marginBottom: '1.5rem' }}>
-            {successMessage}
-          </p>
-          <CustomTooltip text="Close this dialog">
-            <button
-              type="button"
-              className="neon-btn neon-btn-save"
-              onClick={() => setShowSuccessModal(false)}
-              style={{ minWidth: '120px' }}
-            >
-              OK
-            </button>
-          </CustomTooltip>
-        </div>
-      </OverlayDialog>
+        title="Success"
+        message={successMessage}
+      />
     </div>
   );
 }
@@ -2063,13 +2119,11 @@ function DocumentsTabContent({
 
           {hasActiveFilters && (
             <CustomTooltip text="Clear all filters">
-              <button
+              <TextIconButton
+                variant="cancel"
+                label="Clear"
                 onClick={clearAllFilters}
-                className="neon-btn neon-btn-secondary"
-                style={{ height: '32px', padding: '0 12px', fontSize: '0.85rem' }}
-              >
-                Clear
-              </button>
+              />
             </CustomTooltip>
           )}
 
@@ -2084,18 +2138,18 @@ function DocumentsTabContent({
           {/* Action Buttons */}
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
             <CustomTooltip text="Download CSV">
-              <NeonIconButton
+              <TextIconButton
                 variant="download"
-                title=""
+                label="Download CSV"
                 aria-label="Download CSV"
                 onClick={handleDownloadCsv}
                 disabled={documents.length === 0}
               />
             </CustomTooltip>
             <CustomTooltip text="Upload CSV">
-              <NeonIconButton
+              <TextIconButton
                 variant="upload"
-                title=""
+                label="Upload CSV"
                 aria-label="Upload CSV"
                 onClick={() => setShowCsvUploadModal(true)}
               />
@@ -2111,9 +2165,9 @@ function DocumentsTabContent({
                   : "Select a section to edit"
               }
             >
-              <NeonIconButton
+              <TextIconButton
                 variant="edit"
-                title=""
+                label="Edit Section"
                 aria-label="Edit selected section"
                 onClick={() => {
                   const section = sections.find((s: Section) => s.id === filterSection);
@@ -2123,18 +2177,18 @@ function DocumentsTabContent({
               />
             </CustomTooltip>
             <CustomTooltip text="Add Document">
-              <NeonIconButton
+              <TextIconButton
                 variant="add"
-                title=""
+                label="Add Document"
                 aria-label="Add Document"
                 onClick={() => { setActiveDocId(null); setViewMode("add"); }}
                 disabled={!!buttonLoading}
               />
             </CustomTooltip>
             <CustomTooltip text="Refresh">
-              <NeonIconButton
+              <TextIconButton
                 variant="refresh"
-                title=""
+                label="Refresh"
                 aria-label="Refresh data"
                 onClick={fetchAllData}
                 disabled={loading}
@@ -2156,9 +2210,9 @@ function DocumentsTabContent({
             </select>
             <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
               <CustomTooltip text="Previous page">
-                <NeonIconButton
+                <TextIconButton
                   variant="back"
-                  title=""
+                  label="Previous"
                   aria-label="Previous page"
                   onClick={handlePrevPage}
                   disabled={currentPage === 1}
@@ -2168,9 +2222,9 @@ function DocumentsTabContent({
                 {currentPage}/{totalPages}
               </span>
               <CustomTooltip text="Next page">
-                <NeonIconButton
+                <TextIconButton
                   variant="next"
-                  title=""
+                  label="Next"
                   aria-label="Next page"
                   onClick={handleNextPage}
                   disabled={currentPage === totalPages}
@@ -2225,9 +2279,9 @@ function DocumentsTabContent({
                 view: (
                   <div className="document-view-cell">
                     <CustomTooltip text="View document">
-                      <NeonIconButton
+                      <TextIconButton
                         variant="view"
-                        title=""
+                        label="View"
                         aria-label="View document"
                         onClick={() => {
                           if (doc.file_url) {
@@ -2244,9 +2298,9 @@ function DocumentsTabContent({
                 edit: (
                   <div className="document-edit-cell">
                     <CustomTooltip text="Edit document">
-                      <NeonIconButton
+                      <TextIconButton
                         variant="edit"
-                        title=""
+                        label="Edit"
                         aria-label="Edit document"
                         onClick={() => {
                           setEditStageDocId(doc.id);
@@ -2441,13 +2495,11 @@ function SectionsTabContent({
 
         {hasActiveFilters && (
           <CustomTooltip text="Clear all filters">
-            <button
+            <TextIconButton
+              variant="cancel"
+              label="Clear"
               onClick={clearAllFilters}
-              className="neon-btn neon-btn-secondary"
-              style={{ height: '32px', padding: '0 12px', fontSize: '0.85rem' }}
-            >
-              Clear
-            </button>
+            />
           </CustomTooltip>
         )}
 
@@ -2462,17 +2514,17 @@ function SectionsTabContent({
         {/* Action Buttons */}
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <CustomTooltip text="Add Section">
-            <NeonIconButton
+            <TextIconButton
               variant="add"
-              title=""
+              label="Add Section"
               aria-label="Add section"
               onClick={handleAddSectionClick}
             />
           </CustomTooltip>
           <CustomTooltip text="Refresh">
-            <NeonIconButton
+            <TextIconButton
               variant="refresh"
-              title=""
+              label="Refresh"
               aria-label="Refresh sections"
               onClick={fetchAllData}
               disabled={loading}
@@ -2509,9 +2561,9 @@ function SectionsTabContent({
                     description: section.description || "—",
                     edit: (
                       <CustomTooltip text="Edit section">
-                        <NeonIconButton
+                        <TextIconButton
                           variant="edit"
-                          title=""
+                          label="Edit"
                           aria-label="Edit section"
                           onClick={() => handleEditSectionClick(section)}
                         />
@@ -2542,9 +2594,9 @@ function SectionsTabContent({
                     description: section.description || "—",
                     edit: (
                       <CustomTooltip text="Edit section">
-                        <NeonIconButton
+                        <TextIconButton
                           variant="edit"
-                          title=""
+                          label="Edit"
                           aria-label="Edit section"
                           onClick={() => handleEditSectionClick(section)}
                         />
@@ -2558,36 +2610,12 @@ function SectionsTabContent({
       )}
 
       {/* Success Modal */}
-      <OverlayDialog showCloseButton={true}
+      <SuccessModal
         open={showSuccessModal}
         onClose={() => setShowSuccessModal(false)}
-      >
-        <div style={{ padding: '2rem', minWidth: '400px', textAlign: 'center' }}>
-          <div style={{
-            fontSize: '3rem',
-            marginBottom: '1rem',
-            color: '#19e68c'
-          }}>
-            ✓
-          </div>
-          <h3 className="neon-heading" style={{ marginBottom: '1rem', color: '#19e68c' }}>
-            Success!
-          </h3>
-          <p className="neon-text" style={{ marginBottom: '1.5rem' }}>
-            {successMessage}
-          </p>
-          <CustomTooltip text="Close this dialog">
-            <button
-              type="button"
-              className="neon-btn neon-btn-save"
-              onClick={() => setShowSuccessModal(false)}
-              style={{ minWidth: '120px' }}
-            >
-              OK
-            </button>
-          </CustomTooltip>
-        </div>
-      </OverlayDialog>
+        title="Success"
+        message={successMessage}
+      />
 
       {/* Add Section Modal */}
       <OverlayDialog showCloseButton={true}
@@ -2686,9 +2714,9 @@ function SectionsTabContent({
 
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
             <CustomTooltip text="Cancel">
-              <button
-                type="button"
-                className="neon-btn neon-btn-secondary"
+              <TextIconButton
+                variant="cancel"
+                label="Cancel"
                 onClick={() => {
                   setShowAddSectionModal(false);
                   setNewSectionCode('');
@@ -2698,19 +2726,15 @@ function SectionsTabContent({
                   setAddSectionError('');
                 }}
                 disabled={saving}
-              >
-                Cancel
-              </button>
+              />
             </CustomTooltip>
             <CustomTooltip text="Create section">
-              <button
-                type="button"
-                className="neon-btn neon-btn-save"
+              <TextIconButton
+                variant="save"
+                label={saving ? 'Creating...' : 'Create Section'}
                 onClick={handleAddSectionSubmit}
                 disabled={!newSectionCode.trim() || !newSectionTitle.trim() || !newSectionStandardId || saving}
-              >
-                {saving ? 'Creating...' : 'Create Section'}
-              </button>
+              />
             </CustomTooltip>
           </div>
         </div>
@@ -2856,9 +2880,9 @@ function StandardsTabContent({
         {/* Action Buttons */}
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <CustomTooltip text="Add Standard">
-            <NeonIconButton
+            <TextIconButton
               variant="add"
-              title=""
+              label="Add Standard"
               aria-label="Add standard"
               onClick={() => {
                 setStandardName("");
@@ -2868,9 +2892,9 @@ function StandardsTabContent({
             />
           </CustomTooltip>
           <CustomTooltip text="Refresh">
-            <NeonIconButton
+            <TextIconButton
               variant="refresh"
-              title=""
+              label="Refresh"
               aria-label="Refresh standards"
               onClick={fetchAllData}
               disabled={loading}
@@ -2898,17 +2922,17 @@ function StandardsTabContent({
               actions: (
                 <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
                   <CustomTooltip text="Edit standard">
-                    <NeonIconButton
+                    <TextIconButton
                       variant="edit"
-                      title=""
+                      label="Edit"
                       aria-label="Edit standard"
                       onClick={() => openEditModal(standard)}
                     />
                   </CustomTooltip>
                   <CustomTooltip text="Delete standard">
-                    <NeonIconButton
+                    <TextIconButton
                       variant="delete"
-                      title=""
+                      label="Delete"
                       aria-label="Delete standard"
                       onClick={() => handleDelete(standard)}
                     />
@@ -2958,28 +2982,24 @@ function StandardsTabContent({
 
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
             <CustomTooltip text="Cancel">
-              <button
-                type="button"
-                className="neon-btn neon-btn-secondary"
+              <TextIconButton
+                variant="cancel"
+                label="Cancel"
                 onClick={() => {
                   setShowAddModal(false);
                   setStandardName("");
                   setError(null);
                 }}
                 disabled={saving}
-              >
-                Cancel
-              </button>
+              />
             </CustomTooltip>
             <CustomTooltip text="Add standard">
-              <button
-                type="button"
-                className="neon-btn neon-btn-save"
+              <TextIconButton
+                variant="save"
+                label={saving ? 'Adding...' : 'Add Standard'}
                 onClick={handleAdd}
                 disabled={!standardName.trim() || saving}
-              >
-                {saving ? 'Adding...' : 'Add Standard'}
-              </button>
+              />
             </CustomTooltip>
           </div>
         </div>
@@ -3025,9 +3045,9 @@ function StandardsTabContent({
 
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
             <CustomTooltip text="Cancel">
-              <button
-                type="button"
-                className="neon-btn neon-btn-secondary"
+              <TextIconButton
+                variant="cancel"
+                label="Cancel"
                 onClick={() => {
                   setShowEditModal(false);
                   setEditingStandard(null);
@@ -3035,19 +3055,15 @@ function StandardsTabContent({
                   setError(null);
                 }}
                 disabled={saving}
-              >
-                Cancel
-              </button>
+              />
             </CustomTooltip>
             <CustomTooltip text="Save changes">
-              <button
-                type="button"
-                className="neon-btn neon-btn-save"
+              <TextIconButton
+                variant="save"
+                label={saving ? 'Saving...' : 'Save Changes'}
                 onClick={handleEdit}
                 disabled={!standardName.trim() || saving}
-              >
-                {saving ? 'Saving...' : 'Save Changes'}
-              </button>
+              />
             </CustomTooltip>
           </div>
         </div>
@@ -3084,12 +3100,101 @@ function DocumentForm({
   const [notes, setNotes] = useState("");
   const [reviewPeriodMonths, setReviewPeriodMonths] = useState<number>(12); // default 12 months
   const [lastReviewAt, setLastReviewAt] = useState<string>("");
+  const [showFileBrowser, setShowFileBrowser] = useState(false);
+
+  // Reference code validation states
+  const [existingReferenceCodes, setExistingReferenceCodes] = useState<string[]>([]);
+  const [referenceCodeExists, setReferenceCodeExists] = useState(false);
+  const [suggestedReferenceCodes, setSuggestedReferenceCodes] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   // Filter sections based on selected standard
   const filteredSections = useMemo(() => {
     if (!standardId) return [];
     return sections.filter(s => s.standard_id === standardId);
   }, [sections, standardId]);
+
+  // Fetch all existing reference codes
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("documents")
+        .select("reference_code")
+        .eq("archived", false)
+        .not("reference_code", "is", null);
+
+      if (!cancelled && data) {
+        const codes = data.map(d => d.reference_code).filter(Boolean) as string[];
+        setExistingReferenceCodes(codes);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Check for duplicate reference code in real-time
+  useEffect(() => {
+    if (!referenceCode.trim()) {
+      setReferenceCodeExists(false);
+      setSuggestedReferenceCodes([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    // When editing, allow the current document's reference code
+    if (id) {
+      setReferenceCodeExists(false);
+      setShowSuggestions(false);
+      return;
+    }
+
+    const trimmedCode = referenceCode.trim();
+    const isDuplicate = existingReferenceCodes.includes(trimmedCode);
+    setReferenceCodeExists(isDuplicate);
+
+    // Generate smart suggestions based on what user is typing
+    if (trimmedCode.length > 0) {
+      const suggestions = generateReferenceSuggestions(trimmedCode, existingReferenceCodes);
+      setSuggestedReferenceCodes(suggestions);
+      setShowSuggestions(suggestions.length > 0);
+    } else {
+      setSuggestedReferenceCodes([]);
+      setShowSuggestions(false);
+    }
+  }, [referenceCode, existingReferenceCodes, id]);
+
+  // Generate smart reference code suggestions
+  const generateReferenceSuggestions = (input: string, existing: string[]): string[] => {
+    const suggestions: string[] = [];
+
+    // Extract numeric part from input
+    const numMatch = input.match(/(\d+)/);
+    if (numMatch) {
+      const prefix = input.slice(0, numMatch.index);
+      const suffix = input.slice((numMatch.index || 0) + numMatch[0].length);
+      const baseNum = parseInt(numMatch[0]);
+
+      // Try incrementing numbers
+      for (let i = 1; i <= 10; i++) {
+        const newNum = baseNum + i;
+        const suggestion = `${prefix}${newNum}${suffix}`;
+        if (!existing.includes(suggestion)) {
+          suggestions.push(suggestion);
+          if (suggestions.length >= 5) break;
+        }
+      }
+    } else {
+      // If no number found, suggest adding numbers
+      for (let i = 1; i <= 5; i++) {
+        const suggestion = `${input}-${i}`;
+        if (!existing.includes(suggestion)) {
+          suggestions.push(suggestion);
+        }
+      }
+    }
+
+    return suggestions.slice(0, 5);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -3142,6 +3247,14 @@ function DocumentForm({
     setError("");
     if (!title.trim()) { setError("Title is required"); return; }
     if (!documentTypeId) { setError("Document type is required"); return; }
+    if (!referenceCode.trim()) { setError("Reference code is required"); return; }
+
+    // Check for duplicate reference code when creating new document
+    if (!id && referenceCodeExists) {
+      setError("This reference code already exists. Please use a different code or select one from the suggestions below.");
+      return;
+    }
+
     setLoading(true);
 
     if (id) {
@@ -3161,7 +3274,7 @@ function DocumentForm({
           title: title.trim(),
           document_type_id: documentTypeId,
           section_id: sectionId || null,
-          reference_code: referenceCode || null,
+          reference_code: referenceCode.trim(),
           file_url: fileUrl || null,
           notes: notes || null,
           current_version: newVersion,
@@ -3207,6 +3320,20 @@ function DocumentForm({
         });
         await supabase.from("documents").update({ archived: true }).eq("id", previousDoc.id);
       }
+      // Double-check for duplicates before inserting
+      const { data: duplicateCheck } = await supabase
+        .from("documents")
+        .select("id")
+        .eq("reference_code", referenceCode.trim())
+        .eq("archived", false)
+        .maybeSingle();
+
+      if (duplicateCheck) {
+        setLoading(false);
+        setError("This reference code already exists. Please use a different code.");
+        return;
+      }
+
       // Now insert new document
       const { data, error } = await supabase
         .from("documents")
@@ -3214,7 +3341,7 @@ function DocumentForm({
           title: title.trim(),
           document_type_id: documentTypeId,
           section_id: sectionId || null,
-          reference_code: referenceCode || null,
+          reference_code: referenceCode.trim(),
           file_url: fileUrl || null,
           notes: notes || null,
           archived: false,
@@ -3270,11 +3397,98 @@ function DocumentForm({
         }
       </select>
 
-      <label className="neon-label" htmlFor="referenceCode">Reference Code</label>
-      <input id="referenceCode" className="neon-input mb-2" value={referenceCode} onChange={e=>setReferenceCode(e.target.value)} />
+      <label className="neon-label" htmlFor="referenceCode">
+        Reference Code <span className="danger-text">*</span>
+      </label>
+      <input
+        id="referenceCode"
+        className={`neon-input ${referenceCodeExists ? 'error-input' : ''}`}
+        style={{
+          marginBottom: '0.25rem',
+          borderColor: referenceCodeExists ? '#ff4444' : undefined,
+        }}
+        value={referenceCode}
+        onChange={e => setReferenceCode(e.target.value)}
+        required
+        placeholder="e.g., DOC-001, HSE-10, QMS-2.1"
+      />
+
+      {/* Real-time validation feedback */}
+      {!id && referenceCode.trim() && (
+        <div style={{ marginBottom: '0.5rem' }}>
+          {referenceCodeExists ? (
+            <div style={{
+              padding: '0.5rem',
+              background: 'rgba(255, 68, 68, 0.1)',
+              border: '1px solid rgba(255, 68, 68, 0.3)',
+              borderRadius: '4px',
+              fontSize: '0.875rem',
+              color: '#ff4444'
+            }}>
+              ⚠️ This reference code already exists
+            </div>
+          ) : (
+            <div style={{
+              padding: '0.5rem',
+              background: 'rgba(0, 255, 170, 0.1)',
+              border: '1px solid rgba(0, 255, 170, 0.3)',
+              borderRadius: '4px',
+              fontSize: '0.875rem',
+              color: '#00ffaa'
+            }}>
+              ✓ This reference code is available
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Smart suggestions */}
+      {!id && showSuggestions && suggestedReferenceCodes.length > 0 && (
+        <div style={{ marginBottom: '0.5rem' }}>
+          <div style={{
+            fontSize: '0.875rem',
+            opacity: 0.7,
+            marginBottom: '0.25rem'
+          }}>
+            Available suggestions:
+          </div>
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '0.5rem'
+          }}>
+            {suggestedReferenceCodes.map((suggestion, idx) => (
+              <TextIconButton
+                key={idx}
+                variant="list"
+                label={suggestion}
+                onClick={() => {
+                  setReferenceCode(suggestion);
+                  setShowSuggestions(false);
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       <label className="neon-label" htmlFor="fileUrl">File URL</label>
-      <input id="fileUrl" className="neon-input mb-2" value={fileUrl} onChange={e=>setFileUrl(e.target.value)} />
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+        <input
+          id="fileUrl"
+          className="neon-input"
+          style={{ flex: 1 }}
+          value={fileUrl}
+          onChange={e=>setFileUrl(e.target.value)}
+        />
+        <CustomTooltip text="Browse storage files">
+          <TextIconButton
+            variant="search"
+            label="Browse Files"
+            onClick={() => setShowFileBrowser(true)}
+          />
+        </CustomTooltip>
+      </div>
 
       <label className="neon-label" htmlFor="notes">Notes</label>
       <textarea id="notes" className="neon-input mb-2" rows={3} value={notes} onChange={e=>setNotes(e.target.value)} />
@@ -3299,6 +3513,17 @@ function DocumentForm({
         onChange={e => setLastReviewAt(e.target.value)}
         required
       />
+
+      {showFileBrowser && (
+        <StorageFileBrowser
+          bucket={STORAGE_BUCKETS.DOCUMENTS}
+          onSelectFile={(url, fileName) => {
+            setFileUrl(url);
+            setShowFileBrowser(false);
+          }}
+          onClose={() => setShowFileBrowser(false)}
+        />
+      )}
     </NeonForm>
   );
 }
@@ -3325,6 +3550,7 @@ function AmendDocumentForm({
   const [referenceCode, setReferenceCode] = useState("");
   const [fileUrl, setFileUrl] = useState("");
   const [notes, setNotes] = useState("");
+  const [showFileBrowser, setShowFileBrowser] = useState(false);
 
   // Filter sections based on selected standard
   const filteredSections = useMemo(() => {
@@ -3442,7 +3668,22 @@ function AmendDocumentForm({
       <input id="amendReferenceCode" className="neon-input mb-2" value={referenceCode} onChange={e=>setReferenceCode(e.target.value)} />
 
       <label className="neon-label" htmlFor="amendFileUrl">File URL</label>
-      <input id="amendFileUrl" className="neon-input mb-2" value={fileUrl} onChange={e=>setFileUrl(e.target.value)} />
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+        <input
+          id="amendFileUrl"
+          className="neon-input"
+          style={{ flex: 1 }}
+          value={fileUrl}
+          onChange={e=>setFileUrl(e.target.value)}
+        />
+        <CustomTooltip text="Browse storage files">
+          <TextIconButton
+            variant="search"
+            label="Browse Files"
+            onClick={() => setShowFileBrowser(true)}
+          />
+        </CustomTooltip>
+      </div>
 
       <label className="neon-label" htmlFor="amendNotes">Notes</label>
       <textarea id="amendNotes" className="neon-input mb-2" rows={3} value={notes} onChange={e=>setNotes(e.target.value)} />
@@ -3450,6 +3691,17 @@ function AmendDocumentForm({
       <p style={{ opacity: 0.7, fontSize: '0.875rem', marginTop: '1rem', fontStyle: 'italic' }}>
         Note: Version number, created date, and review date will NOT be changed.
       </p>
+
+      {showFileBrowser && (
+        <StorageFileBrowser
+          bucket={STORAGE_BUCKETS.DOCUMENTS}
+          onSelectFile={(url) => {
+            setFileUrl(url);
+            setShowFileBrowser(false);
+          }}
+          onClose={() => setShowFileBrowser(false)}
+        />
+      )}
     </NeonForm>
   );
 }
@@ -3533,9 +3785,9 @@ function ArchivedDocuments({ onRestore }: { onRestore: (doc: Document) => void }
         {/* Action Buttons */}
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <CustomTooltip text="Refresh">
-            <NeonIconButton
+            <TextIconButton
               variant="refresh"
-              title=""
+              label="Refresh"
               aria-label="Refresh"
               onClick={fetchData}
             />
@@ -3565,9 +3817,9 @@ function ArchivedDocuments({ onRestore }: { onRestore: (doc: Document) => void }
             change_summary: r.change_summary || "—",
             restore: (
               <CustomTooltip text="Restore document">
-                <NeonIconButton
+                <TextIconButton
                   variant="refresh"
-                  title="Restore document"
+                  label="Restore document"
                   aria-label="Restore"
                   onClick={() => restore(r)}
                 />

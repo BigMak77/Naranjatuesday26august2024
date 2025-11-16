@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import NeonPanel from "@/components/NeonPanel";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 
 /* ===========================
    Enhanced TrainingMatrix with Historical Completion Support
@@ -395,16 +395,16 @@ const TrainingMatrix: React.FC<TrainingMatrixProps> = ({ filterByDepartmentId })
             )}
 
             <div style={{ display: "flex", gap: 6, alignItems: "center", height: "32px" }}>
-              <NeonIconButton
+              <TextIconButton
                 variant="refresh"
-                title="Refresh Now"
+                label="Refresh Now"
                 onClick={() => setRefreshTrigger(prev => prev + 1)}
                 style={{ height: "32px", minHeight: "32px" }}
               />
               
-              <NeonIconButton
+              <TextIconButton
                 variant="download"
-                title="Download CSV"
+                label="Download CSV"
                 onClick={() => {
               // Download CSV of visible matrix with historical completions
               const rows: string[] = [];

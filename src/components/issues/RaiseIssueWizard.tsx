@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase-client";
 import NeonPanel from "@/components/NeonPanel";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
+import { STORAGE_BUCKETS } from "@/lib/storage-config";
 
 interface RaiseIssueWizardProps {
   onClose: () => void;
@@ -63,13 +64,13 @@ export default function RaiseIssueWizard({ onClose }: RaiseIssueWizardProps) {
       for (const file of evidenceFiles) {
         const fileExt = file.name.split('.').pop();
         const filePath = `evidence/${Date.now()}-${file.name}`;
-        const { data, error: uploadError } = await supabase.storage.from('issue-evidence').upload(filePath, file);
+        const { data, error: uploadError } = await supabase.storage.from(STORAGE_BUCKETS.ISSUES).upload(filePath, file);
         if (uploadError) {
           setError('Failed to upload evidence: ' + uploadError.message);
           setSubmitting(false);
           return;
         }
-        const { data: publicUrlData } = supabase.storage.from('issue-evidence').getPublicUrl(filePath);
+        const { data: publicUrlData } = supabase.storage.from(STORAGE_BUCKETS.ISSUES).getPublicUrl(filePath);
         if (publicUrlData?.publicUrl) {
           uploadedUrls.push(publicUrlData.publicUrl);
         }
@@ -142,33 +143,40 @@ export default function RaiseIssueWizard({ onClose }: RaiseIssueWizardProps) {
                 placeholder="Please provide a detailed description of the issue..."
               />
             </label>
-            <label htmlFor="evidence-files">
-              Attach Evidence (optional)
-              <input
-                id="evidence-files"
-                type="file"
-                accept="image/*,application/pdf"
-                multiple
-                className="neon-input"
-                onChange={e => {
-                  if (e.target.files) {
-                    setEvidenceFiles(Array.from(e.target.files));
-                  }
-                }}
-              />
-            </label>
-            {evidenceFiles.length > 0 && (
-              <div>
-                <span className="file-label">
-                  Selected files:
+            <div>
+              <label htmlFor="evidence-files">Attach Evidence (optional)</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
+                <input
+                  id="evidence-files"
+                  type="file"
+                  accept="image/*,application/pdf"
+                  multiple
+                  style={{ display: 'none' }}
+                  onChange={e => {
+                    if (e.target.files) {
+                      setEvidenceFiles(Array.from(e.target.files));
+                    }
+                  }}
+                />
+                <TextIconButton
+                  variant="search"
+                  label="Choose Files"
+                  onClick={() => document.getElementById('evidence-files')?.click()}
+                />
+                <span style={{ color: 'var(--text-white)', fontSize: '0.9rem' }}>
+                  {evidenceFiles.length > 0
+                    ? `${evidenceFiles.length} file${evidenceFiles.length > 1 ? 's' : ''} selected`
+                    : 'No files selected'}
                 </span>
-                <ul className="neon-file-list">
+              </div>
+              {evidenceFiles.length > 0 && (
+                <ul className="neon-file-list" style={{ marginTop: '0.5rem' }}>
                   {evidenceFiles.map((file, idx) => (
                     <li key={idx}>{file.name}</li>
                   ))}
                 </ul>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         )}
         {stage === 1 && (
@@ -211,28 +219,20 @@ export default function RaiseIssueWizard({ onClose }: RaiseIssueWizardProps) {
         {error && <div className="neon-error-message">{error}</div>}
         {success && <div className="neon-success-message">Issue raised!</div>}
         <div className="raise-issue-wizard-actions">
-          <NeonIconButton
-            variant="cancel"
-            title="Cancel"
-            onClick={onClose}
-            disabled={submitting}
-          >
-            Cancel
-          </NeonIconButton>
           {stage > 0 && (
-            <NeonIconButton
+            <TextIconButton
               variant="back"
-              title="Back"
+              label="Back"
               onClick={prev}
               disabled={submitting}
             >
               Back
-            </NeonIconButton>
+            </TextIconButton>
           )}
           {stage < 2 && (
-            <NeonIconButton
+            <TextIconButton
               variant="next"
-              title="Next"
+              label="Next"
               onClick={next}
               disabled={
                 (stage === 0 && !title) ||
@@ -241,17 +241,15 @@ export default function RaiseIssueWizard({ onClose }: RaiseIssueWizardProps) {
               }
             >
               Next
-            </NeonIconButton>
+            </TextIconButton>
           )}
           {stage === 2 && (
-            <NeonIconButton
+            <TextIconButton
               variant="submit"
-              title={submitting ? "Submitting..." : "Submit"}
+              label={submitting ? "Submitting..." : "Submit"}
               onClick={handleSubmit}
               disabled={submitting}
-            >
-              {submitting ? "Submitting..." : "Submit"}
-            </NeonIconButton>
+            />
           )}
         </div>
       </NeonPanel>

@@ -15,7 +15,7 @@ import {
 } from "react-icons/fi";
 import MyProfileModal from "@/components/user/MyProfileModal";
 import Modal from "@/components/modal";
-import { NeonRaiseIssueButton } from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import { RaiseIssueModalContext } from "@/context/RaiseIssueModalContext";
 import { useGlobalSearch } from "@/context/GlobalSearchContext";
 
@@ -321,9 +321,10 @@ export default function GlobalHeader({
 
             {/* Raise Issue button */}
             {!loading && user && (
-              <NeonRaiseIssueButton
+              <TextIconButton
+                variant="alert"
+                label="Raise Issue"
                 onClick={() => raiseIssueModalCtx?.openRaiseIssue()}
-                title="Raise Issue"
               />
             )}
           </div>

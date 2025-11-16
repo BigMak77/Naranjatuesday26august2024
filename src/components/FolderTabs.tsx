@@ -13,7 +13,7 @@ interface FolderTabsProps {
   tabs: Tab[];
   activeTab: string;
   onChange: (tabKey: string) => void;
-  toolbar: React.ReactNode;
+  toolbar?: React.ReactNode;
 }
 
 export default function FolderTabs({
@@ -63,20 +63,22 @@ export default function FolderTabs({
       </div>
 
       {/* Toolbar renders directly underneath tabs */}
-      <div style={{
-        display: 'flex',
-        gap: '0.75rem',
-        alignItems: 'center',
-        padding: '0.75rem',
-        background: 'var(--panel)',
-        border: '1px solid #fa7a20',
-        borderRadius: '0 0 8px 8px',
-        marginTop: '0',
-        marginBottom: '1rem',
-        flexWrap: 'wrap'
-      }}>
-        {toolbar}
-      </div>
+      {toolbar && (
+        <div style={{
+          display: 'flex',
+          gap: '0.75rem',
+          alignItems: 'center',
+          padding: '0.75rem',
+          background: 'var(--panel)',
+          border: '1px solid #fa7a20',
+          borderRadius: '0 0 8px 8px',
+          marginTop: '0',
+          marginBottom: '1rem',
+          flexWrap: 'wrap'
+        }}>
+          {toolbar}
+        </div>
+      )}
     </>
   );
 }

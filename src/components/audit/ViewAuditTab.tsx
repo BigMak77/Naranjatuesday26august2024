@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import NeonPanel from "@/components/NeonPanel";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
 type TemplateRow = {
@@ -160,16 +160,17 @@ export default function ViewAuditTab() {
                 <td>{tpl.frequency}</td>
                 <td>
                   <CustomTooltip text={expanded === tpl.id ? "Hide audit template details" : "View audit template details"}>
-                    <NeonIconButton
+                    <TextIconButton
                       variant="view"
+                      label={expanded === tpl.id ? "Hide Details" : "View Details"}
                       title={expanded === tpl.id ? "Hide Details" : "View Details"}
                       onClick={() => toggleExpand(tpl.id)}
                     />
                   </CustomTooltip>
                   <CustomTooltip text="Archive this audit template">
-                    <NeonIconButton
+                    <TextIconButton
                       variant="archive"
-                      title="Archive"
+                      label="Archive"
                       onClick={async () => {
                         const { error } = await supabase
                           .from("audit_templates")

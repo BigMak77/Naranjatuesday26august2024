@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import NeonPanel from "@/components/NeonPanel";
 import { FiArchive, FiPlus } from "react-icons/fi";
 import { supabase } from "@/lib/supabase-client";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
 // Custom tooltip added
@@ -113,10 +113,10 @@ export default function ArchiveModuleTab({
             <p className="mb-4">
               Selected: <span className="font-semibold">{module.name}</span>
             </p>
-            <NeonIconButton
+            <TextIconButton
               variant="add"
               icon={<FiPlus />}
-              title="Add"
+              label="Add"
               onClick={openDialog}
             />
           </>

@@ -6,7 +6,7 @@ import AccessControlWrapper from "@/components/AccessControlWrapper";
 import { useState } from "react";
 import DocumentTypeTable from "@/components/documents/DocumentTypeTable";
 import ShiftPatternsTable from "@/components/utility/ShiftPatternsTable";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import { FiChevronUp, FiChevronDown } from "react-icons/fi";
 import AddAuditorWidget from "@/components/audit/AddAuditorWidget";
 import AuditorsListWidget from "@/components/audit/AuditorsListWidget";
@@ -32,8 +32,9 @@ export default function UtilityPage() {
       <div className="global-content">
         <section style={{ marginBottom: 32 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 0 }}>
-            <NeonIconButton
+            <TextIconButton
               variant="view"
+              label={openAuditors ? "Hide Auditor Tools" : "Show Auditor Tools"}
               title={openAuditors ? "Hide Auditor Tools" : "Show Auditor Tools"}
               icon={openAuditors ? <FiChevronUp /> : <FiChevronDown />}
               onClick={() => setOpenAuditors(v => !v)}
@@ -58,8 +59,9 @@ export default function UtilityPage() {
         </section>
         <section style={{ marginBottom: 32 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 0 }}>
-            <NeonIconButton
+            <TextIconButton
               variant="view"
+              label={openDocTypes ? "Hide Document Types" : "Show Document Types"}
               title={openDocTypes ? "Hide Document Types" : "Show Document Types"}
               icon={openDocTypes ? <FiChevronUp /> : <FiChevronDown />}
               onClick={() => setOpenDocTypes(v => !v)}
@@ -76,8 +78,9 @@ export default function UtilityPage() {
         </section>
         <section>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 0 }}>
-            <NeonIconButton
+            <TextIconButton
               variant="view"
+              label={openShifts ? "Hide Shift Patterns" : "Show Shift Patterns"}
               title={openShifts ? "Hide Shift Patterns" : "Show Shift Patterns"}
               icon={openShifts ? <FiChevronUp /> : <FiChevronDown />}
               onClick={() => setOpenShifts(v => !v)}

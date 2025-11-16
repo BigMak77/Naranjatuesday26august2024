@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import NeonPanel from "@/components/NeonPanel";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import SuccessModal from "@/components/ui/SuccessModal";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
@@ -104,9 +104,9 @@ export default function RotaByDepartment({ departmentId }: { departmentId: strin
               ))}
             </select>
             <CustomTooltip text="Return to reports page">
-              <NeonIconButton
+              <TextIconButton
                 variant="back"
-                title="Back"
+                label="Back"
                 aria-label="Back"
                 onClick={() => window.location.href = "/reports"}
                 style={{ justifySelf: 'end' }}

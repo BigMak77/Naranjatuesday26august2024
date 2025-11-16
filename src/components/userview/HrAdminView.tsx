@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import FolderTabs, { Tab } from "@/components/FolderTabs";
-import { FiUserPlus, FiUser, FiEdit, FiTrash2, FiUsers, FiShield, FiToggleLeft, FiToggleRight, FiDownload } from "react-icons/fi";
+import { FiUserPlus, FiUser, FiEdit, FiTrash2, FiUsers, FiShield, FiToggleLeft, FiToggleRight, FiDownload, FiUpload, FiUserX } from "react-icons/fi";
 import { supabase } from "@/lib/supabase-client";
 import RoleStructure from "@/components/structure/RoleStructure";
 import ManagerStructure from "@/components/structure/ManagerStructure";
@@ -17,19 +17,21 @@ import {
 } from "@/components/structure/ManagerStructure";
 import RotaByDepartment from "@/components/people/RotaByDepartment";
 import Rota from "@/components/people/Rota";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import RoleModuleDocumentAssignment from "@/components/roles/RoleModuleDocumentAssignment";
 import UserPermissionsManager from "@/components/admin/UserPermissionsManager";
 import OverlayDialog from "@/components/ui/OverlayDialog";
 import SuccessModal from "@/components/ui/SuccessModal";
 import UserManagementPanel from "@/components/user/UserManagementPanel";
 import { sendWelcomeEmail } from "@/lib/email-service";
+import UserRoleHistory from "@/components/roles/UserRoleHistory";
 
 const tabs: Tab[] = [
   { key: "people", label: "People" },
   { key: "users", label: "Users" },
   { key: "newstarters", label: "New Starters" },
   { key: "leavers", label: "Leavers" },
+  { key: "rolehistory", label: "Role History" },
   { key: "roles", label: "Roles" },
   { key: "departments", label: "Structures" },
   { key: "shifts", label: "Shifts" },
@@ -51,6 +53,24 @@ const UserManager: React.FC = () => {
   const [filterDept, setFilterDept] = useState<string>("");
   const [filterStart, setFilterStart] = useState<string>("");
   const [filterEnd, setFilterEnd] = useState<string>("");
+
+  // UserManagementPanel controls
+  const [userPanelControls, setUserPanelControls] = useState<{
+    userSearch: string;
+    setUserSearch: (val: string) => void;
+    filteredUsersCount: number;
+    pageSize: number;
+    setPageSize: (val: number) => void;
+    currentPage: number;
+    setCurrentPage: (val: number) => void;
+    totalPages: number;
+    handleBulkAssign: () => void;
+    handleAddUser: (e: any) => void;
+    handleExportUsers: () => void;
+    showLeavers: boolean;
+    setShowLeavers: (val: boolean) => void;
+    UserCSVImportComponent: React.ReactNode;
+  } | null>(null);
 
   // New Starters state
   const [newStarters, setNewStarters] = useState<any[]>([]);
@@ -330,7 +350,7 @@ const UserManager: React.FC = () => {
   };
 
   return (
-    <section className="user-manager-section">
+    <>
       <div className="user-manager-header">
         <h2 className="neon-heading">User Manager</h2>
       </div>
@@ -340,12 +360,14 @@ const UserManager: React.FC = () => {
         onChange={setActiveTab}
         toolbar={
           <>
-            {activeTab === "people" && (
+            {activeTab === "people" && userPanelControls && (
               <>
                 <input
                   type="search"
                   className="neon-input"
                   placeholder="Search users..."
+                  value={userPanelControls.userSearch}
+                  onChange={(e) => userPanelControls.setUserSearch(e.target.value)}
                   style={{
                     width: '200px',
                     height: '32px',
@@ -353,164 +375,74 @@ const UserManager: React.FC = () => {
                   }}
                 />
                 <span style={{ opacity: 0.7, fontSize: '0.875rem', marginLeft: '0.5rem' }}>
-                  {users.length} users
+                  {userPanelControls.filteredUsersCount} users
                 </span>
                 <div style={{ flex: 1 }} />
-                <NeonIconButton
+                <TextIconButton
                   variant="add"
-                  title="Add User"
-                  onClick={handleAddUser}
+                  icon={<FiUserPlus />}
+                  label="Add User"
+                  onClick={userPanelControls.handleAddUser}
                 />
-                <NeonIconButton
+                <TextIconButton
                   variant="send"
-                  title="Invite User"
+                  label="Invite User"
                   onClick={() => console.log("Invite user")}
                 />
-                <NeonIconButton
+                <TextIconButton
+                  icon={<FiDownload />}
                   variant="download"
-                  title="Download Users CSV"
-                  onClick={() => {
-                    // CSV export logic
-                    const csvRows = users.map((u) => ({
-                      id: u.id,
-                      email: u.email || "",
-                      first_name: u.first_name || "",
-                      last_name: u.last_name || "",
-                      department_id: u.department_id || "",
-                      access_level: u.access_level || "",
-                    }));
-                    const csv = [
-                      "id,email,first_name,last_name,department_id,access_level",
-                      ...csvRows.map((row) =>
-                        Object.values(row)
-                          .map((val) => `"${String(val).replace(/"/g, '""')}"`)
-                          .join(",")
-                      ),
-                    ].join("\n");
-                    const blob = new Blob([csv], { type: "text/csv" });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = "users.csv";
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                  }}
+                  label="Download CSV"
+                  onClick={userPanelControls.handleExportUsers}
                 />
-                <NeonIconButton
-                  variant="upload"
-                  title="Upload Users CSV"
-                  onClick={() => {
-                    const input = document.createElement("input");
-                    input.type = "file";
-                    input.accept = ".csv";
-                    input.onchange = async (e: any) => {
-                      const file = e.target?.files?.[0];
-                      if (!file) return;
-
-                      const reader = new FileReader();
-                      reader.onload = async (event) => {
-                        try {
-                          const csvText = event.target?.result as string;
-                          const lines = csvText.split("\n").filter((line) => line.trim());
-
-                          if (lines.length < 2) {
-                            alert("CSV file is empty or invalid");
-                            return;
-                          }
-
-                          const headers = lines[0].split(",").map((h) => h.trim().replace(/^"|"$/g, ''));
-                          const requiredHeaders = ["email", "first_name", "last_name"];
-                          const hasRequiredHeaders = requiredHeaders.every((h) => headers.includes(h));
-
-                          if (!hasRequiredHeaders) {
-                            alert("CSV must contain at least: email, first_name, last_name");
-                            return;
-                          }
-
-                          const usersToImport: any[] = [];
-                          for (let i = 1; i < lines.length; i++) {
-                            const values = lines[i].split(",").map((v) => {
-                              let val = v.trim();
-                              if (val.startsWith('"') && val.endsWith('"')) {
-                                val = val.slice(1, -1).replace(/""/g, '"');
-                              }
-                              return val === "" ? null : val;
-                            });
-
-                            const row: any = {};
-                            headers.forEach((header, index) => {
-                              row[header] = values[index];
-                            });
-
-                            // Build user object with only valid fields
-                            const userObj: any = {
-                              email: row.email,
-                              first_name: row.first_name,
-                              last_name: row.last_name,
-                            };
-
-                            // Add optional fields if present
-                            if (row.department_id) userObj.department_id = row.department_id;
-                            if (row.role_id) userObj.role_id = row.role_id;
-                            if (row.access_level) userObj.access_level = row.access_level;
-                            if (row.phone) userObj.phone = row.phone;
-                            if (row.start_date) userObj.start_date = row.start_date;
-
-                            if (userObj.email && userObj.first_name && userObj.last_name) {
-                              usersToImport.push(userObj);
-                            }
-                          }
-
-                          if (usersToImport.length === 0) {
-                            alert("No valid users found in CSV");
-                            return;
-                          }
-
-                          if (!confirm(`Upload ${usersToImport.length} users to the database?`)) {
-                            return;
-                          }
-
-                          // Insert users into Supabase
-                          const { error } = await supabase
-                            .from("users")
-                            .insert(usersToImport)
-                            .select();
-
-                          if (error) {
-                            alert(`Error uploading users: ${error.message}`);
-                            return;
-                          }
-
-                          alert(`Successfully uploaded ${usersToImport.length} users!`);
-
-                          // Refresh users data
-                          const { data: userRows } = await supabase
-                            .from("users")
-                            .select("id, department_id, access_level, first_name, last_name, start_date");
-                          setUsers(userRows || []);
-                        } catch (err: any) {
-                          alert(`Error processing CSV: ${err.message}`);
-                        }
-                      };
-                      reader.readAsText(file);
-                    };
-                    input.click();
-                  }}
+                {userPanelControls.UserCSVImportComponent}
+                <TextIconButton
+                  icon={<FiUserX />}
+                  label={userPanelControls.showLeavers ? "Hide Leavers" : "Show Leavers"}
+                  variant={userPanelControls.showLeavers ? "archive" : "edit"}
+                  onClick={() => userPanelControls.setShowLeavers(!userPanelControls.showLeavers)}
                 />
-                <NeonIconButton
+                <TextIconButton
                   variant="edit"
-                  title="Bulk Assign"
-                  onClick={() => console.log("Bulk assign")}
+                  icon={<FiEdit />}
+                  label="Bulk Assign"
+                  onClick={userPanelControls.handleBulkAssign}
+                />
+                <label style={{ fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                  Rows:
+                  <select
+                    value={userPanelControls.pageSize}
+                    onChange={(e) => userPanelControls.setPageSize(Number(e.target.value))}
+                    className="neon-input"
+                    style={{ width: '60px', height: '32px', padding: '0 4px', margin: 0 }}
+                  >
+                    {[10, 20, 50, 100].map(size => (
+                      <option key={size} value={size}>{size}</option>
+                    ))}
+                  </select>
+                </label>
+                <TextIconButton
+                  variant="back"
+                  label="Previous"
+                  onClick={() => userPanelControls.setCurrentPage(Math.max(1, userPanelControls.currentPage - 1))}
+                  disabled={userPanelControls.currentPage === 1}
+                />
+                <span style={{ fontSize: '0.875rem' }}>
+                  {userPanelControls.currentPage} / {userPanelControls.totalPages}
+                </span>
+                <TextIconButton
+                  variant="next"
+                  label="Next"
+                  onClick={() => userPanelControls.setCurrentPage(Math.min(userPanelControls.totalPages, userPanelControls.currentPage + 1))}
+                  disabled={userPanelControls.currentPage === userPanelControls.totalPages}
                 />
               </>
             )}
             {activeTab === "users" && (
               <>
-                <NeonIconButton
+                <TextIconButton
                   variant="add"
-                  title="Add User"
+                  label="Add User"
                   onClick={handleAddUser}
                 />
                 <div style={{ flex: 1 }} />
@@ -525,9 +457,9 @@ const UserManager: React.FC = () => {
                   {newStarters.length} pending new starters
                 </span>
                 <div style={{ flex: 1 }} />
-                <NeonIconButton
+                <TextIconButton
                   variant="refresh"
-                  title="Refresh"
+                  label="Refresh"
                   onClick={() => window.location.reload()}
                 />
               </>
@@ -538,9 +470,9 @@ const UserManager: React.FC = () => {
                   {leavers.length} employees who have left
                 </span>
                 <div style={{ flex: 1 }} />
-                <NeonIconButton
+                <TextIconButton
                   variant="download"
-                  title="Download Leavers CSV"
+                  label="Download CSV"
                   onClick={() => {
                     const csvRows = [
                       ["Name", "Email", "Department", "Leave Date", "Leave Reason", "Start Date"],
@@ -567,11 +499,19 @@ const UserManager: React.FC = () => {
                     }, 100);
                   }}
                 />
-                <NeonIconButton
+                <TextIconButton
                   variant="refresh"
-                  title="Refresh"
+                  label="Refresh"
                   onClick={() => window.location.reload()}
                 />
+              </>
+            )}
+            {activeTab === "rolehistory" && (
+              <>
+                <span style={{ opacity: 0.7, fontSize: '0.875rem' }}>
+                  Track historical role and department changes
+                </span>
+                <div style={{ flex: 1 }} />
               </>
             )}
             {activeTab === "roles" && (
@@ -580,9 +520,9 @@ const UserManager: React.FC = () => {
                   Role & Assignment Management
                 </span>
                 <div style={{ flex: 1 }} />
-                <NeonIconButton
+                <TextIconButton
                   variant="refresh"
-                  title="Refresh Roles"
+                  label="Refresh"
                   onClick={() => window.location.reload()}
                 />
               </>
@@ -619,9 +559,9 @@ const UserManager: React.FC = () => {
                     <AssignManagerButton departments={departments} users={users} onAdded={() => window.location.reload()} />
                   </>
                 )}
-                <NeonIconButton
+                <TextIconButton
                   variant="refresh"
-                  title="Refresh Structure"
+                  label="Refresh"
                   onClick={() => window.location.reload()}
                 />
               </>
@@ -676,18 +616,18 @@ const UserManager: React.FC = () => {
                     style={{ marginLeft: '0.5rem', width: '150px' }}
                   />
                 </label>
-                <NeonIconButton
+                <TextIconButton
                   variant="refresh"
-                  title="Clear filters"
+                  label="Clear"
                   onClick={() => {
                     setFilterDept("");
                     setFilterStart("");
                     setFilterEnd("");
                   }}
                 />
-                <NeonIconButton
+                <TextIconButton
                   variant="download"
-                  title="Download filtered users as CSV"
+                  label="Download CSV"
                   onClick={() => {
                     const filtered = [...users]
                       .filter(u => u.start_date)
@@ -733,9 +673,8 @@ const UserManager: React.FC = () => {
           </>
         }
       />
-      <div className="user-manager-content">
-        {activeTab === "people" && (
-          <UserManagementPanel />
+      {activeTab === "people" && (
+          <UserManagementPanel onControlsReady={setUserPanelControls} />
         )}
         {activeTab === "users" && (
           loading ? (
@@ -764,15 +703,15 @@ const UserManager: React.FC = () => {
                           <td>{getManagedDepartments(user.id)}</td>
                           <td>
                             <div className="user-manager-actions-cell">
-                              <NeonIconButton
+                              <TextIconButton
                                 variant="edit"
+                                label="Edit"
                                 onClick={() => handleEditUser(user)}
-                                title="Edit User"
                               />
-                              <NeonIconButton
+                              <TextIconButton
                                 variant="delete"
+                                label="Delete"
                                 onClick={() => handleDeleteUser(user.id)}
-                                title="Delete User"
                               />
                             </div>
                           </td>
@@ -800,15 +739,15 @@ const UserManager: React.FC = () => {
                           <td className="user-manager-name">{`${user.first_name || ""} ${user.last_name || ""}`.trim()}</td>
                           <td>
                             <div className="user-manager-actions-cell">
-                              <NeonIconButton
+                              <TextIconButton
                                 variant="edit"
+                                label="Edit"
                                 onClick={() => handleEditUser(user)}
-                                title="Edit User"
                               />
-                              <NeonIconButton
+                              <TextIconButton
                                 variant="delete"
+                                label="Delete"
                                 onClick={() => handleDeleteUser(user.id)}
-                                title="Delete User"
                               />
                             </div>
                           </td>
@@ -854,10 +793,10 @@ const UserManager: React.FC = () => {
                         <td>{leaver.leaver_reason || "—"}</td>
                         <td>
                           <div className="user-manager-actions-cell">
-                            <NeonIconButton
+                            <TextIconButton
                               variant="view"
+                              label="View"
                               onClick={() => handleEditUser(leaver)}
-                              title="View User"
                             />
                           </div>
                         </td>
@@ -919,14 +858,14 @@ const UserManager: React.FC = () => {
                         <td>{new Date(starter.created_at).toLocaleDateString()}</td>
                         <td>
                           <div className="user-manager-actions-cell">
-                            <NeonIconButton
+                            <TextIconButton
                               variant="add"
+                              label="Assign"
                               onClick={() => {
                                 setSelectedStarter(starter);
                                 setEmployeeNumber("");
                                 setAssignDialogOpen(true);
                               }}
-                              title="Assign to Users Table"
                             />
                           </div>
                         </td>
@@ -977,15 +916,15 @@ const UserManager: React.FC = () => {
                           <td>{getDepartmentName(user.department_id)}</td>
                           <td>
                             <div className="user-manager-actions-cell">
-                              <NeonIconButton
+                              <TextIconButton
                                 variant="edit"
+                                label="Edit"
                                 onClick={() => handleEditUser(user)}
-                                title="Edit User"
                               />
-                              <NeonIconButton
+                              <TextIconButton
                                 variant="delete"
+                                label="Delete"
                                 onClick={() => handleDeleteUser(user.id)}
-                                title="Delete User"
                               />
                             </div>
                           </td>
@@ -996,6 +935,9 @@ const UserManager: React.FC = () => {
               </table>
             </div>
           )
+        )}
+        {activeTab === "rolehistory" && (
+          <UserRoleHistory />
         )}
         {activeTab === "roles" && (
           <RoleModuleDocumentAssignment />
@@ -1011,7 +953,6 @@ const UserManager: React.FC = () => {
         {activeTab === "permissions" && (
           <UserPermissionsManager />
         )}
-      </div>
 
       {/* User Edit/Add Dialog */}
       <OverlayDialog showCloseButton={true} open={dialogOpen} onClose={handleCloseDialog} ariaLabelledby="user-editor-title">
@@ -1082,9 +1023,9 @@ const UserManager: React.FC = () => {
             </div>
 
             <div className="user-manager-form-actions">
-              <button
-                type="button"
-                className="neon-btn-secondary"
+              <TextIconButton
+                variant="secondary"
+                label="Cancel"
                 onClick={() => {
                   setAssignDialogOpen(false);
                   setSelectedStarter(null);
@@ -1092,17 +1033,13 @@ const UserManager: React.FC = () => {
                   setError("");
                 }}
                 disabled={assignLoading}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="neon-btn-primary"
+              />
+              <TextIconButton
+                variant="primary"
+                label={assignLoading ? "Assigning..." : "Assign & Send Welcome Email"}
                 onClick={handleAssignUser}
                 disabled={assignLoading || !employeeNumber.trim()}
-              >
-                {assignLoading ? "Assigning..." : "Assign & Send Welcome Email"}
-              </button>
+              />
             </div>
           </div>
         )}
@@ -1115,7 +1052,7 @@ const UserManager: React.FC = () => {
         message={successMessage}
         autoCloseMs={2000}
       />
-    </section>
+    </>
   );
 };
 
@@ -1235,12 +1172,16 @@ function UserEditForm({ user, departments, onSave, onCancel, isAddMode }: UserEd
       </div>
 
       <div className="user-manager-form-actions">
-        <button type="button" className="neon-btn-secondary" onClick={onCancel}>
-          Cancel
-        </button>
-        <button type="submit" className="neon-btn-primary">
-          {isAddMode ? 'Add User' : 'Save Changes'}
-        </button>
+        <TextIconButton
+          variant="secondary"
+          label="Cancel"
+          onClick={onCancel}
+        />
+        <TextIconButton
+          variant="primary"
+          label={isAddMode ? 'Add User' : 'Save Changes'}
+          type="submit"
+        />
       </div>
     </form>
   );

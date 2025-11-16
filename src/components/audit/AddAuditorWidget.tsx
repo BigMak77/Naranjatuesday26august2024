@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase-client";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import { FiPlus } from "react-icons/fi";
 
 export default function AddAuditorWidget({
@@ -130,7 +130,6 @@ export default function AddAuditorWidget({
         style={{ marginTop: 16, width: 48, height: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}
         disabled={loading}
         aria-label="Submit"
-        title="Submit"
       >
         <FiPlus />
       </button>

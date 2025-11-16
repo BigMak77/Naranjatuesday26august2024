@@ -93,14 +93,6 @@ export default function CalendarPage() {
             </ul>
           </div>
 
-          <div className="help-footer">
-            <button 
-              className="neon-btn neon-btn-secondary"
-              onClick={() => setShowInfo(false)}
-            >
-              Got it!
-            </button>
-          </div>
         </div>
       </OverlayDialog>
     </div>

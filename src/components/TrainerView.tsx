@@ -536,18 +536,23 @@ export default function TrainerRecordingPage({
       if (form.outcome === "completed") {
         console.log("📚 Recording training completion via API...");
         console.log("📅 Training date from form:", form.date);
+        console.log("🔍 Date type:", typeof form.date);
+        console.log("🔍 Full form state:", form);
         try {
+          const payload = {
+            auth_id: openFor.auth_id,
+            item_id: selectedModuleId,
+            item_type: 'module',
+            completed_date: form.date // Pass the actual training date for follow-up calculation
+          };
+          console.log("🔍 Sending payload to API:", payload);
+
           const response = await fetch('/api/record-training-completion', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-              auth_id: openFor.auth_id,
-              item_id: selectedModuleId,
-              item_type: 'module',
-              completed_date: form.date // Pass the actual training date for follow-up calculation
-            })
+            body: JSON.stringify(payload)
           });
 
           if (!response.ok) {

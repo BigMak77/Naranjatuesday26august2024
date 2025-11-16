@@ -3,9 +3,10 @@ import React, { useEffect, useState } from "react";
 import NeonTable from "@/components/NeonTable";
 import { supabase } from "@/lib/supabase-client";
 import OverlayDialog from "@/components/ui/OverlayDialog";
-import NeonIconButton, { NeonSubmitApplicationButton } from "../ui/NeonIconButton";
+import TextIconButton, { NeonSubmitApplicationButton } from "../ui/TextIconButtons";
 import { FiX } from "react-icons/fi";
 import SuccessModal from "@/components/ui/SuccessModal";
+import { STORAGE_BUCKETS } from "@/lib/storage-config";
 
 const TABLE_NAME = "vacancies"; // Updated to match your actual table name
 
@@ -81,9 +82,9 @@ const CareersPage: React.FC = () => {
       if (cv) {
         const fileExt = cv.name.split('.').pop();
         const fileName = `${Date.now()}_${Math.random().toString(36).slice(2)}.${fileExt}`;
-        const { data: uploadData, error: uploadError } = await supabase.storage.from("applications-cv").upload(fileName, cv);
+        const { data: uploadData, error: uploadError } = await supabase.storage.from(STORAGE_BUCKETS.APPLICATIONS).upload(fileName, cv);
         if (uploadError) throw new Error("CV upload failed: " + uploadError.message);
-        cvUrl = supabase.storage.from("applications-cv").getPublicUrl(fileName).data.publicUrl;
+        cvUrl = supabase.storage.from(STORAGE_BUCKETS.APPLICATIONS).getPublicUrl(fileName).data.publicUrl;
       }
       // 2. Insert application record into a new table (e.g. 'applications')
       const { error: insertError } = await supabase.from("applications").insert([
@@ -176,15 +177,6 @@ const CareersPage: React.FC = () => {
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
                 </button>
-                <NeonIconButton
-                  variant="close"
-                  icon={<FiX />}
-                  title="Cancel"
-                  aria-label="Cancel"
-                  type="button"
-                  onClick={() => setModalOpen(false)}
-                  className="neon-btn-close"
-                />
               </div>
             </form>
           )}

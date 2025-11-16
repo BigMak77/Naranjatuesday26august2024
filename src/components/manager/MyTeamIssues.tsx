@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import { useUser } from "@/lib/useUser";
 import NeonPanel from "@/components/NeonPanel";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import AssignIssue from "@/components/issues/AssignIssue";
 import IssuesWidget from "@/components/issues/IssuesWidget";
 import { FiPlus, FiClock, FiAlertCircle, FiCheckCircle } from "react-icons/fi";
@@ -197,10 +197,10 @@ export default function MyTeamIssues() {
       <div style={{ marginBottom: 16 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
           <h2 className="neon-heading">My Team Issues</h2>
-          <NeonIconButton
+          <TextIconButton
             icon={<FiPlus />}
             variant="add"
-            title="Raise New Issue"
+            label="Raise New Issue"
             onClick={() => window.location.href = "/turkus/issues/add"}
           />
         </div>
@@ -283,14 +283,14 @@ export default function MyTeamIssues() {
                 </div>
                 
                 <div style={{ display: "flex", gap: 8, marginLeft: 16 }}>
-                  <NeonIconButton
+                  <TextIconButton
                     variant="assign"
-                    title="Assign Issue"
+                    label="Assign Issue"
                     onClick={() => setAssigningIssue(issue.id)}
                   />
-                  <NeonIconButton
+                  <TextIconButton
                     variant="view"
-                    title="View Details"
+                    label="View Details"
                     onClick={() => window.location.href = `/turkus/issues/${issue.id}`}
                   />
                 </div>

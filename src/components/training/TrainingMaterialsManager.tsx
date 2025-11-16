@@ -5,6 +5,7 @@ import NeonTable from "@/components/NeonTable";
 import OverlayDialog from "@/components/ui/OverlayDialog";
 import { FiFolder } from "react-icons/fi";
 import TrainingQuestionForm from "./TrainingQuestionForm";
+import { STORAGE_BUCKETS } from "@/lib/storage-config";
 
 type MaterialType = "video" | "image" | "audio" | "document";
 interface TrainingMaterial {
@@ -18,7 +19,8 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
 );
-const SUPABASE_BUCKET = "documents";
+
+const SUPABASE_BUCKET = STORAGE_BUCKETS.TRAINING;
 
 function detectTypeByExt(name: string): MaterialType | "audio" {
   const ext = name.split(".").pop()?.toLowerCase() || "";
@@ -336,14 +338,6 @@ const TrainingMaterialsManager: React.FC<TrainingMaterialsManagerProps> = ({ sho
               Next
             </button>
           </div>
-
-          <button
-            onClick={() => setDialogOpen(false)}
-            className="sidebar-action"
-            style={{ width: "auto", padding: "6px 16px", background: "#c75c00", color: "#fff", marginTop: 24 }}
-          >
-            Close
-          </button>
         </div>
       </OverlayDialog>
 
@@ -384,14 +378,6 @@ const TrainingMaterialsManager: React.FC<TrainingMaterialsManagerProps> = ({ sho
               style={{ width: "auto", padding: "6px 16px" }}
             >
               {uploading ? "Uploading…" : "Upload"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowAddMaterial(false)}
-              className="sidebar-action"
-              style={{ width: "auto", padding: "6px 16px", background: "#eee", color: "#333" }}
-            >
-              Cancel
             </button>
           </div>
         </form>

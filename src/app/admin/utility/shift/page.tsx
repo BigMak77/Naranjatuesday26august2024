@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import NeonTable from "@/components/NeonTable";
 import NeonForm from "@/components/NeonForm";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import { supabase } from "@/lib/supabase-client";
 
 export default function AdminShiftPage() {
@@ -136,9 +136,9 @@ export default function AdminShiftPage() {
             data={shifts.map((s) => ({
               ...s,
               actions: (
-                <NeonIconButton
+                <TextIconButton
                   variant="delete"
-                  title="Delete"
+                  label="Delete"
                   onClick={() => handleDelete(s.id)}
                 />
               ),

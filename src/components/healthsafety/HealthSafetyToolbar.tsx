@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { FiHeart, FiPlus, FiMail } from "react-icons/fi";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import AddFirstAidWidget from "@/components/healthsafety/AddFirstAidWidget";
 import { usePermissions } from "@/lib/usePermissions";
 
@@ -26,26 +26,26 @@ export default function HealthSafetyToolbar() {
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
               {canManageFirstAiders && (
-                <NeonIconButton
+                <TextIconButton
                   variant="add"
                   icon={<FiPlus />}
-                  title="Add First Aid Designation"
+                  label="Add First Aid Designation"
                   onClick={() => setShowAddFirstAidWidget(!showAddFirstAidWidget)}
                 />
               )}
-              <NeonIconButton
+              <TextIconButton
                 variant="view"
                 icon={<FiHeart />}
-                title="View All First Aiders"
+                label="View All First Aiders"
                 onClick={() => (window.location.href = "/firstaid/")}
               />
             </div>
             
             {/* Contact Admin Button */}
-            <NeonIconButton
+            <TextIconButton
               variant="info"
               icon={<FiMail />}
-              title="Contact Admin"
+              label="Contact Admin"
               onClick={handleContactAdmin}
             />
           </div>

@@ -6,6 +6,8 @@ import { supabase } from "@/lib/supabase-client";
 import NeonForm from "@/components/NeonForm";
 import { useUser } from "@/lib/useUser";
 import Modal from "@/components/modal";
+import SuccessModal from "@/components/ui/SuccessModal";
+import { STORAGE_BUCKETS } from "@/lib/storage-config";
 
 type Standard = { id: string; name: string };
 type Section = { id: string; code: string; title: string; standard_id: string };
@@ -49,6 +51,28 @@ export default function EditDocumentPage() {
     null,
   );
   const [versionErrorMsg, setVersionErrorMsg] = useState("");
+
+  // Debug: Track version error message state
+  useEffect(() => {
+    console.log("=== versionErrorMsg changed ===", versionErrorMsg);
+    console.log("Stack trace:", new Error().stack);
+  }, [versionErrorMsg]);
+
+  // Debug: Track modal state
+  useEffect(() => {
+    console.log("=== showVersionModal changed ===", showVersionModal);
+    console.log("Stack trace:", new Error().stack);
+  }, [showVersionModal]);
+
+  // Add state for success modal
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+
+  // Handler for success modal close - navigate back to documents
+  const handleSuccessClose = () => {
+    setShowSuccessModal(false);
+    router.push("/admin/documents");
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -129,28 +153,46 @@ export default function EditDocumentPage() {
   };
 
   const confirmVersionChange = async () => {
-    if (!pendingEditData) return;
+    console.log("=== Starting confirmVersionChange ===");
+
+    if (!pendingEditData) {
+      console.error("No pendingEditData");
+      setVersionErrorMsg("No pending data found. Please try again.");
+      return;
+    }
+
     let fileUrl = pendingEditData.file_url;
     const newVersion = pendingVersion;
+
+    console.log("File upload needed?", !!file);
+
     // Handle file upload if needed
     if (file) {
       if (!user?.auth_id) {
-        alert("Cannot archive: user not loaded. Please refresh and try again.");
+        setVersionErrorMsg("Cannot archive: user not loaded. Please refresh and try again.");
         return;
       }
+
       const filePath = `${Date.now()}_${file.name}`;
+      console.log("Uploading file to:", filePath);
+
       const { error: uploadError } = await supabase.storage
-        .from("documents")
+        .from(STORAGE_BUCKETS.DOCUMENTS)
         .upload(filePath, file, {
           upsert: true // Allow overwriting if file exists
         });
+
       if (uploadError) {
         console.error("Upload error:", uploadError);
-        alert(`File upload failed: ${uploadError.message}`);
+        setVersionErrorMsg(`File upload failed: ${uploadError.message}`);
         return;
       }
-      fileUrl = supabase.storage.from("documents").getPublicUrl(filePath)
+
+      console.log("File uploaded successfully");
+      fileUrl = supabase.storage.from(STORAGE_BUCKETS.DOCUMENTS).getPublicUrl(filePath)
         .data.publicUrl;
+
+      console.log("Archiving current version");
       // Archive current version
       const { error: archiveError } = await supabase
         .from("document_archive")
@@ -166,32 +208,96 @@ export default function EditDocumentPage() {
           change_date: new Date().toISOString(),
           archived_by_auth_id: user.auth_id,
         });
+
       if (archiveError) {
-        alert("Failed to archive current document.");
         console.error("Archive insert error:", archiveError);
+        setVersionErrorMsg("Failed to archive current document.");
         return;
       }
+
+      console.log("Archive created successfully");
     }
     const now = new Date().toISOString();
-    const { error: updateError } = await supabase
+
+    // Only include fields that exist in the documents table
+    // Exclude: id, standard_id (UI-only field)
+    const updateData = {
+      title: pendingEditData.title,
+      reference_code: pendingEditData.reference_code || null,
+      document_type_id: pendingEditData.document_type_id,
+      section_id: pendingEditData.section_id || null,
+      file_url: fileUrl,
+      notes: pendingEditData.notes || null,
+      current_version: newVersion,
+      last_updated_at: now,
+      last_reviewed_at: now,
+    };
+
+    console.log("Attempting to update document:", {
+      documentId: document?.id,
+      updateData
+    });
+
+    const { data: updateResult, error: updateError } = await supabase
       .from("documents")
-      .update({
-        ...pendingEditData,
-        file_url: fileUrl,
-        current_version: newVersion,
-        last_updated_at: now,
-        last_reviewed_at: now,
-      })
-      .eq("id", document?.id);
+      .update(updateData)
+      .eq("id", document?.id)
+      .select();
+
     if (updateError) {
-      setVersionErrorMsg("Failed to update document: " + updateError.message);
+      console.error("Update error:", {
+        error: updateError,
+        code: updateError.code,
+        message: updateError.message,
+        details: updateError.details,
+        hint: updateError.hint,
+        updateData,
+        documentId: document?.id
+      });
+
+      // Check if it's a unique constraint violation
+      if (updateError.code === '23505' || updateError.message.includes('duplicate') || updateError.message.includes('unique')) {
+        console.log("=== DUPLICATE REFERENCE CODE ERROR DETECTED ===");
+        // Try to find the existing document with this reference code
+        // Note: reference_code is globally unique, not per-section
+        const { data: existingDoc } = await supabase
+          .from('documents')
+          .select('id, title, reference_code, section_id')
+          .eq('reference_code', updateData.reference_code)
+          .neq('id', document?.id)
+          .maybeSingle();
+
+        console.log("Existing doc found:", existingDoc);
+
+        if (existingDoc) {
+          const errorMsg = `Reference code "${updateData.reference_code}" is already used by "${existingDoc.title}". Please use a different reference code.`;
+          console.log("=== SETTING ERROR MESSAGE ===", errorMsg);
+          setVersionErrorMsg(errorMsg);
+          console.log("=== ERROR MESSAGE SET, WAITING FOR STATE UPDATE ===");
+        } else {
+          // Fallback if we can't find the conflicting document
+          const errorMsg = `Reference code "${updateData.reference_code}" is already in use. Please use a different reference code.`;
+          console.log("=== SETTING ERROR MESSAGE ===", errorMsg);
+          setVersionErrorMsg(errorMsg);
+          console.log("=== ERROR MESSAGE SET, WAITING FOR STATE UPDATE ===");
+        }
+      } else {
+        const errorMsg = `Failed to update document: ${updateError.message} (Error Code: ${updateError.code})`;
+        console.log("=== SETTING ERROR MESSAGE ===", errorMsg);
+        setVersionErrorMsg(errorMsg);
+        console.log("=== ERROR MESSAGE SET, WAITING FOR STATE UPDATE ===");
+      }
+      // DO NOT close modal - keep it open to show error
+      console.log("=== RETURNING FROM confirmVersionChange WITH ERROR ===");
       return;
     }
+
+    console.log("Update successful:", updateResult);
     setShowVersionModal(false);
     setPendingVersion(null);
     setPendingEditData(null);
-    alert("Document updated to version " + newVersion);
-    router.push("/admin/documents");
+    setSuccessMessage(`Document updated to version ${newVersion}`);
+    setShowSuccessModal(true);
   };
 
   if (loading) return <p className="text-gray-600 m-0 p-0">Loading...</p>;
@@ -218,15 +324,45 @@ export default function EditDocumentPage() {
             setShowVersionModal(false);
             setPendingVersion(null);
             setPendingEditData(null);
+            setVersionErrorMsg("");
           }}
         >
-          <p className="neon-form-message">
-            You are about to update this document to version{" "}
-            <span className="neon-form-number">{pendingVersion}</span>.
-            Continue?
-          </p>
-          {versionErrorMsg && (
-            <p className="danger-text mb-2">{versionErrorMsg}</p>
+          {!versionErrorMsg ? (
+            <p className="neon-form-message">
+              You are about to update this document to version{" "}
+              <span className="neon-form-number">{pendingVersion}</span>.
+              Continue?
+            </p>
+          ) : (
+            <div
+              style={{
+                backgroundColor: "#ff444420",
+                border: "2px solid #ff4444",
+                borderRadius: "8px",
+                padding: "1rem",
+                marginBottom: "1rem",
+              }}
+            >
+              <p
+                style={{
+                  color: "#ff4444",
+                  fontWeight: "bold",
+                  margin: "0 0 0.5rem 0",
+                  fontSize: "1.1rem",
+                }}
+              >
+                ⚠️ Error
+              </p>
+              <p
+                style={{
+                  color: "#fff",
+                  margin: 0,
+                  lineHeight: "1.5",
+                }}
+              >
+                {versionErrorMsg}
+              </p>
+            </div>
           )}
         </NeonForm>
       </Modal>
@@ -339,6 +475,14 @@ export default function EditDocumentPage() {
           )}
         </NeonForm>
       </main>
+
+      {/* Success Modal */}
+      <SuccessModal
+        open={showSuccessModal}
+        onClose={handleSuccessClose}
+        title="Success"
+        message={successMessage}
+      />
     </>
   );
 }

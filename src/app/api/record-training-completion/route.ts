@@ -123,6 +123,8 @@ export async function POST(req: NextRequest) {
     }
 
     console.log("📝 Updating user_assignments with:", updateData);
+    console.log("🔍 completed_at value being set:", completedAt);
+    console.log("🔍 Original completed_date from request:", completed_date);
 
     const { data: updatedAssignment, error: assignmentError } = await supabase
       .from("user_assignments")
@@ -137,6 +139,7 @@ export async function POST(req: NextRequest) {
       // Don't fail the request - the completion is still recorded
     } else {
       console.log("✅ Assignment record updated:", updatedAssignment);
+      console.log("🔍 Verifying completed_at in database:", updatedAssignment?.[0]?.completed_at);
     }
 
     console.log(`✅ Training completion recorded successfully`);

@@ -7,18 +7,31 @@ import FolderTabs from "@/components/FolderTabs";
 import { supabase } from "@/lib/supabase-client";
 import {
   FiClipboard,
-  FiHelpCircle,
   FiPlus,
   FiSend,
   FiArchive,
   FiEdit,
+  FiFile,
+  FiFileText,
+  FiFilm,
+  FiImage,
+  FiMusic,
+  FiRotateCcw,
 } from "react-icons/fi";
+import {
+  BsFileEarmarkPdf,
+  BsFileEarmarkWord,
+  BsFileEarmarkExcel,
+  BsFileEarmarkPpt,
+} from "react-icons/bs";
 
 import AddModuleTab from "@/components/modules/AddModuleTab";
 import { ViewModuleTab } from "@/components/modules/ViewModuleTab";
+import EditModuleTab from "@/components/modules/EditModuleTab";
 import AssignModuleTab from "@/components/modules/AssignModuleTab";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
+import OverlayDialog from "@/components/ui/OverlayDialog";
 
 // Define Module type inline
 interface Module {
@@ -38,6 +51,13 @@ interface Module {
   review_period?: string;
   created_at?: string;
   updated_at?: string;
+  attachments?: Array<{
+    name: string;
+    url: string;
+    size: number;
+    type: string;
+    uploaded_at: string;
+  }>;
 }
 
 export default function TrainingModuleManager() {
@@ -46,8 +66,47 @@ export default function TrainingModuleManager() {
   >("view");
   const [modules, setModules] = useState<Module[]>([]);
   const [selectedModule, setSelectedModule] = useState<Module | null>(null);
+  const [moduleToArchive, setModuleToArchive] = useState<Module | null>(null);
+  const [moduleToRestore, setModuleToRestore] = useState<Module | null>(null);
+  const [moduleToEdit, setModuleToEdit] = useState<Module | null>(null);
   const [search, setSearch] = useState("");
   const [archiveLoading, setArchiveLoading] = useState(false);
+
+  // Helper function to refresh modules data
+  const refreshModules = async () => {
+    const { data, error } = await supabase
+      .from("modules")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (!error && data) {
+      console.log("🔍 DEBUG: Raw modules data from database:", data);
+      console.log("🔍 DEBUG: Modules with is_archived status:", data.map(m => ({ id: m.id, name: m.name, is_archived: m.is_archived })));
+      
+      const cleaned = data.map((m) => ({
+        ...m,
+        description: m.description ?? "",
+        learning_objectives: m.learning_objectives ?? "",
+        estimated_duration: m.estimated_duration ?? "",
+        delivery_format: m.delivery_format ?? "",
+        target_audience: m.target_audience ?? "",
+        prerequisites: m.prerequisites ?? [],
+        thumbnail_url: m.thumbnail_url ?? "",
+        tags: m.tags ?? [],
+        created_at: m.created_at ?? new Date().toISOString(),
+        updated_at: m.updated_at ?? new Date().toISOString(),
+        is_archived: m.is_archived ?? false, // Ensure is_archived defaults to false
+      }));
+      
+      console.log("🔍 DEBUG: Cleaned modules data:", cleaned.map(m => ({ id: m.id, name: m.name, is_archived: m.is_archived })));
+      setModules(cleaned);
+    } else {
+      console.error("🔍 DEBUG: Error fetching modules:", error);
+      if (error) {
+        console.error("🔍 DEBUG: Database error details:", error.message, error.code, error.details);
+      }
+    }
+  };
 
   const tabList = [
     {
@@ -71,38 +130,13 @@ export default function TrainingModuleManager() {
     {
       key: "archive",
       label: "",
-      icon: <FiHelpCircle />,
-      tooltip: "Archive training modules",
+      icon: <FiArchive />,
+      tooltip: "View archived training modules",
     },
   ];
 
   useEffect(() => {
-    const fetchModules = async () => {
-      const { data, error } = await supabase
-        .from("modules")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        return;
-      }
-
-      const cleaned = (data || []).map((m) => ({
-        ...m,
-        learning_objectives: m.learning_objectives ?? "",
-        estimated_duration: m.estimated_duration ?? "",
-        delivery_format: m.delivery_format ?? "",
-        target_audience: m.target_audience ?? "",
-        prerequisites: m.prerequisites ?? [],
-        thumbnail_url: m.thumbnail_url ?? "",
-        tags: m.tags ?? [],
-        created_at: m.created_at ?? new Date().toISOString(),
-        updated_at: m.updated_at ?? new Date().toISOString(),
-      }));
-      setModules(cleaned);
-    };
-
-    fetchModules();
+    refreshModules();
   }, []);
 
   const filteredModules = modules.filter(
@@ -110,6 +144,48 @@ export default function TrainingModuleManager() {
       m.name.toLowerCase().includes(search.toLowerCase()) ||
       m.description.toLowerCase().includes(search.toLowerCase()),
   );
+
+  // Debug logging for tab-specific filtering
+  const viewTabModules = filteredModules.filter((m) => !m.is_archived);
+  const archiveTabModules = filteredModules.filter((m) => m.is_archived);
+  
+  console.log("🔍 DEBUG: Current activeTab:", activeTab);
+  console.log("🔍 DEBUG: All filteredModules count:", filteredModules.length);
+  console.log("🔍 DEBUG: View tab modules count:", viewTabModules.length);
+  console.log("🔍 DEBUG: Archive tab modules count:", archiveTabModules.length);
+  console.log("🔍 DEBUG: View tab modules:", viewTabModules.map(m => ({ id: m.id, name: m.name, is_archived: m.is_archived })));
+  console.log("🔍 DEBUG: Archive tab modules:", archiveTabModules.map(m => ({ id: m.id, name: m.name, is_archived: m.is_archived })));
+
+  // Helper function to get file icon based on file type
+  const getFileIcon = (fileName: string, mimeType: string) => {
+    const ext = fileName.toLowerCase().split('.').pop() || '';
+
+    if (ext === 'pdf') {
+      return <BsFileEarmarkPdf size={16} color="var(--accent)" />;
+    }
+    if (['ppt', 'pptx'].includes(ext) || mimeType.includes("presentation") || mimeType.includes("powerpoint")) {
+      return <BsFileEarmarkPpt size={16} color="var(--accent)" />;
+    }
+    if (['doc', 'docx'].includes(ext) || mimeType.includes("word") || mimeType.includes("document")) {
+      return <BsFileEarmarkWord size={16} color="var(--accent)" />;
+    }
+    if (['xls', 'xlsx'].includes(ext) || mimeType.includes("spreadsheet") || mimeType.includes("excel")) {
+      return <BsFileEarmarkExcel size={16} color="var(--accent)" />;
+    }
+    if (['mp4', 'mov', 'avi', 'mkv', 'webm'].includes(ext) || mimeType.includes("video")) {
+      return <FiFilm size={16} color="var(--accent)" />;
+    }
+    if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(ext) || mimeType.includes("image")) {
+      return <FiImage size={16} color="var(--accent)" />;
+    }
+    if (['mp3', 'wav', 'ogg', 'aac', 'm4a', 'flac'].includes(ext) || mimeType.includes("audio")) {
+      return <FiMusic size={16} color="var(--accent)" />;
+    }
+    if (['txt', 'md', 'json', 'xml', 'csv'].includes(ext) || mimeType.includes("text")) {
+      return <FiFileText size={16} color="var(--accent)" />;
+    }
+    return <FiFile size={16} color="var(--accent)" />;
+  };
 
   // Fix: convert version to number for ViewModuleTab
   const selectedModuleForView = selectedModule
@@ -127,7 +203,11 @@ export default function TrainingModuleManager() {
           activeTab={activeTab}
           onChange={(tabKey) => {
             setActiveTab(tabKey as typeof activeTab);
+            // Clear all dialog states when switching tabs
             setSelectedModule(null);
+            setModuleToArchive(null);
+            setModuleToRestore(null);
+            setModuleToEdit(null);
           }}
           toolbar={
             <div style={{ opacity: 0.7, fontSize: '0.875rem' }}>
@@ -137,7 +217,10 @@ export default function TrainingModuleManager() {
         />
       </div>
       {activeTab === "add" && (
-        <AddModuleTab onSuccess={() => setActiveTab("view")} />
+        <AddModuleTab onSuccess={() => {
+          setActiveTab("view");
+          refreshModules(); // Refresh the list when a new module is added
+        }} />
       )}
       {activeTab === "view" && (
         <>
@@ -159,24 +242,53 @@ export default function TrainingModuleManager() {
             columns={[
               { header: "Name", accessor: "name" },
               { header: "Description", accessor: "description" },
-              { header: "Version", accessor: "version" },
-              { header: "Status", accessor: "status" },
-              { header: "Actions", accessor: "actions" },
+              { header: "Version", accessor: "version", width: 80 },
+              { header: "Files", accessor: "files", width: 120 },
+              { header: "Status", accessor: "status", width: 100 },
+              { header: "Actions", accessor: "actions", width: 120 },
             ]}
-            data={filteredModules.map((m) => ({
+            data={filteredModules
+              .filter((m) => !m.is_archived) // Only show non-archived modules in view tab
+              .map((m) => ({
               ...m,
+              files: m.attachments && m.attachments.length > 0 ? (
+                <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
+                  {m.attachments.map((attachment, idx) => (
+                    <CustomTooltip key={idx} text={attachment.name}>
+                      <span style={{ display: "flex", alignItems: "center" }}>
+                        {getFileIcon(attachment.name, attachment.type)}
+                      </span>
+                    </CustomTooltip>
+                  ))}
+                </div>
+              ) : (
+                <span style={{ color: "var(--text-secondary)", fontSize: "0.85rem" }}>No files</span>
+              ),
               status: m.is_archived ? "Archived" : "Active",
               actions: (
-                <CustomTooltip text="Edit this training module">
-                  <NeonIconButton
-                    variant="edit"
-                    icon={<FiEdit />}
-                    title="Edit Module"
-                    onClick={() =>
-                      (window.location.href = `/admin/modules/edit/${m.id}`)
-                    }
-                  />
-                </CustomTooltip>
+                <div style={{ display: "flex", gap: "4px", justifyContent: "center" }}>
+                  <CustomTooltip text="Edit this training module">
+                    <TextIconButton
+                      variant="edit"
+                      icon={<FiEdit />}
+                      label="Edit Module"
+                      onClick={() => setModuleToEdit(m)}
+                    />
+                  </CustomTooltip>
+                  {!m.is_archived && (
+                    <CustomTooltip text="Archive this training module">
+                      <TextIconButton
+                        variant="archive"
+                        icon={<FiArchive />}
+                        label="Archive"
+                        onClick={() => {
+                          console.log("🔍 DEBUG: Archive button clicked for module:", m.id, m.name, "is_archived:", m.is_archived);
+                          setModuleToArchive(m);
+                        }}
+                      />
+                    </CustomTooltip>
+                  )}
+                </div>
               ),
             }))}
           />
@@ -191,15 +303,15 @@ export default function TrainingModuleManager() {
       {activeTab === "archive" && (
         <>
           <h2 style={{ color: "var(--accent)", fontWeight: 600, fontSize: "1.125rem", marginBottom: 16 }}>
-            Select modules to archive from the list below
+            Archived Training Modules
           </h2>
           <div style={{ marginBottom: 16 }}>
-            <CustomTooltip text="Search for modules to archive">
+            <CustomTooltip text="Search archived modules">
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search modules to archive..."
+                placeholder="Search archived modules..."
                 className="neon-input"
               />
             </CustomTooltip>
@@ -208,73 +320,104 @@ export default function TrainingModuleManager() {
             columns={[
               { header: "Name", accessor: "name" },
               { header: "Description", accessor: "description" },
-              { header: "Version", accessor: "version" },
-              { header: "Archive", accessor: "archive" },
+              { header: "Version", accessor: "version", width: 80 },
+              { header: "Files", accessor: "files", width: 120 },
+              { header: "Actions", accessor: "actions", width: 120 },
             ]}
-            data={modules
-              .filter((m) => !m.is_archived)
+            data={filteredModules
+              .filter((m) => m.is_archived)
               .map((m) => ({
                 ...m,
-                archive: (
-                  <CustomTooltip text="Archive this training module">
-                    <NeonIconButton
-                      variant="archive"
-                      icon={<FiArchive />}
-                      title="Archive Module"
-                      onClick={() => setSelectedModule(m)}
-                    />
-                  </CustomTooltip>
+                files: m.attachments && m.attachments.length > 0 ? (
+                  <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
+                    {m.attachments.map((attachment, idx) => (
+                      <CustomTooltip key={idx} text={attachment.name}>
+                        <span style={{ display: "flex", alignItems: "center" }}>
+                          {getFileIcon(attachment.name, attachment.type)}
+                        </span>
+                      </CustomTooltip>
+                    ))}
+                  </div>
+                ) : (
+                  <span style={{ color: "var(--text-secondary)", fontSize: "0.85rem" }}>No files</span>
+                ),
+                actions: (
+                  <div style={{ display: "flex", gap: "4px", justifyContent: "center" }}>
+                    <CustomTooltip text="View/edit this training module">
+                      <TextIconButton
+                        variant="edit"
+                        icon={<FiEdit />}
+                        label="Edit Module"
+                        onClick={() => setModuleToEdit(m)}
+                      />
+                    </CustomTooltip>
+                    <CustomTooltip text="Restore this training module">
+                      <TextIconButton
+                        variant="save"
+                        icon={<FiRotateCcw />}
+                        label="Restore"
+                        onClick={() => setModuleToRestore(m)}
+                      />
+                    </CustomTooltip>
+                  </div>
                 ),
               }))}
           />
-          {selectedModule && (
+          {moduleToRestore && (
             <div style={{ marginTop: 24, padding: 16, border: "1px solid var(--neon)", borderRadius: 8 }}>
               <h3 style={{ color: "var(--neon)", fontWeight: 600, fontSize: "1rem", marginBottom: 8 }}>
-                Confirm Archive
+                Confirm Restore
               </h3>
               <p style={{ marginBottom: 12 }}>
-                Are you sure you want to archive{" "}
+                Are you sure you want to restore{" "}
                 <span style={{ color: "var(--accent)", fontWeight: 600 }}>
-                  {selectedModule.name}
+                  {moduleToRestore.name}
                 </span>
-                ? This action cannot be undone.
+                ? This will make it available in the active modules list.
               </p>
               <div style={{ display: "flex", gap: 12 }}>
-                <CustomTooltip text={archiveLoading ? "Archiving module..." : "Confirm archive this module"}>
-                  <NeonIconButton
-                    variant="archive"
-                    icon={
-                      <FiArchive />
-                    }
-                    title="Archive"
+                <CustomTooltip text={archiveLoading ? "Restoring module..." : "Confirm restore this module"}>
+                  <TextIconButton
+                    variant="save"
+                    icon={<FiRotateCcw />}
+                    label="Restore"
                     onClick={async () => {
                       setArchiveLoading(true);
-                      await supabase
-                        .from("modules")
-                        .update({
-                          is_archived: true,
-                          updated_at: new Date().toISOString(),
-                        })
-                        .eq("id", selectedModule.id);
-                      setModules((modules) =>
-                        modules.map((mod) =>
-                          mod.id === selectedModule.id
-                            ? { ...mod, is_archived: true }
-                            : mod,
-                        ),
-                      );
-                      setSelectedModule(null);
-                      setArchiveLoading(false);
+                      try {
+                        console.log("Restoring module:", moduleToRestore.id, moduleToRestore.name);
+                        const { error } = await supabase
+                          .from("modules")
+                          .update({
+                            is_archived: false,
+                            updated_at: new Date().toISOString(),
+                          })
+                          .eq("id", moduleToRestore.id);
+                        
+                        if (error) {
+                          console.error("Restore error:", error);
+                          alert(`Failed to restore module: ${error.message}`);
+                        } else {
+                          console.log("Restore successful");
+                          // Refresh the modules list
+                          await refreshModules();
+                        }
+                      } catch (err) {
+                        console.error("Restore exception:", err);
+                        alert("An error occurred while restoring the module");
+                      } finally {
+                        setModuleToRestore(null);
+                        setArchiveLoading(false);
+                      }
                     }}
                     disabled={archiveLoading}
                   />
                 </CustomTooltip>
-                <CustomTooltip text="Cancel archiving">
-                  <NeonIconButton
+                <CustomTooltip text="Cancel restore">
+                  <TextIconButton
                     variant="cancel"
                     icon={<span style={{ fontSize: "1.2em" }}>✖</span>}
-                    title="Cancel"
-                    onClick={() => setSelectedModule(null)}
+                    label="Cancel"
+                    onClick={() => setModuleToRestore(null)}
                     disabled={archiveLoading}
                   />
                 </CustomTooltip>
@@ -282,6 +425,89 @@ export default function TrainingModuleManager() {
             </div>
           )}
         </>
+      )}
+      
+      {/* Edit Module Dialog */}
+      {moduleToEdit && (
+        <OverlayDialog
+          open={true}
+          onClose={() => setModuleToEdit(null)}
+          showCloseButton={true}
+          width={1000}
+        >
+          <EditModuleTab
+            module={{
+              ...moduleToEdit,
+              version: Number(moduleToEdit.version)
+            }}
+            onSuccess={() => {
+              // Refresh modules list after successful edit
+              setModuleToEdit(null);
+              refreshModules();
+            }}
+          />
+        </OverlayDialog>
+      )}
+
+      {/* Archive Confirmation Dialog */}
+      {moduleToArchive && (
+        <OverlayDialog
+          open={true}
+          onClose={() => setModuleToArchive(null)}
+          showCloseButton={true}
+          width={500}
+        >
+          <div style={{ padding: 24 }}>
+            <h3 style={{ color: "var(--neon)", fontWeight: 600, fontSize: "1.25rem", marginBottom: 16 }}>
+              Confirm Archive
+            </h3>
+            <p style={{ marginBottom: 24, fontSize: "1rem", lineHeight: 1.5 }}>
+              Are you sure you want to archive{" "}
+              <span style={{ color: "var(--accent)", fontWeight: 600 }}>
+                {moduleToArchive.name}
+              </span>
+              ? This will remove it from the active modules list.
+            </p>
+            <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
+              <CustomTooltip text={archiveLoading ? "Archiving module..." : "Confirm archive this module"}>
+                <TextIconButton
+                  variant="archive"
+                  icon={<FiArchive />}
+                  label="Archive"
+                  onClick={async () => {
+                    setArchiveLoading(true);
+                    try {
+                      console.log("🔍 Archiving module:", moduleToArchive.id, moduleToArchive.name);
+                      const { error } = await supabase
+                        .from("modules")
+                        .update({
+                          is_archived: true,
+                          updated_at: new Date().toISOString(),
+                        })
+                        .eq("id", moduleToArchive.id);
+
+                      if (error) {
+                        console.error("❌ Archive error:", error);
+                        alert(`Failed to archive module: ${error.message}`);
+                      } else {
+                        console.log("✅ Archive successful");
+                        // Refresh the modules list
+                        await refreshModules();
+                        setModuleToArchive(null);
+                      }
+                    } catch (err) {
+                      console.error("❌ Archive exception:", err);
+                      alert("An error occurred while archiving the module");
+                    } finally {
+                      setArchiveLoading(false);
+                    }
+                  }}
+                  disabled={archiveLoading}
+                />
+              </CustomTooltip>
+            </div>
+          </div>
+        </OverlayDialog>
       )}
     </>
   );

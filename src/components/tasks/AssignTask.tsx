@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import NeonForm from "@/components/NeonForm";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 
 interface AssignTaskProps {
   taskId: string;

@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { FiMail, FiPhone, FiHelpCircle } from "react-icons/fi";
 import SuccessModal from "./SuccessModal";
-import NeonIconButton from "./NeonIconButton";
+import TextIconButton from "./TextIconButtons";
 
 export default function ContactSupport() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -75,8 +75,9 @@ export default function ContactSupport() {
           />
         </div>
         
-        <NeonIconButton
+        <TextIconButton
           variant="send"
+          label={loading ? "Sending..." : "Send Message"}
           title={loading ? "Sending..." : "Send Message"}
           type="submit"
           disabled={loading}

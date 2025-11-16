@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase-client";
 import { useUser } from "@/lib/useUser";
 import { FiCalendar, FiChevronLeft, FiChevronRight, FiClock, FiAlertTriangle } from "react-icons/fi";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import AssignmentDetailModal from "./AssignmentDetailModal";
 
 interface Assignment {
@@ -322,9 +322,9 @@ export default function AssignmentCalendar() {
       <div className="calendar-header">
         <div className="calendar-navigation">
           <CustomTooltip text="Previous month">
-            <NeonIconButton
+            <TextIconButton
               variant="back"
-              title=""
+              label=""
               onClick={goToPrevMonth}
               aria-label="Previous month"
             />
@@ -335,9 +335,9 @@ export default function AssignmentCalendar() {
           </h2>
           
           <CustomTooltip text="Next month">
-            <NeonIconButton
+            <TextIconButton
               variant="next"
-              title=""
+              label=""
               onClick={goToNextMonth}
               aria-label="Next month"
             />
@@ -352,9 +352,9 @@ export default function AssignmentCalendar() {
           </CustomTooltip>
           
           <CustomTooltip text="Refresh assignments">
-            <NeonIconButton
+            <TextIconButton
               variant="refresh"
-              title=""
+              label=""
               onClick={fetchAssignments}
               aria-label="Refresh assignments"
             />

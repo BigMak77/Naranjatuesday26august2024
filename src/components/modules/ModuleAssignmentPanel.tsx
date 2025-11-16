@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-client";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 
 interface Role {
   id: string;
@@ -147,20 +147,20 @@ export default function ModuleAssignmentPanel({ moduleId }: Props) {
       ))}
 
       <div className="module-assignment-actions">
-        <NeonIconButton
+        <TextIconButton
           variant="save"
-          title="Save Assignments"
+          label="Save Assignments"
           onClick={handleSave}
           disabled={saving}
         />
-        <NeonIconButton
+        <TextIconButton
           variant="edit"
-          title="Edit Module"
+          label="Edit Module"
           onClick={() => router.push(`/admin/modules/edit/${moduleId}`)}
         />
-        <NeonIconButton
+        <TextIconButton
           variant="view"
-          title="View Module"
+          label="View Module"
           onClick={() => router.push(`/admin/modules/${moduleId}`)}
         />
       </div>

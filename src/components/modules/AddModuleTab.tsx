@@ -1,10 +1,11 @@
 "use client";
 import React, { useState } from "react";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import { FiPlus, FiX } from "react-icons/fi";
 import { supabase } from "@/lib/supabase-client";
 import NeonForm from "@/components/NeonForm";
 import OverlayDialog from "@/components/ui/OverlayDialog";
+import ModuleFileAttachments, { ModuleAttachment } from "@/components/modules/ModuleFileAttachments";
 
 interface AddModuleTabProps {
   onSuccess?: () => void;
@@ -25,6 +26,7 @@ export default function AddModuleTab({
   const [requiresFollowUp, setRequiresFollowUp] = useState(false);
   const [reviewPeriod, setReviewPeriod] = useState("0");
   const [showFollowUpDialog, setShowFollowUpDialog] = useState(false);
+  const [attachments, setAttachments] = useState<ModuleAttachment[]>([]);
   // Removed unused 'saving' state
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -58,7 +60,7 @@ export default function AddModuleTab({
     setError(null);
 
     console.log("=== AddModuleTab: Form submitted ===");
-    console.log("Form values:", { name, description, version, learningObjectives, estimatedDuration, deliveryFormat, tags, requiresFollowUp, reviewPeriod });
+    console.log("Form values:", { name, description, version, learningObjectives, estimatedDuration, deliveryFormat, tags, requiresFollowUp, reviewPeriod, attachments });
 
     try {
       // Only export fields present in the add form
@@ -72,6 +74,7 @@ export default function AddModuleTab({
         tags: tags.length > 0 ? tags : null,
         requires_follow_up: requiresFollowUp,
         review_period: requiresFollowUp ? reviewPeriod : "0",
+        attachments: attachments.length > 0 ? attachments : [],
       };
 
       console.log("Payload to insert:", payload);
@@ -97,6 +100,7 @@ export default function AddModuleTab({
       setTagInput("");
       setRequiresFollowUp(false);
       setReviewPeriod("0");
+      setAttachments([]);
     } catch (err) {
       console.error("❌ Error adding module:", err);
       setError(err instanceof Error ? err.message : "Failed to add module.");
@@ -219,10 +223,10 @@ export default function AddModuleTab({
               className="add-module-tab-input neon-input"
               style={{ flex: 1 }}
             />
-            <NeonIconButton
+            <TextIconButton
               variant="add"
               icon={<FiPlus size={16} />}
-              title="Add Tag"
+              label="Add Tag"
               onClick={addTag}
               disabled={!tagInput.trim()}
             />
@@ -231,10 +235,10 @@ export default function AddModuleTab({
             {tags.map((t, i) => (
               <span key={i} className="add-module-tab-tag">
                 {t}
-                <NeonIconButton
+                <TextIconButton
                   variant="delete"
                   icon={<FiX color="white" />}
-                  title="Remove"
+                  label="Remove"
                   onClick={() => setTags(tags.filter((_, idx) => idx !== i))}
                   className="add-module-tab-tag-remove"
                 />
@@ -242,13 +246,25 @@ export default function AddModuleTab({
             ))}
           </div>
         </div>
+
+        <div className="add-module-tab-field">
+          <label className="add-module-tab-label">Attachments</label>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>
+            Upload training materials such as presentations, SCORM packages, PDFs, videos, etc.
+          </p>
+          <ModuleFileAttachments
+            attachments={attachments}
+            onChange={setAttachments}
+          />
+        </div>
+
         {error && <p className="add-module-tab-error">{error}</p>}
         {success && (
           <p className="add-module-tab-success">
-            <NeonIconButton
+            <TextIconButton
               variant="add"
               icon={<FiPlus color="white" />}
-              title="Added"
+              label="Added"
             />
             {/* Icon only, no label */}
           </p>
@@ -265,23 +281,12 @@ export default function AddModuleTab({
         >
           <div style={{ padding: "24px", minWidth: "400px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-              <h3 
+              <h3
                 id="follow-up-dialog-title"
                 style={{ color: "var(--accent)", fontWeight: 600, fontSize: "1.1rem", margin: 0 }}
               >
                 Follow-up Assessment Configuration
               </h3>
-              <NeonIconButton
-                variant="delete"
-                icon={<FiX size={18} />}
-                title="Close"
-                onClick={() => {
-                  setShowFollowUpDialog(false);
-                  if (!requiresFollowUp) {
-                    setReviewPeriod("0");
-                  }
-                }}
-              />
             </div>
             
             <div style={{ marginBottom: "20px" }}>
@@ -325,10 +330,10 @@ export default function AddModuleTab({
             </div>
             
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-              <NeonIconButton
+              <TextIconButton
                 variant="add"
                 icon={<FiPlus size={16} />}
-                title="Save Configuration"
+                label="Save Configuration"
                 onClick={() => setShowFollowUpDialog(false)}
               />
             </div>

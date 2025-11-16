@@ -88,32 +88,32 @@ export default function SuccessModal({
         ref={panelRef}
         onMouseDown={(e) => e.stopPropagation()}
         style={{
-          backgroundColor: "white",
-          borderRadius: "0.5rem",
+          backgroundColor: "#053639",
+          borderRadius: "16px",
           boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
-          padding: "1.5rem",
+          padding: "2rem",
           width: "100%",
           maxWidth: "28rem",
           margin: "0 1rem",
           outline: "none",
-          border: "1px solid #e5e7eb",
+          border: "1px solid #fa7a20",
         }}
       >
-        <h2 
-          id="success-title" 
-          style={{ 
-            fontSize: "1.25rem", 
-            fontWeight: 700, 
-            color: "#111827", 
+        <h2
+          id="success-title"
+          style={{
+            fontSize: "1.25rem",
+            fontWeight: 700,
+            color: "#fff",
             marginBottom: "0.75rem",
             marginTop: 0,
           }}
         >
           {title}
         </h2>
-        <p 
-          style={{ 
-            color: "#374151", 
+        <p
+          style={{
+            color: "#fff",
             lineHeight: 1.625,
             margin: 0,
           }}

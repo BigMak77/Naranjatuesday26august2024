@@ -95,10 +95,9 @@ export default function OverlayDialog({
               position: 'absolute',
               top: '16px',
               right: '16px',
-              width: '26px',
-              height: '26px',
-              borderRadius: '50%',
-              border: '2px solid white',
+              width: '12px',
+              height: '12px',
+              border: 'none',
               backgroundColor: 'transparent',
               cursor: 'pointer',
               display: 'flex',
@@ -108,12 +107,14 @@ export default function OverlayDialog({
               margin: '0',
               boxSizing: 'border-box',
               zIndex: 1,
+              opacity: 0.7,
+              transition: 'opacity 0.2s',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+              e.currentTarget.style.opacity = '1';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.opacity = '0.7';
             }}
           >
             <svg

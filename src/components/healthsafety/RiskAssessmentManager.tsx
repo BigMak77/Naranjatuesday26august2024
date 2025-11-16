@@ -6,7 +6,7 @@ import { FiClipboard, FiUserPlus } from "react-icons/fi";
 import NeonForm from "@/components/NeonForm";
 import NeonTable from "@/components/NeonTable";
 import NeonPanel from "@/components/NeonPanel";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import OverlayDialog from "@/components/ui/OverlayDialog";
 
 type TurkusRisk = {
@@ -369,17 +369,17 @@ export default function RiskAssessmentManager() {
               ),
               actions: (
                 <div style={{ display: "flex", gap: "8px", justifyContent: "center" }}>
-                  <NeonIconButton
+                  <TextIconButton
                     variant="edit"
-                    title="Amend"
+                    label="Amend"
                     onClick={() => {
                       setMode("edit");
                       setSelectedId(risk.id);
                     }}
                   />
-                  <NeonIconButton
+                  <TextIconButton
                     variant="assign"
-                    title="Assign"
+                    label="Assign"
                     onClick={() => {
                       setMode("assign");
                       setSelectedId(risk.id);
@@ -405,7 +405,6 @@ export default function RiskAssessmentManager() {
               : "Edit Risk Assessment"
           }
           onSubmit={handleSubmit}
-          onCancel={handleCancel}
         >
             {/* Top row: Title, Description, Department inline */}
             <div style={{ 

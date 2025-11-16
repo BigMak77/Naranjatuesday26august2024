@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase-client";
-import NeonIconButton from "@/components/ui/NeonIconButton";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import { FiClock, FiAlertTriangle, FiCheck, FiRefreshCw, FiX } from "react-icons/fi";
 import OverlayDialog from "@/components/ui/OverlayDialog";
 import SignaturePad from "react-signature-canvas";
@@ -379,10 +379,10 @@ export default function TrainingAssessment() {
 
       {/* Refresh button */}
       <div style={{ marginBottom: '20px' }}>
-        <NeonIconButton
+        <TextIconButton
           variant="add"
           icon={<FiRefreshCw size={16} />}
-          title="Refresh Data"
+          label="Refresh Data"
           onClick={fetchFollowUpAssignments}
         />
       </div>
@@ -474,10 +474,10 @@ export default function TrainingAssessment() {
               </div>
 
               {!assignment.follow_up_completed_at && (
-                <NeonIconButton
+                <TextIconButton
                   variant="add"
                   icon={<FiCheck size={16} />}
-                  title="Sign Off Assessment"
+                  label="Sign Off Assessment"
                   onClick={() => openSignOffDialog(assignment)}
                 />
               )}
@@ -611,10 +611,10 @@ export default function TrainingAssessment() {
                   onClick={() => setOutcome('satisfactory')}
                   >
                     <div style={{ marginBottom: '8px' }}>
-                      <NeonIconButton
+                      <TextIconButton
                         variant={outcome === 'satisfactory' ? 'save' : 'add'}
                         icon={<FiCheck size={20} />}
-                        title=""
+                        label=""
                         onClick={(e) => {
                           e.stopPropagation();
                           setOutcome('satisfactory');
@@ -655,10 +655,10 @@ export default function TrainingAssessment() {
                   onClick={() => setOutcome('needs-improvement')}
                   >
                     <div style={{ marginBottom: '8px' }}>
-                      <NeonIconButton
+                      <TextIconButton
                         variant={outcome === 'needs-improvement' ? 'edit' : 'add'}
                         icon={<FiAlertTriangle size={20} />}
-                        title=""
+                        label=""
                         onClick={(e) => {
                           e.stopPropagation();
                           setOutcome('needs-improvement');
@@ -758,10 +758,10 @@ export default function TrainingAssessment() {
                   right: '8px',
                   zIndex: 10
                 }}>
-                  <NeonIconButton
+                  <TextIconButton
                     variant="delete"
                     icon={<FiX size={14} />}
-                    title="Clear"
+                    label="Clear"
                     onClick={clearSignature}
                   />
                 </div>
@@ -792,16 +792,10 @@ export default function TrainingAssessment() {
 
             {/* Actions */}
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-              <NeonIconButton
-                variant="delete"
-                icon={<FiX size={16} />}
-                title="Cancel"
-                onClick={closeSignOffDialog}
-                disabled={signingOff}
-              />
-              <NeonIconButton
+              <TextIconButton
                 variant={signature.trim() ? 'save' : 'add'}
                 icon={signingOff ? <FiRefreshCw className="animate-spin" size={16} /> : <FiCheck size={16} />}
+                label={signingOff ? 'Signing Off...' : 'Sign Off Assessment'}
                 title={signingOff ? 'Signing Off...' : 'Sign Off Assessment'}
                 onClick={handleSignOff}
                 disabled={signingOff || !signature.trim()}
