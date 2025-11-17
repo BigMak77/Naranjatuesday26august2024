@@ -17,7 +17,7 @@ export default function UserToolbar() {
 
   return (
     <section className="section-toolbar">
-      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+      <div className="toolbar-buttons">
         {/* First Aider Button */}
         {canAddFirstAidReport && (
           <TextIconButton
@@ -47,7 +47,7 @@ export default function UserToolbar() {
         />
       </div>
 
-      <span style={{ minWidth: "200px", whiteSpace: "nowrap" }}>
+      <span className="toolbar-user-info">
         {user?.first_name ? `${user.first_name}, Access level: User` : "User Toolbar"}
       </span>
     </section>

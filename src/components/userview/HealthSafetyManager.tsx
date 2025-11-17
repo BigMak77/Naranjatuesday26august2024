@@ -348,10 +348,7 @@ export default function HealthSafetyManager() {
 
   return (
     <>
-      <div className="after-hero">
-        <div className="global-content">
-        <main className="global-content">
-          <FolderTabs
+      <FolderTabs
             tabs={[
               { key: "assessments", label: "Risk Assessments", icon: <FiClipboard /> },
               { key: "incidents", label: "Incidents", icon: <FiAlertCircle /> },
@@ -654,9 +651,6 @@ export default function HealthSafetyManager() {
               </div>
             </NeonPanel>
           )}
-        </main>
-        </div>
-      </div>
 
       {/* Overlay Dialog for feedback messages */}
       <OverlayDialog showCloseButton={true}

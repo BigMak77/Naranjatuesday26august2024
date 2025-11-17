@@ -137,9 +137,9 @@ export default function ManagerToolbar({
 
   return (
     <section className={`section-toolbar ${className}`.trim()}>
-      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+      <div className="toolbar-buttons">
         {/* Manager Navigation Dropdown */}
-        <div ref={dropdownRef} style={{ position: "relative" }}>
+        <div ref={dropdownRef} className="toolbar-dropdown">
           <button
             className="neon-btn neon-btn-list"
             onClick={handleToggle}
@@ -175,7 +175,7 @@ export default function ManagerToolbar({
               <ul className="list-button-dropdown-list">
                 {availableNavItems.length === 0 ? (
                   <li>
-                    <div className="list-button-dropdown-item" style={{ opacity: 0.6 }}>
+                    <div className="list-button-dropdown-item list-button-dropdown-item-disabled">
                       No sections available
                       {!user.department_id && (
                         <>
@@ -189,24 +189,18 @@ export default function ManagerToolbar({
                   availableNavItems.map((item) => (
                     <li key={item.label}>
                       <button
-                        className={`list-button-dropdown-item ${item.comingSoon ? "coming-soon" : ""}`}
+                        className={`list-button-dropdown-item list-button-dropdown-item-with-icon ${item.comingSoon ? "coming-soon" : ""}`}
                         onClick={item.onClick}
                         type="button"
                         title={item.description}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "0.75rem",
-                          width: "100%",
-                        }}
                       >
-                        <span style={{ display: "flex", alignItems: "center", color: "var(--neon)" }}>
+                        <span className="list-button-dropdown-item-icon">
                           {item.icon}
                         </span>
-                        <span style={{ flex: 1, textAlign: "left" }}>
+                        <span className="list-button-dropdown-item-label">
                           {item.label}
                           {item.comingSoon && (
-                            <span style={{ opacity: 0.6, fontSize: "0.8em", marginLeft: "0.5rem" }}>
+                            <span className="list-button-dropdown-item-badge">
                               (Soon)
                             </span>
                           )}
@@ -221,7 +215,7 @@ export default function ManagerToolbar({
         </div>
       </div>
 
-      <span style={{ minWidth: "200px", whiteSpace: "nowrap" }}>
+      <span className="toolbar-user-info">
         {user?.first_name ? `${user.first_name}, Access level: Manager` : "Manager Toolbar"}
       </span>
     </section>

@@ -8,18 +8,11 @@ import React, {
   useCallback,
 } from "react";
 import {
-  FiUserPlus,
-  FiClock,
-  FiArchive,
   FiAward,
-  FiFilter,
-  FiCheckSquare,
   FiActivity,
-  FiDownload,
-  FiUpload,
-  FiHelpCircle,
   FiX,
 } from "react-icons/fi";
+import TextIconButton from "@/components/ui/TextIconButtons";
 import { createClient } from "@supabase/supabase-js";
 import SignaturePad from "react-signature-canvas";
 import NeonTable from "../NeonTable";
@@ -34,6 +27,7 @@ import TrainingQuestionCategory from "../training/TrainingQuestionCategory";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 import ContentHeader from "@/components/ui/ContentHeader";
 import OverlayDialog from "@/components/ui/OverlayDialog";
+import TrainerViewToolbar from "@/components/ui-toolbars/TrainerViewToolbar";
 
 // ==========================
 // Types
@@ -258,6 +252,9 @@ export default function TrainerRecordingPage({
   const [modules, setModules] = useState<{ id: string; name: string }[]>([]);
   const [section, setSection] = useState<Section>("log");
   const [categoriesDialogOpen, setCategoriesDialogOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(20);
   const [csvResultModal, setCsvResultModal] = useState<{
     open: boolean;
     success: number;
@@ -430,8 +427,21 @@ export default function TrainerRecordingPage({
     module_name?: string | null;
   };
 
+  type DocumentAssignment = {
+    id: string; // user_assignments.id
+    document_id: string; // user_assignments.item_id
+    document_title?: string | null;
+    reference_code?: string | null;
+    document_url?: string | null;
+    assigned_at: string;
+    due_at: string | null;
+    confirmation_required: boolean;
+    confirmed_at: string | null;
+  };
+
   const [assignments, setAssignments] = useState<TrainingAssignment[]>([]);
   const [selectedModuleId, setSelectedModuleId] = useState<string>("");
+  const [documentAssignments, setDocumentAssignments] = useState<DocumentAssignment[]>([]);
 
   const fetchAssignments = async (authId: string) => {
     try {
@@ -475,6 +485,56 @@ export default function TrainerRecordingPage({
     }
   };
 
+  const fetchDocumentAssignments = async (authId: string) => {
+    try {
+      // Fetch document assignments (both confirmed and pending)
+      const { data: docAssignments, error: docErr } = await supabase
+        .from("user_assignments")
+        .select("id, item_id, assigned_at, due_at, confirmation_required, confirmed_at")
+        .eq("auth_id", authId)
+        .eq("item_type", "document")
+        .order("assigned_at", { ascending: false });
+
+      if (docErr) throw docErr;
+
+      let docList: DocumentAssignment[] = (docAssignments ?? []).map((row) => ({
+        id: row.id,
+        document_id: row.item_id,
+        assigned_at: row.assigned_at,
+        due_at: row.due_at,
+        confirmation_required: row.confirmation_required ?? false,
+        confirmed_at: row.confirmed_at,
+      }));
+
+      // Fetch document details
+      const docIds = Array.from(new Set(docList.map((a) => a.document_id)));
+      if (docIds.length) {
+        const { data: docs, error: docsErr } = await supabase
+          .from("documents")
+          .select("id, title, reference_code, document_url")
+          .in("id", docIds);
+
+        if (!docsErr && docs?.length) {
+          const docById = new Map(docs.map((d) => [d.id, d]));
+          docList = docList.map((a) => {
+            const doc = docById.get(a.document_id);
+            return {
+              ...a,
+              document_title: doc?.title ?? null,
+              reference_code: doc?.reference_code ?? null,
+              document_url: doc?.document_url ?? null,
+            };
+          });
+        }
+      }
+
+      setDocumentAssignments(docList);
+    } catch (e) {
+      console.error("Failed to fetch document assignments:", e);
+      setDocumentAssignments([]);
+    }
+  };
+
   // ==========================
   // History Modal
   // ==========================
@@ -511,12 +571,31 @@ export default function TrainerRecordingPage({
     }
   };
 
-  // Derived
-  const filtered = useMemo(() => {
+  // Derived - All filtered data
+  const allFiltered = useMemo(() => {
     return rows
       .filter((r) => (dept === "all" ? true : r.departmentId === dept))
+      .filter((r) => {
+        if (!searchTerm.trim()) return true;
+        const term = searchTerm.toLowerCase();
+        return (
+          r.name.toLowerCase().includes(term) ||
+          r.departmentName.toLowerCase().includes(term)
+        );
+      })
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, [rows, dept]);
+  }, [rows, dept, searchTerm]);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(allFiltered.length / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedData = allFiltered.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [dept, searchTerm]);
 
   // Handlers
   const openLog = async (u: UserRow) => {
@@ -528,7 +607,10 @@ export default function TrainerRecordingPage({
       notes: "",
       signature: "",
     });
-    await fetchAssignments(u.auth_id);
+    await Promise.all([
+      fetchAssignments(u.auth_id),
+      fetchDocumentAssignments(u.auth_id)
+    ]);
   };
 
   const handleSignatureChange = useCallback((dataUrl: string) => {
@@ -1092,84 +1174,29 @@ export default function TrainerRecordingPage({
         title="Trainer View"
         description="Record, assign, and review training for users"
       />
-        {/* Training Management Actions */}
-        <div className="flex gap-2 mb-4 flex-wrap">
-          <CustomTooltip text="Manage training materials">
-            <button
-              className="neon-btn neon-btn-archive"
-              onClick={() => setMaterialsDialogOpen(true)}
-            >
-              <FiArchive />
-            </button>
-          </CustomTooltip>
-          <CustomTooltip text="Manage training questions">
-            <button
-              className="neon-btn neon-btn-edit"
-              onClick={() => setSection(section === "questions" ? "log" : "questions")}
-            >
-              <FiHelpCircle />
-            </button>
-          </CustomTooltip>
-          <CustomTooltip text="Manage question categories">
-            <button
-              className="neon-btn neon-btn-view"
-              onClick={() => setCategoriesDialogOpen(true)}
-            >
-              <FiCheckSquare />
-            </button>
-          </CustomTooltip>
-          <CustomTooltip text="Download user assignments as CSV">
-            <button
-              className="neon-btn neon-btn-save"
-              onClick={downloadUserAssignmentsCSV}
-              disabled={busy}
-            >
-              <FiDownload />
-            </button>
-          </CustomTooltip>
-          <CustomTooltip text="Upload user assignments CSV">
-            <button
-              className="neon-btn neon-btn-upload"
-              onClick={() => document.getElementById('csv-upload')?.click()}
-              disabled={busy}
-            >
-              <FiUpload />
-            </button>
-          </CustomTooltip>
-          <input
-            id="csv-upload"
-            type="file"
-            accept=".csv"
-            style={{ display: 'none' }}
-            onChange={handleCSVUpload}
-          />
-        </div>
 
-        {/* Controls */}
-        <div className="grid gap-3 md:grid-cols-2 mb-4">
-          <label className="flex items-center gap-2 rounded-xl bg-[var(--field,#012b2b)] px-3 py-2 neon-panel">
-            <FiFilter aria-hidden />
-            <select
-              aria-label="Filter by department"
-              style={{ 
-                width: '100%', 
-                background: 'transparent', 
-                outline: 'none',
-                border: 'none',
-                color: 'var(--text-white)'
-              }}
-              value={dept}
-              onChange={(e) => setDept(e.target.value)}
-            >
-              <option value="all">All departments</option>
-              {depts.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
+      {/* Training Management Toolbar */}
+      <TrainerViewToolbar
+        onManageMaterials={() => setMaterialsDialogOpen(true)}
+        onManageQuestions={() => setSection(section === "questions" ? "log" : "questions")}
+        onManageCategories={() => setCategoriesDialogOpen(true)}
+        onDownloadCSV={downloadUserAssignmentsCSV}
+        onUploadCSV={() => document.getElementById('csv-upload')?.click()}
+        onSearch={setSearchTerm}
+        onDepartmentFilter={setDept}
+        departments={depts}
+        selectedDepartment={dept}
+        busy={busy}
+      />
+
+      {/* Hidden file input for CSV upload */}
+      <input
+        id="csv-upload"
+        type="file"
+        accept=".csv"
+        style={{ display: 'none' }}
+        onChange={handleCSVUpload}
+      />
 
         {/* Table */}
         <NeonTable
@@ -1186,52 +1213,84 @@ export default function TrainerRecordingPage({
               accessor: "actions",
               render: (_, row) => (
                 <div className="flex items-center justify-center gap-2">
-                  <CustomTooltip text="Log a training session">
-                    <button
-                      className="neon-btn neon-btn-utility neon-btn-global"
-                      onClick={() => openLog(row as UserRow)}
-                      aria-label="Log session"
-                      type="button"
-                    >
-                      <FiUserPlus />
-                    </button>
-                  </CustomTooltip>
-                  <CustomTooltip text="View training history">
-                    <button
-                      className="neon-btn neon-btn-history neon-btn-utility neon-btn-global"
-                      onClick={() => openHistory(row as UserRow)}
-                      aria-label="History"
-                      type="button"
-                    >
-                      <FiClock />
-                    </button>
-                  </CustomTooltip>
-                  <CustomTooltip text="View training activity">
-                    <button
-                      className="neon-btn neon-btn-activity neon-btn-utility neon-btn-global"
-                      onClick={() => onOpenSection?.((row as UserRow).id, "profile")}
-                      aria-label="Activity"
-                      type="button"
-                    >
-                      <FiActivity />
-                    </button>
-                  </CustomTooltip>
-                  <CustomTooltip text="View certificates & status">
-                    <button
-                      className="neon-btn neon-btn-cert neon-btn-square neon-btn-utility neon-btn-global"
-                      onClick={() => openCertificatesDialog(row as UserRow)}
-                      aria-label="Certs"
-                      type="button"
-                    >
-                      <FiAward />
-                    </button>
-                  </CustomTooltip>
+                  <TextIconButton
+                    variant="addUser"
+                    label="Log"
+                    onClick={() => openLog(row as UserRow)}
+                    title="Log a training session"
+                  />
+                  <TextIconButton
+                    variant="clock"
+                    label="History"
+                    onClick={() => openHistory(row as UserRow)}
+                    title="View training history"
+                  />
+                  <TextIconButton
+                    variant="info"
+                    label="Activity"
+                    onClick={() => onOpenSection?.((row as UserRow).id, "profile")}
+                    title="View training activity"
+                    icon={<FiActivity />}
+                  />
+                  <TextIconButton
+                    variant="info"
+                    label="Certs"
+                    onClick={() => openCertificatesDialog(row as UserRow)}
+                    title="View certificates & status"
+                    icon={<FiAward />}
+                  />
                 </div>
               ),
             },
           ]}
-          data={filtered}
+          data={paginatedData}
         />
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-4 px-4">
+            <div className="text-sm" style={{ color: 'var(--text-white)', opacity: 0.7 }}>
+              Showing {startIndex + 1} to {Math.min(endIndex, allFiltered.length)} of {allFiltered.length} users
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                className="neon-btn neon-btn-utility neon-btn-global"
+                title="First page"
+              >
+                ««
+              </button>
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="neon-btn neon-btn-utility neon-btn-global"
+                title="Previous page"
+              >
+                «
+              </button>
+              <span className="text-sm px-4" style={{ color: 'var(--text-white)' }}>
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="neon-btn neon-btn-utility neon-btn-global"
+                title="Next page"
+              >
+                »
+              </button>
+              <button
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+                className="neon-btn neon-btn-utility neon-btn-global"
+                title="Last page"
+              >
+                »»
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Log Training Session Dialog */}
         <OverlayDialog
@@ -1362,6 +1421,93 @@ export default function TrainerRecordingPage({
                   disabled={busy}
                   onChange={handleSignatureChange}
                 />
+              </div>
+
+              {/* Document Assignments Section */}
+              <div className="grid gap-2 mt-6">
+                <span className="font-body opacity-80 text-lg">
+                  Document Assignments
+                </span>
+                {documentAssignments.length > 0 ? (
+                  <div className="space-y-3">
+                    {documentAssignments.map((doc) => (
+                      <div
+                        key={doc.id}
+                        className="p-3 rounded-lg border border-opacity-30 bg-black bg-opacity-20"
+                        style={{ borderColor: 'var(--neon)' }}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="font-medium text-sm">
+                              {doc.document_title || `Document ${doc.document_id}`}
+                            </div>
+                            {doc.reference_code && (
+                              <div className="text-xs opacity-70 mt-1">
+                                Ref: {doc.reference_code}
+                              </div>
+                            )}
+                            <div className="text-xs opacity-60 mt-1">
+                              Assigned: {new Date(doc.assigned_at).toLocaleDateString()}
+                              {doc.due_at && ` • Due: ${new Date(doc.due_at).toLocaleDateString()}`}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {doc.document_url && (
+                              <a
+                                href={doc.document_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs px-2 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white"
+                                title="View document"
+                              >
+                                View
+                              </a>
+                            )}
+                            {doc.confirmation_required && !doc.confirmed_at && (
+                              <button
+                                onClick={async () => {
+                                  try {
+                                    const { error } = await supabase
+                                      .from("user_assignments")
+                                      .update({ confirmed_at: new Date().toISOString() })
+                                      .eq("id", doc.id);
+                                    
+                                    if (error) {
+                                      console.error("Error confirming document:", error);
+                                      alert("Failed to confirm document");
+                                    } else {
+                                      // Refresh document assignments
+                                      if (openFor) {
+                                        await fetchDocumentAssignments(openFor.auth_id);
+                                      }
+                                    }
+                                  } catch (err) {
+                                    console.error("Error confirming document:", err);
+                                    alert("Failed to confirm document");
+                                  }
+                                }}
+                                disabled={busy}
+                                className="text-xs px-2 py-1 rounded bg-green-600 hover:bg-green-700 text-white disabled:opacity-50"
+                                title="Mark as confirmed"
+                              >
+                                Confirm
+                              </button>
+                            )}
+                            {doc.confirmation_required && doc.confirmed_at && (
+                              <div className="text-xs px-2 py-1 rounded bg-green-600 text-white">
+                                Confirmed
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="font-body opacity-60 text-sm">
+                    No document assignments.
+                  </span>
+                )}
               </div>
             </NeonForm>
             </div>
@@ -1567,34 +1713,26 @@ export default function TrainerRecordingPage({
                         const module = row as CompletedModule;
                         return (
                           <div className="flex items-center justify-center gap-2">
-                            <CustomTooltip text="Download certificate">
-                              <button
-                                className="neon-btn neon-btn-utility neon-btn-global"
-                                onClick={() => {
-                                  // TODO: Implement certificate download
-                                  console.log("Download certificate for:", module);
-                                  alert(`Download certificate for ${module.module_name}`);
-                                }}
-                                aria-label="Download"
-                                type="button"
-                              >
-                                <FiDownload />
-                              </button>
-                            </CustomTooltip>
-                            <CustomTooltip text="Send certificate via email">
-                              <button
-                                className="neon-btn neon-btn-save neon-btn-utility neon-btn-global"
-                                onClick={() => {
-                                  // TODO: Implement certificate send
-                                  console.log("Send certificate for:", module);
-                                  alert(`Send certificate for ${module.module_name}`);
-                                }}
-                                aria-label="Send"
-                                type="button"
-                              >
-                                <FiUpload />
-                              </button>
-                            </CustomTooltip>
+                            <TextIconButton
+                              variant="download"
+                              label="Download"
+                              onClick={() => {
+                                // TODO: Implement certificate download
+                                console.log("Download certificate for:", module);
+                                alert(`Download certificate for ${module.module_name}`);
+                              }}
+                              title="Download certificate"
+                            />
+                            <TextIconButton
+                              variant="send"
+                              label="Send"
+                              onClick={() => {
+                                // TODO: Implement certificate send
+                                console.log("Send certificate for:", module);
+                                alert(`Send certificate for ${module.module_name}`);
+                              }}
+                              title="Send certificate via email"
+                            />
                           </div>
                         );
                       },

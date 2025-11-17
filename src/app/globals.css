@@ -95,7 +95,7 @@
 
   /* Fixed Heights - CRITICAL for sticky positioning */
   --header-height: 96px;           /* GlobalHeader height */
-  --toolbar-height: 40px;          /* AdminToolbar height */
+  --toolbar-height: 64px;          /* AdminToolbar height */
 }
 
 /* ================== CSS Reset & Base Styles ================== */
@@ -586,11 +586,52 @@ header.global-header {
   z-index: 90;
   background: var(--panel);
   margin: 0;
-  display: grid;
-  grid-template-columns: 100px repeat(14, 40px);
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  padding-left: 10px;
+  padding: 0 10px;
   border-bottom: 1px solid rgba(64, 224, 208, 0.18);
+}
+
+/* ========== TOOLBAR BUTTON CONTAINER ========== */
+.toolbar-buttons {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* ========== TOOLBAR TEXT-ICON BUTTONS ========== */
+.section-toolbar .text-icon-btn {
+  height: 40px;
+  padding: 0 16px;
+  font-size: 0.875rem;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.section-toolbar .text-icon-btn:hover:not(:disabled) {
+  background: rgba(64, 224, 208, 0.1);
+}
+
+.section-toolbar .text-icon-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.section-toolbar .text-icon-btn-icon {
+  font-size: 1.125rem;
+}
+
+.section-toolbar .text-icon-btn-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* ========== TOOLBAR DROPDOWN CONTAINER ========== */
+.toolbar-dropdown {
+  position: relative;
 }
 
 /* ========== TOOLBAR TEXT STYLING ========== */
@@ -600,6 +641,83 @@ header.global-header {
   font-family: var(--font-family);
   font-weight: var(--font-weight-normal);
   color: var(--text-white);
+}
+
+.toolbar-user-info {
+  min-width: 200px;
+  white-space: nowrap;
+}
+
+/* ========== TOOLBAR FILTER & SEARCH CONTAINERS ========== */
+.toolbar-filter,
+.toolbar-search {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.toolbar-search {
+  margin-left: 1rem;
+}
+
+/* ========== TOOLBAR SELECT DROPDOWN ========== */
+.toolbar-select {
+  background: var(--field);
+  border: 1px solid #fa7a20;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  color: var(--text-white);
+  font-family: var(--font-family);
+  font-size: 0.875rem;
+  min-width: 180px;
+  height: 40px;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toolbar-select:focus {
+  border-color: #ff8c3a;
+  box-shadow: 0 0 8px rgba(250, 122, 32, 0.3);
+}
+
+.toolbar-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toolbar-select option {
+  background: var(--panel);
+  color: var(--text-white);
+}
+
+/* ========== TOOLBAR INPUT (SEARCH) ========== */
+.toolbar-input {
+  background: var(--field);
+  border: 1px solid #fa7a20;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  color: var(--text-white);
+  font-family: var(--font-family);
+  font-size: 0.875rem;
+  width: 250px;
+  height: 40px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.toolbar-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.toolbar-input:focus {
+  border-color: #ff8c3a;
+  box-shadow: 0 0 8px rgba(250, 122, 32, 0.3);
+}
+
+.toolbar-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* ========== ROLE-SPECIFIC TOOLBAR COLORS ========== */
@@ -619,8 +737,8 @@ header.global-header {
 }
 
 .section-toolbar-trainer {
-  background: linear-gradient(90deg, rgb(1, 55, 233) 0%, var(--panel) 100%);
-  border-bottom: 1px solid rgba(138, 113, 30, 0.3);
+  background: linear-gradient(90deg, rgba(250, 122, 32, 0.15) 0%, var(--panel) 100%);
+  border-bottom: 2px solid #fa7a20;
 }
 
 .section-toolbar-hs {
@@ -2376,11 +2494,40 @@ button svg {
   pointer-events: none;
 }
 
-/* Department info in dropdown header */
-.list-button-dropdown-header > div {
+/* Dropdown header subtext */
+.list-button-dropdown-subtext {
   margin-top: 0.25rem;
-  color: var(--text-muted);
   font-size: 0.8em;
+  opacity: 0.7;
+}
+
+/* Manager dropdown item with icon */
+.list-button-dropdown-item-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.list-button-dropdown-item-icon {
+  display: flex;
+  align-items: center;
+  color: var(--neon);
+}
+
+.list-button-dropdown-item-label {
+  flex: 1;
+  text-align: left;
+}
+
+.list-button-dropdown-item-badge {
+  opacity: 0.6;
+  font-size: 0.8em;
+  margin-left: 0.5rem;
+}
+
+.list-button-dropdown-item-disabled {
+  opacity: 0.6;
 }
 
 /* ========== CUSTOM TOOLTIP STYLES ========== */
@@ -3379,20 +3526,9 @@ button svg {
   border-top: 1px solid rgba(64, 224, 208, 0.2);
 }
 
-/* ========== NEON SQUARE FORM BUTTON: Square submit buttons ========== */
-.neon-btn-square-form {
-  width: 40px !important;
-  height: 40px !important;
-  min-width: 40px !important;
-  min-height: 40px !important;
-  max-width: 40px !important;
-  max-height: 40px !important;
-  background: var(--text-success) !important;
-  border-radius: 8px;
-}
-
-.neon-btn-square-form:hover {
-  background: #22c55e !important;
+/* ========== NEON FORM BUTTON STYLING ========== */
+.neon-form-submit-btn {
+  /* No color overrides - uses default TextIconButton styling */
 }
 
 /* ==================================================================================

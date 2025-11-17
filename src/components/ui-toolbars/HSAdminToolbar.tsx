@@ -3,46 +3,53 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/context/UserContext";
-import { FiMail, FiUsers } from "react-icons/fi";
+import { FiMail, FiAlertTriangle } from "react-icons/fi";
+import TextIconButton from "@/components/ui/TextIconButtons";
 
-type HRSection = "Dashboard" | "Employees" | "Compliance" | "Reports";
+type HSSection = "Dashboard" | "Incidents" | "Risk Assessments" | "First Aiders" | "Compliance";
 
-export default function HRAdminToolbar() {
+export default function HSAdminToolbar() {
   const router = useRouter();
   const { user } = useUser();
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedSection, setSelectedSection] = useState<HRSection>("Dashboard");
+  const [selectedSection, setSelectedSection] = useState<HSSection>("Dashboard");
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const hrSections: Array<{
-    section: HRSection;
+  const hsSections: Array<{
+    section: HSSection;
     label: string;
     path: string;
     description: string;
   }> = [
     {
       section: "Dashboard",
-      label: "HR Dashboard",
-      path: "/hr/dashboard",
-      description: "HR overview and analytics"
+      label: "H&S Dashboard",
+      path: "/health-safety",
+      description: "Health & Safety overview"
     },
     {
-      section: "Employees",
-      label: "Employee Management",
-      path: "/hr/employees",
-      description: "Manage employee records (all departments)"
+      section: "Incidents",
+      label: "Incident Management",
+      path: "/health-safety/incidents",
+      description: "View and manage all incidents (all departments)"
+    },
+    {
+      section: "Risk Assessments",
+      label: "Risk Assessments",
+      path: "/health-safety/risk-assessments",
+      description: "Manage organization-wide risk assessments"
+    },
+    {
+      section: "First Aiders",
+      label: "First Aiders",
+      path: "/health-safety/first-aiders",
+      description: "Manage first aider registry"
     },
     {
       section: "Compliance",
-      label: "Compliance",
-      path: "/hr/compliance",
-      description: "Organization-wide compliance tracking"
-    },
-    {
-      section: "Reports",
-      label: "Reports",
-      path: "/hr/reports",
-      description: "Generate HR reports across all departments"
+      label: "H&S Compliance",
+      path: "/health-safety/compliance",
+      description: "Track health & safety compliance"
     }
   ];
 
@@ -66,11 +73,11 @@ export default function HRAdminToolbar() {
     setIsOpen(!isOpen);
   };
 
-  const handleSectionSelect = (section: HRSection, path: string) => {
+  const handleSectionSelect = (section: HSSection, path: string) => {
     setSelectedSection(section);
     setIsOpen(false);
     router.push(path);
-    console.log(`HR Admin navigating to: ${path}`);
+    console.log(`H&S Admin navigating to: ${path}`);
   };
 
   const handleContactAdmin = () => {
@@ -80,13 +87,13 @@ export default function HRAdminToolbar() {
 
   return (
     <section className="section-toolbar">
-      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-        {/* HR Sections Dropdown */}
-        <div ref={dropdownRef} style={{ position: "relative" }}>
+      <div className="toolbar-buttons">
+        {/* H&S Sections Dropdown */}
+        <div ref={dropdownRef} className="toolbar-dropdown">
           <button
             className="neon-btn neon-btn-list"
             onClick={handleToggle}
-            aria-label="Select HR section"
+            aria-label="Select H&S section"
             aria-expanded={isOpen}
             type="button"
           >
@@ -112,13 +119,13 @@ export default function HRAdminToolbar() {
           {isOpen && (
             <div className="list-button-dropdown">
               <div className="list-button-dropdown-header">
-                HR Sections
-                <div style={{ fontSize: "0.8em", opacity: 0.7 }}>
+                H&S Sections
+                <div className="list-button-dropdown-subtext">
                   Access: All Departments
                 </div>
               </div>
               <ul className="list-button-dropdown-list">
-                {hrSections.map(({ section, label, path, description }) => (
+                {hsSections.map(({ section, label, path, description }) => (
                   <li key={section}>
                     <button
                       className={`list-button-dropdown-item ${selectedSection === section ? "active" : ""}`}
@@ -135,31 +142,26 @@ export default function HRAdminToolbar() {
           )}
         </div>
 
-        {/* Employee Management Button */}
-        <button
-          className="neon-btn neon-btn-icon"
-          onClick={() => router.push('/hr/employees')}
-          aria-label="Employee Management"
-          title="Manage All Employees"
-          type="button"
-        >
-          <FiUsers size={18} />
-        </button>
+        {/* Incidents Button */}
+        <TextIconButton
+          icon={<FiAlertTriangle />}
+          variant="alert"
+          label="Incidents"
+          title="View All Incidents"
+          onClick={() => router.push('/health-safety/incidents')}
+        />
 
         {/* Contact Admin Button */}
-        <button
-          className="neon-btn neon-btn-icon"
+        <TextIconButton
+          icon={<FiMail />}
+          variant="send"
+          label="Contact Admin"
           onClick={handleContactAdmin}
-          aria-label="Contact Admin"
-          title="Contact Admin"
-          type="button"
-        >
-          <FiMail size={18} />
-        </button>
+        />
       </div>
 
-      <span style={{ minWidth: "200px", whiteSpace: "nowrap" }}>
-        {user?.first_name ? `${user.first_name}, Access level: HR Admin` : "HR Admin Toolbar"}
+      <span className="toolbar-user-info">
+        {user?.first_name ? `${user.first_name}, Access level: H&S Admin` : "H&S Admin Toolbar"}
       </span>
     </section>
   );

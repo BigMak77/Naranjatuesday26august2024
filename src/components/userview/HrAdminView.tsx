@@ -351,9 +351,7 @@ const UserManager: React.FC = () => {
 
   return (
     <>
-      <div className="user-manager-header">
-        <h2 className="neon-heading">User Manager</h2>
-      </div>
+      
       <FolderTabs
         tabs={tabs}
         activeTab={activeTab}
@@ -396,12 +394,6 @@ const UserManager: React.FC = () => {
                   onClick={userPanelControls.handleExportUsers}
                 />
                 {userPanelControls.UserCSVImportComponent}
-                <TextIconButton
-                  icon={<FiUserX />}
-                  label={userPanelControls.showLeavers ? "Hide Leavers" : "Show Leavers"}
-                  variant={userPanelControls.showLeavers ? "archive" : "edit"}
-                  onClick={() => userPanelControls.setShowLeavers(!userPanelControls.showLeavers)}
-                />
                 <TextIconButton
                   variant="edit"
                   icon={<FiEdit />}
@@ -859,7 +851,7 @@ const UserManager: React.FC = () => {
                         <td>
                           <div className="user-manager-actions-cell">
                             <TextIconButton
-                              variant="add"
+                              variant="assign"
                               label="Assign"
                               onClick={() => {
                                 setSelectedStarter(starter);

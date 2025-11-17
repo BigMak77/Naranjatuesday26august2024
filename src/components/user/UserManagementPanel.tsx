@@ -808,25 +808,27 @@ export default function UserManagementPanel({ onControlsReady }: UserManagementP
           ref={bulkSelectBoxRef}
           style={{
             position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
+            top: "calc(var(--header-height) + var(--toolbar-height))",
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "calc(100% - 4rem)",
+            maxWidth: "1400px",
             zIndex: 1000,
-            background: "linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(20, 20, 20, 0.98) 100%)",
-            backdropFilter: "blur(10px)",
-            borderBottom: "2px solid var(--neon)",
-            boxShadow: "0 4px 20px rgba(57, 255, 20, 0.3)",
+            background: "var(--panel)",
+            border: "2px solid #fa7a20",
+            borderRadius: "8px",
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
             padding: "1.5rem 2rem",
             animation: "slideDown 0.3s ease-out"
           }}
         >
-          <div style={{ maxWidth: "1400px", margin: "0 auto" }}>
+          <div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
               <div>
-                <div className="neon-form-title" style={{ marginBottom: "0.5rem", fontSize: "1.5rem" }}>
+                <div className="neon-form-title" style={{ marginBottom: "0.5rem", fontSize: "var(--font-size-header)" }}>
                   Bulk User Selection Mode
                 </div>
-                <div style={{ fontSize: "0.95rem", color: "var(--neon-text)", opacity: 0.8 }}>
+                <div style={{ fontSize: "var(--font-size-base)", color: "var(--text-white)", opacity: 0.8 }}>
                   Filter and select users for bulk assignment
                 </div>
               </div>
@@ -838,31 +840,57 @@ export default function UserManagementPanel({ onControlsReady }: UserManagementP
                   setBulkDeptFilter("");
                   setBulkShiftFilter("");
                 }}
+                aria-label="Close bulk selection mode"
                 style={{
-                  padding: "0.5rem 1rem",
-                  fontSize: "0.9rem",
-                  background: "rgba(234, 28, 28, 0.2)",
-                  border: "1px solid rgba(234, 28, 28, 0.5)",
-                  borderRadius: "4px",
-                  color: "#ea1c1c",
-                  cursor: "pointer",
-                  fontWeight: "bold"
+                  width: '32px',
+                  height: '32px',
+                  border: 'none',
+                  backgroundColor: 'transparent',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0',
+                  margin: '0',
+                  boxSizing: 'border-box',
+                  opacity: 0.7,
+                  transition: 'opacity 0.2s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.opacity = '1';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.opacity = '0.7';
                 }}
               >
-                ✕ Cancel
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  style={{ display: 'block' }}
+                >
+                  <path
+                    d="M6 6L18 18M18 6L6 18"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
               </button>
             </div>
 
             <div style={{ display: "flex", gap: "1.5rem", alignItems: "flex-end" }}>
               {/* Department and Shift filters */}
               <div style={{ flex: 1 }}>
-                <label className="neon-label" htmlFor="bulk-filter-dept-top" style={{ fontSize: "0.85rem", marginBottom: "0.25rem", display: "block" }}>
+                <label className="neon-label" htmlFor="bulk-filter-dept-top" style={{ fontSize: "var(--font-size-base)", marginBottom: "0.25rem", display: "block" }}>
                   Filter by Department
                 </label>
                 <select
                   id="bulk-filter-dept-top"
                   className="neon-input"
-                  style={{ width: "100%", fontSize: "0.9rem" }}
+                  style={{ width: "100%", fontSize: "var(--font-size-base)" }}
                   value={bulkDeptFilter}
                   onChange={(e) => {
                     console.log("Department filter changed:", e.target.value);
@@ -878,13 +906,13 @@ export default function UserManagementPanel({ onControlsReady }: UserManagementP
                 </select>
               </div>
               <div style={{ flex: 1 }}>
-                <label className="neon-label" htmlFor="bulk-filter-shift-top" style={{ fontSize: "0.85rem", marginBottom: "0.25rem", display: "block" }}>
+                <label className="neon-label" htmlFor="bulk-filter-shift-top" style={{ fontSize: "var(--font-size-base)", marginBottom: "0.25rem", display: "block" }}>
                   Filter by Shift
                 </label>
                 <select
                   id="bulk-filter-shift-top"
                   className="neon-input"
-                  style={{ width: "100%", fontSize: "0.9rem" }}
+                  style={{ width: "100%", fontSize: "var(--font-size-base)" }}
                   value={bulkShiftFilter}
                   onChange={(e) => {
                     console.log("Shift filter changed:", e.target.value);
@@ -902,7 +930,9 @@ export default function UserManagementPanel({ onControlsReady }: UserManagementP
 
               {/* Quick selection buttons */}
               <div style={{ flex: 1, display: "flex", gap: "0.5rem" }}>
-                <button
+                <TextIconButton
+                  variant="assign"
+                  label={`Select All (${filteredUsers.length})`}
                   onClick={() => {
                     // Select all currently visible (filtered) users
                     const visibleUserIds = filteredUsers.map(u => u.id);
@@ -911,73 +941,41 @@ export default function UserManagementPanel({ onControlsReady }: UserManagementP
                       return combined;
                     });
                   }}
-                  style={{
-                    flex: 1,
-                    padding: "0.6rem",
-                    fontSize: "0.85rem",
-                    background: "rgba(57, 255, 20, 0.15)",
-                    border: "1px solid rgba(57, 255, 20, 0.5)",
-                    borderRadius: "4px",
-                    color: "var(--neon)",
-                    cursor: "pointer",
-                    fontWeight: "600"
-                  }}
-                >
-                  Select All ({filteredUsers.length})
-                </button>
-                <button
+                />
+                <TextIconButton
+                  variant="delete"
+                  label="Deselect Visible"
                   onClick={() => {
                     // Deselect all currently visible (filtered) users
                     const visibleUserIds = filteredUsers.map(u => u.id);
                     setBulkSelectedUserIds(prev => prev.filter(id => !visibleUserIds.includes(id)));
                   }}
-                  style={{
-                    flex: 1,
-                    padding: "0.6rem",
-                    fontSize: "0.85rem",
-                    background: "rgba(234, 28, 28, 0.15)",
-                    border: "1px solid rgba(234, 28, 28, 0.5)",
-                    borderRadius: "4px",
-                    color: "#ea1c1c",
-                    cursor: "pointer",
-                    fontWeight: "600"
-                  }}
-                >
-                  Deselect Visible
-                </button>
+                />
               </div>
 
               {/* Clear filters + Selection summary + Next */}
               <div style={{ flex: 1, display: "flex", gap: "0.5rem", alignItems: "flex-end" }}>
                 {(userSearch || bulkDeptFilter || bulkShiftFilter) && (
-                  <button
+                  <TextIconButton
+                    variant="refresh"
+                    label="Clear Filters"
                     onClick={() => {
                       setUserSearch("");
                       setBulkDeptFilter("");
                       setBulkShiftFilter("");
                     }}
-                    style={{
-                      padding: "0.6rem 1rem",
-                      fontSize: "0.85rem",
-                      background: "rgba(255, 165, 0, 0.15)",
-                      border: "1px solid rgba(255, 165, 0, 0.5)",
-                      borderRadius: "4px",
-                      color: "#ffa500",
-                      cursor: "pointer",
-                      whiteSpace: "nowrap"
-                    }}
-                  >
-                    Clear Filters
-                  </button>
+                  />
                 )}
 
                 <div style={{
                   padding: "0.6rem 1rem",
-                  background: "rgba(57, 255, 20, 0.1)",
+                  background: "rgba(64, 224, 208, 0.1)",
                   borderRadius: "4px",
-                  border: "1px solid rgba(57, 255, 20, 0.3)",
+                  border: "1px solid var(--neon)",
                   color: "var(--neon)",
-                  fontWeight: "bold",
+                  fontWeight: "var(--font-weight-header)",
+                  fontFamily: "var(--font-family)",
+                  fontSize: "var(--font-size-base)",
                   whiteSpace: "nowrap",
                   display: "flex",
                   alignItems: "center"
@@ -1001,7 +999,7 @@ export default function UserManagementPanel({ onControlsReady }: UserManagementP
         </div>
       )}
 
-      <div className="neon-table-panel container" style={{ justifyContent: "flex-start", display: "flex", marginTop: showBulkSelectColumn ? "180px" : "0", transition: "margin-top 0.3s ease" }}>
+      <div className="neon-table-panel container" style={{ justifyContent: "flex-start", display: "flex" }}>
         <div style={{ position: "relative", width: "100%" }}>
           {/* Table - all controls are now in parent FolderTabs toolbar */}
           <div className="neon-table-scroll" style={{ justifyContent: "flex-start", display: "flex", position: "relative" }}>

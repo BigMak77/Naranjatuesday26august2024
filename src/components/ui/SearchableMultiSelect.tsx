@@ -125,10 +125,11 @@ export default function SearchableMultiSelect<T extends Record<string, any>>({
             marginTop: "0.25rem",
             maxHeight: "200px",
             overflowY: "auto",
-            backgroundColor: "var(--background)",
+            backgroundColor: "#1a2b2b",
             border: "1px solid var(--border)",
             borderRadius: "8px",
-            zIndex: 1000,
+            zIndex: 10000,
+            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.5)",
           }}
         >
           {filteredOptions.length === 0 ? (

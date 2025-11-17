@@ -15,6 +15,7 @@ import { CustomTooltip } from "@/components/ui/CustomTooltip";
 import StorageFileBrowser from "@/components/ui/StorageFileBrowser";
 import { STORAGE_BUCKETS } from "@/lib/storage-config";
 import SuccessModal from "@/components/ui/SuccessModal";
+import DocumentAssignmentDialog from "@/components/documents/DocumentAssignmentDialog";
 
 interface DocumentType {
   id: string;
@@ -439,6 +440,11 @@ export default function DocumentManager() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
+  // Assignment dialog state
+  const [showAssignmentDialog, setShowAssignmentDialog] = useState(false);
+  const [assignmentDocId, setAssignmentDocId] = useState<string | null>(null);
+  const [assignmentDocTitle, setAssignmentDocTitle] = useState("");
+
   // Active tab state
   const [activeTab, setActiveTab] = useState<string>("documents");
 
@@ -814,6 +820,12 @@ export default function DocumentManager() {
                 handleEditSectionClick={handleEditSectionClick}
                 handleDownloadCsv={handleDownloadCsv}
                 setShowCsvUploadModal={setShowCsvUploadModal}
+                showAssignmentDialog={showAssignmentDialog}
+                setShowAssignmentDialog={setShowAssignmentDialog}
+                assignmentDocId={assignmentDocId}
+                setAssignmentDocId={setAssignmentDocId}
+                assignmentDocTitle={assignmentDocTitle}
+                setAssignmentDocTitle={setAssignmentDocTitle}
               />
             )}
 
@@ -2014,6 +2026,12 @@ function DocumentsTabContent({
   handleEditSectionClick,
   handleDownloadCsv,
   setShowCsvUploadModal,
+  showAssignmentDialog,
+  setShowAssignmentDialog,
+  assignmentDocId,
+  setAssignmentDocId,
+  assignmentDocTitle,
+  setAssignmentDocTitle,
 }: any) {
   // Filter sections based on selected standard
   const filteredSections = useMemo(() => {
@@ -2244,6 +2262,7 @@ function DocumentsTabContent({
             { header: "Review Due", accessor: "review_due", width: 95 },
             { header: "Version", accessor: "version", width: columnWidths.version },
             { header: "View", accessor: "view", width: 60 },
+            { header: "Users", accessor: "users", width: 70 },
             { header: "Edit", accessor: "edit", width: columnWidths.edit },
           ]}
           data={paginatedData
@@ -2295,6 +2314,22 @@ function DocumentsTabContent({
                     </CustomTooltip>
                   </div>
                 ),
+                users: (
+                  <div className="document-users-cell">
+                    <CustomTooltip text="View assigned users">
+                      <TextIconButton
+                        variant="secondary"
+                        label="Users"
+                        aria-label="View assigned users"
+                        onClick={() => {
+                          setAssignmentDocId(doc.id);
+                          setAssignmentDocTitle(doc.title);
+                          setShowAssignmentDialog(true);
+                        }}
+                      />
+                    </CustomTooltip>
+                  </div>
+                ),
                 edit: (
                   <div className="document-edit-cell">
                     <CustomTooltip text="Edit document">
@@ -2315,6 +2350,20 @@ function DocumentsTabContent({
           onColumnResize={handleColumnResize}
         />
       </div>
+
+      {/* Document Assignment Dialog */}
+      {assignmentDocId && (
+        <DocumentAssignmentDialog
+          open={showAssignmentDialog}
+          onClose={() => {
+            setShowAssignmentDialog(false);
+            setAssignmentDocId(null);
+            setAssignmentDocTitle("");
+          }}
+          documentId={assignmentDocId}
+          documentTitle={assignmentDocTitle}
+        />
+      )}
     </>
   );
 }

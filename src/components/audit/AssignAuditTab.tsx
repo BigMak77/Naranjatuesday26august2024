@@ -205,6 +205,7 @@ export default function AssignAuditTab() {
         title="Assign Audit"
         onSubmit={handleAssign}
         submitLabel={assignLoading ? "Assigning…" : "Assign Audit"}
+        submitVariant="assign"
       >
         {/* Template */}
         <select

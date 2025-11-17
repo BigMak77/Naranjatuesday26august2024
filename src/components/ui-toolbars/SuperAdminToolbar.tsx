@@ -3,11 +3,12 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/context/UserContext";
-import { FiMail, FiSettings } from "react-icons/fi";
+import { FiMail, FiHeart, FiBookOpen } from "react-icons/fi";
+import TextIconButton from "@/components/ui/TextIconButtons";
 
-type AdminSection = "Dashboard" | "Users" | "Modules" | "Departments" | "Utilities";
+type AdminSection = "Dashboard" | "HR" | "Compliance" | "Reports" | "Utilities" | "Trainer" | "Tasks" | "Issues" | "Audits" | "Modules" | "Documents";
 
-export default function AdminToolbar() {
+export default function SuperAdminToolbar() {
   const router = useRouter();
   const { user } = useUser();
   const [isOpen, setIsOpen] = useState(false);
@@ -27,10 +28,16 @@ export default function AdminToolbar() {
       description: "System overview and analytics"
     },
     {
-      section: "Users",
-      label: "User Management",
-      path: "/admin/users",
-      description: "Manage system users"
+      section: "HR",
+      label: "HR Dashboard",
+      path: "/hr/dashboard",
+      description: "HR management and operations"
+    },
+    {
+      section: "Trainer",
+      label: "Trainer Dashboard",
+      path: "/trainer/dashboard",
+      description: "Training management and tracking"
     },
     {
       section: "Modules",
@@ -39,10 +46,40 @@ export default function AdminToolbar() {
       description: "Manage training content"
     },
     {
-      section: "Departments",
-      label: "Departments",
-      path: "/admin/departments",
-      description: "Manage organizational structure"
+      section: "Documents",
+      label: "Documents",
+      path: "/admin/documents",
+      description: "Document management and storage"
+    },
+    {
+      section: "Tasks",
+      label: "Tasks",
+      path: "/admin/tasks",
+      description: "Task management and tracking"
+    },
+    {
+      section: "Issues",
+      label: "Issues",
+      path: "/turkus/issues",
+      description: "Issue tracking and resolution"
+    },
+    {
+      section: "Audits",
+      label: "Audits",
+      path: "/turkus/audits",
+      description: "System audits and logs"
+    },
+    {
+      section: "Compliance",
+      label: "Compliance",
+      path: "/admin/incomplete",
+      description: "Compliance tracking and reports"
+    },
+    {
+      section: "Reports",
+      label: "Reports",
+      path: "/admin/reports",
+      description: "System reports and analytics"
     },
     {
       section: "Utilities",
@@ -84,11 +121,21 @@ export default function AdminToolbar() {
     alert('Contact Support feature - Coming soon!');
   };
 
+  const handleHealthSafetyClick = () => {
+    router.push('/health-safety');
+    console.log('Navigating to Health & Safety');
+  };
+
+  const handleLogTrainingClick = () => {
+    router.push('/training/complete');
+    console.log('Navigating to Log Training');
+  };
+
   return (
     <section className="section-toolbar">
-      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+      <div className="toolbar-buttons">
         {/* Admin Sections Dropdown */}
-        <div ref={dropdownRef} style={{ position: "relative" }}>
+        <div ref={dropdownRef} className="toolbar-dropdown">
           <button
             className="neon-btn neon-btn-list"
             onClick={handleToggle}
@@ -116,7 +163,7 @@ export default function AdminToolbar() {
           </button>
 
           {isOpen && (
-            <div className="list-button-dropdown">
+            <div className="list-button-dropdown" style={{ zIndex: 9999 }}>
               <div className="list-button-dropdown-header">Admin Sections</div>
               <ul className="list-button-dropdown-list">
                 {adminSections.map(({ section, label, path, description }) => (
@@ -136,31 +183,33 @@ export default function AdminToolbar() {
           )}
         </div>
 
-        {/* System Settings Button */}
-        <button
-          className="neon-btn neon-btn-icon"
-          onClick={() => router.push('/admin/settings')}
-          aria-label="System Settings"
-          title="System Settings"
-          type="button"
-        >
-          <FiSettings size={18} />
-        </button>
+        {/* Health & Safety Button */}
+        <TextIconButton
+          icon={<FiHeart />}
+          variant="add"
+          label="Health & Safety"
+          onClick={handleHealthSafetyClick}
+        />
+
+        {/* Log Training Button */}
+        <TextIconButton
+          icon={<FiBookOpen />}
+          variant="add"
+          label="Log Training"
+          onClick={handleLogTrainingClick}
+        />
 
         {/* Contact Support Button */}
-        <button
-          className="neon-btn neon-btn-icon"
+        <TextIconButton
+          icon={<FiMail />}
+          variant="send"
+          label="Contact Support"
           onClick={handleContactAdmin}
-          aria-label="Contact Support"
-          title="Contact Support"
-          type="button"
-        >
-          <FiMail size={18} />
-        </button>
+        />
       </div>
 
-      <span style={{ minWidth: "200px", whiteSpace: "nowrap" }}>
-        {user?.first_name ? `${user.first_name}, Access level: Admin` : "Admin Toolbar"}
+      <span className="toolbar-user-info">
+        {user?.first_name ? `${user.first_name}, Access level: Super Admin` : "Super Admin Toolbar"}
       </span>
     </section>
   );

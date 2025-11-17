@@ -2,7 +2,7 @@
 
 import React from "react";
 import ProjectGlobalHeader from "@/components/ui/ProjectGlobalHeader";
-import DynamicToolbar from "@/components/ui/DynamicToolbar";
+import DynamicToolbar from "@/components/ui-toolbars/DynamicToolbar";
 
 interface AppLayoutWrapperProps {
   children: React.ReactNode;

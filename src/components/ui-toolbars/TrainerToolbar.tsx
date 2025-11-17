@@ -3,52 +3,47 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/context/UserContext";
-import { FiMail, FiAlertTriangle } from "react-icons/fi";
+import { FiMail, FiBook } from "react-icons/fi";
+import TextIconButton from "@/components/ui/TextIconButtons";
 
-type HSSection = "Dashboard" | "Incidents" | "Risk Assessments" | "First Aiders" | "Compliance";
+type TrainerSection = "Dashboard" | "Training Assessments" | "Log Training" | "Training Matrix";
 
-export default function HSAdminToolbar() {
+export default function TrainerToolbar() {
   const router = useRouter();
   const { user } = useUser();
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedSection, setSelectedSection] = useState<HSSection>("Dashboard");
+  const [selectedSection, setSelectedSection] = useState<TrainerSection>("Dashboard");
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const hsSections: Array<{
-    section: HSSection;
+  const trainerSections: Array<{
+    section: TrainerSection;
     label: string;
     path: string;
     description: string;
   }> = [
     {
       section: "Dashboard",
-      label: "H&S Dashboard",
-      path: "/health-safety",
-      description: "Health & Safety overview"
+      label: "Trainer Dashboard",
+      path: "/trainer/dashboard",
+      description: "Overview of training activities"
     },
     {
-      section: "Incidents",
-      label: "Incident Management",
-      path: "/health-safety/incidents",
-      description: "View and manage all incidents (all departments)"
+      section: "Log Training",
+      label: "Log Training",
+      path: "/training/complete",
+      description: "Record and log training sessions for users"
     },
     {
-      section: "Risk Assessments",
-      label: "Risk Assessments",
-      path: "/health-safety/risk-assessments",
-      description: "Manage organization-wide risk assessments"
+      section: "Training Matrix",
+      label: "Training Matrix",
+      path: "/training/matrix",
+      description: "View comprehensive training matrix for all users"
     },
     {
-      section: "First Aiders",
-      label: "First Aiders",
-      path: "/health-safety/first-aiders",
-      description: "Manage first aider registry"
-    },
-    {
-      section: "Compliance",
-      label: "H&S Compliance",
-      path: "/health-safety/compliance",
-      description: "Track health & safety compliance"
+      section: "Training Assessments",
+      label: "Training Assessments",
+      path: "/training/assessment",
+      description: "View and manage training assessments"
     }
   ];
 
@@ -72,11 +67,11 @@ export default function HSAdminToolbar() {
     setIsOpen(!isOpen);
   };
 
-  const handleSectionSelect = (section: HSSection, path: string) => {
+  const handleSectionSelect = (section: TrainerSection, path: string) => {
     setSelectedSection(section);
     setIsOpen(false);
     router.push(path);
-    console.log(`H&S Admin navigating to: ${path}`);
+    console.log(`Trainer navigating to: ${path}`);
   };
 
   const handleContactAdmin = () => {
@@ -86,13 +81,13 @@ export default function HSAdminToolbar() {
 
   return (
     <section className="section-toolbar">
-      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-        {/* H&S Sections Dropdown */}
-        <div ref={dropdownRef} style={{ position: "relative" }}>
+      <div className="toolbar-buttons">
+        {/* Trainer Sections Dropdown */}
+        <div ref={dropdownRef} className="toolbar-dropdown">
           <button
             className="neon-btn neon-btn-list"
             onClick={handleToggle}
-            aria-label="Select H&S section"
+            aria-label="Select trainer section"
             aria-expanded={isOpen}
             type="button"
           >
@@ -117,14 +112,9 @@ export default function HSAdminToolbar() {
 
           {isOpen && (
             <div className="list-button-dropdown">
-              <div className="list-button-dropdown-header">
-                H&S Sections
-                <div style={{ fontSize: "0.8em", opacity: 0.7 }}>
-                  Access: All Departments
-                </div>
-              </div>
+              <div className="list-button-dropdown-header">Trainer Sections</div>
               <ul className="list-button-dropdown-list">
-                {hsSections.map(({ section, label, path, description }) => (
+                {trainerSections.map(({ section, label, path, description }) => (
                   <li key={section}>
                     <button
                       className={`list-button-dropdown-item ${selectedSection === section ? "active" : ""}`}
@@ -141,31 +131,26 @@ export default function HSAdminToolbar() {
           )}
         </div>
 
-        {/* Incidents Button */}
-        <button
-          className="neon-btn neon-btn-icon"
-          onClick={() => router.push('/health-safety/incidents')}
-          aria-label="Incident Management"
-          title="View All Incidents"
-          type="button"
-        >
-          <FiAlertTriangle size={18} />
-        </button>
+        {/* Training Modules Button */}
+        <TextIconButton
+          icon={<FiBook />}
+          variant="view"
+          label="Training Modules"
+          title="View Training Modules"
+          onClick={() => router.push('/trainer/modules')}
+        />
 
         {/* Contact Admin Button */}
-        <button
-          className="neon-btn neon-btn-icon"
+        <TextIconButton
+          icon={<FiMail />}
+          variant="send"
+          label="Contact Admin"
           onClick={handleContactAdmin}
-          aria-label="Contact Admin"
-          title="Contact Admin"
-          type="button"
-        >
-          <FiMail size={18} />
-        </button>
+        />
       </div>
 
-      <span style={{ minWidth: "200px", whiteSpace: "nowrap" }}>
-        {user?.first_name ? `${user.first_name}, Access level: H&S Admin` : "H&S Admin Toolbar"}
+      <span className="toolbar-user-info">
+        {user?.first_name ? `${user.first_name}, Access level: Trainer` : "Trainer Toolbar"}
       </span>
     </section>
   );

@@ -12,6 +12,7 @@ type NeonFormProps = {
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   children: React.ReactNode;
   submitLabel?: string;
+  submitVariant?: "save" | "assign" | "submit" | "send" | "primary";
   onCancel?: () => void;
 };
 
@@ -20,6 +21,7 @@ export default function NeonForm({
   onSubmit,
   children,
   submitLabel = "Submit",
+  submitVariant = "save",
   onCancel,
 }: NeonFormProps) {
   return (
@@ -38,11 +40,11 @@ export default function NeonForm({
           />
         )}
         <TextIconButton
-          variant="save"
+          variant={submitVariant}
           label={submitLabel}
           title={submitLabel}
           type="submit"
-          className="neon-btn-square-form"
+          className="neon-form-submit-btn"
         />
       </div>
     </form>

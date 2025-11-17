@@ -6,7 +6,7 @@ import { UserProvider } from "@/context/UserContext";
 import { ManagerProvider } from "@/context/ManagerContext";
 import { GlobalSearchProvider } from "@/context/GlobalSearchContext";
 import ProjectGlobalHeader from "@/components/ui/ProjectGlobalHeader";
-import DynamicToolbar from "@/components/ui/DynamicToolbar";
+import DynamicToolbar from "@/components/ui-toolbars/DynamicToolbar";
 import GlobalSearchModal from "@/components/ui/GlobalSearchModal";
 import AuthListener from "@/app/AuthListener";
 import RaiseIssueModalProvider from "@/components/layout/RaiseIssueModalProvider";
