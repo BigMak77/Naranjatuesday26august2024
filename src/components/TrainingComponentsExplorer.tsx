@@ -17,7 +17,7 @@ import TrainingQuestionCategoriesTable from "@/components/training/TrainingQuest
 import TrainingQuestionCategory from "@/components/training/TrainingQuestionCategory";
 import TrainingQuestionForm from "@/components/training/TrainingQuestionForm";
 import AddTrainingQuestionForm from "@/components/training/AddTrainingQuestionForm";
-import AddQuestionPackForm from "@/components/training/AddQuestionPackForm";
+import AddQuestionPackForm from "@/components/AddQuestionPackForm";
 import AddMediaResourceForm from "@/components/training/AddMediaResourceForm";
 
 interface TrainingComponent {

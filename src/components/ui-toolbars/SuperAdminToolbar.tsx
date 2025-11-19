@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 import { FiMail, FiHeart, FiBookOpen } from "react-icons/fi";
@@ -13,7 +14,9 @@ export default function SuperAdminToolbar() {
   const { user } = useUser();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedSection, setSelectedSection] = useState<AdminSection>("Dashboard");
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const adminSections: Array<{
     section: AdminSection;
@@ -106,6 +109,13 @@ export default function SuperAdminToolbar() {
   }, [isOpen]);
 
   const handleToggle = () => {
+    if (!isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + window.scrollY,
+        left: rect.left + window.scrollX
+      });
+    }
     setIsOpen(!isOpen);
   };
 
@@ -137,6 +147,7 @@ export default function SuperAdminToolbar() {
         {/* Admin Sections Dropdown */}
         <div ref={dropdownRef} className="toolbar-dropdown">
           <button
+            ref={buttonRef}
             className="neon-btn neon-btn-list"
             onClick={handleToggle}
             aria-label="Select admin section"
@@ -162,8 +173,21 @@ export default function SuperAdminToolbar() {
             </svg>
           </button>
 
-          {isOpen && (
-            <div className="list-button-dropdown" style={{ zIndex: 9999 }}>
+          {isOpen && typeof window !== 'undefined' && createPortal(
+            <div 
+              className="list-button-dropdown" 
+              style={{ 
+                position: 'fixed',
+                top: dropdownPosition.top,
+                left: dropdownPosition.left,
+                zIndex: 999999,
+                backgroundColor: 'var(--bg-card)',
+                border: '1px solid var(--border)',
+                borderRadius: '8px',
+                boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
+                minWidth: '200px'
+              }}
+            >
               <div className="list-button-dropdown-header">Admin Sections</div>
               <ul className="list-button-dropdown-list">
                 {adminSections.map(({ section, label, path, description }) => (
@@ -179,7 +203,8 @@ export default function SuperAdminToolbar() {
                   </li>
                 ))}
               </ul>
-            </div>
+            </div>,
+            document.body
           )}
         </div>
 

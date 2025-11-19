@@ -6,13 +6,14 @@ import OverlayDialog from "@/components/ui/OverlayDialog";
 import TextIconButton, { NeonSubmitApplicationButton } from "../ui/TextIconButtons";
 import { FiX } from "react-icons/fi";
 import SuccessModal from "@/components/ui/SuccessModal";
+import FileInput from "@/components/ui/FileInput";
+import ContentHeader from "@/components/ui/ContentHeader";
 import { STORAGE_BUCKETS } from "@/lib/storage-config";
 
 const TABLE_NAME = "vacancies"; // Updated to match your actual table name
 
 // Remove the 'Apply' column from the columns array, it will be injected dynamically in the NeonTable below
 const columns = [
-  { header: "ID", accessor: "id" },
   { header: "Title", accessor: "title" },
   { header: "Department", accessor: "department" },
   { header: "Location", accessor: "location" },
@@ -39,6 +40,7 @@ const CareersPage: React.FC = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [cv, setCv] = useState<File | null>(null);
+  const [coverLetterFile, setCoverLetterFile] = useState<File | null>(null);
   const [coverLetter, setCoverLetter] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -66,6 +68,7 @@ const CareersPage: React.FC = () => {
     setName("");
     setEmail("");
     setCv(null);
+    setCoverLetterFile(null);
     setCoverLetter("");
     setSubmitSuccess(false);
     setSubmitError(null);
@@ -77,7 +80,7 @@ const CareersPage: React.FC = () => {
     setSubmitError(null);
     setSubmitSuccess(false);
     try {
-      // 1. Upload CV to Supabase Storage (optional, skip if not needed)
+      // 1. Upload CV to Supabase Storage
       let cvUrl = null;
       if (cv) {
         const fileExt = cv.name.split('.').pop();
@@ -86,12 +89,22 @@ const CareersPage: React.FC = () => {
         if (uploadError) throw new Error("CV upload failed: " + uploadError.message);
         cvUrl = supabase.storage.from(STORAGE_BUCKETS.APPLICATIONS).getPublicUrl(fileName).data.publicUrl;
       }
-      // 2. Insert application record into a new table (e.g. 'applications')
+      // 2. Upload covering letter file to Supabase Storage
+      let coverLetterUrl = null;
+      if (coverLetterFile) {
+        const fileExt = coverLetterFile.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).slice(2)}_cover.${fileExt}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage.from(STORAGE_BUCKETS.APPLICATIONS).upload(fileName, coverLetterFile);
+        if (uploadError) throw new Error("Cover letter upload failed: " + uploadError.message);
+        coverLetterUrl = supabase.storage.from(STORAGE_BUCKETS.APPLICATIONS).getPublicUrl(fileName).data.publicUrl;
+      }
+      // 3. Insert application record into a new table (e.g. 'applications')
       const { error: insertError } = await supabase.from("applications").insert([
         {
           name,
           email,
           cover_letter: coverLetter,
+          cover_letter_url: coverLetterUrl,
           cv_url: cvUrl,
           vacancy_id: selectedRole?.id,
           vacancy_title: selectedRole?.title,
@@ -112,12 +125,10 @@ const CareersPage: React.FC = () => {
 
   return (
     <main>
-      <img
-        src="/CareerCropped.jpeg"
-        alt="Careers at Naranja"
-        style={{ width: "100%", maxHeight: 320, objectFit: "cover", borderRadius: 12, marginBottom: 24 }}
+      <ContentHeader 
+        title="Careers" 
+        description="Join our team and discover exciting career opportunities at Naranja."
       />
-      <h1>Careers</h1>
       <NeonTable
         columns={[
           ...columns,
@@ -125,22 +136,21 @@ const CareersPage: React.FC = () => {
             header: "Apply",
             accessor: "apply",
             render: (_value: unknown, row: Record<string, any>) => (
-              <button
-                className="neon-btn"
+              <TextIconButton
+                variant="send"
+                label="Apply here"
                 onClick={() => {
                   setSelectedRole(row);
                   setModalOpen(true);
                   setName("");
                   setEmail("");
                   setCv(null);
+                  setCoverLetterFile(null);
                   setCoverLetter("");
                   setSubmitSuccess(false);
                   setSubmitError(null);
                 }}
-                type="button"
-              >
-                Apply here
-              </button>
+              />
             ),
             width: 120,
           },
@@ -154,29 +164,41 @@ const CareersPage: React.FC = () => {
           </div>
           {!submitSuccess && (
             <form className="neon-form" onSubmit={handleSubmit}>
-              <label className="block mb-2">Full Name
-                <input className="neon-input" type="text" value={name} onChange={e => setName(e.target.value)} required />
-              </label>
-              <label className="block mb-2">Email
-                <input className="neon-input" type="email" value={email} onChange={e => setEmail(e.target.value)} required />
-              </label>
-              <label className="block mb-2">CV (PDF)
-                <input className="neon-input" type="file" accept=".pdf" onChange={e => setCv(e.target.files?.[0] || null)} required />
-              </label>
-              <label className="block mb-2">Cover Letter
-                <textarea className="neon-input" value={coverLetter} onChange={e => setCoverLetter(e.target.value)} rows={4} required />
+              <div className="grid grid-cols-2 gap-4 mb-2">
+                <label className="block">Full Name
+                  <input className="neon-input" type="text" value={name} onChange={e => setName(e.target.value)} required />
+                </label>
+                <label className="block">Email
+                  <input className="neon-input" type="email" value={email} onChange={e => setEmail(e.target.value)} required />
+                </label>
+              </div>
+              <FileInput
+                label="CV (PDF)"
+                accept=".pdf"
+                required
+                value={cv}
+                onChange={setCv}
+                className="mb-2"
+              />
+              <FileInput
+                label="Attach Covering Letter (PDF - Optional)"
+                accept=".pdf"
+                required={false}
+                value={coverLetterFile}
+                onChange={setCoverLetterFile}
+                className="mb-2"
+              />
+              <label className="block mb-2">Application Supporting Notes
+                <textarea className="neon-input" value={coverLetter} onChange={e => setCoverLetter(e.target.value)} rows={10} required />
               </label>
               {submitError && <div className="neon-error">{submitError}</div>}
               <div className="neon-form-actions" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <button
-                  className="neon-btn neon-btn-submit-application"
+                <TextIconButton
+                  variant="submitApplication"
+                  label={submitting ? "Submitting…" : "Submit Application"}
                   type="submit"
                   disabled={submitting}
-                  title={submitting ? "Submitting…" : "Submit Application"}
-                  aria-label="Submit Application"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-                </button>
+                />
               </div>
             </form>
           )}

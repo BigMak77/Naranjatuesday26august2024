@@ -989,6 +989,14 @@ select.neon-input {
   border-color: var(--neon);
 }
 
+/* Fix textarea height when using neon-input class */
+textarea.neon-input {
+  height: auto;
+  min-height: 40px;
+  padding: 0.75rem 1rem;
+  resize: vertical;
+}
+
 /* Form row and group for horizontal filters */
 .neon-form-row {
   display: flex;
