@@ -29,6 +29,7 @@ import AddModuleTab from "@/components/modules/AddModuleTab";
 import { ViewModuleTab } from "@/components/modules/ViewModuleTab";
 import EditModuleTab from "@/components/modules/EditModuleTab";
 import AssignModuleTab from "@/components/modules/AssignModuleTab";
+import TestBuilder from "@/components/training/TestBuilder";
 import TextIconButton from "@/components/ui/TextIconButtons";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 import OverlayDialog from "@/components/ui/OverlayDialog";
@@ -62,7 +63,7 @@ interface Module {
 
 export default function TrainingModuleManager() {
   const [activeTab, setActiveTab] = useState<
-    "add" | "view" | "assign" | "archive"
+    "add" | "view" | "assign" | "archive" | "tests"
   >("view");
   const [modules, setModules] = useState<Module[]>([]);
   const [selectedModule, setSelectedModule] = useState<Module | null>(null);
@@ -120,6 +121,12 @@ export default function TrainingModuleManager() {
       label: "",
       icon: <FiClipboard />,
       tooltip: "View and edit training modules",
+    },
+    {
+      key: "tests",
+      label: "",
+      icon: <FiFileText />,
+      tooltip: "Create and manage tests",
     },
     {
       key: "assign",
@@ -296,6 +303,9 @@ export default function TrainingModuleManager() {
             <ViewModuleTab module={selectedModuleForView} />
           )}
         </>
+      )}
+      {activeTab === "tests" && (
+        <TestBuilder />
       )}
       {activeTab === "assign" && (
         <AssignModuleTab />

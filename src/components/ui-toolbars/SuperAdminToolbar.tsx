@@ -17,6 +17,7 @@ export default function SuperAdminToolbar() {
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const portalDropdownRef = useRef<HTMLDivElement>(null);
 
   const adminSections: Array<{
     section: AdminSection;
@@ -57,7 +58,7 @@ export default function SuperAdminToolbar() {
     {
       section: "Tasks",
       label: "Tasks",
-      path: "/admin/tasks",
+      path: "/tasks",
       description: "Task management and tracking"
     },
     {
@@ -94,7 +95,11 @@ export default function SuperAdminToolbar() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      const isOutsideButton = dropdownRef.current && !dropdownRef.current.contains(target);
+      const isOutsidePortalDropdown = portalDropdownRef.current && !portalDropdownRef.current.contains(target);
+
+      if (isOutsideButton && isOutsidePortalDropdown) {
         setIsOpen(false);
       }
     };
@@ -174,18 +179,14 @@ export default function SuperAdminToolbar() {
           </button>
 
           {isOpen && typeof window !== 'undefined' && createPortal(
-            <div 
-              className="list-button-dropdown" 
-              style={{ 
+            <div
+              ref={portalDropdownRef}
+              className="list-button-dropdown"
+              style={{
                 position: 'fixed',
                 top: dropdownPosition.top,
                 left: dropdownPosition.left,
-                zIndex: 999999,
-                backgroundColor: 'var(--bg-card)',
-                border: '1px solid var(--border)',
-                borderRadius: '8px',
-                boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
-                minWidth: '200px'
+                zIndex: 999999
               }}
             >
               <div className="list-button-dropdown-header">Admin Sections</div>

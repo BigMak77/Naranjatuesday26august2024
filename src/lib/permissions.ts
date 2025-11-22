@@ -190,26 +190,8 @@ export function canAccessRoute(
 export function getDashboardUrl(userAccessLevel: string | undefined): string {
   if (!userAccessLevel) return "/login";
 
-  const level = userAccessLevel.toLowerCase();
-
-  switch (level) {
-    case "super admin":
-    case "admin":
-      return "/admin/dashboard";
-    case "hr admin":
-    case "hr":
-      return "/hr/dashboard";
-    case "dept. manager":
-    case "manager":
-      return "/manager";
-    case "h&s admin":
-      return "/health-safety";
-    case "trainer":
-      return "/trainer/dashboard";
-    case "user":
-    default:
-      return "/user/dashboard";
-  }
+  // All authenticated users now land on the standard landing page
+  return "/landingpage";
 }
 
 /**

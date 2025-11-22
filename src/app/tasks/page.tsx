@@ -14,9 +14,7 @@ export default function TasksPage() {
         title="Task Management"
         description="Create, assign, and track tasks across your organization"
       />
-      <main className="after-hero global-content">
-        <TaskDashboard />
-      </main>
+      <TaskDashboard />
     </AccessControlWrapper>
   );
 }

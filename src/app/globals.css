@@ -1120,6 +1120,18 @@ textarea.neon-input {
   font-family: var(--font-family);
 }
 
+.neon-form > input,
+.neon-form > select,
+.neon-form > textarea {
+  margin-bottom: 1rem;
+}
+
+.neon-form > input:last-child,
+.neon-form > select:last-child,
+.neon-form > textarea:last-child {
+  margin-bottom: 0;
+}
+
 .neon-panel {
   background: var(--panel);
   border: 1px solid #fa7a20;

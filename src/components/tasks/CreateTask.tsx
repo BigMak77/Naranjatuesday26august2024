@@ -92,7 +92,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ onCreated }) => {
   };
 
   return (
-    <div className="neon-card neon-form-padding" style={{ maxWidth: 480, margin: "0 auto" }}>
+    <>
       <NeonForm
         title="Create Task"
         onSubmit={handleSubmit}
@@ -140,8 +140,26 @@ const CreateTask: React.FC<CreateTaskProps> = ({ onCreated }) => {
           value={form.instructions}
           onChange={e => setForm(f => ({ ...f, instructions: e.target.value }))}
         />
-        {error && <div className="neon-error">{error}</div>}
-        {success && <div className="neon-success">Task created!</div>}
+        {error && <div style={{
+          background: 'var(--status-danger-light)',
+          border: '1px solid var(--status-danger)',
+          borderRadius: '6px',
+          padding: '12px',
+          color: 'var(--status-danger)',
+          fontFamily: 'var(--font-family)',
+          fontSize: 'var(--font-size-base)',
+          marginTop: '12px'
+        }}>{error}</div>}
+        {success && <div style={{
+          background: 'var(--status-success-light)',
+          border: '1px solid var(--status-success)',
+          borderRadius: '6px',
+          padding: '12px',
+          color: 'var(--status-success)',
+          fontFamily: 'var(--font-family)',
+          fontSize: 'var(--font-size-base)',
+          marginTop: '12px'
+        }}>Task created!</div>}
       </NeonForm>
       <AddTaskStepsModal
         open={showStepsModal}
@@ -149,7 +167,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ onCreated }) => {
         taskId={newTaskId || ""}
         onStepsSaved={() => setShowStepsModal(false)}
       />
-    </div>
+    </>
   );
 };
 

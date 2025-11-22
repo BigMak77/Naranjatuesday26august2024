@@ -70,11 +70,14 @@ export default function FolderTabs({
           alignItems: 'center',
           padding: '0.75rem',
           background: 'var(--panel)',
-          border: '1px solid #fa7a20',
+          border: '1px solid var(--border)',
           borderRadius: '0 0 8px 8px',
           marginTop: '0',
-          marginBottom: '1rem',
-          flexWrap: 'wrap'
+          marginBottom: '0',
+          flexWrap: 'wrap',
+          fontFamily: 'var(--font-family)',
+          fontSize: 'var(--font-size-base)',
+          color: 'var(--text-white)'
         }}>
           {toolbar}
         </div>
@@ -115,7 +118,7 @@ export function FolderTabView() {
         toolbar={
           <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
             {/* Add toolbar content here */}
-            <span style={{ opacity: 0.7, fontSize: '0.875rem' }}>
+            <span style={{ opacity: 0.7, fontSize: 'var(--font-size-base)', fontFamily: 'var(--font-family)', color: 'var(--text-white)' }}>
               {categories.length} categories
             </span>
           </div>

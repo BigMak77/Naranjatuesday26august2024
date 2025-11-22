@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import NeonTable from "@/components/NeonTable";
 import OverlayDialog from "@/components/ui/OverlayDialog";
 import { FiFolder } from "react-icons/fi";
-import TrainingQuestionForm from "./TrainingQuestionForm";
+import TrainingQuestionForm from "../training/TrainingQuestionForm";
 import { STORAGE_BUCKETS } from "@/lib/storage-config";
 
 type MaterialType = "video" | "image" | "audio" | "document";

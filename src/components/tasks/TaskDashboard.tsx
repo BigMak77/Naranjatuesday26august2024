@@ -299,7 +299,7 @@ export default function TaskDashboard() {
   };
 
   return (
-    <NeonPanel className="neon-form-padding max-w-3xl mx-auto">
+    <>
       <FolderTabs
         tabs={[
           { label: "All Tasks", key: "all", icon: <FiList /> },
@@ -312,14 +312,21 @@ export default function TaskDashboard() {
         ]}
         activeTab={activeTab}
         onChange={setActiveTab}
-        toolbar={<div style={{ opacity: 0.7, fontSize: '0.875rem' }}>Task Management</div>}
+        toolbar={<div style={{ opacity: 0.7, fontSize: 'var(--font-size-base)', fontFamily: 'var(--font-family)', color: 'var(--text-white)' }}>Task Management</div>}
       />
-      <div className="mt-6">
-        {activeTab === "nonconformances" ? (
+      {activeTab === "nonconformances" ? (
           ncLoading ? (
-            <div>Loading non-conformances...</div>
+            <div style={{ fontFamily: 'var(--font-family)', fontSize: 'var(--font-size-base)', color: 'var(--text-white)' }}>Loading non-conformances...</div>
           ) : ncError ? (
-            <div className="neon-error">{ncError}</div>
+            <div style={{
+              background: 'var(--status-danger-light)',
+              border: '1px solid var(--status-danger)',
+              borderRadius: '6px',
+              padding: '12px',
+              color: 'var(--status-danger)',
+              fontFamily: 'var(--font-family)',
+              fontSize: 'var(--font-size-base)'
+            }}>{ncError}</div>
           ) : (
             <NeonTable
               columns={[
@@ -340,9 +347,17 @@ export default function TaskDashboard() {
           )
         ) : activeTab === "assigned" ? (
           assignedLoading ? (
-            <div>Loading assigned tasks...</div>
+            <div style={{ fontFamily: 'var(--font-family)', fontSize: 'var(--font-size-base)', color: 'var(--text-white)' }}>Loading assigned tasks...</div>
           ) : assignedError ? (
-            <div className="neon-error">{assignedError}</div>
+            <div style={{
+              background: 'var(--status-danger-light)',
+              border: '1px solid var(--status-danger)',
+              borderRadius: '6px',
+              padding: '12px',
+              color: 'var(--status-danger)',
+              fontFamily: 'var(--font-family)',
+              fontSize: 'var(--font-size-base)'
+            }}>{assignedError}</div>
           ) : (
             <NeonTable
               columns={[
@@ -370,9 +385,17 @@ export default function TaskDashboard() {
           )
         ) : activeTab === "progress" ? (
           progressLoading ? (
-            <div>Loading progress...</div>
+            <div style={{ fontFamily: 'var(--font-family)', fontSize: 'var(--font-size-base)', color: 'var(--text-white)' }}>Loading progress...</div>
           ) : progressError ? (
-            <div className="neon-error">{progressError}</div>
+            <div style={{
+              background: 'var(--status-danger-light)',
+              border: '1px solid var(--status-danger)',
+              borderRadius: '6px',
+              padding: '12px',
+              color: 'var(--status-danger)',
+              fontFamily: 'var(--font-family)',
+              fontSize: 'var(--font-size-base)'
+            }}>{progressError}</div>
           ) : (
             <NeonTable
               columns={[
@@ -394,9 +417,17 @@ export default function TaskDashboard() {
           )
         ) : activeTab === "all" ? (
           loading ? (
-            <div>Loading tasks...</div>
+            <div style={{ fontFamily: 'var(--font-family)', fontSize: 'var(--font-size-base)', color: 'var(--text-white)' }}>Loading tasks...</div>
           ) : error ? (
-            <div className="neon-error">{error}</div>
+            <div style={{
+              background: 'var(--status-danger-light)',
+              border: '1px solid var(--status-danger)',
+              borderRadius: '6px',
+              padding: '12px',
+              color: 'var(--status-danger)',
+              fontFamily: 'var(--font-family)',
+              fontSize: 'var(--font-size-base)'
+            }}>{error}</div>
           ) : (
             <NeonTable
               columns={[
@@ -493,7 +524,6 @@ export default function TaskDashboard() {
             )}
           </>
         )}
-      </div>
-    </NeonPanel>
+    </>
   );
 }

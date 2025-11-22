@@ -10,8 +10,8 @@ import TrainingAssessment from "@/components/training/TrainingAssessment";
 import UserTrainingDashboard from "@/components/training/UserTrainingDashboard";
 import MyTeamTraining from "@/components/training/MyTeamTraining";
 import QuestionPackList from "@/components/training/QuestionPackList";
-import TrainingMaterialsManager from "@/components/training/TrainingMaterialsManager";
-import TrainingMaterialsManagerDialog from "@/components/training/TrainingMaterialsManagerDialog";
+// import TrainingMaterialsManager from "@/components/zzzarchives/TrainingMaterialsManager";
+// import TrainingMaterialsManagerDialog from "@/components/training/TrainingMaterialsManagerDialog";
 import TrainingQuestionsSection from "@/components/training/TrainingQuestionsSection";
 import TrainingQuestionCategoriesTable from "@/components/training/TrainingQuestionCategoriesTable";
 import TrainingQuestionCategory from "@/components/training/TrainingQuestionCategory";
@@ -63,21 +63,21 @@ const trainingComponents: TrainingComponent[] = [
     description: "Manage and view collections of training questions organized into question packs",
     category: "Content",
     component: <QuestionPackList />
-  },
-  {
-    key: "training-materials-manager",
-    name: "Training Materials Manager",
-    description: "Upload, organize, and manage training materials, documents, and resources",
-    category: "Content",
-    component: <TrainingMaterialsManager />
-  },
-  {
-    key: "training-materials-dialog",
-    name: "Training Materials Dialog",
-    description: "Modal dialog for adding/editing training materials and resources",
-    category: "Content",
-    component: <TrainingMaterialsManagerDialog open={true} onClose={() => {}} />
-  },
+    },
+  // {
+  //   key: "training-materials-manager",
+  //   name: "Training Materials Manager",
+  //   description: "Upload, organize, and manage training materials, documents, and resources",
+  //   category: "Content",
+  //   component: <TrainingMaterialsManager />
+  // },
+  // {
+  //   key: "training-materials-dialog",
+  //   name: "Training Materials Dialog",
+  //   description: "Modal dialog for adding/editing training materials and resources",
+  //   category: "Content",
+  //   component: <TrainingMaterialsManagerDialog open={true} onClose={() => {}} />
+  // },
   {
     key: "training-questions-section",
     name: "Training Questions Section",
