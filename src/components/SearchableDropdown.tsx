@@ -15,6 +15,7 @@ interface Props {
   placeholder?: string;
   multi?: boolean;
   value?: string[] | string;
+  zIndex?: number; // Allow custom z-index for use in dialogs
 }
 
 export default function SearchableDropdown({
@@ -23,6 +24,7 @@ export default function SearchableDropdown({
   placeholder = "Select an option...",
   multi = false,
   value,
+  zIndex = 1000,
 }: Props) {
   const [query, setQuery] = useState("");
   const [modalQuery, setModalQuery] = useState("");
@@ -79,7 +81,7 @@ export default function SearchableDropdown({
               position: "fixed",
               inset: 0,
               background: "rgba(0,0,0,0.18)",
-              zIndex: 999,
+              zIndex: zIndex - 1,
             }}
             onClick={(e) => {
               // Only close if the click was on the backdrop itself
@@ -95,7 +97,7 @@ export default function SearchableDropdown({
                 transform: "translate(-50%, -50%)",
                 width: "100%",
                 maxWidth: 900,
-                zIndex: 1000,
+                zIndex: zIndex,
                 background: "var(--panel)",
                 borderRadius: 8,
               }}

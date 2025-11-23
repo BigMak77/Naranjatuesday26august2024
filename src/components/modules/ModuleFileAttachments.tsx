@@ -1,26 +1,15 @@
 "use client";
 import React, { useState } from "react";
 import {
-  FiUpload,
-  FiFile,
+  FiSearch,
   FiEye,
   FiTrash2,
-  FiFileText,
-  FiFilm,
-  FiImage,
-  FiMusic,
-  FiArchive
 } from "react-icons/fi";
-import {
-  BsFileEarmarkPdf,
-  BsFileEarmarkWord,
-  BsFileEarmarkExcel,
-  BsFileEarmarkPpt
-} from "react-icons/bs";
 import TextIconButton from "@/components/ui/TextIconButtons";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 import { supabase } from "@/lib/supabase-client";
 import { STORAGE_BUCKETS } from "@/lib/storage-config";
+import { getFileIcon, formatFileSize } from "@/lib/file-utils";
 
 export interface ModuleAttachment {
   name: string;
@@ -114,70 +103,18 @@ export default function ModuleFileAttachments({
     window.open(attachment.url, '_blank');
   };
 
-  const formatFileSize = (bytes: number): string => {
-    if (bytes < 1024) return bytes + " B";
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
-    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
-  };
-
-  const getFileIcon = (fileName: string, mimeType: string) => {
-    const ext = fileName.toLowerCase().split('.').pop() || '';
-
-    // Check by file extension first
-    if (ext === 'pdf') {
-      return <BsFileEarmarkPdf size={20} color="var(--accent)" />;
-    }
-    if (['ppt', 'pptx'].includes(ext) || mimeType.includes("presentation") || mimeType.includes("powerpoint")) {
-      return <BsFileEarmarkPpt size={20} color="var(--accent)" />;
-    }
-    if (['doc', 'docx'].includes(ext) || mimeType.includes("word") || mimeType.includes("document")) {
-      return <BsFileEarmarkWord size={20} color="var(--accent)" />;
-    }
-    if (['xls', 'xlsx'].includes(ext) || mimeType.includes("spreadsheet") || mimeType.includes("excel")) {
-      return <BsFileEarmarkExcel size={20} color="var(--accent)" />;
-    }
-    if (['mp4', 'mov', 'avi', 'mkv', 'webm'].includes(ext) || mimeType.includes("video")) {
-      return <FiFilm size={20} color="var(--accent)" />;
-    }
-    if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(ext) || mimeType.includes("image")) {
-      return <FiImage size={20} color="var(--accent)" />;
-    }
-    if (['mp3', 'wav', 'ogg', 'aac', 'm4a', 'flac'].includes(ext) || mimeType.includes("audio")) {
-      return <FiMusic size={20} color="var(--accent)" />;
-    }
-    if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext) || mimeType.includes("zip") || mimeType.includes("compressed")) {
-      return <FiArchive size={20} color="var(--accent)" />;
-    }
-    if (['txt', 'md', 'json', 'xml', 'csv'].includes(ext) || mimeType.includes("text")) {
-      return <FiFileText size={20} color="var(--accent)" />;
-    }
-
-    // Default file icon
-    return <FiFile size={20} color="var(--accent)" />;
-  };
-
   return (
     <div className="module-file-attachments">
-      <div style={{ marginBottom: "12px" }}>
-        <label
-          htmlFor="file-upload"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "8px",
-            padding: "8px 16px",
-            backgroundColor: disabled ? "var(--bg-secondary)" : "var(--neon)",
-            color: disabled ? "var(--text-secondary)" : "var(--bg)",
-            borderRadius: "4px",
-            cursor: disabled ? "not-allowed" : "pointer",
-            fontSize: "0.9rem",
-            fontWeight: 500,
-            opacity: disabled ? 0.5 : 1,
-          }}
-        >
-          <FiUpload />
-          {uploading ? "Uploading..." : "Choose Files"}
-        </label>
+      <div
+        className="neon-input"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+          padding: "8px 12px",
+          minHeight: "40px"
+        }}
+      >
         <input
           id="file-upload"
           type="file"
@@ -187,31 +124,43 @@ export default function ModuleFileAttachments({
           style={{ display: "none" }}
           accept=".pdf,.ppt,.pptx,.doc,.docx,.zip,.mp4,.mov,.avi,.jpg,.jpeg,.png,.scorm"
         />
-        <span
-          style={{
-            marginLeft: "12px",
-            fontSize: "0.85rem",
-            color: "var(--text-secondary)",
-          }}
-        >
-          {uploading
-            ? uploadProgress
-            : "Presentations, SCORM, PDFs, Videos, etc."}
-        </span>
+        <label htmlFor="file-upload">
+          <TextIconButton
+            variant="add"
+            icon={<FiSearch size={16} />}
+            label={uploading ? "Uploading..." : "Choose Files"}
+            disabled={disabled || uploading}
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById("file-upload")?.click();
+            }}
+          />
+        </label>
+        {uploading && (
+          <span
+            style={{
+              fontSize: "0.85rem",
+              color: "var(--text-secondary)",
+            }}
+          >
+            {uploadProgress}
+          </span>
+        )}
       </div>
 
       {attachments.length > 0 && (
         <div
           style={{
-            border: "1px solid var(--border)",
+            border: "1px solid var(--border-color)",
             borderRadius: "8px",
             padding: "12px",
-            backgroundColor: "var(--bg-secondary)",
+            backgroundColor: "#fa7a20",
+            marginTop: "8px"
           }}
         >
           <h4
             style={{
-              color: "var(--accent)",
+              color: "var(--text-white)",
               fontSize: "0.9rem",
               fontWeight: 600,
               marginBottom: "8px",
@@ -222,26 +171,26 @@ export default function ModuleFileAttachments({
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
             {attachments.map((attachment, index) => (
               <div
-                key={index}
+                key={`${attachment.name}-${attachment.size}-${attachment.uploaded_at}-${index}`}
                 style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
                   padding: "8px 12px",
-                  backgroundColor: "var(--bg)",
-                  border: "1px solid var(--border)",
+                  backgroundColor: "rgba(0, 0, 0, 0.2)",
+                  border: "1px solid rgba(255, 255, 255, 0.1)",
                   borderRadius: "4px",
                   gap: "12px",
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: 1, minWidth: 0 }}>
                   <span style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
-                    {getFileIcon(attachment.name, attachment.type)}
+                    {getFileIcon(attachment.name, attachment.type, 20)}
                   </span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div
                       style={{
-                        color: "var(--text)",
+                        color: "var(--text-white)",
                         fontSize: "0.9rem",
                         fontWeight: 500,
                         whiteSpace: "nowrap",
@@ -253,7 +202,7 @@ export default function ModuleFileAttachments({
                     </div>
                     <div
                       style={{
-                        color: "var(--text-secondary)",
+                        color: "rgba(255, 255, 255, 0.7)",
                         fontSize: "0.75rem",
                       }}
                     >

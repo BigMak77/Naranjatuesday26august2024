@@ -208,7 +208,7 @@ export default function AddTrainingQuestionForm({ onSuccess }: { onSuccess?: () 
                 <div>
                   <label className="neon-label">Answers</label>
                   {answers.map((a, idx) => (
-                    <div key={idx}>
+                    <div key={`answer-${idx}-${a.text.substring(0, 10)}`}>
                       <input
                         className="neon-input"
                         placeholder={`Answer ${idx + 1}`}

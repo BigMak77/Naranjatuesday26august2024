@@ -140,6 +140,67 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: 1rem;
 }
 
+/* ========== TYPOGRAPHY UTILITY CLASSES ========== */
+/* Font family utilities */
+.font-body {
+  font-family: var(--font-family);
+}
+
+/* Font weight utilities */
+.font-normal {
+  font-weight: var(--font-weight-normal); /* 400 */
+}
+
+.font-medium {
+  font-weight: 500;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+.font-bold {
+  font-weight: var(--font-weight-header); /* 700 */
+}
+
+/* Font size utilities */
+.text-xs {
+  font-size: var(--font-size-tooltip); /* 12px */
+}
+
+.text-sm {
+  font-size: var(--font-size-base); /* 14px */
+}
+
+.text-base {
+  font-size: var(--font-size-subheader); /* 16px */
+}
+
+.text-lg {
+  font-size: var(--font-size-header); /* 18px */
+}
+
+.text-xl {
+  font-size: 1.25rem; /* 20px */
+}
+
+/* Opacity utilities */
+.opacity-60 {
+  opacity: 0.6;
+}
+
+.opacity-70 {
+  opacity: 0.7;
+}
+
+.opacity-75 {
+  opacity: 0.75;
+}
+
+.opacity-80 {
+  opacity: 0.8;
+}
+
 /* Native form controls use app font */
 input,
 select,

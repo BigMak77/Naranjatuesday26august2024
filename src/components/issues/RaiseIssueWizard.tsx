@@ -172,7 +172,7 @@ export default function RaiseIssueWizard({ onClose }: RaiseIssueWizardProps) {
               {evidenceFiles.length > 0 && (
                 <ul className="neon-file-list" style={{ marginTop: '0.5rem' }}>
                   {evidenceFiles.map((file, idx) => (
-                    <li key={idx}>{file.name}</li>
+                    <li key={`${file.name}-${file.size}-${file.lastModified}-${idx}`}>{file.name}</li>
                   ))}
                 </ul>
               )}
@@ -209,7 +209,7 @@ export default function RaiseIssueWizard({ onClose }: RaiseIssueWizardProps) {
                 <b>Evidence Files:</b>
                 <ul className="neon-file-list">
                   {evidenceFiles.map((file, idx) => (
-                    <li key={idx}>{file.name}</li>
+                    <li key={`review-${file.name}-${file.size}-${file.lastModified}-${idx}`}>{file.name}</li>
                   ))}
                 </ul>
               </div>

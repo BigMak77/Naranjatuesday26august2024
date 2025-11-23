@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 import { FiMail, FiHeart, FiBookOpen } from "react-icons/fi";
 import TextIconButton from "@/components/ui/TextIconButtons";
+import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
 type AdminSection = "Dashboard" | "HR" | "Compliance" | "Reports" | "Utilities" | "Trainer" | "Tasks" | "Issues" | "Audits" | "Modules" | "Documents";
 
@@ -151,32 +152,34 @@ export default function SuperAdminToolbar() {
       <div className="toolbar-buttons">
         {/* Admin Sections Dropdown */}
         <div ref={dropdownRef} className="toolbar-dropdown">
-          <button
-            ref={buttonRef}
-            className="neon-btn neon-btn-list"
-            onClick={handleToggle}
-            aria-label="Select admin section"
-            aria-expanded={isOpen}
-            type="button"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          <CustomTooltip text="Toolbar Menu" placement="bottom">
+            <button
+              ref={buttonRef}
+              className="neon-btn neon-btn-list"
+              onClick={handleToggle}
+              aria-label="Select admin section"
+              aria-expanded={isOpen}
+              type="button"
             >
-              <line x1="8" y1="6" x2="21" y2="6"></line>
-              <line x1="8" y1="12" x2="21" y2="12"></line>
-              <line x1="8" y1="18" x2="21" y2="18"></line>
-              <line x1="3" y1="6" x2="3.01" y2="6"></line>
-              <line x1="3" y1="12" x2="3.01" y2="12"></line>
-              <line x1="3" y1="18" x2="3.01" y2="18"></line>
-            </svg>
-          </button>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="8" y1="6" x2="21" y2="6"></line>
+                <line x1="8" y1="12" x2="21" y2="12"></line>
+                <line x1="8" y1="18" x2="21" y2="18"></line>
+                <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                <line x1="3" y1="18" x2="3.01" y2="18"></line>
+              </svg>
+            </button>
+          </CustomTooltip>
 
           {isOpen && typeof window !== 'undefined' && createPortal(
             <div
@@ -210,28 +213,34 @@ export default function SuperAdminToolbar() {
         </div>
 
         {/* Health & Safety Button */}
-        <TextIconButton
-          icon={<FiHeart />}
-          variant="add"
-          label="Health & Safety"
-          onClick={handleHealthSafetyClick}
-        />
+        <CustomTooltip text="Health & Safety" placement="bottom">
+          <TextIconButton
+            icon={<FiHeart />}
+            variant="add"
+            label="Health & Safety"
+            onClick={handleHealthSafetyClick}
+          />
+        </CustomTooltip>
 
         {/* Log Training Button */}
-        <TextIconButton
-          icon={<FiBookOpen />}
-          variant="add"
-          label="Log Training"
-          onClick={handleLogTrainingClick}
-        />
+        <CustomTooltip text="Log Training" placement="bottom">
+          <TextIconButton
+            icon={<FiBookOpen />}
+            variant="add"
+            label="Log Training"
+            onClick={handleLogTrainingClick}
+          />
+        </CustomTooltip>
 
         {/* Contact Support Button */}
-        <TextIconButton
-          icon={<FiMail />}
-          variant="send"
-          label="Contact Support"
-          onClick={handleContactAdmin}
-        />
+        <CustomTooltip text="Contact Support" placement="bottom">
+          <TextIconButton
+            icon={<FiMail />}
+            variant="send"
+            label="Contact Support"
+            onClick={handleContactAdmin}
+          />
+        </CustomTooltip>
       </div>
 
       <span className="toolbar-user-info">

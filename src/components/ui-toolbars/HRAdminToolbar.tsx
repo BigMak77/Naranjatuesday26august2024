@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 import { FiMail, FiUsers } from "react-icons/fi";
 import TextIconButton from "@/components/ui/TextIconButtons";
+import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
 type HRSection = "Dashboard" | "Employees" | "Compliance" | "Reports";
 
@@ -84,31 +85,33 @@ export default function HRAdminToolbar() {
       <div className="toolbar-buttons">
         {/* HR Sections Dropdown */}
         <div ref={dropdownRef} className="toolbar-dropdown">
-          <button
-            className="neon-btn neon-btn-list"
-            onClick={handleToggle}
-            aria-label="Select HR section"
-            aria-expanded={isOpen}
-            type="button"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          <CustomTooltip text="Toolbar Menu" placement="bottom">
+            <button
+              className="neon-btn neon-btn-list"
+              onClick={handleToggle}
+              aria-label="Select HR section"
+              aria-expanded={isOpen}
+              type="button"
             >
-              <line x1="8" y1="6" x2="21" y2="6"></line>
-              <line x1="8" y1="12" x2="21" y2="12"></line>
-              <line x1="8" y1="18" x2="21" y2="18"></line>
-              <line x1="3" y1="6" x2="3.01" y2="6"></line>
-              <line x1="3" y1="12" x2="3.01" y2="12"></line>
-              <line x1="3" y1="18" x2="3.01" y2="18"></line>
-            </svg>
-          </button>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="8" y1="6" x2="21" y2="6"></line>
+                <line x1="8" y1="12" x2="21" y2="12"></line>
+                <line x1="8" y1="18" x2="21" y2="18"></line>
+                <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                <line x1="3" y1="18" x2="3.01" y2="18"></line>
+              </svg>
+            </button>
+          </CustomTooltip>
 
           {isOpen && (
             <div className="list-button-dropdown">
@@ -137,21 +140,24 @@ export default function HRAdminToolbar() {
         </div>
 
         {/* Employee Management Button */}
-        <TextIconButton
-          icon={<FiUsers />}
-          variant="add"
-          label="Manage Employees"
-          title="Manage All Employees"
-          onClick={() => router.push('/hr/employees')}
-        />
+        <CustomTooltip text="Manage All Employees" placement="bottom">
+          <TextIconButton
+            icon={<FiUsers />}
+            variant="add"
+            label="Manage Employees"
+            onClick={() => router.push('/hr/employees')}
+          />
+        </CustomTooltip>
 
         {/* Contact Admin Button */}
-        <TextIconButton
-          icon={<FiMail />}
-          variant="send"
-          label="Contact Admin"
-          onClick={handleContactAdmin}
-        />
+        <CustomTooltip text="Contact Admin" placement="bottom">
+          <TextIconButton
+            icon={<FiMail />}
+            variant="send"
+            label="Contact Admin"
+            onClick={handleContactAdmin}
+          />
+        </CustomTooltip>
       </div>
 
       <span className="toolbar-user-info">

@@ -87,7 +87,7 @@ export default function AddTaskStepsModal({ open, onClose, taskId, onStepsSaved 
           ) : (
             <>
               {steps.map((step, idx) => (
-                <div key={idx} style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                <div key={`step-${idx}-${step.substring(0, 10)}`} style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
                   <input
                     className="neon-input"
                     placeholder={`Step ${idx + 1}`}

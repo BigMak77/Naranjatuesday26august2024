@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 import { FiMail, FiAlertTriangle } from "react-icons/fi";
 import TextIconButton from "@/components/ui/TextIconButtons";
+import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
 type HSSection = "Dashboard" | "Incidents" | "Risk Assessments" | "First Aiders" | "Compliance";
 
@@ -90,31 +91,33 @@ export default function HSAdminToolbar() {
       <div className="toolbar-buttons">
         {/* H&S Sections Dropdown */}
         <div ref={dropdownRef} className="toolbar-dropdown">
-          <button
-            className="neon-btn neon-btn-list"
-            onClick={handleToggle}
-            aria-label="Select H&S section"
-            aria-expanded={isOpen}
-            type="button"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          <CustomTooltip text="Toolbar Menu" placement="bottom">
+            <button
+              className="neon-btn neon-btn-list"
+              onClick={handleToggle}
+              aria-label="Select H&S section"
+              aria-expanded={isOpen}
+              type="button"
             >
-              <line x1="8" y1="6" x2="21" y2="6"></line>
-              <line x1="8" y1="12" x2="21" y2="12"></line>
-              <line x1="8" y1="18" x2="21" y2="18"></line>
-              <line x1="3" y1="6" x2="3.01" y2="6"></line>
-              <line x1="3" y1="12" x2="3.01" y2="12"></line>
-              <line x1="3" y1="18" x2="3.01" y2="18"></line>
-            </svg>
-          </button>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="8" y1="6" x2="21" y2="6"></line>
+                <line x1="8" y1="12" x2="21" y2="12"></line>
+                <line x1="8" y1="18" x2="21" y2="18"></line>
+                <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                <line x1="3" y1="18" x2="3.01" y2="18"></line>
+              </svg>
+            </button>
+          </CustomTooltip>
 
           {isOpen && (
             <div className="list-button-dropdown">
@@ -143,21 +146,24 @@ export default function HSAdminToolbar() {
         </div>
 
         {/* Incidents Button */}
-        <TextIconButton
-          icon={<FiAlertTriangle />}
-          variant="alert"
-          label="Incidents"
-          title="View All Incidents"
-          onClick={() => router.push('/health-safety/incidents')}
-        />
+        <CustomTooltip text="View All Incidents" placement="bottom">
+          <TextIconButton
+            icon={<FiAlertTriangle />}
+            variant="alert"
+            label="Incidents"
+            onClick={() => router.push('/health-safety/incidents')}
+          />
+        </CustomTooltip>
 
         {/* Contact Admin Button */}
-        <TextIconButton
-          icon={<FiMail />}
-          variant="send"
-          label="Contact Admin"
-          onClick={handleContactAdmin}
-        />
+        <CustomTooltip text="Contact Admin" placement="bottom">
+          <TextIconButton
+            icon={<FiMail />}
+            variant="send"
+            label="Contact Admin"
+            onClick={handleContactAdmin}
+          />
+        </CustomTooltip>
       </div>
 
       <span className="toolbar-user-info">

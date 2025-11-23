@@ -9,6 +9,8 @@ import {
 import SearchableDropdown from "@/components/SearchableDropdown";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 import SuccessModal from "@/components/ui/SuccessModal";
+import OverlayDialog from "@/components/ui/OverlayDialog";
+import DualPaneSelector from "@/components/ui/DualPaneSelector";
 
 type UUID = string;
 
@@ -38,6 +40,7 @@ type Step = 1 | 2 | 3;
 
 export default function AssignModuleWizard() {
   const [step, setStep] = useState<Step>(1);
+  const [showDepartmentDialog, setShowDepartmentDialog] = useState(false);
 
   const [modules, setModules] = useState<Module[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -55,6 +58,9 @@ export default function AssignModuleWizard() {
   // Success modal state
   const [showSuccess, setShowSuccess] = useState(false);
   const [assignedCount, setAssignedCount] = useState(0);
+  const [alreadyAssignedCount, setAlreadyAssignedCount] = useState(0);
+  const [successDetails, setSuccessDetails] = useState("");
+  const [existingAssignments, setExistingAssignments] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     (async () => {
@@ -111,6 +117,13 @@ export default function AssignModuleWizard() {
     })();
   }, []);
 
+  // Check existing assignments when step 3 is entered or dependencies change
+  useEffect(() => {
+    if (step === 3) {
+      checkExistingAssignments();
+    }
+  }, [step, selectedModule, selectedDeptIds, users]);
+
   // Step 3: users drawn from selected departments (with search)
   const filteredUsers: User[] = useMemo(() => {
     const pool = selectedDeptIds.length
@@ -132,6 +145,43 @@ export default function AssignModuleWizard() {
   const canGoNextFrom1 = !!selectedModule;
   const canGoNextFrom2 = selectedDeptIds.length > 0;
   const canAssign = selectedUserAuthIds.length > 0 && !!selectedModule;
+
+  // Check existing assignments for the selected module and department users
+  const checkExistingAssignments = async () => {
+    if (!selectedModule || selectedDeptIds.length === 0) {
+      setExistingAssignments(new Set());
+      return;
+    }
+
+    const departmentUsers = users.filter(
+      (u) => !!u.department_id && selectedDeptIds.includes(u.department_id) && !!u.auth_id
+    );
+
+    if (departmentUsers.length === 0) {
+      setExistingAssignments(new Set());
+      return;
+    }
+
+    const userAuthIds = departmentUsers.map((u) => u.auth_id!);
+
+    try {
+      const { data: assignments, error } = await supabase
+        .from("user_assignments")
+        .select("auth_id")
+        .eq("item_id", selectedModule)
+        .eq("item_type", "module")
+        .in("auth_id", userAuthIds);
+
+      if (!error && assignments) {
+        setExistingAssignments(new Set(assignments.map((a) => a.auth_id)));
+      } else {
+        setExistingAssignments(new Set());
+      }
+    } catch (err) {
+      console.error("Error checking existing assignments:", err);
+      setExistingAssignments(new Set());
+    }
+  };
 
   // Toggle helpers
   const toggleDept = (deptId: UUID | null) => {
@@ -202,7 +252,54 @@ export default function AssignModuleWizard() {
       const uniqueAuthIds = Array.from(
         new Set(selectedUserAuthIds.filter(Boolean)),
       );
-      const rows = uniqueAuthIds.map((auth_id) => ({
+
+      // Check for existing assignments
+      const { data: existingAssignments, error: existingError } = await supabase
+        .from("user_assignments")
+        .select("auth_id")
+        .eq("item_id", selectedModule)
+        .eq("item_type", "module")
+        .in("auth_id", uniqueAuthIds);
+
+      if (existingError) {
+        setFeedback(`Failed to check existing assignments: ${existingError.message}`);
+        setAssigning(false);
+        return;
+      }
+
+      const alreadyAssignedAuthIds = new Set(
+        existingAssignments?.map((assignment) => assignment.auth_id) || []
+      );
+
+      // Filter out users who already have the module assigned
+      const newAuthIds = uniqueAuthIds.filter(
+        (authId) => !alreadyAssignedAuthIds.has(authId)
+      );
+
+      // Get user names for feedback
+      const alreadyAssignedUsers = users
+        .filter((u) => u.auth_id && alreadyAssignedAuthIds.has(u.auth_id))
+        .map((u) => u.name);
+
+      const newUsers = users
+        .filter((u) => u.auth_id && newAuthIds.includes(u.auth_id))
+        .map((u) => u.name);
+
+      // If no new assignments to make
+      if (newAuthIds.length === 0) {
+        if (alreadyAssignedUsers.length > 0) {
+          setFeedback(
+            `All selected users already have this module assigned: ${alreadyAssignedUsers.join(", ")}`
+          );
+        } else {
+          setFeedback("No valid users to assign.");
+        }
+        setAssigning(false);
+        return;
+      }
+
+      // Create assignment rows for new users only
+      const rows = newAuthIds.map((auth_id) => ({
         auth_id,
         item_id: selectedModule,
         item_type: "module" as const,
@@ -219,10 +316,18 @@ If this persists, check Row Level Security policies on "user_assignments".`);
         return;
       }
 
-      // Show success modal
+      // Show success modal with detailed information
       setAssignedCount(rows.length);
+      setAlreadyAssignedCount(alreadyAssignedUsers.length);
+      setSuccessDetails(
+        alreadyAssignedUsers.length > 0
+          ? `${alreadyAssignedUsers.length} user(s) already had this module: ${alreadyAssignedUsers.join(", ")}`
+          : ""
+      );
       setShowSuccess(true);
+      
       setFeedback("");
+      
       // Reset selections
       setSelectedDeptIds([]);
       setSelectedUserAuthIds([]);
@@ -250,9 +355,15 @@ If this persists, check Row Level Security policies on "user_assignments".`);
       <SuccessModal
         open={showSuccess}
         onClose={() => setShowSuccess(false)}
-        title="Assignment Successful!"
-        message={`Successfully assigned "${moduleName}" to ${selectedUserAuthIds.length} user(s).`}
-        autoCloseMs={3000}
+        title="Assignment Completed!"
+        message={
+          assignedCount > 0
+            ? `Successfully assigned "${moduleName}" to ${assignedCount} user(s).${
+                successDetails ? `\n\n${successDetails}` : ""
+              }`
+            : `No new assignments made. ${successDetails}`
+        }
+        autoCloseMs={5000}
       />
       <h2 style={{ color: "var(--accent)", fontWeight: 600, fontSize: "1.125rem", marginBottom: 16 }}>
         Follow the steps below to assign training modules to users
@@ -294,7 +405,7 @@ If this persists, check Row Level Security policies on "user_assignments".`);
                 <TextIconButton
                   variant="next"
                   label="Next"
-                  onClick={() => setStep(2)}
+                  onClick={() => setShowDepartmentDialog(true)}
                   disabled={!canGoNextFrom1}
                   aria-label="Next to departments"
                 />
@@ -303,33 +414,28 @@ If this persists, check Row Level Security policies on "user_assignments".`);
           </div>
         )}
 
-        {/* Step 2 */}
+        {/* Step 2 - Department Selection Summary */}
         {step === 2 && (
           <div className="neon-form-section">
             <div className="neon-form-info">
-              <strong>Step 2 of 3:</strong> Select one or more departments. Only users from the selected departments will be available in the next step.
-              You can select multiple departments at once.
+              <strong>Step 2 of 3:</strong> You have selected departments. Review your selection below or modify it by clicking "Change Departments".
             </div>
 
-            <label className="neon-label">Select Department(s)</label>
-            <SearchableDropdown
-              options={departments.filter((d) => d.id).map((d) => ({
-                label: d.name,
-                value: d.id as string,
-              }))}
-              multi
-              value={selectedDeptIds}
-              onSelect={(vals) => {
-                setSelectedUserAuthIds([]); // reset user selection on dept change
-                setSelectedDeptIds(Array.isArray(vals) ? vals : [vals]);
-              }}
-              placeholder="Select department(s)..."
-            />
-            <div className="neon-text">
+            <label className="neon-label">Selected Department(s)</label>
+            <div className="neon-text" style={{ 
+              padding: "12px", 
+              border: "1px solid var(--neon)", 
+              borderRadius: "4px", 
+              marginBottom: "16px" 
+            }}>
               {selectedDeptIds.length
-                ? `✓ Selected ${selectedDeptIds.length} department(s) containing ${deptUserCount} user(s).`
-                : "Pick at least one department to continue."}
+                ? `✓ Selected ${selectedDeptIds.length} department(s): ${departments
+                    .filter((d) => d.id && selectedDeptIds.includes(d.id))
+                    .map((d) => d.name)
+                    .join(", ")} (containing ${deptUserCount} user(s))`
+                : "No departments selected"}
             </div>
+            
             <div className="neon-dialog-actions">
               <CustomTooltip text="Go back to module selection">
                 <TextIconButton
@@ -337,6 +443,14 @@ If this persists, check Row Level Security policies on "user_assignments".`);
                   label="Back"
                   onClick={() => setStep(1)}
                   aria-label="Back to module selection"
+                />
+              </CustomTooltip>
+              <CustomTooltip text="Modify department selection">
+                <TextIconButton
+                  variant="edit"
+                  label="Change Departments"
+                  onClick={() => setShowDepartmentDialog(true)}
+                  aria-label="Change department selection"
                 />
               </CustomTooltip>
               <CustomTooltip text={!canGoNextFrom2 ? "Please select at least one department" : "Continue to user selection"}>
@@ -366,6 +480,11 @@ If this persists, check Row Level Security policies on "user_assignments".`);
             <div className="neon-form-row">
               <div className="neon-text">
                 {filteredUsers.length} user(s) available • {selectedUserAuthIds.length} selected
+                {existingAssignments.size > 0 && (
+                  <span style={{ color: "var(--warning)", marginLeft: "8px" }}>
+                    • {existingAssignments.size} already assigned
+                  </span>
+                )}
               </div>
               <div className="neon-button-group">
                 {/* Select All Checkbox */}
@@ -391,20 +510,41 @@ If this persists, check Row Level Security policies on "user_assignments".`);
                 const deptName = u.department_id
                   ? departments.find((d) => d.id === u.department_id)?.name
                   : "No Dept";
-                const key = u.auth_id ?? u.id ?? `user-${idx}`;
+                // Create a unique key by combining multiple identifiers
+                const key = `${u.auth_id || 'no-auth'}-${u.id || 'no-id'}-${idx}-${u.name.replace(/\s+/g, '-')}`;
                 const checked =
                   !!u.auth_id && selectedUserAuthIds.includes(u.auth_id);
+                const alreadyAssigned = !!u.auth_id && existingAssignments.has(u.auth_id);
+                
                 return (
-                  <div key={key} className="neon-radio-option">
+                  <div key={key} className="neon-radio-option" style={{
+                    opacity: alreadyAssigned ? 0.6 : 1,
+                    backgroundColor: alreadyAssigned ? "var(--warning-bg)" : undefined,
+                    border: alreadyAssigned ? "1px solid var(--warning)" : undefined,
+                  }}>
                     <input
                       type="checkbox"
                       className="neon-radio"
                       checked={checked}
-                      disabled={!u.auth_id}
+                      disabled={!u.auth_id || alreadyAssigned}
                       onChange={() => toggleUser(u.auth_id)}
                     />
                     <div className="neon-radio-label">
-                      <strong>{u.name}</strong>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <strong>{u.name}</strong>
+                        {alreadyAssigned && (
+                          <span style={{
+                            fontSize: "0.75rem",
+                            color: "var(--warning)",
+                            backgroundColor: "var(--warning-bg)",
+                            padding: "2px 6px",
+                            borderRadius: "3px",
+                            border: "1px solid var(--warning)",
+                          }}>
+                            Already Assigned
+                          </span>
+                        )}
+                      </div>
                       <div className="neon-text">
                         {deptName}
                       </div>
@@ -449,6 +589,80 @@ If this persists, check Row Level Security policies on "user_assignments".`);
           </div>
         )}
       </div>
+
+      {/* Department Selection Dialog - Step 2 */}
+      <OverlayDialog
+        open={showDepartmentDialog}
+        onClose={() => setShowDepartmentDialog(false)}
+        showCloseButton={true}
+        width={800}
+        ariaLabelledby="department-dialog-title"
+      >
+        <div style={{ padding: "24px" }}>
+          <h3
+            id="department-dialog-title"
+            style={{ 
+              color: "var(--accent)", 
+              fontWeight: 600, 
+              fontSize: "1.25rem", 
+              marginBottom: "16px" 
+            }}
+          >
+            Select Departments
+          </h3>
+          
+          <div className="neon-form-section">
+            <div className="neon-form-info" style={{ marginBottom: "20px" }}>
+              <strong>Step 2 of 3:</strong> Select one or more departments from the left panel and move them to the right. Only users from the selected departments will be available in the next step.
+            </div>
+
+            <DualPaneSelector
+              availableOptions={departments.filter((d) => d.id).map((d) => ({
+                label: d.name,
+                value: d.id as string,
+              }))}
+              selectedValues={selectedDeptIds}
+              onSelectionChange={(newSelectedIds) => {
+                setSelectedUserAuthIds([]); // reset user selection on dept change
+                setSelectedDeptIds(newSelectedIds);
+              }}
+              availableTitle="Available Departments"
+              selectedTitle="Selected Departments"
+              searchPlaceholder="Search departments..."
+            />
+            
+            <div className="neon-text" style={{ marginTop: "16px", textAlign: "center" }}>
+              {selectedDeptIds.length
+                ? `✓ Selected ${selectedDeptIds.length} department(s) containing ${deptUserCount} user(s).`
+                : "Select at least one department to continue."}
+            </div>
+            
+            <div className="neon-dialog-actions" style={{ marginTop: "24px" }}>
+              <CustomTooltip text="Close without saving">
+                <TextIconButton
+                  variant="cancel"
+                  label="Cancel"
+                  onClick={() => setShowDepartmentDialog(false)}
+                  aria-label="Cancel department selection"
+                />
+              </CustomTooltip>
+              <CustomTooltip text={!canGoNextFrom2 ? "Please select at least one department" : "Continue to user selection"}>
+                <TextIconButton
+                  variant="next"
+                  label="Next"
+                  onClick={() => {
+                    setSelectedUserAuthIds([]);
+                    setStep(2);
+                    setShowDepartmentDialog(false);
+                  }}
+                  disabled={!canGoNextFrom2}
+                  aria-label="Next to user selection"
+                />
+              </CustomTooltip>
+            </div>
+          </div>
+        </div>
+      </OverlayDialog>
     </>
   );
 }

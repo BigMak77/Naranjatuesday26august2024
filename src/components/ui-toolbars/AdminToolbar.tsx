@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 import { FiMail, FiSettings } from "react-icons/fi";
 import TextIconButton from "@/components/ui/TextIconButtons";
+import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
 type AdminSection = "Dashboard" | "Users" | "Modules" | "Departments" | "Utilities";
 
@@ -90,31 +91,33 @@ export default function AdminToolbar() {
       <div className="toolbar-buttons">
         {/* Admin Sections Dropdown */}
         <div ref={dropdownRef} className="toolbar-dropdown">
-          <button
-            className="neon-btn neon-btn-list"
-            onClick={handleToggle}
-            aria-label="Select admin section"
-            aria-expanded={isOpen}
-            type="button"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          <CustomTooltip text="Toolbar Menu" placement="bottom">
+            <button
+              className="neon-btn neon-btn-list"
+              onClick={handleToggle}
+              aria-label="Select admin section"
+              aria-expanded={isOpen}
+              type="button"
             >
-              <line x1="8" y1="6" x2="21" y2="6"></line>
-              <line x1="8" y1="12" x2="21" y2="12"></line>
-              <line x1="8" y1="18" x2="21" y2="18"></line>
-              <line x1="3" y1="6" x2="3.01" y2="6"></line>
-              <line x1="3" y1="12" x2="3.01" y2="12"></line>
-              <line x1="3" y1="18" x2="3.01" y2="18"></line>
-            </svg>
-          </button>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="8" y1="6" x2="21" y2="6"></line>
+                <line x1="8" y1="12" x2="21" y2="12"></line>
+                <line x1="8" y1="18" x2="21" y2="18"></line>
+                <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                <line x1="3" y1="18" x2="3.01" y2="18"></line>
+              </svg>
+            </button>
+          </CustomTooltip>
 
           {isOpen && (
             <div className="list-button-dropdown">
@@ -138,20 +141,24 @@ export default function AdminToolbar() {
         </div>
 
         {/* System Settings Button */}
-        <TextIconButton
-          icon={<FiSettings />}
-          variant="edit"
-          label="System Settings"
-          onClick={() => router.push('/admin/settings')}
-        />
+        <CustomTooltip text="System Settings" placement="bottom">
+          <TextIconButton
+            icon={<FiSettings />}
+            variant="edit"
+            label="System Settings"
+            onClick={() => router.push('/admin/settings')}
+          />
+        </CustomTooltip>
 
         {/* Contact Support Button */}
-        <TextIconButton
-          icon={<FiMail />}
-          variant="send"
-          label="Contact Support"
-          onClick={handleContactAdmin}
-        />
+        <CustomTooltip text="Contact Support" placement="bottom">
+          <TextIconButton
+            icon={<FiMail />}
+            variant="send"
+            label="Contact Support"
+            onClick={handleContactAdmin}
+          />
+        </CustomTooltip>
       </div>
 
       <span className="toolbar-user-info">

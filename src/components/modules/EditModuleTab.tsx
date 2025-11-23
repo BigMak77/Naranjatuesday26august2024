@@ -335,6 +335,12 @@ export default function EditModuleTab({ module, onSuccess }: EditModuleTabProps)
             </p>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
               <TextIconButton
+                variant="cancel"
+                icon={<FiX size={16} />}
+                label="No, update current"
+                onClick={() => handleVersionConfirm(false)}
+              />
+              <TextIconButton
                 variant="add"
                 icon={<FiPlus size={16} />}
                 label="Yes, new version"

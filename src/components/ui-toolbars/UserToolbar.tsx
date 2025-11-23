@@ -2,6 +2,7 @@
 import React from "react";
 import { FiMail, FiHeart, FiShield } from "react-icons/fi";
 import TextIconButton from "@/components/ui/TextIconButtons";
+import { CustomTooltip } from "@/components/ui/CustomTooltip";
 import { usePermissions } from "@/lib/usePermissions";
 import { useUser } from "@/context/UserContext";
 
@@ -20,31 +21,37 @@ export default function UserToolbar() {
       <div className="toolbar-buttons">
         {/* First Aider Button */}
         {canAddFirstAidReport && (
-          <TextIconButton
-            icon={<FiHeart />}
-            variant="add"
-            label="Add First Aid Report"
-            onClick={() => (window.location.href = "/health-safety/firstaid")}
-          />
+          <CustomTooltip text="Add First Aid Report" placement="bottom">
+            <TextIconButton
+              icon={<FiHeart />}
+              variant="add"
+              label="Add First Aid Report"
+              onClick={() => (window.location.href = "/health-safety/firstaid")}
+            />
+          </CustomTooltip>
         )}
 
         {/* Safety Rep Button */}
         {canAddRiskAssessment && (
-          <TextIconButton
-            icon={<FiShield />}
-            variant="add"
-            label="Add Risk Assessment"
-            onClick={() => (window.location.href = "/health-safety")}
-          />
+          <CustomTooltip text="Add Risk Assessment" placement="bottom">
+            <TextIconButton
+              icon={<FiShield />}
+              variant="add"
+              label="Add Risk Assessment"
+              onClick={() => (window.location.href = "/health-safety")}
+            />
+          </CustomTooltip>
         )}
 
         {/* Contact Admin Button */}
-        <TextIconButton
-          icon={<FiMail />}
-          variant="send"
-          label="Contact Admin"
-          onClick={handleContactAdmin}
-        />
+        <CustomTooltip text="Contact Admin" placement="bottom">
+          <TextIconButton
+            icon={<FiMail />}
+            variant="send"
+            label="Contact Admin"
+            onClick={handleContactAdmin}
+          />
+        </CustomTooltip>
       </div>
 
       <span className="toolbar-user-info">

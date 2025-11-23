@@ -188,9 +188,9 @@ const UserCSVImport: React.FC<UserCSVImportProps> = ({ onImport, onError }) => {
                   </thead>
                   <tbody>
                     {parsedUsers.map((user, idx) => (
-                      <tr key={idx}>
+                      <tr key={`user-row-${idx}-${JSON.stringify(user).substring(0, 20)}`}>
                         {Object.values(user).map((val, i) => (
-                          <td key={i}>{String(val)}</td>
+                          <td key={`cell-${idx}-${i}-${String(val).substring(0, 10)}`}>{String(val)}</td>
                         ))}
                       </tr>
                     ))}

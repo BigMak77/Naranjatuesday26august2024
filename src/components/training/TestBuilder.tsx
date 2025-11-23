@@ -71,6 +71,9 @@ export default function TestBuilder() {
   const [existingPacks, setExistingPacks] = useState<TestPack[]>([]);
   const [editingPackId, setEditingPackId] = useState<string | null>(null);
   const [showExistingTests, setShowExistingTests] = useState(false);
+  const [showAddQuestionDialog, setShowAddQuestionDialog] = useState(false);
+  const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
+  const [newQuestion, setNewQuestion] = useState<TestQuestion | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -180,8 +183,8 @@ export default function TestBuilder() {
     }
   };
 
-  const addQuestion = () => {
-    const newQuestion: TestQuestion = {
+  const openAddQuestionDialog = () => {
+    const question: TestQuestion = {
       id: `temp_${Date.now()}`,
       question_text: "",
       type: "mcq_single",
@@ -192,11 +195,134 @@ export default function TestBuilder() {
         { id: `opt_${Date.now()}_2`, option_text: "", is_correct: false, order_index: 1 }
       ]
     };
+    setNewQuestion(question);
+    setEditingQuestionId(null);
+    setShowAddQuestionDialog(true);
+  };
 
-    setTestPack(prev => ({
-      ...prev,
-      questions: [...prev.questions, newQuestion]
-    }));
+  const openEditQuestionDialog = (questionId: string) => {
+    const question = testPack.questions.find(q => q.id === questionId);
+    if (!question) return;
+    setNewQuestion({ ...question });
+    setEditingQuestionId(questionId);
+    setShowAddQuestionDialog(true);
+  };
+
+  const confirmAddQuestion = () => {
+    if (!newQuestion) return;
+
+    // Validate question
+    if (!newQuestion.question_text.trim()) {
+      setError("Question text is required");
+      return;
+    }
+
+    if (newQuestion.type !== "short_answer") {
+      const hasCorrect = newQuestion.options.some(opt => opt.is_correct);
+      if (!hasCorrect) {
+        setError("At least one correct answer must be selected");
+        return;
+      }
+      const hasEmptyOption = newQuestion.options.some(opt => !opt.option_text.trim());
+      if (hasEmptyOption) {
+        setError("All options must have text");
+        return;
+      }
+    } else if (!newQuestion.correct_answer?.trim()) {
+      setError("Correct answer is required for short answer questions");
+      return;
+    }
+
+    if (editingQuestionId) {
+      // Update existing question
+      setTestPack(prev => ({
+        ...prev,
+        questions: prev.questions.map(q =>
+          q.id === editingQuestionId ? newQuestion : q
+        )
+      }));
+      setSuccess("Question updated successfully!");
+    } else {
+      // Add new question
+      setTestPack(prev => ({
+        ...prev,
+        questions: [...prev.questions, newQuestion]
+      }));
+      setSuccess("Question added successfully!");
+    }
+
+    setShowAddQuestionDialog(false);
+    setNewQuestion(null);
+    setEditingQuestionId(null);
+    setError(null);
+    setTimeout(() => setSuccess(null), 2000);
+  };
+
+  const cancelAddQuestion = () => {
+    setShowAddQuestionDialog(false);
+    setNewQuestion(null);
+    setEditingQuestionId(null);
+    setError(null);
+  };
+
+  const updateNewQuestion = (field: keyof TestQuestion, value: any) => {
+    if (!newQuestion) return;
+    setNewQuestion({ ...newQuestion, [field]: value });
+  };
+
+  const addOptionToNewQuestion = () => {
+    if (!newQuestion) return;
+    const newOption: QuestionOption = {
+      id: `opt_${Date.now()}_${newQuestion.options.length}`,
+      option_text: "",
+      is_correct: false,
+      order_index: newQuestion.options.length
+    };
+    setNewQuestion({
+      ...newQuestion,
+      options: [...newQuestion.options, newOption]
+    });
+  };
+
+  const updateNewQuestionOption = (
+    optionId: string,
+    field: keyof QuestionOption,
+    value: any
+  ) => {
+    if (!newQuestion) return;
+    const isSingleAnswer = newQuestion.type === "mcq_single" || newQuestion.type === "true_false";
+
+    setNewQuestion({
+      ...newQuestion,
+      options: newQuestion.options.map(opt => {
+        if (opt.id === optionId) {
+          // If setting is_correct to true and it's single answer type, uncheck others
+          if (field === "is_correct" && value === true && isSingleAnswer) {
+            const updatedOptions = newQuestion.options.map(o => ({
+              ...o,
+              is_correct: o.id === optionId
+            }));
+            return updatedOptions.find(o => o.id === optionId)!;
+          }
+          return { ...opt, [field]: value };
+        }
+        // Uncheck other options for single answer types
+        if (field === "is_correct" && value === true && isSingleAnswer) {
+          return { ...opt, is_correct: false };
+        }
+        return opt;
+      })
+    });
+  };
+
+  const deleteNewQuestionOption = (optionId: string) => {
+    if (!newQuestion) return;
+    setNewQuestion({
+      ...newQuestion,
+      options: newQuestion.options
+        .filter(opt => opt.id !== optionId)
+        .map((opt, idx) => ({ ...opt, order_index: idx }))
+    });
   };
 
   const updateQuestion = (questionId: string, field: keyof TestQuestion, value: any) => {
@@ -282,12 +408,13 @@ export default function TestBuilder() {
       ...prev,
       questions: prev.questions.map(q => {
         if (q.id === questionId) {
+          const isSingleAnswer = q.type === "mcq_single" || q.type === "true_false";
           return {
             ...q,
             options: q.options.map(opt => {
               if (opt.id === optionId) {
-                // If setting is_correct to true and it's mcq_single, uncheck others
-                if (field === "is_correct" && value === true && q.type === "mcq_single") {
+                // If setting is_correct to true and it's single answer type, uncheck others
+                if (field === "is_correct" && value === true && isSingleAnswer) {
                   const updatedOptions = q.options.map(o => ({
                     ...o,
                     is_correct: o.id === optionId
@@ -296,8 +423,8 @@ export default function TestBuilder() {
                 }
                 return { ...opt, [field]: value };
               }
-              // Uncheck other options for mcq_single
-              if (field === "is_correct" && value === true && q.type === "mcq_single") {
+              // Uncheck other options for single answer types
+              if (field === "is_correct" && value === true && isSingleAnswer) {
                 return { ...opt, is_correct: false };
               }
               return opt;
@@ -527,169 +654,62 @@ export default function TestBuilder() {
       </div>
 
       {/* Messages */}
-      {error && (
-        <div style={{
-          background: "var(--status-danger-light)",
-          border: "1px solid var(--status-danger)",
-          borderRadius: "6px",
-          padding: "12px",
-          marginBottom: "20px",
-          color: "var(--status-danger)",
-          fontFamily: "var(--font-family)",
-          fontSize: "var(--font-size-base)"
-        }}>
-          {error}
-        </div>
-      )}
-
-      {success && (
-        <div style={{
-          background: "var(--status-success-light)",
-          border: "1px solid var(--status-success)",
-          borderRadius: "6px",
-          padding: "12px",
-          marginBottom: "20px",
-          color: "var(--status-success)",
-          fontFamily: "var(--font-family)",
-          fontSize: "var(--font-size-base)"
-        }}>
-          {success}
-        </div>
-      )}
+      {error && <div className="training-card training-danger">{error}</div>}
+      {success && <div className="training-card training-badgePass">{success}</div>}
 
       {/* Test Pack Details */}
-      <div style={{
-        background: "var(--panel)",
-        border: "1px solid var(--border)",
-        borderRadius: "8px",
-        padding: "20px",
-        marginBottom: "20px"
-      }}>
-        <h3 style={{
-          color: "var(--neon)",
-          fontSize: "var(--font-size-header)",
-          fontWeight: "var(--font-weight-header)",
-          fontFamily: "var(--font-family)",
-          marginBottom: "16px"
-        }}>
-          Test Details
-        </h3>
+      <div className="neon-panel" style={{ marginBottom: "20px" }}>
+        <h3>Test Details</h3>
 
         <div style={{ display: "grid", gap: "16px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "16px" }}>
-            <div>
-              <label style={{
-                display: "block",
-                color: "var(--text-white)",
-                fontWeight: "var(--font-weight-header)",
-                marginBottom: "6px",
-                fontSize: "var(--font-size-subheader)",
-                fontFamily: "var(--font-family)"
-              }}>
-                Test Title *
-              </label>
+            <label>
+              Test Title *
               <input
+                className="neon-input"
                 type="text"
                 value={testPack.title}
                 onChange={(e) => setTestPack(prev => ({ ...prev, title: e.target.value }))}
                 placeholder="e.g., Health & Safety Module Quiz"
-                style={{
-                  width: "100%",
-                  padding: "10px",
-                  background: "var(--field)",
-                  color: "var(--text-white)",
-                  border: "1px solid var(--border)",
-                  borderRadius: "6px",
-                  fontSize: "var(--font-size-base)",
-                  fontFamily: "var(--font-family)",
-                  minHeight: "40px",
-                  height: "40px"
-                }}
+                required
               />
-            </div>
+            </label>
 
-            <div>
-              <label style={{
-                display: "block",
-                color: "var(--text-white)",
-                fontWeight: "var(--font-weight-header)",
-                marginBottom: "6px",
-                fontSize: "var(--font-size-subheader)",
-                fontFamily: "var(--font-family)"
-              }}>
-                Attach to Module (Optional)
-              </label>
+            <label>
+              Attach to Module (Optional)
               <select
+                className="neon-input"
                 value={testPack.module_id || ""}
                 onChange={(e) => setTestPack(prev => ({
                   ...prev,
                   module_id: e.target.value || null
                 }))}
-                style={{
-                  width: "100%",
-                  padding: "10px",
-                  background: "var(--field)",
-                  color: "var(--text-white)",
-                  border: "1px solid var(--border)",
-                  borderRadius: "6px",
-                  fontSize: "var(--font-size-base)",
-                  fontFamily: "var(--font-family)",
-                  minHeight: "40px",
-                  height: "40px"
-                }}
               >
                 <option value="">-- No module --</option>
                 {modules.map(m => (
                   <option key={m.id} value={m.id}>{m.name}</option>
                 ))}
               </select>
-            </div>
+            </label>
           </div>
 
-          <div>
-            <label style={{
-              display: "block",
-              color: "var(--text-white)",
-              fontWeight: "var(--font-weight-header)",
-              marginBottom: "6px",
-              fontSize: "var(--font-size-subheader)",
-              fontFamily: "var(--font-family)"
-            }}>
-              Description *
-            </label>
+          <label>
+            Description *
             <textarea
+              className="neon-input"
               value={testPack.description}
               onChange={(e) => setTestPack(prev => ({ ...prev, description: e.target.value }))}
               placeholder="Describe the purpose and content of this test"
               rows={3}
-              style={{
-                width: "100%",
-                padding: "10px",
-                background: "var(--field)",
-                color: "var(--text-white)",
-                border: "1px solid var(--border)",
-                borderRadius: "6px",
-                fontSize: "var(--font-size-base)",
-                fontFamily: "var(--font-family)",
-                resize: "vertical",
-                minHeight: "80px"
-              }}
+              required
             />
-          </div>
+          </label>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px" }}>
-            <div>
-              <label style={{
-                display: "block",
-                color: "var(--text-white)",
-                fontWeight: "var(--font-weight-header)",
-                marginBottom: "6px",
-                fontSize: "var(--font-size-subheader)",
-                fontFamily: "var(--font-family)"
-              }}>
-                Pass Mark (%) *
-              </label>
+            <label>
+              Pass Mark (%) *
               <input
+                className="neon-input"
                 type="number"
                 min="0"
                 max="100"
@@ -698,33 +718,14 @@ export default function TestBuilder() {
                   ...prev,
                   pass_mark: parseInt(e.target.value) || 0
                 }))}
-                style={{
-                  width: "100%",
-                  padding: "10px",
-                  background: "var(--field)",
-                  color: "var(--text-white)",
-                  border: "1px solid var(--border)",
-                  borderRadius: "6px",
-                  fontSize: "var(--font-size-base)",
-                  fontFamily: "var(--font-family)",
-                  minHeight: "40px",
-                  height: "40px"
-                }}
+                required
               />
-            </div>
+            </label>
 
-            <div>
-              <label style={{
-                display: "block",
-                color: "var(--text-white)",
-                fontWeight: "var(--font-weight-header)",
-                marginBottom: "6px",
-                fontSize: "var(--font-size-subheader)",
-                fontFamily: "var(--font-family)"
-              }}>
-                Time Limit (minutes)
-              </label>
+            <label>
+              Time Limit (minutes)
               <input
+                className="neon-input"
                 type="number"
                 min="0"
                 value={testPack.time_limit_minutes || ""}
@@ -733,121 +734,93 @@ export default function TestBuilder() {
                   time_limit_minutes: e.target.value ? parseInt(e.target.value) : null
                 }))}
                 placeholder="No limit"
-                style={{
-                  width: "100%",
-                  padding: "10px",
-                  background: "var(--field)",
-                  color: "var(--text-white)",
-                  border: "1px solid var(--border)",
-                  borderRadius: "6px",
-                  fontSize: "var(--font-size-base)",
-                  fontFamily: "var(--font-family)",
-                  minHeight: "40px",
-                  height: "40px"
-                }}
               />
-            </div>
+            </label>
 
-            <div>
-              <label style={{
-                display: "block",
-                color: "var(--text-white)",
-                fontWeight: "var(--font-weight-header)",
-                marginBottom: "6px",
-                fontSize: "var(--font-size-subheader)",
-                fontFamily: "var(--font-family)"
-              }}>
-                Status
-              </label>
+            <label>
+              Status
               <select
+                className="neon-input"
                 value={testPack.is_active ? "active" : "inactive"}
                 onChange={(e) => setTestPack(prev => ({
                   ...prev,
                   is_active: e.target.value === "active"
                 }))}
-                style={{
-                  width: "100%",
-                  padding: "10px",
-                  background: "var(--field)",
-                  color: "var(--text-white)",
-                  border: "1px solid var(--border)",
-                  borderRadius: "6px",
-                  fontSize: "var(--font-size-base)",
-                  fontFamily: "var(--font-family)",
-                  minHeight: "40px",
-                  height: "40px"
-                }}
               >
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
               </select>
-            </div>
+            </label>
           </div>
         </div>
       </div>
 
       {/* Questions Section */}
-      <div style={{
-        background: "var(--panel)",
-        border: "1px solid var(--border)",
-        borderRadius: "8px",
-        padding: "20px",
-        marginBottom: "20px"
-      }}>
+      <div className="neon-panel" style={{ marginBottom: "20px" }}>
         <div style={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           marginBottom: "16px"
         }}>
-          <h3 style={{
-            color: "var(--neon)",
-            fontSize: "var(--font-size-header)",
-            fontWeight: "var(--font-weight-header)",
-            fontFamily: "var(--font-family)"
-          }}>
-            Questions ({testPack.questions.length})
-          </h3>
+          <h3>Questions ({testPack.questions.length})</h3>
           <TextIconButton
             variant="add"
             icon={<FiPlus size={16} />}
             label="Add Question"
-            onClick={addQuestion}
+            onClick={openAddQuestionDialog}
           />
         </div>
 
         {testPack.questions.length === 0 ? (
-          <div style={{
-            textAlign: "center",
-            padding: "40px",
-            color: "var(--text-white)",
-            opacity: 0.7,
-            border: "1px dashed var(--border)",
-            borderRadius: "8px",
-            fontFamily: "var(--font-family)",
-            fontSize: "var(--font-size-base)"
-          }}>
+          <div className="neon-info" style={{ textAlign: "center", padding: "40px" }}>
             <p>No questions yet. Click "Add Question" to get started.</p>
           </div>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             {testPack.questions.map((question, qIndex) => (
-              <QuestionBuilder
+              <div
                 key={question.id}
-                question={question}
-                questionNumber={qIndex + 1}
-                totalQuestions={testPack.questions.length}
-                onUpdate={(field, value) => updateQuestion(question.id, field, value)}
-                onDelete={() => deleteQuestion(question.id)}
-                onMoveUp={() => moveQuestion(question.id, "up")}
-                onMoveDown={() => moveQuestion(question.id, "down")}
-                onDuplicate={() => duplicateQuestion(question.id)}
-                onAddOption={() => addOption(question.id)}
-                onUpdateOption={(optionId, field, value) =>
-                  updateOption(question.id, optionId, field, value)
-                }
-                onDeleteOption={(optionId) => deleteOption(question.id, optionId)}
-              />
+                className="neon-panel"
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: "16px"
+                }}
+              >
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                    <strong>Q{qIndex + 1}:</strong>
+                    <span style={{ opacity: 0.7, fontSize: "var(--font-size-base)" }}>
+                      {question.type === "mcq_single" && "Multiple Choice (Single)"}
+                      {question.type === "mcq_multi" && "Multiple Choice (Multiple)"}
+                      {question.type === "true_false" && "True/False"}
+                      {question.type === "short_answer" && "Short Answer"}
+                    </span>
+                    <span style={{ opacity: 0.7, fontSize: "var(--font-size-base)" }}>
+                      • {question.points} {question.points === 1 ? "point" : "points"}
+                    </span>
+                  </div>
+                  <p style={{ margin: 0 }}>{question.question_text}</p>
+                </div>
+                <div style={{ display: "flex", gap: "6px" }}>
+                  <TextIconButton
+                    variant="edit"
+                    icon={<FiEdit size={14} />}
+                    label=""
+                    onClick={() => openEditQuestionDialog(question.id)}
+                    title="Edit question"
+                  />
+                  <TextIconButton
+                    variant="delete"
+                    icon={<FiTrash2 size={14} />}
+                    label=""
+                    onClick={() => deleteQuestion(question.id)}
+                    title="Delete question"
+                  />
+                </div>
+              </div>
             ))}
           </div>
         )}
@@ -864,6 +837,59 @@ export default function TestBuilder() {
         />
       </div>
 
+      {/* Add Question Dialog */}
+      {showAddQuestionDialog && newQuestion && (
+        <OverlayDialog
+          open={showAddQuestionDialog}
+          onClose={cancelAddQuestion}
+          showCloseButton={true}
+          width={800}
+        >
+          <div style={{ padding: "24px" }}>
+            <h2>{editingQuestionId ? "Edit Question" : "Add New Question"}</h2>
+
+            <QuestionBuilder
+              question={newQuestion}
+              questionNumber={editingQuestionId
+                ? testPack.questions.findIndex(q => q.id === editingQuestionId) + 1
+                : testPack.questions.length + 1}
+              totalQuestions={testPack.questions.length + 1}
+              onUpdate={updateNewQuestion}
+              onDelete={() => {}}
+              onMoveUp={() => {}}
+              onMoveDown={() => {}}
+              onDuplicate={() => {}}
+              onAddOption={addOptionToNewQuestion}
+              onUpdateOption={updateNewQuestionOption}
+              onDeleteOption={deleteNewQuestionOption}
+              hideActions={true}
+            />
+
+            <div style={{
+              display: "flex",
+              gap: "12px",
+              justifyContent: "flex-end",
+              marginTop: "24px",
+              paddingTop: "20px",
+              borderTop: "1px solid var(--border)"
+            }}>
+              <TextIconButton
+                variant="cancel"
+                icon={<FiX size={16} />}
+                label="Cancel"
+                onClick={cancelAddQuestion}
+              />
+              <TextIconButton
+                variant="save"
+                icon={<FiCheck size={16} />}
+                label={editingQuestionId ? "Update Question" : "Add Question"}
+                onClick={confirmAddQuestion}
+              />
+            </div>
+          </div>
+        </OverlayDialog>
+      )}
+
       {/* Existing Tests Dialog */}
       {showExistingTests && (
         <OverlayDialog
@@ -873,64 +899,31 @@ export default function TestBuilder() {
           width={900}
         >
           <div style={{ padding: "24px" }}>
-            <h2 style={{
-              color: "var(--neon)",
-              fontSize: "var(--font-size-header)",
-              fontWeight: "var(--font-weight-header)",
-              fontFamily: "var(--font-family)",
-              marginBottom: "20px"
-            }}>
-              Existing Tests
-            </h2>
+            <h2>Existing Tests</h2>
 
             {existingPacks.length === 0 ? (
-              <p style={{
-                color: "var(--text-white)",
-                opacity: 0.7,
-                fontFamily: "var(--font-family)",
-                fontSize: "var(--font-size-base)"
-              }}>No tests found.</p>
+              <p className="neon-info">No tests found.</p>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 {existingPacks.map(pack => (
                   <div
                     key={pack.id}
+                    className="neon-panel"
                     style={{
-                      background: "var(--field)",
-                      border: "1px solid var(--border)",
-                      borderRadius: "8px",
-                      padding: "16px",
                       display: "flex",
                       justifyContent: "space-between",
                       alignItems: "center"
                     }}
                   >
                     <div style={{ flex: 1 }}>
-                      <div style={{
-                        fontWeight: "var(--font-weight-header)",
-                        color: "var(--text-white)",
-                        marginBottom: "4px",
-                        fontFamily: "var(--font-family)",
-                        fontSize: "var(--font-size-subheader)"
-                      }}>
-                        {pack.title}
-                      </div>
-                      <div style={{
-                        fontSize: "var(--font-size-base)",
-                        color: "var(--text-white)",
-                        opacity: 0.8,
-                        marginBottom: "4px",
-                        fontFamily: "var(--font-family)"
-                      }}>
+                      <h4 style={{ marginBottom: "4px" }}>{pack.title}</h4>
+                      <p style={{ marginBottom: "4px", opacity: 0.8 }}>
                         {pack.description}
-                      </div>
+                      </p>
                       <div style={{
-                        fontSize: "var(--font-size-base)",
-                        color: "var(--text-white)",
-                        opacity: 0.7,
                         display: "flex",
                         gap: "12px",
-                        fontFamily: "var(--font-family)"
+                        opacity: 0.7
                       }}>
                         <span>Pass: {pack.pass_mark}%</span>
                         {pack.time_limit_minutes && (
@@ -973,6 +966,7 @@ interface QuestionBuilderProps {
   onAddOption: () => void;
   onUpdateOption: (optionId: string, field: keyof QuestionOption, value: any) => void;
   onDeleteOption: (optionId: string) => void;
+  hideActions?: boolean;
 }
 
 function QuestionBuilder({
@@ -986,7 +980,8 @@ function QuestionBuilder({
   onDuplicate,
   onAddOption,
   onUpdateOption,
-  onDeleteOption
+  onDeleteOption,
+  hideActions = false
 }: QuestionBuilderProps) {
   const questionTypes = [
     { value: "mcq_single", label: "Multiple Choice (Single)" },
@@ -997,22 +992,17 @@ function QuestionBuilder({
 
   // Auto-setup True/False options when type changes
   const handleTypeChange = (newType: QuestionType) => {
+    onUpdate("type", newType);
     if (newType === "true_false" && question.type !== "true_false") {
       onUpdate("options", [
         { id: `opt_true_${Date.now()}`, option_text: "True", is_correct: false, order_index: 0 },
         { id: `opt_false_${Date.now()}`, option_text: "False", is_correct: false, order_index: 1 }
       ]);
     }
-    onUpdate("type", newType);
   };
 
   return (
-    <div style={{
-      background: "var(--field)",
-      border: "1px solid var(--border)",
-      borderRadius: "8px",
-      padding: "16px"
-    }}>
+    <div className="neon-panel">
       {/* Question Header */}
       <div style={{
         display: "flex",
@@ -1022,77 +1012,52 @@ function QuestionBuilder({
         paddingBottom: "12px",
         borderBottom: "1px solid var(--border)"
       }}>
-        <h4 style={{
-          color: "var(--neon)",
-          fontSize: "var(--font-size-subheader)",
-          fontWeight: "var(--font-weight-header)",
-          fontFamily: "var(--font-family)"
-        }}>
-          Question {questionNumber}
-        </h4>
-        <div style={{ display: "flex", gap: "6px" }}>
-          <TextIconButton
-            variant="edit"
-            icon={<FiArrowUp size={14} />}
-            label=""
-            onClick={onMoveUp}
-            disabled={questionNumber === 1}
-            title="Move up"
-          />
-          <TextIconButton
-            variant="edit"
-            icon={<FiArrowDown size={14} />}
-            label=""
-            onClick={onMoveDown}
-            disabled={questionNumber === totalQuestions}
-            title="Move down"
-          />
-          <TextIconButton
-            variant="add"
-            icon={<FiCopy size={14} />}
-            label=""
-            onClick={onDuplicate}
-            title="Duplicate"
-          />
-          <TextIconButton
-            variant="delete"
-            icon={<FiTrash2 size={14} />}
-            label=""
-            onClick={onDelete}
-            title="Delete"
-          />
-        </div>
+        <h4>Question {questionNumber}</h4>
+        {!hideActions && (
+          <div style={{ display: "flex", gap: "6px" }}>
+            <TextIconButton
+              variant="edit"
+              icon={<FiArrowUp size={14} />}
+              label=""
+              onClick={onMoveUp}
+              disabled={questionNumber === 1}
+              title="Move up"
+            />
+            <TextIconButton
+              variant="edit"
+              icon={<FiArrowDown size={14} />}
+              label=""
+              onClick={onMoveDown}
+              disabled={questionNumber === totalQuestions}
+              title="Move down"
+            />
+            <TextIconButton
+              variant="add"
+              icon={<FiCopy size={14} />}
+              label=""
+              onClick={onDuplicate}
+              title="Duplicate"
+            />
+            <TextIconButton
+              variant="delete"
+              icon={<FiTrash2 size={14} />}
+              label=""
+              onClick={onDelete}
+              title="Delete"
+            />
+          </div>
+        )}
       </div>
 
       {/* Question Details */}
       <div style={{ display: "grid", gap: "12px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 100px", gap: "12px" }}>
-          <div>
-            <label style={{
-              display: "block",
-              color: "var(--text-white)",
-              fontWeight: "var(--font-weight-header)",
-              marginBottom: "6px",
-              fontSize: "var(--font-size-subheader)",
-              fontFamily: "var(--font-family)"
-            }}>
-              Question Type
-            </label>
+        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "12px" }}>
+          <label>
+            Question Type
             <select
+              className="neon-input"
               value={question.type}
               onChange={(e) => handleTypeChange(e.target.value as QuestionType)}
-              style={{
-                width: "100%",
-                padding: "8px",
-                background: "var(--field)",
-                color: "var(--text-white)",
-                border: "1px solid var(--border)",
-                borderRadius: "6px",
-                fontSize: "var(--font-size-base)",
-                fontFamily: "var(--font-family)",
-                minHeight: "40px",
-                height: "40px"
-              }}
             >
               {questionTypes.map(type => (
                 <option key={type.value} value={type.value}>
@@ -1100,103 +1065,43 @@ function QuestionBuilder({
                 </option>
               ))}
             </select>
-          </div>
+          </label>
 
-          <div>
-            <label style={{
-              display: "block",
-              color: "var(--text-white)",
-              fontWeight: "var(--font-weight-header)",
-              marginBottom: "6px",
-              fontSize: "var(--font-size-subheader)",
-              fontFamily: "var(--font-family)"
-            }}>
-              Points
-            </label>
+          <label>
+            Points
             <input
+              className="neon-input"
               type="number"
               min="1"
               value={question.points}
               onChange={(e) => onUpdate("points", parseInt(e.target.value) || 1)}
-              style={{
-                width: "100%",
-                padding: "8px",
-                background: "var(--field)",
-                color: "var(--text-white)",
-                border: "1px solid var(--border)",
-                borderRadius: "6px",
-                fontSize: "var(--font-size-base)",
-                fontFamily: "var(--font-family)",
-                minHeight: "40px",
-                height: "40px"
-              }}
             />
-          </div>
+          </label>
         </div>
 
-        <div>
-          <label style={{
-            display: "block",
-            color: "var(--text-white)",
-            fontWeight: "var(--font-weight-header)",
-            marginBottom: "6px",
-            fontSize: "var(--font-size-subheader)",
-            fontFamily: "var(--font-family)"
-          }}>
-            Question Text
-          </label>
+        <label>
+          Question Text
           <textarea
+            className="neon-input"
             value={question.question_text}
             onChange={(e) => onUpdate("question_text", e.target.value)}
             placeholder="Enter your question here..."
             rows={2}
-            style={{
-              width: "100%",
-              padding: "8px",
-              background: "var(--field)",
-              color: "var(--text-white)",
-              border: "1px solid var(--border)",
-              borderRadius: "6px",
-              fontSize: "var(--font-size-base)",
-              fontFamily: "var(--font-family)",
-              resize: "vertical",
-              minHeight: "60px"
-            }}
           />
-        </div>
+        </label>
 
         {/* Short Answer Field */}
         {question.type === "short_answer" && (
-          <div>
-            <label style={{
-              display: "block",
-              color: "var(--text-white)",
-              fontWeight: "var(--font-weight-header)",
-              marginBottom: "6px",
-              fontSize: "var(--font-size-subheader)",
-              fontFamily: "var(--font-family)"
-            }}>
-              Correct Answer
-            </label>
+          <label>
+            Correct Answer
             <input
+              className="neon-input"
               type="text"
               value={question.correct_answer || ""}
               onChange={(e) => onUpdate("correct_answer", e.target.value)}
               placeholder="Enter the correct answer"
-              style={{
-                width: "100%",
-                padding: "8px",
-                background: "var(--field)",
-                color: "var(--text-white)",
-                border: "1px solid var(--border)",
-                borderRadius: "6px",
-                fontSize: "var(--font-size-base)",
-                fontFamily: "var(--font-family)",
-                minHeight: "40px",
-                height: "40px"
-              }}
             />
-          </div>
+          </label>
         )}
 
         {/* Options for MCQ and True/False */}
@@ -1208,14 +1113,7 @@ function QuestionBuilder({
               alignItems: "center",
               marginBottom: "8px"
             }}>
-              <label style={{
-                color: "var(--text-white)",
-                fontWeight: "var(--font-weight-header)",
-                fontSize: "var(--font-size-subheader)",
-                fontFamily: "var(--font-family)"
-              }}>
-                Answer Options
-              </label>
+              <label className="neon-label">Answer Options</label>
               {question.type !== "true_false" && (
                 <TextIconButton
                   variant="add"
@@ -1237,30 +1135,21 @@ function QuestionBuilder({
                   }}
                 >
                   <input
-                    type={question.type === "mcq_single" ? "radio" : "checkbox"}
+                    type={question.type === "mcq_single" || question.type === "true_false" ? "radio" : "checkbox"}
+                    name={question.type === "mcq_single" || question.type === "true_false" ? `question_${question.id}` : undefined}
                     checked={option.is_correct}
                     onChange={(e) => onUpdateOption(option.id, "is_correct", e.target.checked)}
                     style={{ cursor: "pointer" }}
                     title="Mark as correct answer"
                   />
                   <input
+                    className="neon-input"
                     type="text"
                     value={option.option_text}
                     onChange={(e) => onUpdateOption(option.id, "option_text", e.target.value)}
                     placeholder={`Option ${optIndex + 1}`}
                     disabled={question.type === "true_false"}
-                    style={{
-                      flex: 1,
-                      padding: "8px",
-                      background: "var(--field)",
-                      color: "var(--text-white)",
-                      border: "1px solid var(--border)",
-                      borderRadius: "6px",
-                      fontSize: "var(--font-size-base)",
-                      fontFamily: "var(--font-family)",
-                      minHeight: "40px",
-                      height: "40px"
-                    }}
+                    style={{ flex: 1 }}
                   />
                   {question.type !== "true_false" && question.options.length > 2 && (
                     <TextIconButton

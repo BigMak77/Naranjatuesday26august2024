@@ -232,7 +232,7 @@ export default function AddQuestionPackForm({ onSuccess }: { onSuccess?: () => v
         <div style={{ margin: '16px 0' }}>
           <label className="neon-label">Add New Questions</label>
           {questions.map((q, idx) => (
-            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <div key={`question-${idx}-${q.substring(0, 10)}`} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
               <input
                 className="neon-input"
                 placeholder={`Question ${idx + 1}`}

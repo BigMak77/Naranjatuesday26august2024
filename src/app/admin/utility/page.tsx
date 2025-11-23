@@ -12,11 +12,13 @@ import AddAuditorWidget from "@/components/audit/AddAuditorWidget";
 import AuditorsListWidget from "@/components/audit/AuditorsListWidget";
 import AddTrainerWidget from "@/components/audit/AddTrainerWidget";
 import AddFirstAidWidget from "@/components/healthsafety/AddFirstAidWidget";
+import ModuleCategoriesTable from "@/components/modules/ModuleCategoriesTable";
 
 export default function UtilityPage() {
   const [openDocTypes, setOpenDocTypes] = useState(true);
   const [openShifts, setOpenShifts] = useState(true);
   const [openAuditors, setOpenAuditors] = useState(true);
+  const [openCategories, setOpenCategories] = useState(true);
 
   return (
     <AccessControlWrapper
@@ -73,6 +75,25 @@ export default function UtilityPage() {
           {openDocTypes && (
             <div id="doc-types-table">
               <DocumentTypeTable />
+            </div>
+          )}
+        </section>
+        <section style={{ marginBottom: 32 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 0 }}>
+            <TextIconButton
+              variant="view"
+              label={openCategories ? "Hide Module Categories" : "Show Module Categories"}
+              title={openCategories ? "Hide Module Categories" : "Show Module Categories"}
+              icon={openCategories ? <FiChevronUp /> : <FiChevronDown />}
+              onClick={() => setOpenCategories(v => !v)}
+              aria-expanded={openCategories}
+              aria-controls="module-categories-table"
+            />
+            <h2 className="main-header" style={{ margin: 0 }}>Module Categories</h2>
+          </div>
+          {openCategories && (
+            <div id="module-categories-table">
+              <ModuleCategoriesTable />
             </div>
           )}
         </section>

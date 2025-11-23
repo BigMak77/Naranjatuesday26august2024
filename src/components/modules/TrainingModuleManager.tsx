@@ -11,28 +11,18 @@ import {
   FiSend,
   FiArchive,
   FiEdit,
-  FiFile,
-  FiFileText,
-  FiFilm,
-  FiImage,
-  FiMusic,
   FiRotateCcw,
+  FiFileText,
 } from "react-icons/fi";
-import {
-  BsFileEarmarkPdf,
-  BsFileEarmarkWord,
-  BsFileEarmarkExcel,
-  BsFileEarmarkPpt,
-} from "react-icons/bs";
 
 import AddModuleTab from "@/components/modules/AddModuleTab";
-import { ViewModuleTab } from "@/components/modules/ViewModuleTab";
 import EditModuleTab from "@/components/modules/EditModuleTab";
 import AssignModuleTab from "@/components/modules/AssignModuleTab";
 import TestBuilder from "@/components/training/TestBuilder";
 import TextIconButton from "@/components/ui/TextIconButtons";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 import OverlayDialog from "@/components/ui/OverlayDialog";
+import { getFileIcon } from "@/lib/file-utils";
 
 // Define Module type inline
 interface Module {
@@ -66,7 +56,6 @@ export default function TrainingModuleManager() {
     "add" | "view" | "assign" | "archive" | "tests"
   >("view");
   const [modules, setModules] = useState<Module[]>([]);
-  const [selectedModule, setSelectedModule] = useState<Module | null>(null);
   const [moduleToArchive, setModuleToArchive] = useState<Module | null>(null);
   const [moduleToRestore, setModuleToRestore] = useState<Module | null>(null);
   const [moduleToEdit, setModuleToEdit] = useState<Module | null>(null);
@@ -112,31 +101,31 @@ export default function TrainingModuleManager() {
   const tabList = [
     {
       key: "add",
-      label: "",
+      label: "Add Module",
       icon: <FiPlus />,
       tooltip: "Add new training module",
     },
     {
       key: "view",
-      label: "",
+      label: "View Modules",
       icon: <FiClipboard />,
       tooltip: "View and edit training modules",
     },
     {
       key: "tests",
-      label: "",
+      label: "Tests",
       icon: <FiFileText />,
       tooltip: "Create and manage tests",
     },
     {
       key: "assign",
-      label: "",
+      label: "Assign",
       icon: <FiSend />,
       tooltip: "Assign modules to users",
     },
     {
       key: "archive",
-      label: "",
+      label: "Archive",
       icon: <FiArchive />,
       tooltip: "View archived training modules",
     },
@@ -163,42 +152,6 @@ export default function TrainingModuleManager() {
   console.log("🔍 DEBUG: View tab modules:", viewTabModules.map(m => ({ id: m.id, name: m.name, is_archived: m.is_archived })));
   console.log("🔍 DEBUG: Archive tab modules:", archiveTabModules.map(m => ({ id: m.id, name: m.name, is_archived: m.is_archived })));
 
-  // Helper function to get file icon based on file type
-  const getFileIcon = (fileName: string, mimeType: string) => {
-    const ext = fileName.toLowerCase().split('.').pop() || '';
-
-    if (ext === 'pdf') {
-      return <BsFileEarmarkPdf size={16} color="var(--accent)" />;
-    }
-    if (['ppt', 'pptx'].includes(ext) || mimeType.includes("presentation") || mimeType.includes("powerpoint")) {
-      return <BsFileEarmarkPpt size={16} color="var(--accent)" />;
-    }
-    if (['doc', 'docx'].includes(ext) || mimeType.includes("word") || mimeType.includes("document")) {
-      return <BsFileEarmarkWord size={16} color="var(--accent)" />;
-    }
-    if (['xls', 'xlsx'].includes(ext) || mimeType.includes("spreadsheet") || mimeType.includes("excel")) {
-      return <BsFileEarmarkExcel size={16} color="var(--accent)" />;
-    }
-    if (['mp4', 'mov', 'avi', 'mkv', 'webm'].includes(ext) || mimeType.includes("video")) {
-      return <FiFilm size={16} color="var(--accent)" />;
-    }
-    if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(ext) || mimeType.includes("image")) {
-      return <FiImage size={16} color="var(--accent)" />;
-    }
-    if (['mp3', 'wav', 'ogg', 'aac', 'm4a', 'flac'].includes(ext) || mimeType.includes("audio")) {
-      return <FiMusic size={16} color="var(--accent)" />;
-    }
-    if (['txt', 'md', 'json', 'xml', 'csv'].includes(ext) || mimeType.includes("text")) {
-      return <FiFileText size={16} color="var(--accent)" />;
-    }
-    return <FiFile size={16} color="var(--accent)" />;
-  };
-
-  // Fix: convert version to number for ViewModuleTab
-  const selectedModuleForView = selectedModule
-    ? { ...selectedModule, version: Number(selectedModule.version) }
-    : null;
-
   return (
     <>
       <div className="folder-container">
@@ -211,7 +164,6 @@ export default function TrainingModuleManager() {
           onChange={(tabKey) => {
             setActiveTab(tabKey as typeof activeTab);
             // Clear all dialog states when switching tabs
-            setSelectedModule(null);
             setModuleToArchive(null);
             setModuleToRestore(null);
             setModuleToEdit(null);
@@ -261,9 +213,9 @@ export default function TrainingModuleManager() {
               files: m.attachments && m.attachments.length > 0 ? (
                 <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
                   {m.attachments.map((attachment, idx) => (
-                    <CustomTooltip key={idx} text={attachment.name}>
+                    <CustomTooltip key={`${m.id}-${attachment.name}-${attachment.size}-${idx}`} text={attachment.name}>
                       <span style={{ display: "flex", alignItems: "center" }}>
-                        {getFileIcon(attachment.name, attachment.type)}
+                        {getFileIcon(attachment.name, attachment.type, 16)}
                       </span>
                     </CustomTooltip>
                   ))}
@@ -299,9 +251,6 @@ export default function TrainingModuleManager() {
               ),
             }))}
           />
-          {selectedModuleForView && (
-            <ViewModuleTab module={selectedModuleForView} />
-          )}
         </>
       )}
       {activeTab === "tests" && (
@@ -341,9 +290,9 @@ export default function TrainingModuleManager() {
                 files: m.attachments && m.attachments.length > 0 ? (
                   <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
                     {m.attachments.map((attachment, idx) => (
-                      <CustomTooltip key={idx} text={attachment.name}>
+                      <CustomTooltip key={`archived-${m.id}-${attachment.name}-${attachment.size}-${idx}`} text={attachment.name}>
                         <span style={{ display: "flex", alignItems: "center" }}>
-                          {getFileIcon(attachment.name, attachment.type)}
+                          {getFileIcon(attachment.name, attachment.type, 16)}
                         </span>
                       </CustomTooltip>
                     ))}

@@ -8,27 +8,32 @@ import React, {
   useCallback,
 } from "react";
 import {
+  FiUserPlus,
+  FiClock,
+  FiArchive,
   FiAward,
+  FiFilter,
+  FiAlertOctagon,
+  FiCheckSquare,
   FiActivity,
+  FiDownload,
+  FiUpload,
+  FiHelpCircle,
   FiX,
 } from "react-icons/fi";
-import TextIconButton from "@/components/ui/TextIconButtons";
 import { supabase } from "@/lib/supabase-client";
 import SignaturePad from "react-signature-canvas";
-import NeonTable from "../NeonTable";
-import NeonForm from "../NeonForm";
-import NeonPanel from "../NeonPanel";
+import NeonTable from "@/components/NeonTable";
+import NeonForm from "@/components/NeonForm";
+import NeonPanel from "@/components/NeonPanel";
 import Image from "next/image";
 import TrainingMaterialsManagerDialog from "@/components/training/TrainingMaterialsManagerDialog";
-import TrainingQuestionsSection from "../training/TrainingQuestionsSection";
-import TrainingQuestionForm from "../training/TrainingQuestionForm";
-import TrainingQuestionCategoriesTable from "../training/TrainingQuestionCategoriesTable";
-import TrainingQuestionCategory from "../training/TrainingQuestionCategory";
+import TrainingQuestionsSection from "@/components/training/TrainingQuestionsSection";
+import TrainingQuestionForm from "@/components/training/TrainingQuestionForm";
+import TrainingQuestionCategoriesTable from "@/components/training/TrainingQuestionCategoriesTable";
+import TrainingQuestionCategory from "@/components/training/TrainingQuestionCategory";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 import ContentHeader from "@/components/ui/ContentHeader";
-import OverlayDialog from "@/components/ui/OverlayDialog";
-import TrainerViewToolbar from "@/components/ui-toolbars/TrainerViewToolbar";
-import TestRunner from "@/components/training/TestRunner";
 
 // ==========================
 // Types
@@ -136,7 +141,7 @@ function trimCanvasLocal(src: HTMLCanvasElement): HTMLCanvasElement {
   return out;
 }
 
-// Supabase client is now imported from @/lib/supabase-client (authenticated)
+// Supabase client is imported from @/lib/supabase-client above
 
 // ==========================
 // SignatureBox (isolated/memoized)
@@ -151,41 +156,16 @@ const SignatureBox = React.memo(function SignatureBox({
   onChange,
 }: SignatureBoxProps) {
   const padRef = useRef<SignaturePad>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   const canvasProps = useMemo(
     () => ({
+      width: 500,
+      height: 200,
       className:
-        "w-full h-[200px] rounded-lg bg-[var(--field,#012b2b)] shrink-0 touch-none block neon-panel",
-      style: {
-        width: '100%',
-        height: '200px',
-      },
+        "w-full max-w-[500px] h-[200px] rounded-lg bg-[var(--field,#012b2b)] shrink-0 touch-none block neon-panel",
     }),
     [],
   );
-
-  // Resize canvas to match container dimensions for accurate cursor tracking
-  useEffect(() => {
-    const resizeCanvas = () => {
-      const canvas = padRef.current?.getCanvas();
-      const container = containerRef.current;
-      if (!canvas || !container) return;
-
-      const rect = container.getBoundingClientRect();
-      const ratio = Math.max(window.devicePixelRatio || 1, 1);
-
-      canvas.width = rect.width * ratio;
-      canvas.height = 200 * ratio;
-      canvas.getContext('2d')?.scale(ratio, ratio);
-
-      padRef.current?.clear();
-    };
-
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-    return () => window.removeEventListener('resize', resizeCanvas);
-  }, []);
 
   const handleEnd = useCallback(() => {
     const pad = padRef.current;
@@ -204,35 +184,33 @@ const SignatureBox = React.memo(function SignatureBox({
   }, [onChange]);
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <div className="font-body font-medium opacity-70 text-sm">Draw your signature in the area below</div>
+    <div className="flex flex-col gap-2">
+      <div className="inline-flex items-center gap-2">
+        <div className="font-body opacity-80">Draw here</div>
         <CustomTooltip text="Clear signature">
           <button
             type="button"
             onClick={handleClear}
             disabled={disabled}
-            className="neon-btn neon-btn-danger neon-btn-utility neon-btn-global"
+            className="neon-btn neon-btn-danger neon-btn-global"
           >
             Clear
           </button>
         </CustomTooltip>
       </div>
 
-      <div ref={containerRef} style={{ width: '100%', maxWidth: '500px' }}>
-        <SignaturePad
-          ref={padRef}
-          penColor="#40E0D0"
-          clearOnResize={false}
-          canvasProps={canvasProps}
-          onEnd={handleEnd}
-          velocityFilterWeight={0.7}
-          minWidth={0.5}
-          maxWidth={2.5}
-          dotSize={1}
-          throttle={8}
-        />
-      </div>
+      <SignaturePad
+        ref={padRef}
+        penColor="#40E0D0"
+        clearOnResize={false}
+        canvasProps={canvasProps}
+        onEnd={handleEnd}
+        velocityFilterWeight={0.7}
+        minWidth={0.5}
+        maxWidth={2.5}
+        dotSize={1}
+        throttle={8}
+      />
     </div>
   );
 });
@@ -247,9 +225,6 @@ export default function TrainerRecordingPage({
   const [modules, setModules] = useState<{ id: string; name: string }[]>([]);
   const [section, setSection] = useState<Section>("log");
   const [categoriesDialogOpen, setCategoriesDialogOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(20);
   const [csvResultModal, setCsvResultModal] = useState<{
     open: boolean;
     success: number;
@@ -264,27 +239,6 @@ export default function TrainerRecordingPage({
     errorDetails: [],
     skipped: 0,
     skippedDetails: [],
-  });
-
-  // Certificates dialog state
-  type CompletedModule = {
-    module_id: string;
-    module_name: string;
-    completed_at: string;
-    user_auth_id: string;
-    user_name: string;
-  };
-
-  const [certificatesDialog, setCertificatesDialog] = useState<{
-    open: boolean;
-    user: UserRow | null;
-    modules: CompletedModule[];
-    loading: boolean;
-  }>({
-    open: false,
-    user: null,
-    modules: [],
-    loading: false,
   });
 
   useEffect(() => {
@@ -422,40 +376,17 @@ export default function TrainerRecordingPage({
     module_name?: string | null;
   };
 
-  type DocumentAssignment = {
-    id: string; // user_assignments.id
-    document_id: string; // user_assignments.item_id
-    document_title?: string | null;
-    reference_code?: string | null;
-    document_url?: string | null;
-    assigned_at: string;
-    due_at: string | null;
-    confirmation_required: boolean;
-    confirmed_at: string | null;
-  };
-
   const [assignments, setAssignments] = useState<TrainingAssignment[]>([]);
   const [selectedModuleId, setSelectedModuleId] = useState<string>("");
-  const [documentAssignments, setDocumentAssignments] = useState<DocumentAssignment[]>([]);
 
-  // State for available tests and documents that can be assigned
+  // Associated tests and forms for selected module
   const [associatedTests, setAssociatedTests] = useState<Array<{ id: string; title: string }>>([]);
   const [selectedTestsToAssign, setSelectedTestsToAssign] = useState<string[]>([]);
   const [associatedDocuments, setAssociatedDocuments] = useState<Array<{ id: string; title: string }>>([]);
   const [selectedDocsToAssign, setSelectedDocsToAssign] = useState<string[]>([]);
 
-  // Test runner dialog state
-  const [testRunnerDialog, setTestRunnerDialog] = useState<{
-    open: boolean;
-    packId: string | null;
-    userId: string | null;
-  }>({
-    open: false,
-    packId: null,
-    userId: null,
-  });
-
   const fetchAssignments = async (authId: string) => {
+    console.log("📋 Fetching assignments for auth_id:", authId);
     try {
       // Direct assignments that are not completed
       const { data: ua, error: uaErr } = await supabase
@@ -466,6 +397,8 @@ export default function TrainerRecordingPage({
         .is("completed_at", null);
 
       if (uaErr) throw uaErr;
+
+      console.log("📦 Found user assignments:", ua);
 
       let list: TrainingAssignment[] = (ua ?? []).map((row) => ({
         id: row.id,
@@ -488,85 +421,49 @@ export default function TrainerRecordingPage({
         }
       }
 
+      console.log("📝 Assignment list:", list);
       setAssignments(list);
-      setSelectedModuleId(list[0]?.module_id || "");
+      const firstModuleId = list[0]?.module_id || "";
+      console.log("🎯 First module ID:", firstModuleId);
+      setSelectedModuleId(firstModuleId);
+
+      // Fetch tests associated with first module
+      if (firstModuleId) {
+        console.log("⚡ Calling fetchAssociatedTests and fetchAssociatedDocuments...");
+        await fetchAssociatedTests(firstModuleId);
+        await fetchAssociatedDocuments(firstModuleId);
+      } else {
+        console.log("⚠️ No firstModuleId found, skipping test/document fetch");
+      }
     } catch (e) {
-      console.error("Failed to fetch assignments:", e);
+      console.error("❌ Failed to fetch assignments:", e);
       setAssignments([]);
       setSelectedModuleId("");
     }
   };
 
-  const fetchDocumentAssignments = async (authId: string) => {
-    try {
-      // Fetch document assignments (both confirmed and pending)
-      const { data: docAssignments, error: docErr } = await supabase
-        .from("user_assignments")
-        .select("id, item_id, assigned_at, due_at, confirmation_required, confirmed_at")
-        .eq("auth_id", authId)
-        .eq("item_type", "document")
-        .order("assigned_at", { ascending: false });
-
-      if (docErr) throw docErr;
-
-      let docList: DocumentAssignment[] = (docAssignments ?? []).map((row) => ({
-        id: row.id,
-        document_id: row.item_id,
-        assigned_at: row.assigned_at,
-        due_at: row.due_at,
-        confirmation_required: row.confirmation_required ?? false,
-        confirmed_at: row.confirmed_at,
-      }));
-
-      // Fetch document details
-      const docIds = Array.from(new Set(docList.map((a) => a.document_id)));
-      if (docIds.length) {
-        const { data: docs, error: docsErr } = await supabase
-          .from("documents")
-          .select("id, title, reference_code, document_url")
-          .in("id", docIds);
-
-        if (!docsErr && docs?.length) {
-          const docById = new Map(docs.map((d) => [d.id, d]));
-          docList = docList.map((a) => {
-            const doc = docById.get(a.document_id);
-            return {
-              ...a,
-              document_title: doc?.title ?? null,
-              reference_code: doc?.reference_code ?? null,
-              document_url: doc?.document_url ?? null,
-            };
-          });
-        }
-      }
-
-      setDocumentAssignments(docList);
-    } catch (e) {
-      console.error("Failed to fetch document assignments:", e);
-      setDocumentAssignments([]);
-    }
-  };
-
-  // ==========================
-  // Fetch available tests and documents for assignment
-  // ==========================
   const fetchAssociatedTests = async (moduleId: string) => {
     try {
       console.log("🔍 Fetching tests for module:", moduleId);
+      // Fetch all active tests - either linked to this module OR all available tests
       const { data: tests, error } = await supabase
         .from("question_packs")
         .select("id, title, module_id")
         .eq("is_active", true)
-        .eq("module_id", moduleId)
         .order("title", { ascending: true });
 
       if (error) throw error;
+
       console.log("📦 Found tests:", tests);
 
-      const linkedTests = (tests || []).map(t => ({ id: t.id, title: t.title }));
-      console.log("✅ Setting associated tests:", linkedTests);
+      // Prioritize tests linked to this module, but show all
+      const linkedTests = (tests || []).filter(t => t.module_id === moduleId);
+      const otherTests = (tests || []).filter(t => t.module_id !== moduleId);
 
-      setAssociatedTests(linkedTests);
+      const allTests = [...linkedTests, ...otherTests].map(t => ({ id: t.id, title: t.title }));
+      console.log("✅ Setting associated tests:", allTests);
+
+      setAssociatedTests(allTests);
       setSelectedTestsToAssign([]);
     } catch (e) {
       console.error("❌ Failed to fetch associated tests:", e);
@@ -577,19 +474,25 @@ export default function TrainerRecordingPage({
   const fetchAssociatedDocuments = async (moduleId: string) => {
     try {
       console.log("🔍 Fetching documents for module:", moduleId);
+      // Fetch all documents that require confirmation
       const { data: docs, error } = await supabase
         .from("documents")
         .select("id, title, module_id")
-        .eq("module_id", moduleId)
+        .eq("confirmation_required", true)
         .order("title", { ascending: true });
 
       if (error) throw error;
+
       console.log("📄 Found documents:", docs);
 
-      const linkedDocs = (docs || []).map(d => ({ id: d.id, title: d.title }));
-      console.log("✅ Setting associated documents:", linkedDocs);
+      // Prioritize docs linked to this module, but show all
+      const linkedDocs = (docs || []).filter(d => d.module_id === moduleId);
+      const otherDocs = (docs || []).filter(d => d.module_id !== moduleId);
 
-      setAssociatedDocuments(linkedDocs);
+      const allDocs = [...linkedDocs, ...otherDocs].map(d => ({ id: d.id, title: d.title }));
+      console.log("✅ Setting associated documents:", allDocs);
+
+      setAssociatedDocuments(allDocs);
       setSelectedDocsToAssign([]);
     } catch (e) {
       console.error("❌ Failed to fetch associated documents:", e);
@@ -633,34 +536,16 @@ export default function TrainerRecordingPage({
     }
   };
 
-  // Derived - All filtered data
-  const allFiltered = useMemo(() => {
+  // Derived
+  const filtered = useMemo(() => {
     return rows
       .filter((r) => (dept === "all" ? true : r.departmentId === dept))
-      .filter((r) => {
-        if (!searchTerm.trim()) return true;
-        const term = searchTerm.toLowerCase();
-        return (
-          r.name.toLowerCase().includes(term) ||
-          r.departmentName.toLowerCase().includes(term)
-        );
-      })
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, [rows, dept, searchTerm]);
-
-  // Pagination calculations
-  const totalPages = Math.ceil(allFiltered.length / pageSize);
-  const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  const paginatedData = allFiltered.slice(startIndex, endIndex);
-
-  // Reset to page 1 when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [dept, searchTerm]);
+  }, [rows, dept]);
 
   // Handlers
   const openLog = async (u: UserRow) => {
+    console.log("🚀 Opening log for user:", u.name, "auth_id:", u.auth_id);
     setOpenFor(u);
     setForm({
       date: new Date().toISOString().slice(0, 10),
@@ -669,96 +554,13 @@ export default function TrainerRecordingPage({
       notes: "",
       signature: "",
     });
-    const assignmentsFetch = await fetchAssignments(u.auth_id);
-    await fetchDocumentAssignments(u.auth_id);
-
-    // If there's a selected module, fetch tests/docs for it
-    // This will be called again when module changes via useEffect below
+    await fetchAssignments(u.auth_id);
+    console.log("✅ Finished opening log");
   };
-
-  // Watch for module selection changes and fetch associated tests/docs
-  useEffect(() => {
-    if (selectedModuleId && openFor) {
-      console.log("⚡ Module changed to:", selectedModuleId, "- fetching tests and documents");
-      fetchAssociatedTests(selectedModuleId);
-      fetchAssociatedDocuments(selectedModuleId);
-    }
-  }, [selectedModuleId, openFor]);
 
   const handleSignatureChange = useCallback((dataUrl: string) => {
     setForm((f) => ({ ...f, signature: dataUrl }));
   }, []);
-
-  // Handler for certificates dialog
-  const openCertificatesDialog = async (user: UserRow) => {
-    setCertificatesDialog({
-      open: true,
-      user,
-      modules: [],
-      loading: true,
-    });
-
-    try {
-      // Fetch completed module assignments for this user
-      const { data: assignments, error: assignmentsError } = await supabase
-        .from("user_assignments")
-        .select("id, item_id, completed_at")
-        .eq("auth_id", user.auth_id)
-        .eq("item_type", "module")
-        .not("completed_at", "is", null)
-        .order("completed_at", { ascending: false });
-
-      if (assignmentsError) throw assignmentsError;
-
-      if (!assignments || assignments.length === 0) {
-        setCertificatesDialog({
-          open: true,
-          user,
-          modules: [],
-          loading: false,
-        });
-        return;
-      }
-
-      // Fetch module names separately
-      const moduleIds = assignments.map((a) => a.item_id);
-      const { data: modulesData, error: modulesError } = await supabase
-        .from("modules")
-        .select("id, name")
-        .in("id", moduleIds);
-
-      if (modulesError) throw modulesError;
-
-      // Create a map of module id to name
-      const moduleMap = new Map(
-        (modulesData || []).map((m) => [m.id, m.name])
-      );
-
-      const completedModules: CompletedModule[] = assignments.map((item) => ({
-        module_id: item.item_id,
-        module_name: moduleMap.get(item.item_id) || "Unknown Module",
-        completed_at: new Date(item.completed_at).toLocaleDateString(),
-        user_auth_id: user.auth_id,
-        user_name: user.name,
-      }));
-
-      setCertificatesDialog({
-        open: true,
-        user,
-        modules: completedModules,
-        loading: false,
-      });
-    } catch (error) {
-      console.error("Error fetching completed modules:", error);
-      alert("Failed to load completed modules");
-      setCertificatesDialog({
-        open: false,
-        user: null,
-        modules: [],
-        loading: false,
-      });
-    }
-  };
 
   const submitLog = async () => {
     if (!openFor) return;
@@ -805,29 +607,7 @@ export default function TrainerRecordingPage({
 
       console.log("✅ Training log inserted successfully");
 
-      // 2) Assign selected documents to the user
-      if (selectedDocsToAssign.length > 0) {
-        console.log("📄 Assigning documents:", selectedDocsToAssign);
-        const docAssignments = selectedDocsToAssign.map(docId => ({
-          auth_id: openFor.auth_id,
-          item_id: docId,
-          item_type: 'document',
-          assigned_at: new Date().toISOString(),
-          confirmation_required: true
-        }));
-        const { error: assignErr } = await supabase
-          .from("user_assignments")
-          .insert(docAssignments);
-
-        if (assignErr) {
-          console.error("❌ Failed to assign documents:", assignErr);
-          alert(`Warning: Training logged but failed to assign documents: ${assignErr.message}`);
-        } else {
-          console.log("✅ Documents assigned successfully");
-        }
-      }
-
-      // 3) Record completion using the proper API (handles follow-up dates, permanent records, etc.)
+      // 2) Record completion using the proper API (handles follow-up dates, permanent records, etc.)
       if (form.outcome === "completed") {
         console.log("📚 Recording training completion via API...");
         console.log("📅 Training date from form:", form.date);
@@ -864,6 +644,58 @@ export default function TrainerRecordingPage({
         }
       } else {
         console.log("ℹ️ Outcome is 'needs-followup', not marking as completed");
+      }
+
+      // 3) Assign selected tests to the user
+      if (selectedTestsToAssign.length > 0) {
+        console.log("📝 Assigning tests to user...");
+        try {
+          const testAssignments = selectedTestsToAssign.map(testId => ({
+            auth_id: openFor.auth_id,
+            item_id: testId,
+            item_type: 'test',
+            assigned_at: new Date().toISOString()
+          }));
+
+          const { error: assignErr } = await supabase
+            .from("user_assignments")
+            .insert(testAssignments);
+
+          if (assignErr) {
+            console.error("❌ Failed to assign tests:", assignErr);
+            alert("Training logged but failed to assign tests. Please assign manually.");
+          } else {
+            console.log("✅ Tests assigned successfully");
+          }
+        } catch (testError) {
+          console.error("❌ Error assigning tests:", testError);
+        }
+      }
+
+      // 4) Assign selected documents to the user
+      if (selectedDocsToAssign.length > 0) {
+        console.log("📄 Assigning documents to user...");
+        try {
+          const docAssignments = selectedDocsToAssign.map(docId => ({
+            auth_id: openFor.auth_id,
+            item_id: docId,
+            item_type: 'document',
+            assigned_at: new Date().toISOString()
+          }));
+
+          const { error: assignErr } = await supabase
+            .from("user_assignments")
+            .insert(docAssignments);
+
+          if (assignErr) {
+            console.error("❌ Failed to assign documents:", assignErr);
+            alert("Training logged but failed to assign documents. Please assign manually.");
+          } else {
+            console.log("✅ Documents assigned successfully");
+          }
+        } catch (docError) {
+          console.error("❌ Error assigning documents:", docError);
+        }
       }
 
       setOpenFor(null);
@@ -1268,29 +1100,84 @@ export default function TrainerRecordingPage({
         title="Trainer View"
         description="Record, assign, and review training for users"
       />
+        {/* Training Management Actions */}
+        <div className="flex gap-2 mb-4 flex-wrap">
+          <CustomTooltip text="Manage training materials">
+            <button
+              className="neon-btn neon-btn-archive"
+              onClick={() => setMaterialsDialogOpen(true)}
+            >
+              <FiArchive />
+            </button>
+          </CustomTooltip>
+          <CustomTooltip text="Manage training questions">
+            <button
+              className="neon-btn neon-btn-edit"
+              onClick={() => setSection(section === "questions" ? "log" : "questions")}
+            >
+              <FiHelpCircle />
+            </button>
+          </CustomTooltip>
+          <CustomTooltip text="Manage question categories">
+            <button
+              className="neon-btn neon-btn-view"
+              onClick={() => setCategoriesDialogOpen(true)}
+            >
+              <FiCheckSquare />
+            </button>
+          </CustomTooltip>
+          <CustomTooltip text="Download user assignments as CSV">
+            <button
+              className="neon-btn neon-btn-save"
+              onClick={downloadUserAssignmentsCSV}
+              disabled={busy}
+            >
+              <FiDownload />
+            </button>
+          </CustomTooltip>
+          <CustomTooltip text="Upload user assignments CSV">
+            <button
+              className="neon-btn neon-btn-upload"
+              onClick={() => document.getElementById('csv-upload')?.click()}
+              disabled={busy}
+            >
+              <FiUpload />
+            </button>
+          </CustomTooltip>
+          <input
+            id="csv-upload"
+            type="file"
+            accept=".csv"
+            style={{ display: 'none' }}
+            onChange={handleCSVUpload}
+          />
+        </div>
 
-      {/* Training Management Toolbar */}
-      <TrainerViewToolbar
-        onManageMaterials={() => setMaterialsDialogOpen(true)}
-        onManageQuestions={() => setSection(section === "questions" ? "log" : "questions")}
-        onManageCategories={() => setCategoriesDialogOpen(true)}
-        onDownloadCSV={downloadUserAssignmentsCSV}
-        onUploadCSV={() => document.getElementById('csv-upload')?.click()}
-        onSearch={setSearchTerm}
-        onDepartmentFilter={setDept}
-        departments={depts}
-        selectedDepartment={dept}
-        busy={busy}
-      />
-
-      {/* Hidden file input for CSV upload */}
-      <input
-        id="csv-upload"
-        type="file"
-        accept=".csv"
-        style={{ display: 'none' }}
-        onChange={handleCSVUpload}
-      />
+        {/* Controls */}
+        <div className="grid gap-3 md:grid-cols-2 mb-4">
+          <label className="flex items-center gap-2 rounded-xl bg-[var(--field,#012b2b)] px-3 py-2 neon-panel">
+            <FiFilter aria-hidden />
+            <select
+              aria-label="Filter by department"
+              style={{ 
+                width: '100%', 
+                background: 'transparent', 
+                outline: 'none',
+                border: 'none',
+                color: 'var(--text-white)'
+              }}
+              value={dept}
+              onChange={(e) => setDept(e.target.value)}
+            >
+              <option value="all">All departments</option>
+              {depts.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
 
         {/* Table */}
         <NeonTable
@@ -1298,7 +1185,7 @@ export default function TrainerRecordingPage({
             { header: "Name", accessor: "name" },
             { header: "Department", accessor: "departmentName" },
             {
-              header: "Last Training",
+              header: "Last training",
               accessor: "lastTrainingDate",
               render: (v) => formatDate(v as string),
             },
@@ -1307,143 +1194,100 @@ export default function TrainerRecordingPage({
               accessor: "actions",
               render: (_, row) => (
                 <div className="flex items-center justify-center gap-2">
-                  <TextIconButton
-                    variant="addUser"
-                    label="Log"
-                    onClick={() => openLog(row as UserRow)}
-                    title="Log a training session"
-                  />
-                  <TextIconButton
-                    variant="clock"
-                    label="History"
-                    onClick={() => openHistory(row as UserRow)}
-                    title="View training history"
-                  />
-                  <TextIconButton
-                    variant="info"
-                    label="Activity"
-                    onClick={() => onOpenSection?.((row as UserRow).id, "profile")}
-                    title="View training activity"
-                    icon={<FiActivity />}
-                  />
-                  <TextIconButton
-                    variant="info"
-                    label="Certs"
-                    onClick={() => openCertificatesDialog(row as UserRow)}
-                    title="View certificates & status"
-                    icon={<FiAward />}
-                  />
+                  <CustomTooltip text="Log a training session">
+                    <button
+                      className="neon-btn neon-btn-utility neon-btn-global"
+                      onClick={() => openLog(row as UserRow)}
+                      aria-label="Log session"
+                      type="button"
+                    >
+                      <FiUserPlus />
+                    </button>
+                  </CustomTooltip>
+                  <CustomTooltip text="View training history">
+                    <button
+                      className="neon-btn neon-btn-history neon-btn-utility neon-btn-global"
+                      onClick={() => openHistory(row as UserRow)}
+                      aria-label="History"
+                      type="button"
+                    >
+                      <FiClock />
+                    </button>
+                  </CustomTooltip>
+                  <CustomTooltip text="Assign training">
+                    <button
+                      className="neon-btn neon-btn-assign neon-btn-utility neon-btn-global"
+                      onClick={() => onOpenSection?.((row as UserRow).id, "assign")}
+                      aria-label="Assign"
+                      type="button"
+                    >
+                      <FiCheckSquare />
+                    </button>
+                  </CustomTooltip>
+                  <CustomTooltip text="View training activity">
+                    <button
+                      className="neon-btn neon-btn-activity neon-btn-utility neon-btn-global"
+                      onClick={() => onOpenSection?.((row as UserRow).id, "profile")}
+                      aria-label="Activity"
+                      type="button"
+                    >
+                      <FiActivity />
+                    </button>
+                  </CustomTooltip>
+                  <CustomTooltip text="View certificates & status">
+                    <button
+                      className="neon-btn neon-btn-cert neon-btn-square neon-btn-utility neon-btn-global"
+                      onClick={() => onOpenSection?.((row as UserRow).id, "certs")}
+                      aria-label="Certs"
+                      type="button"
+                    >
+                      <FiAward />
+                    </button>
+                  </CustomTooltip>
+                  <CustomTooltip text="Raise an issue">
+                    <button
+                      className="neon-btn neon-btn-danger neon-btn-utility neon-btn-global"
+                      onClick={() => window.open("/raise-issue", "_blank")}
+                      aria-label="Raise an issue"
+                      type="button"
+                    >
+                      <FiAlertOctagon />
+                    </button>
+                  </CustomTooltip>
                 </div>
               ),
             },
           ]}
-          data={paginatedData}
+          data={filtered}
         />
 
-        {/* Pagination Controls */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between mt-4 px-4">
-            <div className="text-sm" style={{ color: 'var(--text-white)', opacity: 0.7 }}>
-              Showing {startIndex + 1} to {Math.min(endIndex, allFiltered.length)} of {allFiltered.length} users
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setCurrentPage(1)}
-                disabled={currentPage === 1}
-                className="neon-btn neon-btn-utility neon-btn-global"
-                title="First page"
-              >
-                ««
-              </button>
-              <button
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="neon-btn neon-btn-utility neon-btn-global"
-                title="Previous page"
-              >
-                «
-              </button>
-              <span className="text-sm px-4" style={{ color: 'var(--text-white)' }}>
-                Page {currentPage} of {totalPages}
-              </span>
-              <button
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="neon-btn neon-btn-utility neon-btn-global"
-                title="Next page"
-              >
-                »
-              </button>
-              <button
-                onClick={() => setCurrentPage(totalPages)}
-                disabled={currentPage === totalPages}
-                className="neon-btn neon-btn-utility neon-btn-global"
-                title="Last page"
-              >
-                »»
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Log Training Session Dialog */}
-        <OverlayDialog
-          open={!!openFor}
-          onClose={() => !busy && setOpenFor(null)}
-          width={1000}
-          showCloseButton
-          closeOnOutsideClick={!busy}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', height: '85vh', overflow: 'hidden', margin: '-2rem', padding: '0' }}>
-            <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--neon)', padding: '2rem 2rem 0 2rem', flexShrink: 0 }}>
-              Log Training - {openFor?.name} • {openFor?.departmentName}
-            </h2>
-            <div style={{ flex: 1, overflowY: 'auto', padding: '0 2rem 2rem 2rem' }}>
-              <NeonForm
-              title=""
-              submitLabel={busy ? "Saving..." : "Save Log"}
-              onSubmit={(e) => {
-                e.preventDefault();
-                submitLog();
-              }}
-              onCancel={() => !busy && setOpenFor(null)}
+        {/* Simple overlay + centered dialog */}
+        {openFor && (
+          <div
+            className="ui-dialog-overlay"
+            onClick={() => !busy && setOpenFor(null)}
+            style={{ alignItems: 'flex-start', paddingTop: '2rem', paddingBottom: '2rem', overflowY: 'auto' }}
+          >
+            <div
+              className="ui-dialog-content"
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxHeight: 'calc(100vh - 4rem)', overflowY: 'auto', margin: 'auto' }}
             >
-              <span className="font-body font-medium opacity-75 mb-2 block">
-                Today: {new Date().toLocaleDateString()}
-              </span>
+              <NeonForm
+                title={`Log training • ${openFor.name} • ${openFor.departmentName}`}
+                submitLabel={busy ? "Saving…" : "Save log"}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  submitLog();
+                }}
+                onCancel={() => !busy && setOpenFor(null)}
+              >
+                <span className="font-body opacity-75 mb-2 block">
+                  Today: {new Date().toLocaleDateString()}
+                </span>
 
-              {/* Module Selection */}
-              {assignments.length > 0 ? (
                 <label className="grid gap-1">
-                  <span className="text-base font-body font-medium opacity-80">Module</span>
-                  <select
-                    className="neon-input"
-                    value={selectedModuleId}
-                    onChange={(e) => setSelectedModuleId(e.target.value)}
-                    disabled={busy}
-                  >
-                    {assignments.map((a) => (
-                      <option key={a.id} value={a.module_id}>
-                        {a.module_name
-                          ? a.module_name
-                          : `Module ID: ${a.module_id}`}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              ) : (
-                <label className="grid gap-1">
-                  <span className="text-base font-body font-medium opacity-80">Module</span>
-                  <span className="font-body font-medium opacity-60">
-                    No modules assigned.
-                  </span>
-                </label>
-              )}
-
-              {/* Date, Duration, and Outcome in a row */}
-              <div className="grid grid-cols-3 gap-4">
-                <label className="grid gap-1">
-                  <span className="text-base font-body font-medium opacity-80">Date</span>
+                  <span className="font-body opacity-80">Date</span>
                   <input
                     type="date"
                     className="neon-input"
@@ -1456,7 +1300,7 @@ export default function TrainerRecordingPage({
                 </label>
 
                 <label className="grid gap-1">
-                  <span className="text-base font-body font-medium opacity-80">Duration (Hours)</span>
+                  <span className="font-body opacity-80">Duration (hours)</span>
                   <input
                     type="number"
                     min={0.5}
@@ -1473,8 +1317,96 @@ export default function TrainerRecordingPage({
                   />
                 </label>
 
+                {assignments.length > 0 ? (
+                  <label className="grid gap-1">
+                    <span className="font-body opacity-80">Module</span>
+                    <select
+                      className="neon-input"
+                      value={selectedModuleId}
+                      onChange={(e) => {
+                        const newModuleId = e.target.value;
+                        setSelectedModuleId(newModuleId);
+                        fetchAssociatedTests(newModuleId);
+                        fetchAssociatedDocuments(newModuleId);
+                      }}
+                      disabled={busy}
+                    >
+                      {assignments.map((a) => (
+                        <option key={a.id} value={a.module_id}>
+                          {a.module_name
+                            ? a.module_name
+                            : `Module ID: ${a.module_id}`}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : (
+                  <label className="grid gap-1">
+                    <span className="font-body opacity-80">Module</span>
+                    <span className="font-body opacity-60">
+                      No modules assigned.
+                    </span>
+                  </label>
+                )}
+
+                {/* Associated Tests Section */}
+                {associatedTests.length > 0 && (
+                  <div className="grid gap-2 p-3 rounded-lg bg-[var(--field,#012b2b)] neon-panel">
+                    <div className="font-body opacity-80">Assign Tests (Optional)</div>
+                    <div className="text-sm opacity-60 mb-2">
+                      Select tests to assign to this user
+                    </div>
+                    {associatedTests.map((test) => (
+                      <label key={test.id} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={selectedTestsToAssign.includes(test.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedTestsToAssign([...selectedTestsToAssign, test.id]);
+                            } else {
+                              setSelectedTestsToAssign(selectedTestsToAssign.filter(id => id !== test.id));
+                            }
+                          }}
+                          disabled={busy}
+                          className="w-4 h-4"
+                        />
+                        <span className="font-body">{test.title}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+
+                {/* Associated Documents Section */}
+                {associatedDocuments.length > 0 && (
+                  <div className="grid gap-2 p-3 rounded-lg bg-[var(--field,#012b2b)] neon-panel">
+                    <div className="font-body opacity-80">Assign Forms/Documents (Optional)</div>
+                    <div className="text-sm opacity-60 mb-2">
+                      Select documents to assign for confirmation
+                    </div>
+                    {associatedDocuments.map((doc) => (
+                      <label key={doc.id} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={selectedDocsToAssign.includes(doc.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedDocsToAssign([...selectedDocsToAssign, doc.id]);
+                            } else {
+                              setSelectedDocsToAssign(selectedDocsToAssign.filter(id => id !== doc.id));
+                            }
+                          }}
+                          disabled={busy}
+                          className="w-4 h-4"
+                        />
+                        <span className="font-body">{doc.title}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+
                 <label className="grid gap-1">
-                  <span className="text-base font-body font-medium opacity-80">Outcome</span>
+                  <span className="font-body opacity-80">Outcome</span>
                   <select
                     className="neon-input"
                     value={form.outcome}
@@ -1490,260 +1422,112 @@ export default function TrainerRecordingPage({
                     <option value="needs-followup">Needs follow-up</option>
                   </select>
                 </label>
-              </div>
 
-              <label className="grid gap-1">
-                <span className="text-base font-body font-medium opacity-80">Notes</span>
-                <textarea
-                  rows={4}
-                  className="neon-input"
-                  value={form.notes}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, notes: e.target.value }))
-                  }
-                  disabled={busy}
-                  placeholder="Key points covered, observed competency, follow-up actions..."
-                />
-              </label>
-
-              {/* E-signature field */}
-              <div className="grid gap-2 mt-3">
-                <span className="text-base font-body font-medium opacity-80">
-                  E-Signature
-                </span>
-                <SignatureBox
-                  disabled={busy}
-                  onChange={handleSignatureChange}
-                />
-                {form.signature && (
-                  <Image
-                    alt="Signature preview"
-                    src={form.signature}
-                    width={800}
-                    height={200}
-                    className="mt-1 w-full max-w-[500px] h-[200px] object-contain bg-black/10 rounded"
-                    unoptimized
+                <label className="grid gap-1">
+                  <span className="font-body opacity-80">Notes</span>
+                  <textarea
+                    rows={4}
+                    className="neon-input"
+                    value={form.notes}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, notes: e.target.value }))
+                    }
+                    disabled={busy}
+                    placeholder="Key points covered, observed competency, follow-up actions…"
                   />
-                )}
-              </div>
+                </label>
 
-              {/* Associated Tests Section */}
-              {associatedTests.length > 0 && (
-                <div className="grid gap-1">
-                  <span className="text-base font-body font-medium opacity-80">Associated Tests</span>
-                  <div className="space-y-2">
-                    {associatedTests.map((test) => (
-                      <div
-                        key={test.id}
-                        className="flex items-center justify-between gap-3 p-3 rounded-lg border border-opacity-20"
-                        style={{ borderColor: 'var(--neon)', backgroundColor: 'rgba(0, 0, 0, 0.2)' }}
-                      >
-                        <span className="font-body font-medium text-sm flex-1">{test.title}</span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (openFor) {
-                              setTestRunnerDialog({
-                                open: true,
-                                packId: test.id,
-                                userId: openFor.auth_id,
-                              });
-                            }
-                          }}
-                          disabled={busy}
-                          className="neon-btn neon-btn-next"
-                          style={{ minWidth: '120px' }}
-                        >
-                          Take Test
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Assign Documents Section */}
-              {associatedDocuments.length > 0 && (
-                <div className="grid gap-1">
-                  <span className="text-base font-body font-medium opacity-80">Assign Documents for Confirmation</span>
-                  <div className="space-y-2">
-                    {associatedDocuments.map((doc) => (
-                      <label
-                        key={doc.id}
-                        className="flex items-center gap-3 p-3 rounded-lg border border-opacity-20 cursor-pointer transition-opacity hover:opacity-90"
-                        style={{ borderColor: 'var(--neon)', backgroundColor: 'rgba(0, 0, 0, 0.2)' }}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedDocsToAssign.includes(doc.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedDocsToAssign([...selectedDocsToAssign, doc.id]);
-                            } else {
-                              setSelectedDocsToAssign(selectedDocsToAssign.filter(id => id !== doc.id));
-                            }
-                          }}
-                          disabled={busy}
-                          className="w-4 h-4 flex-shrink-0"
-                          style={{ accentColor: 'var(--neon)' }}
-                        />
-                        <span className="font-body font-medium text-sm">{doc.title}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Document Assignments Section */}
-              <div className="grid gap-1 mt-6">
-                <span className="text-base font-body font-medium opacity-80">
-                  Document Assignments
-                </span>
-                {documentAssignments.length > 0 ? (
-                  <div className="space-y-3">
-                    {documentAssignments.map((doc) => (
-                      <div
-                        key={doc.id}
-                        className="p-3 rounded-lg border border-opacity-30 bg-black bg-opacity-20"
-                        style={{ borderColor: 'var(--neon)' }}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <div className="font-medium text-sm">
-                              {doc.document_title || `Document ${doc.document_id}`}
-                            </div>
-                            {doc.reference_code && (
-                              <div className="text-xs opacity-70 mt-1">
-                                Ref: {doc.reference_code}
-                              </div>
-                            )}
-                            <div className="text-xs opacity-60 mt-1">
-                              Assigned: {new Date(doc.assigned_at).toLocaleDateString()}
-                              {doc.due_at && ` • Due: ${new Date(doc.due_at).toLocaleDateString()}`}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {doc.document_url && (
-                              <a
-                                href={doc.document_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-xs px-2 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white"
-                                title="View document"
-                              >
-                                View
-                              </a>
-                            )}
-                            {doc.confirmation_required && !doc.confirmed_at && (
-                              <button
-                                onClick={async () => {
-                                  try {
-                                    const { error } = await supabase
-                                      .from("user_assignments")
-                                      .update({ confirmed_at: new Date().toISOString() })
-                                      .eq("id", doc.id);
-                                    
-                                    if (error) {
-                                      console.error("Error confirming document:", error);
-                                      alert("Failed to confirm document");
-                                    } else {
-                                      // Refresh document assignments
-                                      if (openFor) {
-                                        await fetchDocumentAssignments(openFor.auth_id);
-                                      }
-                                    }
-                                  } catch (err) {
-                                    console.error("Error confirming document:", err);
-                                    alert("Failed to confirm document");
-                                  }
-                                }}
-                                disabled={busy}
-                                className="text-xs px-2 py-1 rounded bg-green-600 hover:bg-green-700 text-white disabled:opacity-50"
-                                title="Mark as confirmed"
-                              >
-                                Confirm
-                              </button>
-                            )}
-                            {doc.confirmation_required && doc.confirmed_at && (
-                              <div className="text-xs px-2 py-1 rounded bg-green-600 text-white">
-                                Confirmed
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <span className="font-body font-medium opacity-60 text-sm">
-                    No document assignments.
+                {/* E-signature field */}
+                <div className="grid gap-2 mt-3">
+                  <span className="font-body opacity-80">
+                    E-signature (draw your signature below)
                   </span>
-                )}
-              </div>
-            </NeonForm>
+                  <SignatureBox
+                    disabled={busy}
+                    onChange={handleSignatureChange}
+                  />
+                  {form.signature && (
+                    <Image
+                      alt="Signature preview"
+                      src={form.signature}
+                      width={800}
+                      height={200}
+                      className="mt-1 w-full max-w-[500px] h-[200px] object-contain bg-black/10 rounded"
+                      unoptimized
+                    />
+                  )}
+                </div>
+              </NeonForm>
             </div>
           </div>
-        </OverlayDialog>
+        )}
 
         {/* History Modal */}
-        <OverlayDialog
-          open={!!historyFor}
-          onClose={() => setHistoryFor(null)}
-          width={1000}
-          showCloseButton
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', height: '85vh', overflow: 'hidden', margin: '-2rem', padding: '0' }}>
-            <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--neon)', padding: '2rem 2rem 0 2rem', flexShrink: 0 }}>
-              Training History - {historyFor?.name}
-            </h2>
-            <div style={{ flex: 1, minHeight: '400px', overflowY: 'auto', padding: '0 2rem 2rem 2rem' }}>
-              {historyBusy ? (
-                <div className="text-center py-8 opacity-70">Loading...</div>
-              ) : historyLogs.length === 0 ? (
-                <div className="text-center py-8 opacity-70">
-                  No training logs found.
-                </div>
-              ) : (
-                <NeonTable
-                  columns={[
-                    { header: "Date", accessor: "date" },
-                    { header: "Topic", accessor: "topic" },
-                    { header: "Duration", accessor: "duration_hours" },
-                    { header: "Outcome", accessor: "outcome" },
-                    { header: "Notes", accessor: "notes" },
-                    {
-                      header: "Signature",
-                      accessor: "signature",
-                      render: (value) => {
-                        const sig = value as string | null;
-                        return sig ? (
-                          <Image
-                            src={sig}
-                            alt="Signature"
-                            width={96}
-                            height={48}
-                            className="w-24 h-12 object-contain bg-black/10 rounded"
-                            unoptimized
-                          />
-                        ) : (
-                          <span className="opacity-50">—</span>
-                        );
+        {historyFor && (
+          <div className="ui-dialog-overlay" onClick={() => setHistoryFor(null)}>
+            <div
+              className="ui-dialog-content"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <NeonPanel>
+                <h3 className="text-xl font-semibold mb-2">
+                  Training History – {historyFor.name}
+                </h3>
+                {historyBusy ? (
+                  <div className="text-center py-8 text-neon">Loading…</div>
+                ) : historyLogs.length === 0 ? (
+                  <div className="text-center py-8 opacity-70">
+                    No training logs found.
+                  </div>
+                ) : (
+                  <NeonTable
+                    columns={[
+                      { header: "Date", accessor: "date" },
+                      { header: "Topic", accessor: "topic" },
+                      { header: "Duration", accessor: "duration_hours" },
+                      { header: "Outcome", accessor: "outcome" },
+                      { header: "Notes", accessor: "notes" },
+                      {
+                        header: "Signature",
+                        accessor: "signature",
+                        render: (value) => {
+                          const sig = value as string | null;
+                          return sig ? (
+                            <Image
+                              src={sig}
+                              alt="Signature"
+                              width={96}
+                              height={48}
+                              className="w-24 h-12 object-contain bg-black/10 rounded"
+                              unoptimized
+                            />
+                          ) : (
+                            <span className="opacity-50">—</span>
+                          );
+                        },
                       },
-                    },
-                  ]}
-                  data={historyLogs}
-                />
-              )}
+                    ]}
+                    data={historyLogs}
+                  />
+                )}
+                <CustomTooltip text="Close history dialog">
+                  <button
+                    className="neon-btn neon-btn-close"
+                    style={{ marginTop: "1rem" }}
+                    onClick={() => setHistoryFor(null)}
+                  >
+                    <FiX />
+                  </button>
+                </CustomTooltip>
+              </NeonPanel>
             </div>
           </div>
-        </OverlayDialog>
+        )}
 
         {/* Training Questions Section */}
         {section === "questions" && (
           <div style={{ margin: 24 }}>
-            <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--neon)' }}>
-              Training Questions
-            </h2>
+            <h2>Training Questions</h2>
             <TrainingQuestionCategoriesTable />
           </div>
         )}
@@ -1753,9 +1537,7 @@ export default function TrainerRecordingPage({
           <div className="ui-dialog-overlay" onClick={() => setCategoriesDialogOpen(false)}>
             <div className="ui-dialog-content" onClick={e => e.stopPropagation()}>
               <NeonPanel>
-                <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--neon)' }}>
-                  Training Categories
-                </h2>
+                <h2>Training Categories</h2>
                 <TrainingQuestionCategory />
                 <CustomTooltip text="Close categories dialog">
                   <button
@@ -1859,86 +1641,6 @@ export default function TrainerRecordingPage({
             </div>
           </div>
         )}
-
-        {/* Certificates Dialog */}
-        <OverlayDialog
-          open={certificatesDialog.open}
-          onClose={() => setCertificatesDialog({ ...certificatesDialog, open: false })}
-          width={1000}
-          showCloseButton
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', height: '85vh', overflow: 'hidden', margin: '-2rem', padding: '0' }}>
-            <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--neon)', padding: '2rem 2rem 0 2rem', flexShrink: 0 }}>
-              Certificates - {certificatesDialog.user?.name}
-            </h2>
-            <div style={{ flex: 1, minHeight: '400px', overflowY: 'auto', padding: '0 2rem 2rem 2rem' }}>
-              {certificatesDialog.loading ? (
-                <div className="text-center py-8 opacity-70">Loading...</div>
-              ) : certificatesDialog.modules.length === 0 ? (
-                <div className="text-center py-8 opacity-70">No completed modules found</div>
-              ) : (
-                <NeonTable
-                  columns={[
-                    { header: "Module", accessor: "module_name" },
-                    { header: "Completed", accessor: "completed_at" },
-                    {
-                      header: "Actions",
-                      accessor: "actions",
-                      render: (_, row) => {
-                        const module = row as CompletedModule;
-                        return (
-                          <div className="flex items-center justify-center gap-2">
-                            <TextIconButton
-                              variant="download"
-                              label="Download"
-                              onClick={() => {
-                                // TODO: Implement certificate download
-                                console.log("Download certificate for:", module);
-                                alert(`Download certificate for ${module.module_name}`);
-                              }}
-                              title="Download certificate"
-                            />
-                            <TextIconButton
-                              variant="send"
-                              label="Send"
-                              onClick={() => {
-                                // TODO: Implement certificate send
-                                console.log("Send certificate for:", module);
-                                alert(`Send certificate for ${module.module_name}`);
-                              }}
-                              title="Send certificate via email"
-                            />
-                          </div>
-                        );
-                      },
-                    },
-                  ]}
-                  data={certificatesDialog.modules}
-                />
-              )}
-            </div>
-          </div>
-        </OverlayDialog>
-
-        {/* Test Runner Dialog */}
-        <OverlayDialog
-          open={testRunnerDialog.open}
-          onClose={() => setTestRunnerDialog({ open: false, packId: null, userId: null })}
-          width={1000}
-          showCloseButton
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', height: '85vh', overflow: 'hidden', margin: '-2rem', padding: '0' }}>
-            <div style={{ flex: 1, overflowY: 'auto', padding: '2rem' }}>
-              {testRunnerDialog.packId && testRunnerDialog.userId && (
-                <TestRunner
-                  rpcMode="simple"
-                  testingUserId={testRunnerDialog.userId}
-                  packIds={[testRunnerDialog.packId]}
-                />
-              )}
-            </div>
-          </div>
-        </OverlayDialog>
     </>
   );
 }
