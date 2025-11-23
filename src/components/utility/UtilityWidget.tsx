@@ -3,12 +3,13 @@
 
 import DocumentTypeTable from "@/components/documents/DocumentTypeTable";
 import ShiftPatternsTable from "@/components/utility/ShiftPatternsTable";
+import DepartmentRoleManager from "@/components/utility/DepartmentRoleManager";
 
 export default function UtilityWidget() {
   return (
-    <div className="utility-widget">
+    <div className="utility-widget space-y-8">
+      <DepartmentRoleManager />
       <DocumentTypeTable />
-      <div style={{ height: 32 }} />
       <ShiftPatternsTable />
     </div>
   );

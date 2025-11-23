@@ -1,24 +1,76 @@
 "use client";
 
-import UtilityWidget from "@/components/utility/UtilityWidget";
 import ContentHeader from "@/components/ui/ContentHeader";
 import AccessControlWrapper from "@/components/AccessControlWrapper";
+import FolderTabs, { Tab } from "@/components/FolderTabs";
 import { useState } from "react";
 import DocumentTypeTable from "@/components/documents/DocumentTypeTable";
 import ShiftPatternsTable from "@/components/utility/ShiftPatternsTable";
-import TextIconButton from "@/components/ui/TextIconButtons";
-import { FiChevronUp, FiChevronDown } from "react-icons/fi";
+import DepartmentRoleManager from "@/components/utility/DepartmentRoleManager";
 import AddAuditorWidget from "@/components/audit/AddAuditorWidget";
-import AuditorsListWidget from "@/components/audit/AuditorsListWidget";
 import AddTrainerWidget from "@/components/audit/AddTrainerWidget";
 import AddFirstAidWidget from "@/components/healthsafety/AddFirstAidWidget";
 import ModuleCategoriesTable from "@/components/modules/ModuleCategoriesTable";
+import { FiUsers, FiFileText, FiGrid, FiClock, FiUserCheck } from "react-icons/fi";
 
 export default function UtilityPage() {
-  const [openDocTypes, setOpenDocTypes] = useState(true);
-  const [openShifts, setOpenShifts] = useState(true);
-  const [openAuditors, setOpenAuditors] = useState(true);
-  const [openCategories, setOpenCategories] = useState(true);
+  const [activeTab, setActiveTab] = useState('departments');
+
+  const tabs: Tab[] = [
+    {
+      key: 'departments',
+      label: 'Departments & Roles',
+      icon: <FiUsers />,
+      tooltip: 'Manage system departments and user roles'
+    },
+    {
+      key: 'auditors',
+      label: 'Auditor Tools',
+      icon: <FiUserCheck />,
+      tooltip: 'Manage auditors, trainers, and first aid personnel'
+    },
+    {
+      key: 'documents',
+      label: 'Document Types',
+      icon: <FiFileText />,
+      tooltip: 'Configure document type categories'
+    },
+    {
+      key: 'categories',
+      label: 'Module Categories',
+      icon: <FiGrid />,
+      tooltip: 'Organize training modules into categories'
+    },
+    {
+      key: 'shifts',
+      label: 'Shift Patterns',
+      icon: <FiClock />,
+      tooltip: 'Define work shift time patterns'
+    }
+  ];
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'departments':
+        return <DepartmentRoleManager />;
+      case 'auditors':
+        return (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <AddAuditorWidget />
+            <AddTrainerWidget />
+            <AddFirstAidWidget />
+          </div>
+        );
+      case 'documents':
+        return <DocumentTypeTable />;
+      case 'categories':
+        return <ModuleCategoriesTable />;
+      case 'shifts':
+        return <ShiftPatternsTable />;
+      default:
+        return <DepartmentRoleManager />;
+    }
+  };
 
   return (
     <AccessControlWrapper
@@ -31,93 +83,24 @@ export default function UtilityPage() {
           title="Admin Utilities"
           description="Utilities are similar to global settings, that improve the functionality of the platform."
         />
-      <div className="global-content">
-        <section style={{ marginBottom: 32 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 0 }}>
-            <TextIconButton
-              variant="view"
-              label={openAuditors ? "Hide Auditor Tools" : "Show Auditor Tools"}
-              title={openAuditors ? "Hide Auditor Tools" : "Show Auditor Tools"}
-              icon={openAuditors ? <FiChevronUp /> : <FiChevronDown />}
-              onClick={() => setOpenAuditors(v => !v)}
-              aria-expanded={openAuditors}
-              aria-controls="auditor-tools-section"
+        <div className="global-content">
+          <div className="folder-container">
+            <FolderTabs
+              tabs={tabs}
+              activeTab={activeTab}
+              onChange={setActiveTab}
+              toolbar={
+                <span style={{ opacity: 0.7, fontSize: 'var(--font-size-base)' }}>
+                  {tabs.length} utility categories available
+                </span>
+              }
             />
-            <h2 className="main-header" style={{ margin: 0 }}>Auditor Tools</h2>
-          </div>
-          {openAuditors && (
-            <div id="auditor-tools-section" style={{ display: 'flex', gap: 32, alignItems: 'flex-start', marginTop: 16 }}>
-              <div style={{ flex: 1 }}>
-                <AddAuditorWidget />
-              </div>
-              <div style={{ flex: 1 }}>
-                <AddTrainerWidget />
-              </div>
-              <div style={{ flex: 1 }}>
-                <AddFirstAidWidget />
-              </div>
+            <div className="folder-content">
+              {renderTabContent()}
             </div>
-          )}
-        </section>
-        <section style={{ marginBottom: 32 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 0 }}>
-            <TextIconButton
-              variant="view"
-              label={openDocTypes ? "Hide Document Types" : "Show Document Types"}
-              title={openDocTypes ? "Hide Document Types" : "Show Document Types"}
-              icon={openDocTypes ? <FiChevronUp /> : <FiChevronDown />}
-              onClick={() => setOpenDocTypes(v => !v)}
-              aria-expanded={openDocTypes}
-              aria-controls="doc-types-table"
-            />
-            <h2 className="main-header" style={{ margin: 0 }}>Document Types</h2>
           </div>
-          {openDocTypes && (
-            <div id="doc-types-table">
-              <DocumentTypeTable />
-            </div>
-          )}
-        </section>
-        <section style={{ marginBottom: 32 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 0 }}>
-            <TextIconButton
-              variant="view"
-              label={openCategories ? "Hide Module Categories" : "Show Module Categories"}
-              title={openCategories ? "Hide Module Categories" : "Show Module Categories"}
-              icon={openCategories ? <FiChevronUp /> : <FiChevronDown />}
-              onClick={() => setOpenCategories(v => !v)}
-              aria-expanded={openCategories}
-              aria-controls="module-categories-table"
-            />
-            <h2 className="main-header" style={{ margin: 0 }}>Module Categories</h2>
-          </div>
-          {openCategories && (
-            <div id="module-categories-table">
-              <ModuleCategoriesTable />
-            </div>
-          )}
-        </section>
-        <section>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 0 }}>
-            <TextIconButton
-              variant="view"
-              label={openShifts ? "Hide Shift Patterns" : "Show Shift Patterns"}
-              title={openShifts ? "Hide Shift Patterns" : "Show Shift Patterns"}
-              icon={openShifts ? <FiChevronUp /> : <FiChevronDown />}
-              onClick={() => setOpenShifts(v => !v)}
-              aria-expanded={openShifts}
-              aria-controls="shift-patterns-table"
-            />
-            <h2 className="main-header" style={{ margin: 0 }}>Shift Patterns</h2>
-          </div>
-          {openShifts && (
-            <div id="shift-patterns-table">
-              <ShiftPatternsTable />
-            </div>
-          )}
-        </section>
-      </div>
-    </main>
+        </div>
+      </main>
     </AccessControlWrapper>
   );
 }

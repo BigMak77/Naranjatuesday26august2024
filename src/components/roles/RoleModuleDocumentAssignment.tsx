@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import NeonDualListbox from "@/components/ui/NeonDualListbox";
+import DualPaneSelector from "@/components/ui/DualPaneSelector";
 import { supabase } from "@/lib/supabase-client";
 import NeonForm from "@/components/NeonForm";
 import NeonPanel from "@/components/NeonPanel";
@@ -13,11 +13,11 @@ interface Role {
   title: string;
 }
 interface Module {
-  id: string;
+  value: string;
   label: string;
 }
 interface Document {
-  id: string;
+  value: string;
   label: string;
 }
 
@@ -52,8 +52,8 @@ export default function RoleModuleDocumentAssignment() {
       const { data: documentsData } = await supabase.from("documents").select("id, title");
       const { data: departmentsData } = await supabase.from("departments").select("id, name");
       setRoles(rolesData || []);
-      setModules((modulesData || []).map((m: any) => ({ id: m.id, label: m.name })));
-      setDocuments((documentsData || []).map((d: any) => ({ id: d.id, label: d.title })));
+      setModules((modulesData || []).map((m: any) => ({ value: m.id, label: m.name })));
+      setDocuments((documentsData || []).map((d: any) => ({ value: d.id, label: d.title })));
       setDepartments(departmentsData || []);
       setLoading(false);
     }
@@ -283,12 +283,13 @@ export default function RoleModuleDocumentAssignment() {
             {assignmentStep === "modules" && (
               <>
                 <div style={{ marginTop: 16 }}>
-                  <NeonDualListbox
-                    items={modules}
-                    selected={assignments[selectedRoleId]?.modules || []}
-                    onChange={selected => handleModuleChange(selectedRoleId, selected)}
-                    titleLeft="Available Modules"
-                    titleRight="Assigned Modules"
+                  <DualPaneSelector
+                    availableOptions={modules}
+                    selectedValues={assignments[selectedRoleId]?.modules || []}
+                    onSelectionChange={selected => handleModuleChange(selectedRoleId, selected)}
+                    availableTitle="Available Modules"
+                    selectedTitle="Assigned Modules"
+                    searchPlaceholder="Search modules..."
                   />
                 </div>
                 <div style={{ marginTop: 16, display: "flex", gap: "12px" }}>
@@ -314,12 +315,13 @@ export default function RoleModuleDocumentAssignment() {
             {assignmentStep === "documents" && (
               <>
                 <div style={{ marginTop: 16 }}>
-                  <NeonDualListbox
-                    items={documents}
-                    selected={assignments[selectedRoleId]?.documents || []}
-                    onChange={selected => handleDocumentChange(selectedRoleId, selected)}
-                    titleLeft="Available Documents"
-                    titleRight="Assigned Documents"
+                  <DualPaneSelector
+                    availableOptions={documents}
+                    selectedValues={assignments[selectedRoleId]?.documents || []}
+                    onSelectionChange={selected => handleDocumentChange(selectedRoleId, selected)}
+                    availableTitle="Available Documents"
+                    selectedTitle="Assigned Documents"
+                    searchPlaceholder="Search documents..."
                   />
                 </div>
                 <div style={{ marginTop: 16, display: "flex", gap: "12px" }}>
