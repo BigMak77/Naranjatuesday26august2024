@@ -85,37 +85,18 @@ export default function OverlayDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby={ariaLabelledby}
-        style={{ zIndex: zIndexContent, width: width, maxWidth: '95vw', position: 'relative' }}
+        style={{
+          zIndex: zIndexContent,
+          width: width,
+          maxWidth: '95vw',
+          position: 'relative'
+        }}
       >
         {showCloseButton && (
           <button
             onClick={onClose}
             aria-label="Close dialog"
-            style={{
-              position: 'absolute',
-              top: '16px',
-              right: '16px',
-              width: '12px',
-              height: '12px',
-              border: 'none',
-              backgroundColor: 'transparent',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '0',
-              margin: '0',
-              boxSizing: 'border-box',
-              zIndex: 1,
-              opacity: 0.7,
-              transition: 'opacity 0.2s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.opacity = '1';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.opacity = '0.7';
-            }}
+            className="ui-dialog-close-btn"
           >
             <svg
               width="12"
@@ -123,7 +104,7 @@ export default function OverlayDialog({
               viewBox="0 0 12 12"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
-              style={{ display: 'block' }}
+              className="ui-dialog-close-icon"
             >
               <path
                 d="M2 2L10 10M10 2L2 10"

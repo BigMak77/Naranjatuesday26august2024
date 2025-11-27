@@ -4,8 +4,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import NeonTable from "@/components/NeonTable";
-import SuccessModal from "@/components/ui/SuccessModal";
-import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
 interface User {
   id: string;
@@ -20,7 +18,7 @@ export default function Rota() {
   const [users, setUsers] = useState<User[]>([]);
   const [departments, setDepartments] = useState<{ id: string; name: string }[]>([]);
   const [shifts, setShifts] = useState<{ id: string; name: string }[]>([]);
-  const [selectedShift, setSelectedShift] = useState<string>("all");
+  const [selectedShift, setSelectedShift] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -46,10 +44,10 @@ export default function Rota() {
     fetchData();
   }, []);
 
-  // Filter users by selected shift
-  const filteredUsers = selectedShift === "all"
-    ? users
-    : users.filter(u => u.shift_id === selectedShift);
+  // Filter users by selected shift - only show data when a shift is selected
+  const filteredUsers = selectedShift
+    ? users.filter(u => u.shift_id === selectedShift)
+    : [];
 
   // Group filtered users by department
   const grouped: Record<string, User[]> = {};
@@ -81,17 +79,19 @@ export default function Rota() {
             className="neon-input"
             style={{ marginLeft: 8 }}
           >
-            <option value="all">All</option>
+            <option value="">Select a shift...</option>
             {shifts.map(s => (
               <option key={s.id} value={s.id}>{s.name}</option>
             ))}
           </select>
         </label>
       </div>
-      {loading ? (
+      {!selectedShift ? (
+        <div className="neon-label">Please select a shift to view staff rota.</div>
+      ) : loading ? (
         <div className="neon-loading">Loading users…</div>
       ) : filteredUsers.length === 0 ? (
-        <div className="neon-label">No users found.</div>
+        <div className="neon-label">No users found for this shift.</div>
       ) : (
         <div style={{
           display: "grid",

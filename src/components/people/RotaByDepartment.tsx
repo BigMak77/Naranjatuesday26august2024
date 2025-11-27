@@ -3,10 +3,6 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
-import NeonPanel from "@/components/NeonPanel";
-import TextIconButton from "@/components/ui/TextIconButtons";
-import SuccessModal from "@/components/ui/SuccessModal";
-import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
 interface User {
   id: string;
@@ -30,10 +26,8 @@ interface Shift {
 export default function RotaByDepartment({ departmentId }: { departmentId: string }) {
   const [users, setUsers] = useState<User[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
-  const [department, setDepartment] = useState<Department | null>(null);
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filterDeptId, setFilterDeptId] = useState<string>("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -58,14 +52,13 @@ export default function RotaByDepartment({ departmentId }: { departmentId: strin
     fetchData();
   }, []);
 
-  // Determine which department to show (filtered or all)
-  const currentDeptId = filterDeptId || departmentId;
-  const currentDepartment = departments.find(d => d.id === currentDeptId) || null;
+  // Get current department
+  const currentDepartment = departments.find(d => d.id === departmentId) || null;
 
-  // Filter users by department if filter is set, otherwise show all
-  const filteredUsers = filterDeptId
-    ? users.filter(u => u.department_id === filterDeptId)
-    : users;
+  // Filter users by department - only show data when a department is selected
+  const filteredUsers = departmentId
+    ? users.filter(u => u.department_id === departmentId)
+    : [];
 
   // Group users by shift
   const grouped: Record<string, User[]> = {};
@@ -76,50 +69,15 @@ export default function RotaByDepartment({ departmentId }: { departmentId: strin
   });
 
   return (
-    <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
-      <NeonPanel className="neon-panel-lg">
-        <div style={{ width: 1300 }}>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'auto minmax(200px, 260px) auto',
-              alignItems: 'center',
-              gap: 12,
-              width: '100%',
-            }}
-          >
-            <label htmlFor="department-select" style={{ margin: 0, padding: 0, font: 'inherit' }}>
-              Select department to filter
-            </label>
-            <select
-              id="department-select"
-              value={filterDeptId}
-              onChange={e => setFilterDeptId(e.target.value)}
-              className="neon-input"
-              style={{ minWidth: 200, font: 'inherit' }}
-            >
-              <option value="">All</option>
-              {departments.map(d => (
-                <option key={d.id} value={d.id}>{d.name}</option>
-              ))}
-            </select>
-            <CustomTooltip text="Return to reports page">
-              <TextIconButton
-                variant="back"
-                label="Back"
-                aria-label="Back"
-                onClick={() => window.location.href = "/reports"}
-                style={{ justifySelf: 'end' }}
-              />
-            </CustomTooltip>
-          </div>
-          <h2 className="neon-panel-title" style={{ marginBottom: 16 }}>
-            {currentDepartment ? currentDepartment.name : "All Departments"}
-          </h2>
+    <div>
+      {!departmentId ? (
+        <div className="neon-label">Please select a department to view shifts.</div>
+      ) : (
+        <>
           {loading ? (
             <div className="neon-loading">Loading users…</div>
           ) : filteredUsers.length === 0 ? (
-            <div className="neon-label">No users found{filterDeptId ? " in this department." : "."}</div>
+            <div className="neon-label">No users found in this department.</div>
           ) : (
             <div
               style={{
@@ -157,8 +115,8 @@ export default function RotaByDepartment({ departmentId }: { departmentId: strin
               )}
             </div>
           )}
-        </div>
-      </NeonPanel>
+        </>
+      )}
     </div>
   );
 }

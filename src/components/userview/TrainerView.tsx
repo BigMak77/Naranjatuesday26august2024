@@ -9,7 +9,6 @@ import React, {
 } from "react";
 import {
   FiAward,
-  FiActivity,
   FiX,
 } from "react-icons/fi";
 import TextIconButton from "@/components/ui/TextIconButtons";
@@ -61,7 +60,6 @@ export interface TrainerRecordingProps {
   users?: UserRow[];
   departments?: Dept[];
   pageSize?: number;
-  onOpenSection?: (userId: string, section: Section) => void;
 }
 
 // ==========================
@@ -237,9 +235,7 @@ const SignatureBox = React.memo(function SignatureBox({
   );
 });
 
-export default function TrainerRecordingPage({
-  onOpenSection,
-}: TrainerRecordingProps) {
+export default function TrainerRecordingPage() {
   const [rows, setRows] = useState<UserRow[]>([]);
   const [depts, setDepts] = useState<Dept[]>([]);
   const [dept, setDept] = useState<string>("all");
@@ -409,7 +405,8 @@ export default function TrainerRecordingPage({
     durationHours: 1,
     outcome: "completed" as LogTrainingPayload["outcome"],
     notes: "",
-    signature: "",
+    learnerSignature: "",
+    trainerSignature: "",
   });
   const [busy, setBusy] = useState(false);
 
@@ -667,7 +664,8 @@ export default function TrainerRecordingPage({
       durationHours: 1,
       outcome: "completed",
       notes: "",
-      signature: "",
+      learnerSignature: "",
+      trainerSignature: "",
     });
     const assignmentsFetch = await fetchAssignments(u.auth_id);
     await fetchDocumentAssignments(u.auth_id);
@@ -685,8 +683,12 @@ export default function TrainerRecordingPage({
     }
   }, [selectedModuleId, openFor]);
 
-  const handleSignatureChange = useCallback((dataUrl: string) => {
-    setForm((f) => ({ ...f, signature: dataUrl }));
+  const handleLearnerSignatureChange = useCallback((dataUrl: string) => {
+    setForm((f) => ({ ...f, learnerSignature: dataUrl }));
+  }, []);
+
+  const handleTrainerSignatureChange = useCallback((dataUrl: string) => {
+    setForm((f) => ({ ...f, trainerSignature: dataUrl }));
   }, []);
 
   // Handler for certificates dialog
@@ -766,8 +768,12 @@ export default function TrainerRecordingPage({
       alert("Please select a module.");
       return;
     }
-    if (!form.signature.trim()) {
-      alert("Please provide your e-signature.");
+    if (!form.learnerSignature.trim()) {
+      alert("Please provide the learner's e-signature.");
+      return;
+    }
+    if (!form.trainerSignature.trim()) {
+      alert("Please provide the trainer's e-signature.");
       return;
     }
 
@@ -791,7 +797,8 @@ export default function TrainerRecordingPage({
           duration_hours: Number(form.durationHours) || 1,
           outcome: form.outcome,
           notes: form.notes?.trim() || null,
-          signature: form.signature,
+          signature: form.learnerSignature,
+          trainer_signature: form.trainerSignature,
           // assignment_id: assignment?.id ?? null,               // uncomment if column exists
         },
       ]);
@@ -1321,13 +1328,6 @@ export default function TrainerRecordingPage({
                   />
                   <TextIconButton
                     variant="info"
-                    label="Activity"
-                    onClick={() => onOpenSection?.((row as UserRow).id, "profile")}
-                    title="View training activity"
-                    icon={<FiActivity />}
-                  />
-                  <TextIconButton
-                    variant="info"
                     label="Certs"
                     onClick={() => openCertificatesDialog(row as UserRow)}
                     title="View certificates & status"
@@ -1506,24 +1506,45 @@ export default function TrainerRecordingPage({
                 />
               </label>
 
-              {/* E-signature field */}
+              {/* Learner E-signature field */}
               <div className="grid gap-2 mt-3">
                 <span className="text-base font-body font-medium opacity-80">
-                  E-Signature
+                  Learner E-Signature
                 </span>
                 <SignatureBox
                   disabled={busy}
-                  onChange={handleSignatureChange}
+                  onChange={handleLearnerSignatureChange}
                 />
-                {form.signature && (
-                  <Image
-                    alt="Signature preview"
-                    src={form.signature}
-                    width={800}
-                    height={200}
-                    className="mt-1 w-full max-w-[500px] h-[200px] object-contain bg-black/10 rounded"
-                    unoptimized
-                  />
+                {form.learnerSignature && (
+                  <div className="mt-1 bg-black/10 rounded p-2" style={{ maxWidth: '300px', maxHeight: '100px' }}>
+                    <img
+                      alt="Learner signature preview"
+                      src={form.learnerSignature}
+                      className="object-contain"
+                      style={{ maxWidth: '100%', maxHeight: '96px', display: 'block' }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Trainer E-signature field */}
+              <div className="grid gap-2 mt-3">
+                <span className="text-base font-body font-medium opacity-80">
+                  Trainer E-Signature
+                </span>
+                <SignatureBox
+                  disabled={busy}
+                  onChange={handleTrainerSignatureChange}
+                />
+                {form.trainerSignature && (
+                  <div className="mt-1 bg-black/10 rounded p-2" style={{ maxWidth: '300px', maxHeight: '100px' }}>
+                    <img
+                      alt="Trainer signature preview"
+                      src={form.trainerSignature}
+                      className="object-contain"
+                      style={{ maxWidth: '100%', maxHeight: '96px', display: 'block' }}
+                    />
+                  </div>
                 )}
               </div>
 
@@ -1927,13 +1948,14 @@ export default function TrainerRecordingPage({
           width={1000}
           showCloseButton
         >
-          <div style={{ display: 'flex', flexDirection: 'column', height: '85vh', overflow: 'hidden', margin: '-2rem', padding: '0' }}>
-            <div style={{ flex: 1, overflowY: 'auto', padding: '2rem' }}>
+          <div className="ui-dialog-container">
+            <div className="ui-dialog-scrollable">
               {testRunnerDialog.packId && testRunnerDialog.userId && (
                 <TestRunner
                   rpcMode="simple"
                   testingUserId={testRunnerDialog.userId}
                   packIds={[testRunnerDialog.packId]}
+                  onReturnToLog={() => setTestRunnerDialog({ open: false, packId: null, userId: null })}
                 />
               )}
             </div>

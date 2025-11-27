@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import FolderTabs, { Tab } from "@/components/FolderTabs";
 import { FiUserPlus, FiUser, FiEdit, FiTrash2, FiUsers, FiShield, FiToggleLeft, FiToggleRight, FiDownload, FiUpload, FiUserX } from "react-icons/fi";
 import { supabase } from "@/lib/supabase-client";
+import jsPDF from "jspdf";
 import RoleStructure from "@/components/structure/RoleStructure";
 import ManagerStructure from "@/components/structure/ManagerStructure";
 import {
@@ -16,7 +17,6 @@ import {
   AssignManagerButton
 } from "@/components/structure/ManagerStructure";
 import RotaByDepartment from "@/components/people/RotaByDepartment";
-import Rota from "@/components/people/Rota";
 import TextIconButton from "@/components/ui/TextIconButtons";
 import RoleModuleDocumentAssignment from "@/components/roles/RoleModuleDocumentAssignment";
 import UserPermissionsManager from "@/components/admin/UserPermissionsManager";
@@ -28,7 +28,7 @@ import UserRoleHistory from "@/components/roles/UserRoleHistory";
 
 const tabs: Tab[] = [
   { key: "people", label: "People" },
-  { key: "users", label: "Users" },
+  { key: "users", label: "Users without department" },
   { key: "newstarters", label: "New Starters" },
   { key: "leavers", label: "Leavers" },
   { key: "rolehistory", label: "Role History" },
@@ -39,11 +39,47 @@ const tabs: Tab[] = [
   { key: "startdate", label: "Users by Start Date" },
 ];
 
+// Styles for reassign dialog
+const reassignStyles = `
+  .reassign-options {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .reassign-option {
+    padding: 1rem;
+    border: 1px solid rgba(64, 224, 208, 0.3);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: transparent;
+  }
+
+  .reassign-option:hover {
+    background: rgba(64, 224, 208, 0.05);
+  }
+
+  .reassign-option.selected {
+    background: rgba(64, 224, 208, 0.2);
+    border-color: rgba(64, 224, 208, 0.6);
+  }
+
+  .reassign-option h4 {
+    margin-bottom: 0.5rem;
+  }
+
+  .reassign-option p {
+    margin: 0;
+  }
+`;
+
 const UserManager: React.FC = () => {
   const [activeTab, setActiveTab] = useState("people");
   const [users, setUsers] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
   const [roles, setRoles] = useState<any[]>([]);
+  const [shifts, setShifts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const [structureView, setStructureView] = useState<'role' | 'manager'>('role');
@@ -53,6 +89,9 @@ const UserManager: React.FC = () => {
   const [filterDept, setFilterDept] = useState<string>("");
   const [filterStart, setFilterStart] = useState<string>("");
   const [filterEnd, setFilterEnd] = useState<string>("");
+  const [selectedShiftDept, setSelectedShiftDept] = useState<string>("");
+  const [sortField, setSortField] = useState<'name' | 'start_date' | 'department'>('start_date');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   // UserManagementPanel controls
   const [userPanelControls, setUserPanelControls] = useState<{
@@ -81,11 +120,15 @@ const UserManager: React.FC = () => {
 
   // Leavers state
   const [leavers, setLeavers] = useState<any[]>([]);
+  const [reassignDialogOpen, setReassignDialogOpen] = useState(false);
+  const [selectedLeaver, setSelectedLeaver] = useState<any>(null);
+  const [reassignMode, setReassignMode] = useState<'previous' | 'new' | null>(null);
 
   // Dialog and Modal states
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [isAddMode, setIsAddMode] = useState(false);
+  const [isDepartmentOnlyMode, setIsDepartmentOnlyMode] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -98,13 +141,15 @@ const UserManager: React.FC = () => {
           { data: userRows, error: userError },
           { data: rolesRows, error: rolesError },
           { data: startersRows, error: startersError },
-          { data: leaversRows, error: leaversError }
+          { data: leaversRows, error: leaversError },
+          { data: shiftsRows, error: shiftsError }
         ] = await Promise.all([
           supabase.from("departments").select("id, name, parent_id, is_archived"),
-          supabase.from("users").select("id, department_id, access_level, first_name, last_name, start_date, email"),
+          supabase.from("users").select("id, department_id, access_level, first_name, last_name, start_date, email, shift_id, is_leaver"),
           supabase.from("roles").select("id, title, department_id"),
           supabase.from("people_personal_information").select("*").is("user_id", null).order("created_at", { ascending: false }),
-          supabase.from("users").select("id, email, first_name, last_name, department_id, leaver_date, leaver_reason, start_date").eq("is_leaver", true).order("leaver_date", { ascending: false })
+          supabase.from("users").select("id, email, first_name, last_name, department_id, leaver_date, leaver_reason, start_date").eq("is_leaver", true).order("leaver_date", { ascending: false }),
+          supabase.from("shift_patterns").select("id, name")
         ]);
 
         if (deptError) console.error("Error fetching departments:", deptError);
@@ -117,12 +162,16 @@ const UserManager: React.FC = () => {
         if (leaversError) {
           console.error("Error fetching leavers:", leaversError);
         }
+        if (shiftsError) {
+          console.error("Error fetching shifts:", shiftsError);
+        }
 
         setDepartments(deptRows || []);
         setUsers(userRows || []);
         setRoles(rolesRows || []);
         setNewStarters(startersRows || []);
         setLeavers(leaversRows || []);
+        setShifts(shiftsRows || []);
 
         console.log("New starters fetched:", startersRows?.length || 0);
       } catch (error: any) {
@@ -164,19 +213,8 @@ const UserManager: React.FC = () => {
     return tree;
   };
 
-  // Helper: find users without a manager in their department
+  // Helper: find users without a department
   const usersWithoutDepartment = users.filter(u => !u.department_id);
-  const usersWithoutManager = users.filter(u => {
-    if (!u.department_id) return false;
-    // Find a manager in the same department (access_level === 'manager', case-insensitive)
-    return !users.some(
-      (other) =>
-        other.id !== u.id &&
-        typeof other.access_level === 'string' &&
-        other.access_level.toLowerCase() === 'manager' &&
-        other.department_id === u.department_id
-    );
-  });
 
   // Helper: get department name for a user
   const getDepartmentName = (deptId: string) => {
@@ -184,24 +222,28 @@ const UserManager: React.FC = () => {
     return dept ? dept.name : '—';
   };
 
-  // Helper: get department(s) managed by a user
-  const getManagedDepartments = (userId: string) => {
-    // Find departments where this user is a manager
-    const managedDepts = departments.filter(dept =>
-      users.some(u =>
-        u.id === userId &&
-        typeof u.access_level === 'string' &&
-        u.access_level.toLowerCase() === 'manager' &&
-        u.department_id === dept.id
-      )
-    );
-    return managedDepts.map(d => d.name).join(', ') || '—';
+  // Sort handler for start date tab
+  const handleSort = (field: 'name' | 'start_date' | 'department') => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
   };
 
   // Dialog handlers
   const handleEditUser = (user: any) => {
     setSelectedUser(user);
     setIsAddMode(false);
+    setIsDepartmentOnlyMode(false);
+    setDialogOpen(true);
+  };
+
+  const handleAssignDepartment = (user: any) => {
+    setSelectedUser(user);
+    setIsAddMode(false);
+    setIsDepartmentOnlyMode(true);
     setDialogOpen(true);
   };
 
@@ -216,12 +258,14 @@ const UserManager: React.FC = () => {
       start_date: ''
     });
     setIsAddMode(true);
+    setIsDepartmentOnlyMode(false);
     setDialogOpen(true);
   };
 
   const handleCloseDialog = () => {
     setDialogOpen(false);
     setSelectedUser(null);
+    setIsDepartmentOnlyMode(false);
     setError("");
   };
 
@@ -349,9 +393,231 @@ const UserManager: React.FC = () => {
     }
   };
 
+  // Handle reassigning a leaver
+  const handleReassignLeaver = async (leaver: any) => {
+    setSelectedLeaver(leaver);
+    setReassignMode(null);
+    setReassignDialogOpen(true);
+  };
+
+  // Handle downloading training file PDF
+  const handleDownloadTrainingPDF = async (leaver: any) => {
+    try {
+      setLoading(true);
+
+      // First, get the user's auth_id from the users table
+      const { data: userData, error: userError } = await supabase
+        .from("users")
+        .select("auth_id")
+        .eq("id", leaver.id)
+        .single();
+
+      if (userError) throw userError;
+
+      // Fetch training records for this user using auth_id
+      const { data: trainingRecords, error: trainingError } = await supabase
+        .from("training_logs")
+        .select("*")
+        .eq("auth_id", userData.auth_id)
+        .order("date", { ascending: false });
+
+      if (trainingError) throw trainingError;
+
+      // Create PDF
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 20;
+      let yPosition = margin;
+
+      // Header
+      doc.setFontSize(20);
+      doc.setFont("helvetica", "bold");
+      doc.text("Training Record", pageWidth / 2, yPosition, { align: "center" });
+      yPosition += 15;
+
+      // Employee Info
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Name: ${leaver.first_name} ${leaver.last_name}`, margin, yPosition);
+      yPosition += 7;
+      doc.text(`Email: ${leaver.email}`, margin, yPosition);
+      yPosition += 7;
+      doc.text(`Department: ${getDepartmentName(leaver.department_id)}`, margin, yPosition);
+      yPosition += 7;
+      doc.text(`Start Date: ${leaver.start_date || "—"}`, margin, yPosition);
+      yPosition += 7;
+      doc.text(`Leave Date: ${leaver.leaver_date || "—"}`, margin, yPosition);
+      yPosition += 15;
+
+      // Training Records Section
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("Training Records", margin, yPosition);
+      yPosition += 10;
+
+      if (!trainingRecords || trainingRecords.length === 0) {
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "italic");
+        doc.text("No training records found.", margin, yPosition);
+      } else {
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+
+        trainingRecords.forEach((record: any, index: number) => {
+          // Check if we need a new page
+          if (yPosition > pageHeight - 40) {
+            doc.addPage();
+            yPosition = margin;
+          }
+
+          const trainingTopic = record.topic || "Unknown";
+          const trainingDate = record.date
+            ? new Date(record.date).toLocaleDateString()
+            : "—";
+          const duration = record.duration_hours ? `${record.duration_hours} hours` : "—";
+          const outcome = record.outcome || "—";
+
+          doc.setFont("helvetica", "bold");
+          doc.text(`${index + 1}. ${trainingTopic}`, margin, yPosition);
+          yPosition += 5;
+
+          doc.setFont("helvetica", "normal");
+          doc.text(`   Date: ${trainingDate}`, margin, yPosition);
+          yPosition += 5;
+          doc.text(`   Duration: ${duration}`, margin, yPosition);
+          yPosition += 5;
+          doc.text(`   Outcome: ${outcome}`, margin, yPosition);
+          yPosition += 5;
+          if (record.notes) {
+            // Word wrap for notes
+            const notesLines = doc.splitTextToSize(`   Notes: ${record.notes}`, pageWidth - (margin * 2));
+            doc.text(notesLines, margin, yPosition);
+            yPosition += notesLines.length * 5;
+          }
+          yPosition += 3;
+        });
+      }
+
+      // Footer
+      yPosition = pageHeight - 15;
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "italic");
+      doc.text(
+        `Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`,
+        pageWidth / 2,
+        yPosition,
+        { align: "center" }
+      );
+
+      // Save PDF
+      const fileName = `${leaver.first_name}_${leaver.last_name}_Training_Record.pdf`.replace(/\s+/g, "_");
+      doc.save(fileName);
+
+      setSuccessMessage("Training record PDF downloaded successfully!");
+      setShowSuccess(true);
+    } catch (error: any) {
+      console.error("Error generating training PDF:", error);
+      setError(error.message || "Failed to generate training PDF");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReassignWithPreviousDetails = async () => {
+    if (!selectedLeaver) return;
+
+    try {
+      setLoading(true);
+      setError("");
+
+      // Update the user to remove leaver status and restore to active
+      const { error: updateError } = await supabase
+        .from("users")
+        .update({
+          is_leaver: false,
+          leaver_date: null,
+          leaver_reason: null,
+        })
+        .eq("id", selectedLeaver.id);
+
+      if (updateError) throw updateError;
+
+      // Refresh data
+      const [{ data: userRows }, { data: leaversRows }] = await Promise.all([
+        supabase.from("users").select("id, department_id, access_level, first_name, last_name, start_date, email"),
+        supabase.from("users").select("id, email, first_name, last_name, department_id, leaver_date, leaver_reason, start_date").eq("is_leaver", true).order("leaver_date", { ascending: false })
+      ]);
+      setUsers(userRows || []);
+      setLeavers(leaversRows || []);
+
+      setReassignDialogOpen(false);
+      setSelectedLeaver(null);
+      setReassignMode(null);
+
+      setSuccessMessage(`${selectedLeaver.first_name} ${selectedLeaver.last_name} has been reassigned with their previous details.`);
+      setShowSuccess(true);
+    } catch (error: any) {
+      console.error("Error reassigning leaver:", error);
+      setError(error.message || "Failed to reassign leaver");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReassignWithNewDetails = async () => {
+    if (!selectedLeaver) return;
+
+    // Close reassign dialog and open edit dialog with the leaver's data
+    setReassignDialogOpen(false);
+
+    // First, reactivate the user
+    try {
+      setLoading(true);
+      setError("");
+
+      const { error: updateError } = await supabase
+        .from("users")
+        .update({
+          is_leaver: false,
+          leaver_date: null,
+          leaver_reason: null,
+        })
+        .eq("id", selectedLeaver.id);
+
+      if (updateError) throw updateError;
+
+      // Refresh data
+      const [{ data: userRows }, { data: leaversRows }] = await Promise.all([
+        supabase.from("users").select("id, department_id, access_level, first_name, last_name, start_date, email"),
+        supabase.from("users").select("id, email, first_name, last_name, department_id, leaver_date, leaver_reason, start_date").eq("is_leaver", true).order("leaver_date", { ascending: false })
+      ]);
+      setUsers(userRows || []);
+      setLeavers(leaversRows || []);
+
+      // Open edit dialog with the user data
+      const reactivatedUser = userRows?.find(u => u.id === selectedLeaver.id);
+      if (reactivatedUser) {
+        setSelectedUser(reactivatedUser);
+        setIsAddMode(false);
+        setIsDepartmentOnlyMode(false);
+        setDialogOpen(true);
+      }
+
+      setSelectedLeaver(null);
+      setReassignMode(null);
+    } catch (error: any) {
+      console.error("Error reactivating leaver:", error);
+      setError(error.message || "Failed to reactivate leaver");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
-      
+      <style dangerouslySetInnerHTML={{ __html: reassignStyles }} />
+
       <FolderTabs
         tabs={tabs}
         activeTab={activeTab}
@@ -432,14 +698,9 @@ const UserManager: React.FC = () => {
             )}
             {activeTab === "users" && (
               <>
-                <TextIconButton
-                  variant="add"
-                  label="Add User"
-                  onClick={handleAddUser}
-                />
                 <div style={{ flex: 1 }} />
                 <span style={{ opacity: 0.7, fontSize: '0.875rem' }}>
-                  {usersWithoutManager.length} without manager • {usersWithoutDepartment.length} without department
+                  {usersWithoutDepartment.length} without department
                 </span>
               </>
             )}
@@ -560,9 +821,59 @@ const UserManager: React.FC = () => {
             )}
             {activeTab === "shifts" && (
               <>
-                <span style={{ opacity: 0.7, fontSize: '0.875rem' }}>
-                  Shift Management
-                </span>
+                <span style={{ fontSize: '0.875rem' }}>Department:</span>
+                <select
+                  value={selectedShiftDept}
+                  onChange={e => setSelectedShiftDept(e.target.value)}
+                  className="neon-input"
+                  style={{ marginLeft: '0.5rem', width: '200px' }}
+                >
+                  <option value="">Select a department...</option>
+                  {departments.map(dept => (
+                    <option key={dept.id} value={dept.id}>{dept.name}</option>
+                  ))}
+                </select>
+                <div style={{ flex: 1 }} />
+                <TextIconButton
+                  variant="download"
+                  icon={<FiDownload />}
+                  label="Download CSV"
+                  onClick={() => {
+                    if (!selectedShiftDept) {
+                      alert("Please select a department first");
+                      return;
+                    }
+                    const dept = departments.find(d => d.id === selectedShiftDept);
+                    const deptUsers = users.filter(u => u.department_id === selectedShiftDept);
+
+                    const csvRows = [
+                      ["Name", "Email", "Shift"],
+                      ...deptUsers.map(u => {
+                        const shift = u.shift_id
+                          ? shifts.find(s => s.id === u.shift_id)?.name || "Unknown shift"
+                          : "No shift";
+                        return [
+                          `${u.first_name || ""} ${u.last_name || ""}`.trim(),
+                          u.email || "—",
+                          shift
+                        ];
+                      })
+                    ];
+                    const csvContent = csvRows.map(r => r.map(x => `"${x.replace(/"/g, '""')}"`).join(",")).join("\n");
+                    const blob = new Blob([csvContent], { type: "text/csv" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `${dept?.name || "department"}-shifts-${new Date().toISOString().slice(0,10)}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    setTimeout(() => {
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                    }, 100);
+                  }}
+                  disabled={!selectedShiftDept}
+                />
               </>
             )}
             {activeTab === "permissions" && (
@@ -574,40 +885,36 @@ const UserManager: React.FC = () => {
             )}
             {activeTab === "startdate" && (
               <>
-                <label className="user-manager-label" style={{ marginBottom: 0 }}>
-                  Department:
-                  <select
-                    value={filterDept}
-                    onChange={e => setFilterDept(e.target.value)}
-                    className="user-manager-select"
-                    style={{ marginLeft: '0.5rem' }}
-                  >
-                    <option value="">All Departments</option>
-                    {departments.map(dept => (
-                      <option key={dept.id} value={dept.id}>{dept.name}</option>
-                    ))}
-                  </select>
-                </label>
-                <label className="user-manager-label" style={{ marginBottom: 0 }}>
-                  From:
-                  <input
-                    type="date"
-                    value={filterStart}
-                    onChange={e => setFilterStart(e.target.value)}
-                    className="user-manager-input"
-                    style={{ marginLeft: '0.5rem', width: '150px' }}
-                  />
-                </label>
-                <label className="user-manager-label" style={{ marginBottom: 0 }}>
-                  To:
-                  <input
-                    type="date"
-                    value={filterEnd}
-                    onChange={e => setFilterEnd(e.target.value)}
-                    className="user-manager-input"
-                    style={{ marginLeft: '0.5rem', width: '150px' }}
-                  />
-                </label>
+                <select
+                  value={filterDept}
+                  onChange={e => setFilterDept(e.target.value)}
+                  className="neon-input"
+                  style={{ width: '180px', height: '32px', margin: 0 }}
+                >
+                  <option value="">All Departments</option>
+                  {departments.map(dept => (
+                    <option key={dept.id} value={dept.id}>{dept.name}</option>
+                  ))}
+                </select>
+                <span style={{ fontSize: '0.875rem', opacity: 0.9 }}>Select date between</span>
+                <input
+                  type="date"
+                  value={filterStart}
+                  onChange={e => setFilterStart(e.target.value)}
+                  placeholder="From date"
+                  className="neon-input"
+                  style={{ width: '150px', height: '32px', margin: 0 }}
+                />
+                <span style={{ fontSize: '0.875rem', opacity: 0.7 }}>and</span>
+                <input
+                  type="date"
+                  value={filterEnd}
+                  onChange={e => setFilterEnd(e.target.value)}
+                  placeholder="To date"
+                  className="neon-input"
+                  style={{ width: '150px', height: '32px', margin: 0 }}
+                />
+                <span style={{ fontSize: '0.875rem', opacity: 0.7 }}>:</span>
                 <TextIconButton
                   variant="refresh"
                   label="Clear"
@@ -623,6 +930,7 @@ const UserManager: React.FC = () => {
                   onClick={() => {
                     const filtered = [...users]
                       .filter(u => u.start_date)
+                      .filter(u => !u.is_leaver)
                       .filter(u => !filterDept || u.department_id === filterDept)
                       .filter(u => {
                         if (!filterStart && !filterEnd) return true;
@@ -656,9 +964,9 @@ const UserManager: React.FC = () => {
                 />
                 <div style={{ flex: 1 }} />
                 <span style={{ opacity: 0.7, fontSize: '0.875rem' }}>
-                  {users.filter(u => u.start_date && (!filterDept || u.department_id === filterDept) &&
+                  {users.filter(u => u.start_date && !u.is_leaver && (!filterDept || u.department_id === filterDept) &&
                     (!filterStart || u.start_date >= filterStart) &&
-                    (!filterEnd || u.start_date <= filterEnd)).length} of {users.filter(u => u.start_date).length} users
+                    (!filterEnd || u.start_date <= filterEnd)).length} of {users.filter(u => u.start_date && !u.is_leaver).length} users
                 </span>
               </>
             )}
@@ -674,81 +982,37 @@ const UserManager: React.FC = () => {
           ) : error ? (
             <div className="user-manager-error">{error}</div>
           ) : (
-            <div className="user-manager-grid">
-              <div>
-                <h3 className="neon-heading user-manager-subheading">Users Without Manager</h3>
-                <table className="neon-table user-manager-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Manages Department(s)</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {usersWithoutManager.length === 0 ? (
-                      <tr><td colSpan={3} className="user-manager-empty">All users have a manager</td></tr>
-                    ) : (
-                      usersWithoutManager.map((user) => (
-                        <tr key={user.id}>
-                          <td className="user-manager-name">{`${user.first_name || ""} ${user.last_name || ""}`.trim()}</td>
-                          <td>{getManagedDepartments(user.id)}</td>
-                          <td>
-                            <div className="user-manager-actions-cell">
-                              <TextIconButton
-                                variant="edit"
-                                label="Edit"
-                                onClick={() => handleEditUser(user)}
-                              />
-                              <TextIconButton
-                                variant="delete"
-                                label="Delete"
-                                onClick={() => handleDeleteUser(user.id)}
-                              />
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-              <div>
-                <h3 className="neon-heading user-manager-subheading">Users Without Department</h3>
-                <table className="neon-table user-manager-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {usersWithoutDepartment.length === 0 ? (
-                      <tr><td colSpan={2} className="user-manager-empty">All users have a department</td></tr>
-                    ) : (
-                      usersWithoutDepartment.map((user) => (
-                        <tr key={user.id}>
-                          <td className="user-manager-name">{`${user.first_name || ""} ${user.last_name || ""}`.trim()}</td>
-                          <td>
-                            <div className="user-manager-actions-cell">
-                              <TextIconButton
-                                variant="edit"
-                                label="Edit"
-                                onClick={() => handleEditUser(user)}
-                              />
-                              <TextIconButton
-                                variant="delete"
-                                label="Delete"
-                                onClick={() => handleDeleteUser(user.id)}
-                              />
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+            <div>
+              <table className="neon-table user-manager-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th style={{ textAlign: 'center' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {usersWithoutDepartment.length === 0 ? (
+                    <tr><td colSpan={3} className="user-manager-empty">All users have a department</td></tr>
+                  ) : (
+                    usersWithoutDepartment.map((user) => (
+                      <tr key={user.id}>
+                        <td className="user-manager-name">{`${user.first_name || ""} ${user.last_name || ""}`.trim()}</td>
+                        <td>{user.email}</td>
+                        <td style={{ textAlign: 'center' }}>
+                          <div className="user-manager-actions-cell" style={{ justifyContent: 'center' }}>
+                            <TextIconButton
+                              variant="assign"
+                              label="Assign to Department"
+                              onClick={() => handleAssignDepartment(user)}
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
           )
         )}
@@ -786,9 +1050,15 @@ const UserManager: React.FC = () => {
                         <td>
                           <div className="user-manager-actions-cell">
                             <TextIconButton
-                              variant="view"
-                              label="View"
-                              onClick={() => handleEditUser(leaver)}
+                              variant="download"
+                              icon={<FiDownload />}
+                              label="Training File"
+                              onClick={() => handleDownloadTrainingPDF(leaver)}
+                            />
+                            <TextIconButton
+                              variant="assign"
+                              label="Reassign"
+                              onClick={() => handleReassignLeaver(leaver)}
                             />
                           </div>
                         </td>
@@ -879,18 +1149,33 @@ const UserManager: React.FC = () => {
               <table className="neon-table user-manager-table">
                 <thead>
                   <tr>
-                    <th>Name</th>
-                    <th>Start Date</th>
-                    <th>Department</th>
-                    <th>Actions</th>
+                    <th
+                      onClick={() => handleSort('name')}
+                      style={{ cursor: 'pointer', userSelect: 'none' }}
+                    >
+                      Name {sortField === 'name' && (sortDirection === 'asc' ? '↑' : '↓')}
+                    </th>
+                    <th
+                      onClick={() => handleSort('start_date')}
+                      style={{ cursor: 'pointer', userSelect: 'none' }}
+                    >
+                      Start Date {sortField === 'start_date' && (sortDirection === 'asc' ? '↑' : '↓')}
+                    </th>
+                    <th
+                      onClick={() => handleSort('department')}
+                      style={{ cursor: 'pointer', userSelect: 'none' }}
+                    >
+                      Department {sortField === 'department' && (sortDirection === 'asc' ? '↑' : '↓')}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {users.length === 0 ? (
-                    <tr><td colSpan={4} className="user-manager-empty">No users found</td></tr>
+                    <tr><td colSpan={3} className="user-manager-empty">No users found</td></tr>
                   ) : (
                     [...users]
                       .filter(u => u.start_date)
+                      .filter(u => !u.is_leaver)
                       .filter(u => !filterDept || u.department_id === filterDept)
                       .filter(u => {
                         if (!filterStart && !filterEnd) return true;
@@ -900,26 +1185,26 @@ const UserManager: React.FC = () => {
                         if (filterEnd && date > filterEnd) return false;
                         return true;
                       })
-                      .sort((a, b) => (a.start_date || "").localeCompare(b.start_date || ""))
+                      .sort((a, b) => {
+                        let comparison = 0;
+                        if (sortField === 'name') {
+                          const nameA = `${a.first_name || ""} ${a.last_name || ""}`.trim().toLowerCase();
+                          const nameB = `${b.first_name || ""} ${b.last_name || ""}`.trim().toLowerCase();
+                          comparison = nameA.localeCompare(nameB);
+                        } else if (sortField === 'start_date') {
+                          comparison = (a.start_date || "").localeCompare(b.start_date || "");
+                        } else if (sortField === 'department') {
+                          const deptA = getDepartmentName(a.department_id).toLowerCase();
+                          const deptB = getDepartmentName(b.department_id).toLowerCase();
+                          comparison = deptA.localeCompare(deptB);
+                        }
+                        return sortDirection === 'asc' ? comparison : -comparison;
+                      })
                       .map((user) => (
                         <tr key={user.id}>
                           <td className="user-manager-name">{`${user.first_name || ""} ${user.last_name || ""}`.trim()}</td>
                           <td>{user.start_date || "—"}</td>
                           <td>{getDepartmentName(user.department_id)}</td>
-                          <td>
-                            <div className="user-manager-actions-cell">
-                              <TextIconButton
-                                variant="edit"
-                                label="Edit"
-                                onClick={() => handleEditUser(user)}
-                              />
-                              <TextIconButton
-                                variant="delete"
-                                label="Delete"
-                                onClick={() => handleDeleteUser(user.id)}
-                              />
-                            </div>
-                          </td>
                         </tr>
                       ))
                   )}
@@ -939,7 +1224,7 @@ const UserManager: React.FC = () => {
         )}
         {activeTab === "shifts" && (
           <div className="user-manager-placeholder">
-            <ShiftToggleContent />
+            <ShiftToggleContent selectedDepartment={selectedShiftDept} />
           </div>
         )}
         {activeTab === "permissions" && (
@@ -949,7 +1234,7 @@ const UserManager: React.FC = () => {
       {/* User Edit/Add Dialog */}
       <OverlayDialog showCloseButton={true} open={dialogOpen} onClose={handleCloseDialog} ariaLabelledby="user-editor-title">
         <div className="neon-form-title user-manager-dialog-title" id="user-editor-title">
-          {isAddMode ? "Add User" : "Edit User"}
+          {isDepartmentOnlyMode ? "Assign to Department" : isAddMode ? "Add User" : "Edit User"}
         </div>
 
         {error && (
@@ -965,6 +1250,7 @@ const UserManager: React.FC = () => {
             onSave={handleSaveUser}
             onCancel={handleCloseDialog}
             isAddMode={isAddMode}
+            isDepartmentOnlyMode={isDepartmentOnlyMode}
           />
         )}
       </OverlayDialog>
@@ -1037,6 +1323,103 @@ const UserManager: React.FC = () => {
         )}
       </OverlayDialog>
 
+      {/* Reassign Leaver Dialog */}
+      <OverlayDialog
+        showCloseButton={true}
+        open={reassignDialogOpen}
+        onClose={() => {
+          setReassignDialogOpen(false);
+          setSelectedLeaver(null);
+          setReassignMode(null);
+          setError("");
+        }}
+        ariaLabelledby="reassign-leaver-title"
+      >
+        <div className="neon-form-title user-manager-dialog-title" id="reassign-leaver-title">
+          Reassign Employee
+        </div>
+
+        {error && (
+          <div className="neon-error-message user-manager-dialog-error">
+            {error}
+          </div>
+        )}
+
+        {selectedLeaver && (
+          <div className="user-manager-form">
+            <div className="info-box">
+              <h4 className="neon-heading" style={{ marginBottom: "0.5rem" }}>Employee Information</h4>
+              <p className="neon-text"><strong>Name:</strong> {selectedLeaver.first_name} {selectedLeaver.last_name}</p>
+              <p className="neon-text"><strong>Email:</strong> {selectedLeaver.email}</p>
+              <p className="neon-text"><strong>Previous Department:</strong> {getDepartmentName(selectedLeaver.department_id)}</p>
+              <p className="neon-text"><strong>Leave Date:</strong> {selectedLeaver.leaver_date || "—"}</p>
+            </div>
+
+            <div className="spacer-4" />
+
+            <p className="neon-text" style={{ marginBottom: "1rem" }}>
+              Choose how to reassign this employee:
+            </p>
+
+            <div className="reassign-options">
+              <div
+                className={`reassign-option ${reassignMode === 'previous' ? 'selected' : ''}`}
+                onClick={() => setReassignMode('previous')}
+              >
+                <h4 className="neon-heading">
+                  Option 1: Reassign with Previous Details
+                </h4>
+                <p className="neon-help-text">
+                  Restore employee with their previous employee number, department, and role.
+                </p>
+              </div>
+
+              <div
+                className={`reassign-option ${reassignMode === 'new' ? 'selected' : ''}`}
+                onClick={() => setReassignMode('new')}
+              >
+                <h4 className="neon-heading">
+                  Option 2: Add with New Details
+                </h4>
+                <p className="neon-help-text">
+                  Reactivate employee and update with new department, role, or other details.
+                </p>
+              </div>
+            </div>
+
+            <div className="spacer-4" />
+
+            <div className="user-manager-form-actions">
+              <TextIconButton
+                variant="secondary"
+                label="Cancel"
+                onClick={() => {
+                  setReassignDialogOpen(false);
+                  setSelectedLeaver(null);
+                  setReassignMode(null);
+                  setError("");
+                }}
+                disabled={loading}
+              />
+              <TextIconButton
+                variant="primary"
+                label={loading ? "Processing..." : "Continue"}
+                onClick={() => {
+                  if (reassignMode === 'previous') {
+                    handleReassignWithPreviousDetails();
+                  } else if (reassignMode === 'new') {
+                    handleReassignWithNewDetails();
+                  } else {
+                    setError("Please select an option");
+                  }
+                }}
+                disabled={loading || !reassignMode}
+              />
+            </div>
+          </div>
+        )}
+      </OverlayDialog>
+
       {/* Success Modal */}
       <SuccessModal
         open={showSuccess}
@@ -1048,24 +1431,8 @@ const UserManager: React.FC = () => {
   );
 };
 
-function ShiftToggleContent() {
-  const [view, setView] = React.useState<'department' | 'user'>('department');
-  return (
-    <>
-      <div className="shift-toggle" onClick={() => setView(v => v === 'department' ? 'user' : 'department')} aria-label="Toggle shift view">
-        <span className={`shift-toggle-label ${view === 'department' ? 'active' : ''}`}>
-          By Department
-        </span>
-        <div className={`shift-toggle-switch ${view === 'department' ? 'active' : ''}`}>
-          <div className="shift-toggle-switch-handle" />
-        </div>
-        <span className={`shift-toggle-label ${view === 'user' ? 'active' : ''}`}>
-          By User
-        </span>
-      </div>
-      {view === 'department' ? <RotaByDepartment departmentId="" /> : <Rota />}
-    </>
-  );
+function ShiftToggleContent({ selectedDepartment }: { selectedDepartment: string }) {
+  return <RotaByDepartment departmentId={selectedDepartment} />;
 }
 
 interface UserEditFormProps {
@@ -1074,9 +1441,10 @@ interface UserEditFormProps {
   onSave: (userData: any) => void;
   onCancel: () => void;
   isAddMode: boolean;
+  isDepartmentOnlyMode?: boolean;
 }
 
-function UserEditForm({ user, departments, onSave, onCancel, isAddMode }: UserEditFormProps) {
+function UserEditForm({ user, departments, onSave, onCancel, isAddMode, isDepartmentOnlyMode }: UserEditFormProps) {
   const [formData, setFormData] = useState({
     first_name: user.first_name || '',
     last_name: user.last_name || '',
@@ -1088,13 +1456,58 @@ function UserEditForm({ user, departments, onSave, onCancel, isAddMode }: UserEd
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    // If department only mode, only send department_id
+    if (isDepartmentOnlyMode) {
+      onSave({ department_id: formData.department_id });
+    } else {
+      onSave(formData);
+    }
   };
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  // Department only mode - show simplified form
+  if (isDepartmentOnlyMode) {
+    return (
+      <form onSubmit={handleSubmit} className="user-manager-form">
+        <div style={{ marginBottom: "1.5rem", padding: "1rem", background: "rgba(64, 224, 208, 0.1)", borderRadius: "8px" }}>
+          <p style={{ margin: "0.25rem 0" }}><strong>Name:</strong> {user.first_name} {user.last_name}</p>
+          <p style={{ margin: "0.25rem 0" }}><strong>Email:</strong> {user.email}</p>
+        </div>
+
+        <div className="user-manager-form-field">
+          <label>Department *</label>
+          <select
+            value={formData.department_id}
+            onChange={(e) => handleChange('department_id', e.target.value)}
+            required
+          >
+            <option value="">Select Department</option>
+            {departments.map(dept => (
+              <option key={dept.id} value={dept.id}>{dept.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="user-manager-form-actions">
+          <TextIconButton
+            variant="secondary"
+            label="Cancel"
+            onClick={onCancel}
+          />
+          <TextIconButton
+            variant="primary"
+            label="Assign Department"
+            type="submit"
+          />
+        </div>
+      </form>
+    );
+  }
+
+  // Full form for add/edit mode
   return (
     <form onSubmit={handleSubmit} className="user-manager-form">
       <div className="user-manager-form-row">

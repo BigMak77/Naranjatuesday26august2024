@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
+import TextIconButton from "@/components/ui/TextIconButtons";
 
 /** ---------- Types mirroring your schema ---------- */
 type Option = { id: string; option_text: string; order_index: number };
@@ -51,18 +52,22 @@ type TestRunnerProps = {
   testingUserId?: string;
   /** Optional: show only these pack IDs (otherwise inferred from pack_assignments) */
   packIds?: string[];
+  /** Optional: callback when user wants to exit back to trainer log */
+  onReturnToLog?: () => void;
 };
 
 export default function TestRunner({
   rpcMode = "jwt",
   testingUserId,
   packIds,
+  onReturnToLog,
 }: TestRunnerProps) {
   const [stage, setStage] = useState<"list" | "test" | "result">("list");
+  const [showResultModal, setShowResultModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [packs, setPacks] = useState<Pack[]>([]);
   const [activePack, setActivePack] = useState<Pack | null>(null);
-  const [answers, setAnswers] = useState<Record<string, string>>({}); // qid -> optionId
+  const [answers, setAnswers] = useState<Record<string, string | string[]>>({}); // qid -> optionId or optionIds[]
   const [attempt, setAttempt] = useState<AttemptSummary | null>(null);
   const [review, setReview] = useState<ReviewRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -142,12 +147,34 @@ export default function TestRunner({
     }
   }
 
-  function pickOption(questionId: string, optionId: string) {
-    setAnswers((prev) => ({ ...prev, [questionId]: optionId }));
+  function pickOption(questionId: string, optionId: string, isMulti: boolean) {
+    setAnswers((prev) => {
+      if (isMulti) {
+        // For multi-select questions, toggle the option in the array
+        const current = prev[questionId];
+        const currentArray = Array.isArray(current) ? current : [];
+        const isSelected = currentArray.includes(optionId);
+
+        if (isSelected) {
+          // Remove the option
+          const updated = currentArray.filter(id => id !== optionId);
+          return { ...prev, [questionId]: updated };
+        } else {
+          // Add the option
+          return { ...prev, [questionId]: [...currentArray, optionId] };
+        }
+      } else {
+        // For single-select questions, replace with the new option
+        return { ...prev, [questionId]: optionId };
+      }
+    });
   }
 
   /** ---------- Submit answers (robust error handling) ---------- */
   async function submit() {
+    console.log('🚀 Submit function called');
+    console.log('Current answers state:', answers);
+    console.log('Active pack:', activePack?.title);
     if (!activePack) return;
     setLoading(true);
     setError(null);
@@ -155,11 +182,30 @@ export default function TestRunner({
       const payload = {
         started_at: new Date().toISOString(),
         submitted_at: new Date().toISOString(),
-        answers: Object.entries(answers).map(([question_id, selected_option_id]) => ({
-          question_id,
-          selected_option_id,
-        })),
+        answers: Object.entries(answers).flatMap(([question_id, answer]) => {
+          // Handle both single answers (string) and multiple answers (string[])
+          if (Array.isArray(answer)) {
+            // For multi-select questions, create an entry for each selected option
+            return answer.map(selected_option_id => ({
+              question_id,
+              selected_option_id,
+            }));
+          } else {
+            // For single-select questions, create one entry
+            return [{
+              question_id,
+              selected_option_id: answer,
+            }];
+          }
+        }),
       };
+
+      // Debug logging
+      console.log('Submitting test with answers:', {
+        totalQuestions: activePack.questions?.length,
+        answerEntries: payload.answers.length,
+        answers: payload.answers
+      });
 
       let rpcName: "submit_attempt" | "submit_attempt_as_user" | "submit_attempt_simple";
       let args: Record<string, any>;
@@ -183,6 +229,9 @@ export default function TestRunner({
       }
 
       const { data, error } = await supabase.rpc(rpcName, args);
+
+      // Debug logging for response
+      console.log('Test submission result:', { data, error });
 
       if (error) {
         console.error("RPC error:", error);
@@ -215,8 +264,11 @@ export default function TestRunner({
         throw new Error(err2.message || "Failed to load review");
       }
 
-      setReview((reviewRows || []) as ReviewRow[]);
+      // Group review rows by question_id for multi-select questions
+      const groupedReview = groupReviewByQuestion((reviewRows || []) as ReviewRow[]);
+      setReview(groupedReview);
       setStage("result");
+      setShowResultModal(true);
     } catch (e: any) {
       setError(e.message ?? "Failed to submit");
     } finally {
@@ -224,15 +276,63 @@ export default function TestRunner({
     }
   }
 
+  /** Group review rows by question to handle multi-select answers */
+  function groupReviewByQuestion(reviewRows: ReviewRow[]): ReviewRow[] {
+    const grouped = new Map<string, ReviewRow>();
+
+    reviewRows.forEach(row => {
+      const existing = grouped.get(row.question_id);
+      if (existing) {
+        // Combine multiple selected answers for the same question
+        if (row.selected_answer) {
+          const currentAnswers = existing.selected_answer ? existing.selected_answer.split(', ') : [];
+          if (!currentAnswers.includes(row.selected_answer)) {
+            currentAnswers.push(row.selected_answer);
+            existing.selected_answer = currentAnswers.join(', ');
+          }
+        }
+        // Keep is_correct as false if any answer is incorrect
+        if (existing.is_correct && !row.is_correct) {
+          existing.is_correct = false;
+        }
+      } else {
+        // First occurrence of this question
+        grouped.set(row.question_id, { ...row });
+      }
+    });
+
+    return Array.from(grouped.values());
+  }
+
   const allAnswered = useMemo(() => {
-    const qCount = activePack?.questions?.length ?? 0;
-    return qCount > 0 && Object.keys(answers).length === qCount;
-  }, [answers, activePack?.questions?.length]);
+    const questions = activePack?.questions ?? [];
+    if (questions.length === 0) return false;
+
+    // Check that every question has at least one answer
+    return questions.every(q => {
+      const answer = answers[q.id];
+      if (!answer) return false;
+
+      // For multi-select, ensure at least one option is selected
+      if (Array.isArray(answer)) {
+        return answer.length > 0;
+      }
+
+      // For single-select, ensure an option is selected
+      return typeof answer === 'string' && answer.length > 0;
+    });
+  }, [answers, activePack?.questions]);
 
   /** ---------- UI ---------- */
   return (
     <div className="training-container">
-      <h1 className="training-h1">Training Tests</h1>
+      {stage === "list" && <h1 className="training-h1">Training Tests</h1>}
+      {stage === "test" && activePack && (
+        <h1 className="training-h1">{activePack.title} - Pass Mark: {activePack.pass_mark}%</h1>
+      )}
+      {stage === "result" && activePack && (
+        <h1 className="training-h1">{activePack.title} - Pass Mark: {activePack.pass_mark}%</h1>
+      )}
 
       {error && (
         <div className="training-card training-danger">
@@ -260,9 +360,11 @@ export default function TestRunner({
                       ) : null}
                     </div>
                   </div>
-                  <button className="neon-btn neon-btn-next" onClick={() => startPack(p.id)}>
-                    Start Test
-                  </button>
+                  <TextIconButton
+                    variant="next"
+                    label="Start Test"
+                    onClick={() => startPack(p.id)}
+                  />
                 </div>
               </div>
             ))}
@@ -272,64 +374,212 @@ export default function TestRunner({
 
       {stage === "test" && activePack && (
         <>
-          <div className="training-card training-info neon-form">
-            <div className="training-rowBetween">
-              <div>
-                <div className="training-title">{activePack.title}</div>
-                <div className="training-muted">
-                  Answer all questions below. Pass mark: {activePack.pass_mark}%.
+
+          {(activePack.questions || []).map((q, idx) => {
+            const isMulti = q.type === "mcq_multi";
+            const currentAnswer = answers[q.id];
+
+            return (
+              <div key={q.id} className="training-qBlock">
+                <div className="training-question-title">
+                  {idx + 1}. {q.question_text}
+                  {isMulti && <span className="training-muted">(Select all that apply)</span>}
+                </div>
+                <div>
+                  {q.options.map((opt) => {
+                    const name = `q-${q.id}`;
+                    let checked = false;
+
+                    if (isMulti) {
+                      checked = Array.isArray(currentAnswer) && currentAnswer.includes(opt.id);
+                    } else {
+                      checked = currentAnswer === opt.id;
+                    }
+
+                    return (
+                      <label key={opt.id} className="training-radioRow">
+                        <input
+                          type={isMulti ? "checkbox" : "radio"}
+                          name={isMulti ? undefined : name}
+                          value={opt.id}
+                          checked={!!checked}
+                          onChange={() => pickOption(q.id, opt.id, isMulti)}
+                        />
+                        <span>{opt.option_text}</span>
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
-              <button className="neon-btn neon-btn-back" onClick={() => setStage("list")}>Back</button>
-            </div>
-          </div>
-
-          {(activePack.questions || []).map((q, idx) => (
-            <div key={q.id} className="training-qBlock">
-              <div className="training-question-title">
-                {idx + 1}. {q.question_text}
-              </div>
-              <div>
-                {q.options.map((opt) => {
-                  const name = `q-${q.id}`;
-                  const checked = answers[q.id] === opt.id;
-                  return (
-                    <label key={opt.id} className="training-radioRow">
-                      <input
-                        type="radio"
-                        name={name}
-                        value={opt.id}
-                        checked={!!checked}
-                        onChange={() => pickOption(q.id, opt.id)}
-                      />
-                      <span>{opt.option_text}</span>
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+            );
+          })}
 
           <div className="training-actions-row">
-            <button className="neon-btn neon-btn-back" onClick={() => setStage("list")}>Cancel</button>
-            <button
-              className="neon-btn neon-btn-next"
-              disabled={!allAnswered || loading}
+            <TextIconButton
+              variant="cancel"
+              label="Cancel"
+              onClick={() => setStage("list")}
+            />
+            <TextIconButton
+              variant="submit"
+              label={loading ? "Submitting…" : "Submit"}
               onClick={submit}
+              disabled={!allAnswered || loading}
               title={!allAnswered ? "Answer all questions to enable submit" : "Submit your answers"}
-            >
-              {loading ? "Submitting…" : "Submit"}
-            </button>
+            />
           </div>
         </>
       )}
 
       {stage === "result" && attempt && review && (
         <>
+          {/* Result Modal */}
+          {showResultModal && (
+            <div
+              className="ui-dialog-overlay"
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 70000
+              }}
+              onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                  setShowResultModal(false);
+                }
+              }}
+            >
+              <div
+                className="ui-dialog-content neon-dialog"
+                style={{
+                  position: 'relative',
+                  maxWidth: '600px',
+                  width: '90%',
+                  padding: '3rem 2rem 2rem 2rem'
+                }}
+              >
+                {/* Close button */}
+                <button
+                  onClick={() => {
+                    setShowResultModal(false);
+                    if (onReturnToLog) onReturnToLog();
+                  }}
+                  aria-label="Close and return to training log"
+                  className="ui-dialog-close-btn"
+                  style={{
+                    position: 'absolute',
+                    top: '1rem',
+                    right: '1rem',
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    border: '2px solid var(--text-white)',
+                    background: 'transparent',
+                    color: 'var(--text-white)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'var(--text-white)';
+                    e.currentTarget.style.color = 'var(--bg)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.color = 'var(--text-white)';
+                  }}
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M2 2L10 10M10 2L2 10"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </button>
+
+                {attempt.passed ? (
+                  <>
+                    <h2 className="text-2xl font-bold text-center mb-4" style={{ color: 'var(--neon)' }}>
+                      🎉 Congratulations!
+                    </h2>
+                    <div className="training-score-row text-center mb-4" style={{ fontSize: '1.5rem' }}>
+                      Score: <strong>{attempt.score_percent}%</strong>{' '}
+                      <span className="training-badgePass">Passed</span>
+                    </div>
+                    <p className="text-center mb-6 opacity-80">
+                      You have successfully passed this test with a score of {attempt.score_percent}%!
+                    </p>
+                    <div className="flex flex-col gap-3">
+                      <TextIconButton
+                        variant="next"
+                        label="Return to Training Log"
+                        onClick={() => {
+                          setShowResultModal(false);
+                          if (onReturnToLog) onReturnToLog();
+                        }}
+                      />
+                      <button
+                        onClick={() => setShowResultModal(false)}
+                        className="neon-btn neon-btn-back"
+                      >
+                        View Review
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="text-2xl font-bold text-center mb-4" style={{ color: '#ef4444' }}>
+                      Test Not Passed
+                    </h2>
+                    <div className="training-score-row text-center mb-4" style={{ fontSize: '1.5rem' }}>
+                      Score: <strong>{attempt.score_percent}%</strong>{' '}
+                      <span className="training-badgeFail">Failed</span>
+                    </div>
+                    <p className="text-center mb-6 opacity-80">
+                      You scored {attempt.score_percent}%, but the pass mark is {activePack?.pass_mark}%.
+                      Please review your answers and try again.
+                    </p>
+                    <div className="flex flex-col gap-3">
+                      <TextIconButton
+                        variant="next"
+                        label="Retake Test"
+                        onClick={() => {
+                          setShowResultModal(false);
+                          if (activePack) startPack(activePack.id);
+                        }}
+                      />
+                      <button
+                        onClick={() => setShowResultModal(false)}
+                        className="neon-btn neon-btn-back"
+                      >
+                        View Review
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="training-card neon-form">
             <div className="training-rowBetween">
               <div>
-                <div className="training-title">{activePack?.title}</div>
                 <div className="training-score-row">
                   Score: <strong>{attempt.score_percent}%</strong>{' '}
                   {attempt.passed ? (
@@ -337,21 +587,67 @@ export default function TestRunner({
                   ) : (
                     <span className="training-badgeFail">Failed</span>
                   )}{' '}
-                  <span className="training-muted" style={{ marginLeft: 8 }}>
+                  <span className="training-muted">
                     Attempt #{attempt.attempt_number}
                   </span>
                 </div>
+
+                {/* Pass/Fail specific messages */}
+                {attempt.passed ? (
+                  <div className="neon-success-banner">
+                    ✓ Congratulations! You have successfully passed this test. You may return to the test list or review your answers below.
+                  </div>
+                ) : (
+                  <div className="neon-error-banner">
+                    ⚠ You did not meet the pass mark of {activePack?.pass_mark}%. Please review the correct answers below and retake the test.
+                  </div>
+                )}
               </div>
+
               <div className="training-actions-row">
-                <button className="neon-btn neon-btn-back" onClick={() => setStage("list")}>Close</button>
-                <button
-                  className="neon-btn neon-btn-next"
-                  onClick={() => {
-                    if (activePack) startPack(activePack.id);
-                  }}
-                >
-                  Retake
-                </button>
+                {attempt.passed ? (
+                  <>
+                    <TextIconButton
+                      variant="next"
+                      label="Return to Log"
+                      onClick={() => {
+                        if (onReturnToLog) {
+                          onReturnToLog();
+                        } else {
+                          setStage("list");
+                        }
+                      }}
+                    />
+                    <TextIconButton
+                      variant="back"
+                      label="Retake (Optional)"
+                      onClick={() => {
+                        if (activePack) startPack(activePack.id);
+                      }}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <TextIconButton
+                      variant="next"
+                      label="Retake Test"
+                      onClick={() => {
+                        if (activePack) startPack(activePack.id);
+                      }}
+                    />
+                    <TextIconButton
+                      variant="back"
+                      label="Back to Log"
+                      onClick={() => {
+                        if (onReturnToLog) {
+                          onReturnToLog();
+                        } else {
+                          setStage("list");
+                        }
+                      }}
+                    />
+                  </>
+                )}
               </div>
             </div>
           </div>

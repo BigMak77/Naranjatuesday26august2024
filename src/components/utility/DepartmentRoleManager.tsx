@@ -7,7 +7,7 @@ import OverlayDialog from "@/components/ui/OverlayDialog";
 import TextIconButton from "@/components/ui/TextIconButtons";
 import AccessControlWrapper from "@/components/AccessControlWrapper";
 import { supabase } from "@/lib/supabase-client";
-import { FiUsers } from "react-icons/fi";
+import { FiUsers, FiSearch } from "react-icons/fi";
 
 interface Department {
   id: string;
@@ -33,8 +33,14 @@ export default function DepartmentRoleManager() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'departments' | 'roles'>('departments');
-  
+
+  // View toggle state
+  const [activeView, setActiveView] = useState<'departments' | 'roles'>('departments');
+
+  // Search states
+  const [departmentSearch, setDepartmentSearch] = useState('');
+  const [roleSearch, setRoleSearch] = useState('');
+
   // Dialog states
   const [dialogType, setDialogType] = useState<DialogType>(null);
   const [editingItem, setEditingItem] = useState<Department | Role | null>(null);
@@ -61,21 +67,27 @@ export default function DepartmentRoleManager() {
           .order("name", { ascending: true }),
         supabase
           .from("roles")
-          .select(`
-            id, title, department_id, created_at,
-            departments(name)
-          `)
+          .select("id, title, department_id, created_at")
           .order("title", { ascending: true })
       ]);
 
       if (deptResult.error) throw deptResult.error;
       if (roleResult.error) throw roleResult.error;
 
-      setDepartments(deptResult.data || []);        setRoles(roleResult.data?.map(role => ({
-          ...role,
-          department: Array.isArray(role.departments) ? 
-            role.departments[0] : role.departments
-        })) || []);
+      const departmentsData = deptResult.data || [];
+      const rolesData = roleResult.data || [];
+
+      // Create a map of departments for quick lookup
+      const deptMap = new Map(departmentsData.map(dept => [dept.id, dept]));
+
+      // Manually join department data with roles
+      const rolesWithDepartments = rolesData.map(role => ({
+        ...role,
+        department: role.department_id ? deptMap.get(role.department_id) : undefined
+      }));
+
+      setDepartments(departmentsData);
+      setRoles(rolesWithDepartments);
     } catch (err: any) {
       setError("Failed to load data: " + err.message);
     } finally {
@@ -162,13 +174,24 @@ export default function DepartmentRoleManager() {
         .from(type === 'department' ? "departments" : "roles")
         .delete()
         .eq("id", id);
-      
+
       if (error) throw error;
       await loadData();
     } catch (err: any) {
       setError(`Failed to delete ${type}: ${err.message}`);
     }
   };
+
+  // Filter departments based on search
+  const filteredDepartments = departments.filter(dept =>
+    dept.name.toLowerCase().includes(departmentSearch.toLowerCase())
+  );
+
+  // Filter roles based on search
+  const filteredRoles = roles.filter(role =>
+    role.title.toLowerCase().includes(roleSearch.toLowerCase()) ||
+    role.department?.name?.toLowerCase().includes(roleSearch.toLowerCase())
+  );
 
   // Department table columns
   const departmentColumns = [
@@ -239,33 +262,6 @@ export default function DepartmentRoleManager() {
     }
   ];
 
-  const departmentToolbar = (
-    <div className="flex justify-between items-center">
-      <h3 className="text-lg font-semibold flex items-center gap-2">
-        <FiUsers />
-        Departments ({departments.length})
-      </h3>
-      <TextIconButton
-        variant="add"
-        label="Add Department"
-        onClick={() => openDialog('department-add')}
-      />
-    </div>
-  );
-
-  const roleToolbar = (
-    <div className="flex justify-between items-center">
-      <h3 className="text-lg font-semibold flex items-center gap-2">
-        <FiUsers />
-        Roles ({roles.length})
-      </h3>
-      <TextIconButton
-        variant="add"
-        label="Add Role"
-        onClick={() => openDialog('role-add')}
-      />
-    </div>
-  );
 
   if (loading) {
     return (
@@ -289,44 +285,90 @@ export default function DepartmentRoleManager() {
           </div>
         )}
 
-        {/* Tab Navigation - Toggle Switch */}
-        <div className="flex justify-center mb-6">
-          <div className="inline-flex rounded-md shadow-sm" role="group">
+        {/* Unified Toolbar with Toggle Switch */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <FiUsers />
+                {activeView === 'departments' ? 'Departments' : 'Roles'}
+              </h3>
+
+              {/* Toggle Switch */}
+              <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+                <button
+                  onClick={() => setActiveView('departments')}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                    activeView === 'departments'
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Departments
+                </button>
+                <button
+                  onClick={() => setActiveView('roles')}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                    activeView === 'roles'
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Roles
+                </button>
+              </div>
+
+              <span className="text-sm text-gray-500">
+                ({activeView === 'departments' ? filteredDepartments.length : filteredRoles.length})
+              </span>
+            </div>
+
             <TextIconButton
-              variant="secondary"
-              label="Departments"
-              onClick={() => setActiveTab('departments')}
-              className={activeTab === 'departments' ? 'neon-btn-primary' : 'neon-btn-secondary'}
-            />
-            <TextIconButton
-              variant="secondary"
-              label="Roles"
-              onClick={() => setActiveTab('roles')}
-              className={activeTab === 'roles' ? 'neon-btn-primary' : 'neon-btn-secondary'}
+              variant="add"
+              label={activeView === 'departments' ? 'Add Department' : 'Add Role'}
+              onClick={() => openDialog(activeView === 'departments' ? 'department-add' : 'role-add')}
             />
           </div>
         </div>
 
-        {/* Department Table */}
-        {activeTab === 'departments' && (
-          <NeonPanel>
+        {/* Departments Section */}
+        {activeView === 'departments' && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="relative mb-4">
+              <input
+                type="text"
+                placeholder="Search departments..."
+                value={departmentSearch}
+                onChange={(e) => setDepartmentSearch(e.target.value)}
+                className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            </div>
             <NeonTable
               columns={departmentColumns}
-              data={departments as Record<string, unknown>[]}
-              toolbar={departmentToolbar}
+              data={filteredDepartments as Record<string, unknown>[]}
             />
-          </NeonPanel>
+          </div>
         )}
 
-        {/* Role Table */}
-        {activeTab === 'roles' && (
-          <NeonPanel>
+        {/* Roles Section */}
+        {activeView === 'roles' && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="relative mb-4">
+              <input
+                type="text"
+                placeholder="Search roles or departments..."
+                value={roleSearch}
+                onChange={(e) => setRoleSearch(e.target.value)}
+                className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            </div>
             <NeonTable
               columns={roleColumns}
-              data={roles}
-              toolbar={roleToolbar}
+              data={filteredRoles}
             />
-          </NeonPanel>
+          </div>
         )}
 
         {/* Add/Edit Department Dialog */}
