@@ -69,7 +69,14 @@ interface UserAssignment {
   };
 }
 
-const UserRoleHistory: React.FC = () => {
+interface UserRoleHistoryProps {
+  onControlsReady?: (controls: {
+    roleHistoryCount: number;
+    refreshData: () => void;
+  }) => void;
+}
+
+const UserRoleHistory: React.FC<UserRoleHistoryProps> = ({ onControlsReady }) => {
   const [roleHistory, setRoleHistory] = useState<RoleHistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
@@ -82,6 +89,15 @@ const UserRoleHistory: React.FC = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (onControlsReady) {
+      onControlsReady({
+        roleHistoryCount: roleHistory.length,
+        refreshData: fetchData
+      });
+    }
+  }, [roleHistory.length, onControlsReady]);
 
   const fetchData = async () => {
     try {
@@ -288,26 +304,6 @@ const UserRoleHistory: React.FC = () => {
 
   return (
     <>
-      <div className="user-role-history-header">
-        <h3 className="neon-heading">User Role History</h3>
-        <p style={{ opacity: 0.7, fontSize: "0.875rem", marginTop: "0.5rem" }}>
-          Track all role and department changes for users, including their historical assignments
-        </p>
-      </div>
-
-      {/* Toolbar */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-        <div style={{ opacity: 0.7, fontSize: "0.875rem" }}>
-          {roleHistory.length} entries
-        </div>
-        <TextIconButton
-          variant="refresh"
-          label="Refresh Data"
-          onClick={fetchData}
-        />
-      </div>
-
-      {/* Content */}
       {loading ? (
         <div style={{ textAlign: "center", padding: "2rem", opacity: 0.7 }}>
           Loading role history...

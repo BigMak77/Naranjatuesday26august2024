@@ -651,7 +651,7 @@ header.global-header {
   justify-content: space-between;
   align-items: center;
   padding: 0 10px;
-  border-bottom: 1px solid rgba(64, 224, 208, 0.18);
+  border-bottom: 1px solid rgba(250, 122, 32, 0.3);
 }
 
 /* ========== TOOLBAR BUTTON CONTAINER ========== */
@@ -1788,6 +1788,7 @@ textarea.neon-input {
   align-items: center;
   justify-content: center;
   padding: 1rem;
+  z-index: 60000;
 }
 
 .ui-dialog-overlay.transparent-overlay {
@@ -1806,7 +1807,7 @@ textarea.neon-input {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   color: var(--text-white);
   font-family: var(--font-family);
-  z-index: 10000;
+  z-index: 60001;
   position: relative;
 }
 

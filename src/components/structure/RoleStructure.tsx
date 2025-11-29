@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase-client";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 import TextIconButton from "@/components/ui/TextIconButtons";
 import OverlayDialog from "@/components/ui/OverlayDialog";
+import DualPaneSelector from "@/components/ui/DualPaneSelector";
 import { FiPlus, FiTool, FiGlobe } from "react-icons/fi";
 
 /* ===========================
@@ -563,7 +564,7 @@ export function AddDepartmentButton({ onAdded }: { onAdded?: () => void }) {
     <>
       <TextIconButton
         variant="add"
-        label="Add department"
+        label="Add new department"
         onClick={() => setOpen(true)}
       />
       <OverlayDialog
@@ -586,8 +587,8 @@ export function AddDepartmentButton({ onAdded }: { onAdded?: () => void }) {
             {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
             <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
               <TextIconButton
-                variant="add"
-                label="Add department"
+                variant="submit"
+                label="Submit new department"
                 disabled={loading}
                 type="submit"
                 style={{ opacity: loading ? 0.6 : 1 }}
@@ -603,19 +604,38 @@ export function AddDepartmentButton({ onAdded }: { onAdded?: () => void }) {
 // Add Role Button and Modal
 export function AddRoleButton({ departments, onAdded }: { departments: Department[]; onAdded?: () => void }) {
   const [open, setOpen] = useState(false);
+  const [stage, setStage] = useState<'create' | 'confirm' | 'assign'>('create');
   const [title, setTitle] = useState("");
   const [departmentId, setDepartmentId] = useState<string>("");
+  const [createdRoleId, setCreatedRoleId] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+
+  const [modules, setModules] = useState<{ value: string; label: string }[]>([]);
+  const [documents, setDocuments] = useState<{ value: string; label: string }[]>([]);
+  const [selectedModules, setSelectedModules] = useState<string[]>([]);
+  const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
+  const [assignmentStep, setAssignmentStep] = useState<'modules' | 'documents'>('modules');
 
   // Only non-archived departments
   const visibleDepts = departments.filter(d => !d.is_archived);
 
+  // Fetch modules and documents when needed
+  useEffect(() => {
+    if (stage === 'assign') {
+      async function fetchTrainingContent() {
+        const { data: modulesData } = await supabase.from("modules").select("id, name");
+        const { data: documentsData } = await supabase.from("documents").select("id, title");
+        setModules((modulesData || []).map((m: any) => ({ value: m.id, label: m.name })));
+        setDocuments((documentsData || []).map((d: any) => ({ value: d.id, label: d.title })));
+      }
+      fetchTrainingContent();
+    }
+  }, [stage]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    setSuccess(null);
     setLoading(true);
     if (!title.trim()) {
       setError("Role title is required.");
@@ -627,57 +647,223 @@ export function AddRoleButton({ departments, onAdded }: { departments: Departmen
       setLoading(false);
       return;
     }
-    const { error: insertError } = await supabase
+    const { data, error: insertError } = await supabase
       .from("roles")
-      .insert({ title: title.trim(), department_id: departmentId });
+      .insert({ title: title.trim(), department_id: departmentId })
+      .select()
+      .single();
     if (insertError) {
       setError(insertError.message);
+      setLoading(false);
     } else {
-      setSuccess("Role added.");
-      setOpen(false);
-      setTitle("");
-      setDepartmentId("");
-      onAdded?.();
-      window.location.reload();
+      setCreatedRoleId(data.id);
+      setLoading(false);
+      setStage('confirm');
     }
+  }
+
+  async function handleSaveTraining() {
+    setLoading(true);
+    setError(null);
+
+    // Clear existing assignments (shouldn't be any, but just in case)
+    await supabase.from("role_assignments").delete().eq("role_id", createdRoleId);
+
+    // Insert new assignments
+    if (selectedModules.length > 0 || selectedDocuments.length > 0) {
+      const moduleRows = selectedModules.map((item_id: string) => ({
+        role_id: createdRoleId,
+        item_id,
+        module_id: item_id,
+        document_id: null,
+        type: "module"
+      }));
+      const documentRows = selectedDocuments.map((item_id: string) => ({
+        role_id: createdRoleId,
+        item_id,
+        module_id: null,
+        document_id: item_id,
+        type: "document"
+      }));
+      const allRows = [...moduleRows, ...documentRows];
+      const { error: assignmentError } = await supabase.from("role_assignments").insert(allRows);
+
+      if (assignmentError) {
+        setError(assignmentError.message);
+        setLoading(false);
+        return;
+      }
+    }
+
+    // Sync training for users with this role
+    const { data: users } = await supabase.from("users").select("auth_id").eq("role_id", createdRoleId);
+    const authIds = (users || []).map((u: any) => u.auth_id);
+    if (authIds.length > 0) {
+      await fetch("/api/sync-training-from-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role_id: createdRoleId, auth_ids: authIds }),
+      });
+    }
+
     setLoading(false);
+    handleClose();
+    onAdded?.();
+  }
+
+  function handleClose() {
+    setOpen(false);
+    setStage('create');
+    setTitle("");
+    setDepartmentId("");
+    setCreatedRoleId("");
+    setError(null);
+    setSelectedModules([]);
+    setSelectedDocuments([]);
+    setAssignmentStep('modules');
+  }
+
+  function handleNoTraining() {
+    handleClose();
+    onAdded?.();
   }
 
   return (
     <>
       <TextIconButton
         variant="add"
-        label="Add role"
+        label="Add new role"
         onClick={() => setOpen(true)}
       />
       <OverlayDialog
         open={open}
-        onClose={() => setOpen(false)}
-        width={400}
+        onClose={handleClose}
+        width={stage === 'assign' ? 800 : 400}
         showCloseButton={true}
       >
         <div style={{ padding: 24 }}>
-          <div style={{ fontWeight: 600, color: "#fff", marginBottom: 12 }}>Add Role</div>
-          <form onSubmit={handleSubmit}>
-            <label style={{ color: "#fff", fontSize: 13 }}>Role title:</label>
-            <input value={title} onChange={e => setTitle(e.target.value)} style={{ width: "100%", marginTop: 4, marginBottom: 12, padding: 6, borderRadius: 6, border: "1px solid #444", background: "#181824", color: "#fff" }} />
-            <label style={{ color: "#fff", fontSize: 13 }}>Department:</label>
-            <select value={departmentId} onChange={e => setDepartmentId(e.target.value)} style={{ width: "100%", marginTop: 4, marginBottom: 12 }}>
-              <option value="">-- Select department --</option>
-              {visibleDepts.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-            </select>
-            {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
-            {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
-            <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
-              <TextIconButton
-                variant="add"
-                label="Add role"
-                disabled={loading}
-                type="submit"
-                style={{ opacity: loading ? 0.6 : 1 }}
-              />
-            </div>
-          </form>
+          {/* Stage 1: Create Role */}
+          {stage === 'create' && (
+            <>
+              <div style={{ fontWeight: 600, color: "#fff", marginBottom: 12 }}>Add New Role</div>
+              <form onSubmit={handleSubmit}>
+                <label style={{ color: "#fff", fontSize: 13, display: "block", marginBottom: 4 }}>Role Title</label>
+                <input
+                  value={title}
+                  onChange={e => setTitle(e.target.value)}
+                  style={{ width: "100%", marginBottom: 12, padding: 6, borderRadius: 6, border: "1px solid #444", background: "#181824", color: "#fff" }}
+                  required
+                  disabled={loading}
+                />
+                <label style={{ color: "#fff", fontSize: 13, display: "block", marginBottom: 4 }}>Department</label>
+                <select
+                  value={departmentId}
+                  onChange={e => setDepartmentId(e.target.value)}
+                  style={{ width: "100%", marginBottom: 12, padding: 6, borderRadius: 6, border: "1px solid #444", background: "#181824", color: "#fff" }}
+                  required
+                  disabled={loading}
+                >
+                  <option value="">-- Select Department --</option>
+                  {visibleDepts.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                </select>
+                {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
+                <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
+                  <TextIconButton
+                    variant="submit"
+                    label="Submit new role"
+                    disabled={loading}
+                    type="submit"
+                    style={{ opacity: loading ? 0.6 : 1 }}
+                  />
+                </div>
+              </form>
+            </>
+          )}
+
+          {/* Stage 2: Confirm Training Assignment */}
+          {stage === 'confirm' && (
+            <>
+              <div style={{ fontWeight: 600, color: "#fff", marginBottom: 16 }}>Role Created Successfully</div>
+              <p style={{ color: "#fff", marginBottom: 24 }}>
+                Would you like to assign training to <strong style={{ color: "#00fff7" }}>{title}</strong> now?
+              </p>
+              <div style={{ display: "flex", gap: "12px" }}>
+                <TextIconButton
+                  variant="submit"
+                  label="Yes, assign training"
+                  onClick={() => setStage('assign')}
+                />
+                <TextIconButton
+                  variant="secondary"
+                  label="No, finish"
+                  onClick={handleNoTraining}
+                />
+              </div>
+            </>
+          )}
+
+          {/* Stage 3: Assign Training */}
+          {stage === 'assign' && (
+            <>
+              <div style={{ fontWeight: 600, color: "#fff", marginBottom: 16 }}>
+                {assignmentStep === 'modules' ? 'Step 1: Select Modules' : 'Step 2: Select Documents'} for {title}
+              </div>
+
+              {assignmentStep === 'modules' && (
+                <>
+                  <DualPaneSelector
+                    availableOptions={modules}
+                    selectedValues={selectedModules}
+                    onSelectionChange={setSelectedModules}
+                    availableTitle="Available Modules"
+                    selectedTitle="Assigned Modules"
+                    searchPlaceholder="Search modules..."
+                  />
+                  {error && <div style={{ color: "#ff4444", marginTop: 8 }}>{error}</div>}
+                  <div style={{ marginTop: 16, display: "flex", gap: "12px" }}>
+                    <TextIconButton
+                      variant="next"
+                      label="Next Step"
+                      onClick={() => setAssignmentStep('documents')}
+                    />
+                    <TextIconButton
+                      variant="back"
+                      label="Go Back"
+                      onClick={() => setStage('confirm')}
+                    />
+                  </div>
+                </>
+              )}
+
+              {assignmentStep === 'documents' && (
+                <>
+                  <DualPaneSelector
+                    availableOptions={documents}
+                    selectedValues={selectedDocuments}
+                    onSelectionChange={setSelectedDocuments}
+                    availableTitle="Available Documents"
+                    selectedTitle="Assigned Documents"
+                    searchPlaceholder="Search documents..."
+                  />
+                  {error && <div style={{ color: "#ff4444", marginTop: 8 }}>{error}</div>}
+                  <div style={{ marginTop: 16, display: "flex", gap: "12px" }}>
+                    <TextIconButton
+                      variant="back"
+                      label="Go Back"
+                      onClick={() => setAssignmentStep('modules')}
+                    />
+                    <TextIconButton
+                      variant="save"
+                      label="Save Assignments"
+                      onClick={handleSaveTraining}
+                      disabled={loading}
+                      style={{ opacity: loading ? 0.6 : 1 }}
+                    />
+                  </div>
+                </>
+              )}
+            </>
+          )}
         </div>
       </OverlayDialog>
     </>

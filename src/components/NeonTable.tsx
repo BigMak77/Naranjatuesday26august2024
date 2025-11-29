@@ -78,7 +78,7 @@ export default function NeonTable({ columns, data, toolbar, onColumnResize }: Ne
   const handleNext = () => setCurrentPage((p) => Math.min(totalPages, p + 1));
 
   return (
-    <div style={{ width: "100%", margin: "0 auto" }}>
+    <div style={{ width: "100%", margin: 0 }}>
       <table className="neon-table" style={{ width: "100%", tableLayout: "fixed" }}>
         <thead>
           <tr>

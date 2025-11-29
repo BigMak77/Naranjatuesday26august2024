@@ -18,13 +18,13 @@ import {
 } from "@/components/structure/ManagerStructure";
 import RotaByDepartment from "@/components/people/RotaByDepartment";
 import TextIconButton from "@/components/ui/TextIconButtons";
-import RoleModuleDocumentAssignment from "@/components/roles/RoleModuleDocumentAssignment";
 import UserPermissionsManager from "@/components/admin/UserPermissionsManager";
 import OverlayDialog from "@/components/ui/OverlayDialog";
 import SuccessModal from "@/components/ui/SuccessModal";
 import UserManagementPanel from "@/components/user/UserManagementPanel";
 import { sendWelcomeEmail } from "@/lib/email-service";
 import UserRoleHistory from "@/components/roles/UserRoleHistory";
+import ComponentDescription from "@/components/ui/ComponentDescription";
 
 const tabs: Tab[] = [
   { key: "people", label: "People" },
@@ -32,7 +32,6 @@ const tabs: Tab[] = [
   { key: "newstarters", label: "New Starters" },
   { key: "leavers", label: "Leavers" },
   { key: "rolehistory", label: "Role History" },
-  { key: "roles", label: "Roles" },
   { key: "departments", label: "Structures" },
   { key: "shifts", label: "Shifts" },
   { key: "permissions", label: "Permissions" },
@@ -75,7 +74,14 @@ const reassignStyles = `
 `;
 
 const UserManager: React.FC = () => {
-  const [activeTab, setActiveTab] = useState("people");
+  // Tab persistence using localStorage
+  const [activeTab, setActiveTab] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('hrAdminActiveTab') || 'people';
+    }
+    return 'people';
+  });
+
   const [users, setUsers] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
   const [roles, setRoles] = useState<any[]>([]);
@@ -111,6 +117,12 @@ const UserManager: React.FC = () => {
     UserCSVImportComponent: React.ReactNode;
   } | null>(null);
 
+  // Role History controls
+  const [roleHistoryControls, setRoleHistoryControls] = useState<{
+    roleHistoryCount: number;
+    refreshData: () => void;
+  } | null>(null);
+
   // New Starters state
   const [newStarters, setNewStarters] = useState<any[]>([]);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
@@ -132,55 +144,64 @@ const UserManager: React.FC = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
+  // Save active tab to localStorage whenever it changes
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const [
-          { data: deptRows, error: deptError },
-          { data: userRows, error: userError },
-          { data: rolesRows, error: rolesError },
-          { data: startersRows, error: startersError },
-          { data: leaversRows, error: leaversError },
-          { data: shiftsRows, error: shiftsError }
-        ] = await Promise.all([
-          supabase.from("departments").select("id, name, parent_id, is_archived"),
-          supabase.from("users").select("id, department_id, access_level, first_name, last_name, start_date, email, shift_id, is_leaver"),
-          supabase.from("roles").select("id, title, department_id"),
-          supabase.from("people_personal_information").select("*").is("user_id", null).order("created_at", { ascending: false }),
-          supabase.from("users").select("id, email, first_name, last_name, department_id, leaver_date, leaver_reason, start_date").eq("is_leaver", true).order("leaver_date", { ascending: false }),
-          supabase.from("shift_patterns").select("id, name")
-        ]);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('hrAdminActiveTab', activeTab);
+    }
+  }, [activeTab]);
 
-        if (deptError) console.error("Error fetching departments:", deptError);
-        if (userError) console.error("Error fetching users:", userError);
-        if (rolesError) console.error("Error fetching roles:", rolesError);
-        if (startersError) {
-          console.error("Error fetching new starters:", startersError);
-          setError(`Failed to fetch new starters: ${startersError.message}`);
-        }
-        if (leaversError) {
-          console.error("Error fetching leavers:", leaversError);
-        }
-        if (shiftsError) {
-          console.error("Error fetching shifts:", shiftsError);
-        }
+  // Fetch all data function (can be called to refresh)
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [
+        { data: deptRows, error: deptError },
+        { data: userRows, error: userError },
+        { data: rolesRows, error: rolesError },
+        { data: startersRows, error: startersError },
+        { data: leaversRows, error: leaversError },
+        { data: shiftsRows, error: shiftsError }
+      ] = await Promise.all([
+        supabase.from("departments").select("id, name, parent_id, is_archived"),
+        supabase.from("users").select("id, department_id, access_level, first_name, last_name, start_date, email, shift_id, is_leaver, employee_number").not("employee_number", "is", null),
+        supabase.from("roles").select("id, title, department_id"),
+        supabase.from("users").select("id, first_name, last_name, email, phone, start_date, created_at").is("employee_number", null).eq("is_leaver", false).order("created_at", { ascending: false }),
+        supabase.from("users").select("id, email, first_name, last_name, department_id, leaver_date, leaver_reason, start_date").eq("is_leaver", true).order("leaver_date", { ascending: false }),
+        supabase.from("shift_patterns").select("id, name")
+      ]);
 
-        setDepartments(deptRows || []);
-        setUsers(userRows || []);
-        setRoles(rolesRows || []);
-        setNewStarters(startersRows || []);
-        setLeavers(leaversRows || []);
-        setShifts(shiftsRows || []);
-
-        console.log("New starters fetched:", startersRows?.length || 0);
-      } catch (error: any) {
-        console.error("Error in fetchData:", error);
-        setError(error.message || "Failed to fetch data");
-      } finally {
-        setLoading(false);
+      if (deptError) console.error("Error fetching departments:", deptError);
+      if (userError) console.error("Error fetching users:", userError);
+      if (rolesError) console.error("Error fetching roles:", rolesError);
+      if (startersError) {
+        console.error("Error fetching new starters:", startersError);
+        setError(`Failed to fetch new starters: ${startersError.message}`);
       }
-    };
+      if (leaversError) {
+        console.error("Error fetching leavers:", leaversError);
+      }
+      if (shiftsError) {
+        console.error("Error fetching shifts:", shiftsError);
+      }
+
+      setDepartments(deptRows || []);
+      setUsers(userRows || []);
+      setRoles(rolesRows || []);
+      setNewStarters(startersRows || []);
+      setLeavers(leaversRows || []);
+      setShifts(shiftsRows || []);
+
+      console.log("New starters fetched:", startersRows?.length || 0);
+    } catch (error: any) {
+      console.error("Error in fetchData:", error);
+      setError(error.message || "Failed to fetch data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -281,13 +302,12 @@ const UserManager: React.FC = () => {
         if (error) throw error;
         setSuccessMessage("User updated successfully!");
       }
-      
-      // Refresh users data
-      const { data: userRows } = await supabase.from("users").select("id, department_id, access_level, first_name, last_name, start_date");
-      setUsers(userRows || []);
-      
+
       setDialogOpen(false);
       setShowSuccess(true);
+
+      // Refresh all data to ensure everything is up to date
+      await fetchData();
     } catch (error: any) {
       setError(error.message || "Failed to save user");
     } finally {
@@ -303,12 +323,11 @@ const UserManager: React.FC = () => {
       const { error } = await supabase.from('users').delete().eq('id', userId);
       if (error) throw error;
 
-      // Refresh users data
-      const { data: userRows } = await supabase.from("users").select("id, department_id, access_level, first_name, last_name, start_date");
-      setUsers(userRows || []);
-
       setSuccessMessage("User deleted successfully!");
       setShowSuccess(true);
+
+      // Refresh all data to ensure everything is up to date
+      await fetchData();
     } catch (error: any) {
       setError(error.message || "Failed to delete user");
     } finally {
@@ -316,7 +335,7 @@ const UserManager: React.FC = () => {
     }
   };
 
-  // Handle assigning new starter to users table
+  // Handle assigning employee number to new starter
   const handleAssignUser = async () => {
     if (!selectedStarter || !employeeNumber.trim()) {
       setError("Please enter an employee number");
@@ -327,32 +346,11 @@ const UserManager: React.FC = () => {
       setAssignLoading(true);
       setError("");
 
-      // Create the user record in the users table
-      const newUser = {
-        employee_number: employeeNumber.trim(),
-        first_name: selectedStarter.first_name,
-        last_name: selectedStarter.last_name,
-        email: selectedStarter.email,
-        start_date: selectedStarter.start_date,
-        access_level: "user",
-        department_id: null, // Can be set later by manager
-      };
-
-      const { data: insertedUser, error: insertError } = await supabase
-        .from("users")
-        .insert([newUser])
-        .select()
-        .single();
-
-      if (insertError) throw insertError;
-
-      // Update people_personal_information to link to the new user
+      // Update the user record with employee number
       const { error: updateError } = await supabase
-        .from("people_personal_information")
+        .from("users")
         .update({
-          user_id: insertedUser.id,
-          status: "processed",
-          processed_at: new Date().toISOString(),
+          employee_number: employeeNumber.trim(),
         })
         .eq("id", selectedStarter.id);
 
@@ -367,27 +365,22 @@ const UserManager: React.FC = () => {
         startDate: selectedStarter.start_date,
       });
 
-      // Refresh data
-      const [{ data: userRows }, { data: startersRows }] = await Promise.all([
-        supabase.from("users").select("id, department_id, access_level, first_name, last_name, start_date"),
-        supabase.from("people_personal_information").select("*").is("user_id", null).order("created_at", { ascending: false })
-      ]);
-      setUsers(userRows || []);
-      setNewStarters(startersRows || []);
-
       setAssignDialogOpen(false);
       setSelectedStarter(null);
       setEmployeeNumber("");
 
       if (emailResult.success) {
-        setSuccessMessage(`User assigned successfully! Welcome email sent to ${selectedStarter.email}`);
+        setSuccessMessage(`Employee number assigned successfully! Welcome email sent to ${selectedStarter.email}`);
       } else {
-        setSuccessMessage(`User assigned successfully! Note: Welcome email failed - ${emailResult.error}`);
+        setSuccessMessage(`Employee number assigned successfully! Note: Welcome email failed - ${emailResult.error}`);
       }
       setShowSuccess(true);
+
+      // Refresh all data to ensure everything is up to date
+      await fetchData();
     } catch (error: any) {
-      console.error("Error assigning user:", error);
-      setError(error.message || "Failed to assign user");
+      console.error("Error assigning employee number:", error);
+      setError(error.message || "Failed to assign employee number");
     } finally {
       setAssignLoading(false);
     }
@@ -543,20 +536,15 @@ const UserManager: React.FC = () => {
 
       if (updateError) throw updateError;
 
-      // Refresh data
-      const [{ data: userRows }, { data: leaversRows }] = await Promise.all([
-        supabase.from("users").select("id, department_id, access_level, first_name, last_name, start_date, email"),
-        supabase.from("users").select("id, email, first_name, last_name, department_id, leaver_date, leaver_reason, start_date").eq("is_leaver", true).order("leaver_date", { ascending: false })
-      ]);
-      setUsers(userRows || []);
-      setLeavers(leaversRows || []);
-
       setReassignDialogOpen(false);
       setSelectedLeaver(null);
       setReassignMode(null);
 
       setSuccessMessage(`${selectedLeaver.first_name} ${selectedLeaver.last_name} has been reassigned with their previous details.`);
       setShowSuccess(true);
+
+      // Refresh all data to ensure everything is up to date
+      await fetchData();
     } catch (error: any) {
       console.error("Error reassigning leaver:", error);
       setError(error.message || "Failed to reassign leaver");
@@ -587,16 +575,11 @@ const UserManager: React.FC = () => {
 
       if (updateError) throw updateError;
 
-      // Refresh data
-      const [{ data: userRows }, { data: leaversRows }] = await Promise.all([
-        supabase.from("users").select("id, department_id, access_level, first_name, last_name, start_date, email"),
-        supabase.from("users").select("id, email, first_name, last_name, department_id, leaver_date, leaver_reason, start_date").eq("is_leaver", true).order("leaver_date", { ascending: false })
-      ]);
-      setUsers(userRows || []);
-      setLeavers(leaversRows || []);
+      // Refresh all data
+      await fetchData();
 
-      // Open edit dialog with the user data
-      const reactivatedUser = userRows?.find(u => u.id === selectedLeaver.id);
+      // Open edit dialog with the user data after refresh
+      const reactivatedUser = users.find(u => u.id === selectedLeaver.id);
       if (reactivatedUser) {
         setSelectedUser(reactivatedUser);
         setIsAddMode(false);
@@ -617,6 +600,35 @@ const UserManager: React.FC = () => {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: reassignStyles }} />
+
+      <ComponentDescription
+        title={
+          activeTab === "people" ? "People Management" :
+          activeTab === "users" ? "Users Without Department" :
+          activeTab === "newstarters" ? "New Starters" :
+          activeTab === "leavers" ? "Leavers" :
+          activeTab === "rolehistory" ? "Role History" :
+          activeTab === "departments" ? (structureView === 'role' ? "Role Structure" : "Manager Structure") :
+          activeTab === "shifts" ? "Shift Management" :
+          activeTab === "permissions" ? "User Permissions" :
+          activeTab === "startdate" ? "Users by Start Date" :
+          ""
+        }
+        description={
+          activeTab === "people" ? "Manage all active employees, their departments, roles, and access levels. Search, filter, and edit user information." :
+          activeTab === "users" ? "View and assign departments to users who are not currently assigned to any department." :
+          activeTab === "newstarters" ? "Assign employee numbers to new users and send welcome emails with login instructions." :
+          activeTab === "leavers" ? "View employees who have left the organization. Download their training records or reassign them to the company." :
+          activeTab === "rolehistory" ? "Track historical role and department changes for all employees in the organization." :
+          activeTab === "departments" ? (structureView === 'role'
+            ? "View and manage the organizational structure by departments and roles."
+            : "View and manage the management hierarchy and reporting relationships.") :
+          activeTab === "shifts" ? "View and manage employee shift patterns by department. Assign shifts and download shift rotas." :
+          activeTab === "permissions" ? "Manage user access levels and permissions for different features and areas of the system." :
+          activeTab === "startdate" ? "View and filter employees by their start date. Sort by name, start date, or department." :
+          ""
+        }
+      />
 
       <FolderTabs
         tabs={tabs}
@@ -713,7 +725,7 @@ const UserManager: React.FC = () => {
                 <TextIconButton
                   variant="refresh"
                   label="Refresh"
-                  onClick={() => window.location.reload()}
+                  onClick={fetchData}
                 />
               </>
             )}
@@ -755,28 +767,20 @@ const UserManager: React.FC = () => {
                 <TextIconButton
                   variant="refresh"
                   label="Refresh"
-                  onClick={() => window.location.reload()}
+                  onClick={fetchData}
                 />
               </>
             )}
-            {activeTab === "rolehistory" && (
+            {activeTab === "rolehistory" && roleHistoryControls && (
               <>
                 <span style={{ opacity: 0.7, fontSize: '0.875rem' }}>
-                  Track historical role and department changes
-                </span>
-                <div style={{ flex: 1 }} />
-              </>
-            )}
-            {activeTab === "roles" && (
-              <>
-                <span style={{ opacity: 0.7, fontSize: '0.875rem' }}>
-                  Role & Assignment Management
+                  {roleHistoryControls.roleHistoryCount} entries
                 </span>
                 <div style={{ flex: 1 }} />
                 <TextIconButton
                   variant="refresh"
-                  label="Refresh"
-                  onClick={() => window.location.reload()}
+                  label="Refresh Data"
+                  onClick={roleHistoryControls.refreshData}
                 />
               </>
             )}
@@ -790,7 +794,7 @@ const UserManager: React.FC = () => {
                   <span className={`user-manager-structure-label ${structureView === 'role' ? 'active' : ''}`}>
                     Role Structure
                   </span>
-                  <div className={`user-manager-structure-switch ${structureView === 'role' ? 'active' : ''}`}>
+                  <div className={`user-manager-structure-switch ${structureView === 'manager' ? 'active' : ''}`}>
                     <div className="user-manager-structure-switch-handle" />
                   </div>
                   <span className={`user-manager-structure-label ${structureView === 'manager' ? 'active' : ''}`}>
@@ -800,22 +804,22 @@ const UserManager: React.FC = () => {
                 <div style={{ flex: 1 }} />
                 {structureView === 'role' && (
                   <>
+                    <RoleAddDepartmentButton onAdded={fetchData} />
+                    <AddRoleButton departments={departments} onAdded={fetchData} />
                     <AmendDepartmentButton departments={buildTreeNodes()} />
                     <RoleAmendButton departments={departments} roles={roles} />
-                    <RoleAddDepartmentButton onAdded={() => window.location.reload()} />
-                    <AddRoleButton departments={departments} onAdded={() => window.location.reload()} />
                   </>
                 )}
                 {structureView === 'manager' && (
                   <>
                     <ChangeManagerButton departments={departments} users={users} />
-                    <AssignManagerButton departments={departments} users={users} onAdded={() => window.location.reload()} />
+                    <AssignManagerButton departments={departments} users={users} onAdded={fetchData} />
                   </>
                 )}
                 <TextIconButton
                   variant="refresh"
                   label="Refresh"
-                  onClick={() => window.location.reload()}
+                  onClick={fetchData}
                 />
               </>
             )}
@@ -1082,20 +1086,6 @@ const UserManager: React.FC = () => {
             </div>
           ) : (
             <div>
-              <div style={{ marginBottom: "1rem" }}>
-                <h3 className="neon-heading user-manager-subheading">
-                  Pending New Starters ({newStarters.length})
-                </h3>
-                <p style={{ color: "#40e0d0", fontSize: "0.875rem", marginTop: "0.5rem" }}>
-                  These people have submitted their information but haven't been assigned to the users table yet.
-                </p>
-                {newStarters.length === 0 && (
-                  <p style={{ color: "#ffa500", fontSize: "0.875rem", marginTop: "0.5rem", fontStyle: "italic" }}>
-                    Note: New starters will appear here after they fill out the form at /new-starter.
-                    If you're expecting data and see nothing, check the browser console for errors.
-                  </p>
-                )}
-              </div>
               <table className="neon-table user-manager-table">
                 <thead>
                   <tr>
@@ -1103,7 +1093,7 @@ const UserManager: React.FC = () => {
                     <th>Email</th>
                     <th>Phone</th>
                     <th>Start Date</th>
-                    <th>Submitted</th>
+                    <th>Created</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
@@ -1214,10 +1204,7 @@ const UserManager: React.FC = () => {
           )
         )}
         {activeTab === "rolehistory" && (
-          <UserRoleHistory />
-        )}
-        {activeTab === "roles" && (
-          <RoleModuleDocumentAssignment />
+          <UserRoleHistory onControlsReady={setRoleHistoryControls} />
         )}
         {activeTab === "departments" && (
           structureView === 'role' ? <RoleStructure /> : <ManagerStructure />
@@ -1267,7 +1254,7 @@ const UserManager: React.FC = () => {
         ariaLabelledby="assign-user-title"
       >
         <div className="neon-form-title user-manager-dialog-title" id="assign-user-title">
-          Assign to Users Table
+          Assign Employee Number
         </div>
 
         {error && (
@@ -1282,7 +1269,7 @@ const UserManager: React.FC = () => {
               <h4 style={{ color: "#40e0d0", marginBottom: "0.5rem" }}>New Starter Information</h4>
               <p style={{ margin: "0.25rem 0" }}><strong>Name:</strong> {selectedStarter.first_name} {selectedStarter.last_name}</p>
               <p style={{ margin: "0.25rem 0" }}><strong>Email:</strong> {selectedStarter.email}</p>
-              <p style={{ margin: "0.25rem 0" }}><strong>Start Date:</strong> {selectedStarter.start_date}</p>
+              <p style={{ margin: "0.25rem 0" }}><strong>Start Date:</strong> {selectedStarter.start_date || "—"}</p>
             </div>
 
             <div className="user-manager-form-field">
@@ -1296,7 +1283,7 @@ const UserManager: React.FC = () => {
                 autoFocus
               />
               <small style={{ color: "#40e0d0", fontSize: "0.75rem", marginTop: "0.25rem", display: "block" }}>
-                This will create a user account and send a welcome email with login instructions.
+                This will assign the employee number and send a welcome email with login instructions.
               </small>
             </div>
 

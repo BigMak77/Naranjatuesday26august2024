@@ -251,15 +251,11 @@ export default function TrainerRecordingPage() {
     success: number;
     errors: number;
     errorDetails: string[];
-    skipped: number;
-    skippedDetails: string[];
   }>({
     open: false,
     success: 0,
     errors: 0,
     errorDetails: [],
-    skipped: 0,
-    skippedDetails: [],
   });
 
   // Certificates dialog state
@@ -283,118 +279,119 @@ export default function TrainerRecordingPage() {
     loading: false,
   });
 
-  useEffect(() => {
-    async function fetchData() {
-      // 1) Departments
-      const { data: departments, error: deptErr } = await supabase
-        .from("departments")
-        .select("id, name")
-        .order("name", { ascending: true });
+  // Fetch data function (extracted so it can be reused)
+  const fetchData = async () => {
+    // 1) Departments
+    const { data: departments, error: deptErr } = await supabase
+      .from("departments")
+      .select("id, name")
+      .order("name", { ascending: true });
 
-      if (deptErr) console.error("departments error:", deptErr);
-      if (departments) setDepts(departments);
+    if (deptErr) console.error("departments error:", deptErr);
+    if (departments) setDepts(departments);
 
-      // 2) Fetch users who have incomplete assignments (completed_at is NULL)
-      const { data: incompleteAssignments, error: assignmentsErr } = await supabase
-        .from("user_assignments")
-        .select("auth_id")
-        .is("completed_at", null);
+    // 2) Fetch users who have incomplete assignments (completed_at is NULL)
+    const { data: incompleteAssignments, error: assignmentsErr } = await supabase
+      .from("user_assignments")
+      .select("auth_id")
+      .is("completed_at", null);
 
-      if (assignmentsErr) {
-        console.error("assignments error:", assignmentsErr);
-        setRows([]);
-        return;
-      }
-
-      // Get unique auth_ids with incomplete training
-      const authIdsWithIncomplete = Array.from(
-        new Set((incompleteAssignments ?? []).map((a) => a.auth_id))
-      );
-
-      if (authIdsWithIncomplete.length === 0) {
-        // No users with incomplete training
-        setRows([]);
-        return;
-      }
-
-      // 3) Fetch only users who have incomplete assignments
-      const { data: users, error: usersErr } = await supabase
-        .from("users")
-        .select(
-          `
-          id,
-          auth_id,
-          first_name,
-          last_name,
-          email,
-          department_id,
-          departments ( name )
-        `,
-        )
-        .in("auth_id", authIdsWithIncomplete)
-        .order("first_name", { ascending: true });
-
-      if (usersErr) {
-        console.error("users error:", usersErr);
-        setRows([]);
-        return;
-      }
-
-      type SupabaseUser = {
-        id: string;
-        auth_id: string | null;
-        first_name?: string | null;
-        last_name?: string | null;
-        name?: string | null;
-        email?: string | null;
-        department_id?: string | null;
-        departments?:
-          | { name?: string | null }[]
-          | { name?: string | null }
-          | null;
-      };
-
-      const mapped: UserRow[] = (users ?? [])
-        .map((u: SupabaseUser) => {
-          const displayName =
-            [u.first_name, u.last_name].filter(Boolean).join(" ").trim() ||
-            u.name ||
-            u.email ||
-            "—";
-          let departmentName = "";
-          if (Array.isArray(u.departments) && u.departments.length > 0) {
-            departmentName = u.departments[0]?.name ?? "";
-          } else if (
-            u.departments &&
-            typeof u.departments === "object" &&
-            "name" in u.departments
-          ) {
-            departmentName =
-              (u.departments as { name?: string | null }).name ?? "";
-          }
-          return {
-            id: u.id,
-            auth_id: u.auth_id ?? "", // filtered out below if missing
-            name: displayName,
-            departmentId: u.department_id ?? "",
-            departmentName,
-            lastTrainingDate: undefined,
-          };
-        })
-        // Only keep users that can be acted on (must have auth_id)
-        .filter((r) => !!r.auth_id);
-
-      setRows(mapped);
-
-      // Fetch modules for question form
-      const { data: mods, error: modsErr } = await supabase
-        .from("modules")
-        .select("id, name")
-        .eq("is_archived", false)
-        .order("name", { ascending: true });
-      if (!modsErr && mods) setModules(mods);
+    if (assignmentsErr) {
+      console.error("assignments error:", assignmentsErr);
+      setRows([]);
+      return;
     }
 
+    // Get unique auth_ids with incomplete training
+    const authIdsWithIncomplete = Array.from(
+      new Set((incompleteAssignments ?? []).map((a) => a.auth_id))
+    );
+
+    if (authIdsWithIncomplete.length === 0) {
+      // No users with incomplete training
+      setRows([]);
+      return;
+    }
+
+    // 3) Fetch only users who have incomplete assignments
+    const { data: users, error: usersErr } = await supabase
+      .from("users")
+      .select(
+        `
+        id,
+        auth_id,
+        first_name,
+        last_name,
+        email,
+        department_id,
+        departments ( name )
+      `,
+      )
+      .in("auth_id", authIdsWithIncomplete)
+      .order("first_name", { ascending: true });
+
+    if (usersErr) {
+      console.error("users error:", usersErr);
+      setRows([]);
+      return;
+    }
+
+    type SupabaseUser = {
+      id: string;
+      auth_id: string | null;
+      first_name?: string | null;
+      last_name?: string | null;
+      name?: string | null;
+      email?: string | null;
+      department_id?: string | null;
+      departments?:
+        | { name?: string | null }[]
+        | { name?: string | null }
+        | null;
+    };
+
+    const mapped: UserRow[] = (users ?? [])
+      .map((u: SupabaseUser) => {
+        const displayName =
+          [u.first_name, u.last_name].filter(Boolean).join(" ").trim() ||
+          u.name ||
+          u.email ||
+          "—";
+        let departmentName = "";
+        if (Array.isArray(u.departments) && u.departments.length > 0) {
+          departmentName = u.departments[0]?.name ?? "";
+        } else if (
+          u.departments &&
+          typeof u.departments === "object" &&
+          "name" in u.departments
+        ) {
+          departmentName =
+            (u.departments as { name?: string | null }).name ?? "";
+        }
+        return {
+          id: u.id,
+          auth_id: u.auth_id ?? "", // filtered out below if missing
+          name: displayName,
+          departmentId: u.department_id ?? "",
+          departmentName,
+          lastTrainingDate: undefined,
+        };
+      })
+      // Only keep users that can be acted on (must have auth_id)
+      .filter((r) => !!r.auth_id);
+
+    setRows(mapped);
+
+    // Fetch modules for question form
+    const { data: mods, error: modsErr } = await supabase
+      .from("modules")
+      .select("id, name")
+      .eq("is_archived", false)
+      .order("name", { ascending: true });
+    if (!modsErr && mods) setModules(mods);
+  };
+
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -873,6 +870,11 @@ export default function TrainerRecordingPage() {
         console.log("ℹ️ Outcome is 'needs-followup', not marking as completed");
       }
 
+      // Refresh the user list if training was completed
+      if (form.outcome === "completed") {
+        await fetchData();
+      }
+
       setOpenFor(null);
     } catch (e) {
       console.error("❌ Error in submitLog:", e);
@@ -888,8 +890,8 @@ export default function TrainerRecordingPage() {
   const downloadUserAssignmentsCSV = async () => {
     try {
       setBusy(true);
-      
-      // Fetch all user assignments with user and module/document details
+
+      // Fetch only incomplete user assignments (completed_at is NULL)
       const { data: userAssignments, error } = await supabase
         .from("user_assignments")
         .select(`
@@ -900,6 +902,7 @@ export default function TrainerRecordingPage() {
           assigned_at,
           completed_at
         `)
+        .is("completed_at", null)
         .order("assigned_at", { ascending: false });
 
       if (error) {
@@ -1067,8 +1070,13 @@ export default function TrainerRecordingPage() {
         return;
       }
 
-      const headers = parseCSVLine(lines[0]).map(h => h.trim());
+      // Remove BOM if present and parse headers
+      const firstLine = lines[0].replace(/^\uFEFF/, ''); // Remove BOM
+      const headers = parseCSVLine(firstLine).map(h => h.trim().toLowerCase().replace(/['"]/g, ''));
       const dataRows = lines.slice(1);
+
+      console.log('Raw first line:', lines[0]);
+      console.log('Parsed headers:', headers);
 
       // Validate headers - only assignment_id is required
       const requiredHeaders = ['assignment_id'];
@@ -1090,15 +1098,12 @@ export default function TrainerRecordingPage() {
           success: 0,
           errors: 1,
           errorDetails: ['CSV is missing the "completed_at" column. Please ensure your CSV has this column header.'],
-          skipped: 0,
-          skippedDetails: [],
         });
         return;
       }
 
       const updates = [];
       const errors = [];
-      const skippedRows = [];
 
       for (let i = 0; i < dataRows.length; i++) {
         try {
@@ -1113,7 +1118,6 @@ export default function TrainerRecordingPage() {
 
           // Process row if assignment_id exists
           if (!rowData.assignment_id || rowData.assignment_id === '') {
-            skippedRows.push(`Row ${i + 2}: Missing assignment_id`);
             console.log(`Row ${i + 1}: Skipped - no assignment_id`);
             continue;
           }
@@ -1163,8 +1167,7 @@ export default function TrainerRecordingPage() {
               continue;
             }
           } else {
-            // No date provided - skip this row but don't count as error
-            skippedRows.push(`Row ${i + 2}: No completed_at date provided (assignment_id: ${rowData.assignment_id})`);
+            // No date provided - skip this row silently
             console.log(`Row ${i + 1}: Skipped - no completed_at date provided`);
             continue;
           }
@@ -1187,21 +1190,12 @@ export default function TrainerRecordingPage() {
           success: 0,
           errors: errors.length,
           errorDetails: errors,
-          skipped: skippedRows.length,
-          skippedDetails: skippedRows,
         });
         return;
       }
 
       if (updates.length === 0) {
-        setCsvResultModal({
-          open: true,
-          success: 0,
-          errors: 0,
-          errorDetails: [],
-          skipped: skippedRows.length,
-          skippedDetails: skippedRows,
-        });
+        alert('No rows with completed_at dates found to update');
         return;
       }
 
@@ -1240,14 +1234,17 @@ export default function TrainerRecordingPage() {
 
       console.log(`[CSV Import] Final results: ${successCount} success, ${errorCount} errors`);
 
+      // Refresh the user list to reflect completed assignments
+      if (successCount > 0) {
+        await fetchData();
+      }
+
       // Show result modal
       setCsvResultModal({
         open: true,
         success: successCount,
         errors: errorCount,
         errorDetails: errorDetails,
-        skipped: skippedRows.length,
-        skippedDetails: skippedRows,
       });
 
       // Clear the file input
@@ -1260,8 +1257,6 @@ export default function TrainerRecordingPage() {
         success: 0,
         errors: 1,
         errorDetails: [`Fatal error: ${error instanceof Error ? error.message : 'Unknown error'}`],
-        skipped: 0,
-        skippedDetails: [],
       });
     } finally {
       setBusy(false);
@@ -1793,93 +1788,56 @@ export default function TrainerRecordingPage() {
         )}
 
         {/* CSV Import Result Modal */}
-        {csvResultModal.open && (
-          <div className="ui-dialog-overlay" onClick={() => setCsvResultModal({ ...csvResultModal, open: false })}>
-            <div className="ui-dialog-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '700px' }}>
-              <NeonPanel>
-                <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--neon)' }}>
-                  CSV Import Results
-                </h2>
+        <OverlayDialog
+          open={csvResultModal.open}
+          onClose={() => setCsvResultModal({ ...csvResultModal, open: false })}
+          width={700}
+          showCloseButton
+        >
+          <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--neon)' }}>
+            CSV Import Results
+          </h2>
 
-                <div className="space-y-4">
-                  {/* Success Count */}
-                  {csvResultModal.success > 0 && (
-                    <div className="flex items-center gap-3 p-3 rounded-lg" style={{ background: '#14532d', border: '1px solid #16a34a' }}>
-                      <span style={{ fontSize: '24px' }}>✅</span>
-                      <div>
-                        <div className="font-semibold" style={{ color: '#22c55e' }}>
-                          {csvResultModal.success} assignment{csvResultModal.success !== 1 ? 's' : ''} updated successfully
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Error Count */}
-                  {csvResultModal.errors > 0 && (
-                    <div className="p-3 rounded-lg" style={{ background: '#7f1d1d', border: '1px solid #dc2626' }}>
-                      <div className="flex items-center gap-3 mb-2">
-                        <span style={{ fontSize: '24px' }}>❌</span>
-                        <div className="font-semibold" style={{ color: '#ef4444' }}>
-                          {csvResultModal.errors} error{csvResultModal.errors !== 1 ? 's' : ''} occurred
-                        </div>
-                      </div>
-                      {csvResultModal.errorDetails.length > 0 && (
-                        <div className="ml-10 mt-2 space-y-1">
-                          {csvResultModal.errorDetails.slice(0, 5).map((error, idx) => (
-                            <div key={idx} className="text-sm opacity-90" style={{ color: '#fca5a5' }}>
-                              • {error}
-                            </div>
-                          ))}
-                          {csvResultModal.errorDetails.length > 5 && (
-                            <div className="text-sm opacity-75 italic" style={{ color: '#fca5a5' }}>
-                              ...and {csvResultModal.errorDetails.length - 5} more
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Skipped Count */}
-                  {csvResultModal.skipped > 0 && (
-                    <div className="p-3 rounded-lg" style={{ background: '#422006', border: '1px solid #f59e0b' }}>
-                      <div className="flex items-center gap-3 mb-2">
-                        <span style={{ fontSize: '24px' }}>⏭️</span>
-                        <div className="font-semibold" style={{ color: '#fbbf24' }}>
-                          {csvResultModal.skipped} row{csvResultModal.skipped !== 1 ? 's' : ''} skipped
-                        </div>
-                      </div>
-                      {csvResultModal.skippedDetails.length > 0 && (
-                        <div className="ml-10 mt-2 space-y-1">
-                          {csvResultModal.skippedDetails.slice(0, 5).map((skip, idx) => (
-                            <div key={idx} className="text-sm opacity-90" style={{ color: '#fcd34d' }}>
-                              • {skip}
-                            </div>
-                          ))}
-                          {csvResultModal.skippedDetails.length > 5 && (
-                            <div className="text-sm opacity-75 italic" style={{ color: '#fcd34d' }}>
-                              ...and {csvResultModal.skippedDetails.length - 5} more
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
+          <div className="space-y-4">
+            {/* Success Count */}
+            {csvResultModal.success > 0 && (
+              <div className="flex items-center gap-3 p-3 rounded-lg" style={{ background: '#14532d', border: '1px solid #16a34a' }}>
+                <span style={{ fontSize: '24px' }}>✅</span>
+                <div>
+                  <div className="font-semibold" style={{ color: '#22c55e' }}>
+                    {csvResultModal.success} assignment{csvResultModal.success !== 1 ? 's' : ''} updated successfully
+                  </div>
                 </div>
+              </div>
+            )}
 
-                <CustomTooltip text="Close results">
-                  <button
-                    className="neon-btn neon-btn-close"
-                    style={{ marginTop: "1.5rem" }}
-                    onClick={() => setCsvResultModal({ ...csvResultModal, open: false })}
-                  >
-                    <FiX />
-                  </button>
-                </CustomTooltip>
-              </NeonPanel>
-            </div>
+            {/* Error Count */}
+            {csvResultModal.errors > 0 && (
+              <div className="p-3 rounded-lg" style={{ background: '#7f1d1d', border: '1px solid #dc2626' }}>
+                <div className="flex items-center gap-3 mb-2">
+                  <span style={{ fontSize: '24px' }}>❌</span>
+                  <div className="font-semibold" style={{ color: '#ef4444' }}>
+                    {csvResultModal.errors} error{csvResultModal.errors !== 1 ? 's' : ''} occurred
+                  </div>
+                </div>
+                {csvResultModal.errorDetails.length > 0 && (
+                  <div className="ml-10 mt-2 space-y-1">
+                    {csvResultModal.errorDetails.slice(0, 5).map((error, idx) => (
+                      <div key={idx} className="text-sm opacity-90" style={{ color: '#fca5a5' }}>
+                        • {error}
+                      </div>
+                    ))}
+                    {csvResultModal.errorDetails.length > 5 && (
+                      <div className="text-sm opacity-75 italic" style={{ color: '#fca5a5' }}>
+                        ...and {csvResultModal.errorDetails.length - 5} more
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-        )}
+        </OverlayDialog>
 
         {/* Certificates Dialog */}
         <OverlayDialog

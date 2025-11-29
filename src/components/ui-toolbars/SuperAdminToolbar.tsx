@@ -83,7 +83,7 @@ export default function SuperAdminToolbar() {
     {
       section: "Reports",
       label: "Reports",
-      path: "/admin/reports",
+      path: "/reports",
       description: "System reports and analytics"
     },
     {

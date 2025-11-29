@@ -13,6 +13,7 @@ import {
   FiEdit,
   FiRotateCcw,
   FiFileText,
+  FiUsers,
 } from "react-icons/fi";
 
 import AddModuleTab from "@/components/modules/AddModuleTab";
@@ -23,6 +24,8 @@ import TextIconButton from "@/components/ui/TextIconButtons";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 import OverlayDialog from "@/components/ui/OverlayDialog";
 import { getFileIcon } from "@/lib/file-utils";
+import RoleModuleDocumentAssignment from "@/components/roles/RoleModuleDocumentAssignment";
+import DepartmentModuleAssignment from "@/components/departments/DepartmentModuleAssignment";
 
 // Define Module type inline
 interface Module {
@@ -53,7 +56,7 @@ interface Module {
 
 export default function TrainingModuleManager() {
   const [activeTab, setActiveTab] = useState<
-    "add" | "view" | "assign" | "archive" | "tests"
+    "add" | "view" | "assign" | "archive" | "tests" | "roletraining" | "depttraining"
   >("view");
   const [modules, setModules] = useState<Module[]>([]);
   const [moduleToArchive, setModuleToArchive] = useState<Module | null>(null);
@@ -122,6 +125,18 @@ export default function TrainingModuleManager() {
       label: "Assign",
       icon: <FiSend />,
       tooltip: "Assign modules to users",
+    },
+    {
+      key: "roletraining",
+      label: "Amend Role Training",
+      icon: <FiEdit />,
+      tooltip: "Assign training modules and documents to roles",
+    },
+    {
+      key: "depttraining",
+      label: "Department Training",
+      icon: <FiUsers />,
+      tooltip: "Assign training modules and documents to departments",
     },
     {
       key: "archive",
@@ -258,6 +273,12 @@ export default function TrainingModuleManager() {
       )}
       {activeTab === "assign" && (
         <AssignModuleTab />
+      )}
+      {activeTab === "roletraining" && (
+        <RoleModuleDocumentAssignment onSaved={refreshModules} skipRoleCreation={true} />
+      )}
+      {activeTab === "depttraining" && (
+        <DepartmentModuleAssignment onSaved={refreshModules} />
       )}
       {activeTab === "archive" && (
         <>

@@ -24,8 +24,13 @@ interface Document {
 type Stage = "choose" | "create" | "amend";
 type AssignmentStep = "modules" | "documents" | "review";
 
-export default function RoleModuleDocumentAssignment() {
-  const [stage, setStage] = useState<Stage>("choose");
+interface RoleModuleDocumentAssignmentProps {
+  onSaved?: () => void | Promise<void>;
+  skipRoleCreation?: boolean;
+}
+
+export default function RoleModuleDocumentAssignment({ onSaved, skipRoleCreation = false }: RoleModuleDocumentAssignmentProps) {
+  const [stage, setStage] = useState<Stage>(skipRoleCreation ? "amend" : "choose");
   const [assignmentStep, setAssignmentStep] = useState<AssignmentStep>("modules");
   const [roles, setRoles] = useState<Role[]>([]);
   const [modules, setModules] = useState<Module[]>([]);
@@ -108,40 +113,40 @@ export default function RoleModuleDocumentAssignment() {
   const handleSave = async (roleId: string) => {
     // Save assignments for modules and documents using role_assignments table
     const { modules: modIds = [], documents: docIds = [] } = assignments[roleId] || {};
-    
+
     // First, clear existing assignments for this role to avoid conflicts
     const { error: deleteError } = await supabase
       .from("role_assignments")
       .delete()
       .eq("role_id", roleId);
-    
+
     if (deleteError) {
       alert("Error clearing existing assignments: " + deleteError.message);
       console.error("Supabase delete error:", deleteError);
       return;
     }
-    
+
     // Only insert new assignments if there are any
     if (modIds.length > 0 || docIds.length > 0) {
       // Insert module assignments - include both new item_id and legacy columns for compatibility
-      const moduleRows = modIds.map((item_id: string) => ({ 
-        role_id: roleId, 
-        item_id, 
+      const moduleRows = modIds.map((item_id: string) => ({
+        role_id: roleId,
+        item_id,
         module_id: item_id, // Legacy column for constraint compatibility
         document_id: null,  // Legacy column for constraint compatibility
-        type: "module" 
+        type: "module"
       }));
       // Insert document assignments - include both new item_id and legacy columns for compatibility
-      const documentRows = docIds.map((item_id: string) => ({ 
-        role_id: roleId, 
-        item_id, 
+      const documentRows = docIds.map((item_id: string) => ({
+        role_id: roleId,
+        item_id,
         module_id: null,    // Legacy column for constraint compatibility
         document_id: item_id, // Legacy column for constraint compatibility
-        type: "document" 
+        type: "document"
       }));
       const allRows = [...moduleRows, ...documentRows];
       const { error: assignmentError } = await supabase.from("role_assignments").insert(allRows);
-      
+
       if (assignmentError) {
         alert("Error saving assignments: " + assignmentError.message);
         console.error("Supabase assignment insert error:", assignmentError);
@@ -158,7 +163,19 @@ export default function RoleModuleDocumentAssignment() {
         body: JSON.stringify({ role_id: roleId, auth_ids: authIds }),
       });
     }
-    setShowSuccessModal(true);
+
+    // If skipRoleCreation is true, reset to role selection instead of showing modal
+    if (skipRoleCreation) {
+      setSelectedRoleId("");
+      setAssignmentStep("modules");
+    } else {
+      setShowSuccessModal(true);
+    }
+
+    // Call onSaved callback to refresh parent data
+    if (onSaved) {
+      await onSaved();
+    }
   };
 
   if (showSuccessModal) {
@@ -214,9 +231,14 @@ export default function RoleModuleDocumentAssignment() {
             setNewRoleDepartmentId("");
             setCreatingRole(false);
             setStage("choose");
-            // Optionally refresh roles list
+            // Refresh roles list
             const { data: rolesData } = await supabase.from("roles").select("id, title");
             setRoles(rolesData || []);
+
+            // Call onSaved callback to refresh parent data
+            if (onSaved) {
+              await onSaved();
+            }
           }}
         >
           <label>
@@ -298,15 +320,17 @@ export default function RoleModuleDocumentAssignment() {
                     label="Next Step"
                     onClick={() => setAssignmentStep("documents")}
                   />
-                  <TextIconButton
-                    variant="back"
-                    label="Go Back"
-                    onClick={() => {
-                      setStage("choose");
-                      setSelectedRoleId("");
-                      setAssignmentStep("modules");
-                    }}
-                  />
+                  {!skipRoleCreation && (
+                    <TextIconButton
+                      variant="back"
+                      label="Go Back"
+                      onClick={() => {
+                        setStage("choose");
+                        setSelectedRoleId("");
+                        setAssignmentStep("modules");
+                      }}
+                    />
+                  )}
                 </div>
               </>
             )}
@@ -340,9 +364,9 @@ export default function RoleModuleDocumentAssignment() {
             )}
           </div>
         )}
-        {!selectedRoleId && (
+        {!selectedRoleId && !skipRoleCreation && (
           <div style={{ marginTop: 24 }}>
-            <TextIconButton 
+            <TextIconButton
               variant="back"
               label="Go Back"
               onClick={() => setStage("choose")}

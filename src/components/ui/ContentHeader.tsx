@@ -13,12 +13,19 @@ const ContentHeader: React.FC<ContentHeaderProps> = ({
 }) => (
   <div className="global-content-header content-header-fullwidth">
     <div className="content-header-inner">
-      <h1 className="content-header-title">{title}</h1>
-      {description && <p className="content-header-desc">{description}</p>}
+      <div style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
+        <h1 className="content-header-title">{title}</h1>
+        {description && (
+          <>
+            <span style={{ fontSize: "1.5rem", fontWeight: "normal" }}>-</span>
+            <p className="content-header-desc" style={{ margin: 0, fontStyle: "italic" }}>{description}</p>
+          </>
+        )}
+      </div>
       {/* Orange separator line underneath the description */}
-      <div style={{ 
-        width: "100%", 
-        height: "3px", 
+      <div style={{
+        width: "100%",
+        height: "3px",
         background: "#fa7a20",
         marginTop: "10px",
         marginBottom: "10px"
