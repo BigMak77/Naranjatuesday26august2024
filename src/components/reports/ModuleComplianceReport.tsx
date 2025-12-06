@@ -27,12 +27,6 @@ type Assignment = {
   completed_at: string | null;
 };
 
-type HistoricalCompletion = {
-  auth_id: string;
-  item_id: string;
-  item_type: "module" | "document";
-  completed_at: string | null;
-};
 
 type User = {
   auth_id: string;
@@ -58,7 +52,6 @@ type ModuleStats = {
 export default function ModuleComplianceReport() {
   const [modules, setModules] = useState<Module[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
-  const [historicalCompletions, setHistoricalCompletions] = useState<HistoricalCompletion[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,18 +69,16 @@ export default function ModuleComplianceReport() {
   async function fetchData() {
     setLoading(true);
     try {
-      const [modulesRes, assignmentsRes, documentsRes, historicalRes, usersRes] = await Promise.all([
+      const [modulesRes, assignmentsRes, documentsRes, usersRes] = await Promise.all([
         supabase.from("modules").select("*").order("name", { ascending: true }),
         supabase.from("user_assignments").select("auth_id, item_id, item_type, completed_at"),
         supabase.from("documents").select("id, title, module_id"),
-        supabase.from("user_training_completions").select("auth_id, item_id, item_type, completed_at"),
         supabase.from("users").select("auth_id, first_name, last_name, employee_number, department_id, shift_id"),
       ]);
 
       if (modulesRes.data) setModules(modulesRes.data);
       if (assignmentsRes.data) setAssignments(assignmentsRes.data);
       if (documentsRes.data) setDocuments(documentsRes.data);
-      if (historicalRes.data) setHistoricalCompletions(historicalRes.data);
       if (usersRes.data) {
         // Fetch departments to map department IDs to names
         const deptIds = [...new Set(usersRes.data.map((u: any) => u.department_id).filter(Boolean))];
@@ -125,10 +116,7 @@ export default function ModuleComplianceReport() {
         (a) => a.item_type === "module" && a.item_id === module.id
       );
 
-      // Get historical completions for this module
-      const moduleHistorical = historicalCompletions.filter(
-        (h) => h.item_type === "module" && h.item_id === module.id
-      );
+      // All completions (current and historical) are now in user_assignments
 
       const completedAssignments = moduleAssignments.filter((a) => a.completed_at !== null);
       const notCompletedAssignments = moduleAssignments.filter((a) => a.completed_at === null);
@@ -137,7 +125,7 @@ export default function ModuleComplianceReport() {
       const completed = completedAssignments.length;
       const notCompleted = notCompletedAssignments.length;
       const reviewNeeded = 0; // Review needed column doesn't exist in user_assignments
-      const historical = moduleHistorical.length;
+      const historical = 0; // Historical completions are now preserved in user_assignments
 
       // Get documents attached to this module
       const moduleDocuments = documents.filter((d) => d.module_id === module.id);
@@ -151,9 +139,7 @@ export default function ModuleComplianceReport() {
         .map((a) => users.find((u) => u.auth_id === a.auth_id))
         .filter((u): u is User => u !== undefined);
 
-      const historicalUsers = moduleHistorical
-        .map((h) => users.find((u) => u.auth_id === h.auth_id))
-        .filter((u): u is User => u !== undefined);
+      const historicalUsers: User[] = []; // Historical completions are now preserved in user_assignments
 
       return {
         module,
@@ -168,7 +154,7 @@ export default function ModuleComplianceReport() {
         historicalUsers,
       };
     });
-  }, [modules, assignments, historicalCompletions, documents, users]);
+  }, [modules, assignments, documents, users]);
 
   const filteredStats = useMemo(() => {
     return moduleStats.filter((stat) => {

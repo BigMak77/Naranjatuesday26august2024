@@ -202,49 +202,27 @@ const UserRoleHistory: React.FC<UserRoleHistoryProps> = ({ onControlsReady }) =>
 
       console.log("🔍 Fetching training for:", { entryId, userId, roleId, authId });
 
-      // Fetch completed assignments from user_training_completions filtered by role
-      // This table tracks which role the user had when they completed training
+      // Fetch completed assignments from user_assignments
+      // All completions (current and historical) are stored here
       let historicalCompletions: any[] = [];
 
-      // First, check all completions for this user to see what data exists
-      const { data: allUserCompletions } = await supabase
-        .from("user_training_completions")
-        .select("item_id, item_type, completed_at, completed_by_role_id")
-        .eq("auth_id", authId);
+      const { data: allUserCompletions, error: historicalError } = await supabase
+        .from("user_assignments")
+        .select("item_id, item_type, completed_at")
+        .eq("auth_id", authId)
+        .not("completed_at", "is", null);
 
       console.log("📊 All completions for user:", allUserCompletions);
 
-      if (roleId) {
-        // Fetch completions that were completed while user had this specific role
-        const { data, error: historicalError } = await supabase
-          .from("user_training_completions")
-          .select("item_id, item_type, completed_at, completed_by_role_id")
-          .eq("auth_id", authId)
-          .eq("completed_by_role_id", roleId);
-
-        console.log("✅ Filtered by roleId:", roleId, "Results:", data);
-
-        if (historicalError) {
-          console.warn("Could not fetch historical completions:", historicalError);
-        } else {
-          historicalCompletions = data || [];
-        }
+      if (historicalError) {
+        console.warn("Could not fetch completions:", historicalError);
       } else {
-        // If no role ID, show completions where completed_by_role_id is null
-        const { data, error: historicalError } = await supabase
-          .from("user_training_completions")
-          .select("item_id, item_type, completed_at, completed_by_role_id")
-          .eq("auth_id", authId)
-          .is("completed_by_role_id", null);
-
-        console.log("✅ Filtered by null roleId, Results:", data);
-
-        if (historicalError) {
-          console.warn("Could not fetch historical completions:", historicalError);
-        } else {
-          historicalCompletions = data || [];
-        }
+        historicalCompletions = allUserCompletions || [];
       }
+
+      // Note: Role-specific filtering is no longer available since we removed
+      // the completed_by_role_id tracking. All completions for the user are shown.
+      console.log("✅ User completions:", historicalCompletions);
 
       const allCompletions: UserAssignment[] = [];
 

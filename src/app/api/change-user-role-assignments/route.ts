@@ -39,45 +39,10 @@ export async function POST(req: NextRequest) {
     const old_role_id = user.role_id;
     console.log(`User ${user.first_name} ${user.last_name}: ${old_role_id} → ${new_role_id}`);
 
-    // 2. Preserve completed training before removing assignments
-    const { data: completedAssignments, error: completedError } = await supabase
-      .from("user_assignments")
-      .select("item_id, item_type, completed_at")
-      .eq("auth_id", user.auth_id)
-      .not("completed_at", "is", null);
-
-    if (completedError) {
-      console.error("Error fetching completed assignments:", completedError);
-      return NextResponse.json({ 
-        error: "Failed to fetch completed assignments", 
-        details: completedError 
-      }, { status: 500 });
-    }
-
-    // Save completions to permanent table
-    if (completedAssignments && completedAssignments.length > 0) {
-      const completionRecords = completedAssignments.map(assignment => ({
-        auth_id: user.auth_id,
-        item_id: assignment.item_id,
-        item_type: assignment.item_type,
-        completed_at: assignment.completed_at,
-        completed_by_role_id: old_role_id
-      }));
-
-      const { error: saveCompletionsError } = await supabase
-        .from("user_training_completions")
-        .upsert(completionRecords, { 
-          onConflict: 'auth_id,item_id,item_type',
-          ignoreDuplicates: true 
-        });
-
-      if (saveCompletionsError) {
-        console.warn("Failed to save training completions:", saveCompletionsError);
-        // Don't fail the entire operation, but log it
-      } else {
-        console.log(`✅ Preserved ${completedAssignments.length} training completions`);
-      }
-    }
+    // 2. Note: Completed training is preserved in user_assignments table
+    // We no longer delete completed assignments when changing roles
+    // They remain as historical records with their completion dates
+    console.log(`ℹ️  Completed training will be preserved in user_assignments for historical reference`);
 
     // 3. Update user's role in database FIRST
     const { error: updateError } = await supabase
@@ -177,25 +142,10 @@ export async function POST(req: NextRequest) {
       existingMap.set(key, assignment);
     });
 
-    // Get historical completions for items that aren't currently assigned
-    const { data: historicalCompletions, error: completionsError } = await supabase
-      .from("user_training_completions")
-      .select("item_id, item_type, completed_at")
-      .eq("auth_id", user.auth_id);
-
-    if (completionsError) {
-      console.warn("Failed to fetch historical completions:", completionsError);
-    }
-
-    // Create a map of historical completed items for quick lookup
-    const completionMap = new Map();
-    (historicalCompletions || []).forEach(completion => {
-      const key = `${completion.item_id}|${completion.item_type}`;
-      // Only add to map if not already in existing assignments
-      if (!existingMap.has(key)) {
-        completionMap.set(key, completion.completed_at);
-      }
-    });
+    // Note: Historical completions are preserved in user_assignments
+    // We don't need a separate table - completed assignments remain in user_assignments
+    // with their completion dates intact
+    console.log(`ℹ️  Checking for historical completions in user_assignments table`);
 
     // 9. Create new assignments ONLY for items that don't already exist
     const newAssignments = uniqueAssignments
@@ -204,46 +154,39 @@ export async function POST(req: NextRequest) {
         const completionKey = `${itemId}|${a.type}`;
 
         // Skip if this assignment already exists (either completed or incomplete)
+        // Historical completions are already in user_assignments table
         if (existingMap.has(completionKey)) {
           return null;
         }
-
-        // Check for historical completion
-        const existingCompletion = completionMap.get(completionKey);
 
         return {
           auth_id: user.auth_id,
           item_id: itemId,
           item_type: a.type,
           assigned_at: new Date().toISOString(),
-          // Restore completion date if user previously completed this training
-          completed_at: existingCompletion || null
+          completed_at: null // New assignments start incomplete
         };
       })
       .filter(a => a !== null); // Remove nulls (duplicates)
 
     let addedCount = 0;
-    let restoredCompletions = 0;
     if (newAssignments.length > 0) {
-      // Count how many completions we're restoring
-      restoredCompletions = newAssignments.filter(a => a.completed_at).length;
-      
       const { count, error: insertError } = await supabase
         .from("user_assignments")
         .insert(newAssignments, { count: "exact" });
 
       if (insertError) {
         console.error("Error inserting new assignments:", insertError);
-        return NextResponse.json({ 
-          error: "Failed to insert new assignments", 
-          details: insertError 
+        return NextResponse.json({
+          error: "Failed to insert new assignments",
+          details: insertError
         }, { status: 500 });
       }
 
       addedCount = count || 0;
     }
 
-    console.log(`✅ Added ${addedCount} new assignments (${restoredCompletions} with restored completion dates)`);
+    console.log(`✅ Added ${addedCount} new assignments`);
 
     // 7. Log the role change for audit
     const { error: logError } = await supabase
@@ -268,7 +211,7 @@ export async function POST(req: NextRequest) {
       new_role_id,
       assignments_removed: removedCount || 0,
       assignments_added: addedCount,
-      completions_restored: restoredCompletions,
+      completions_restored: 0, // Completions are preserved in place, not restored
       user_name: `${user.first_name} ${user.last_name}`
     });
 

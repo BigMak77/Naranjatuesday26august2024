@@ -50,27 +50,6 @@ export async function POST(req: NextRequest) {
     }
     console.log(`📅 Training completion date: ${completedAt} (original: ${completed_date || 'not provided'})`);
 
-    // Record the completion in permanent table
-    const { error: completionError } = await supabase
-      .from("user_training_completions")
-      .upsert({
-        auth_id,
-        item_id,
-        item_type,
-        completed_at: completedAt,
-        completed_by_role_id: user?.role_id || null
-      }, {
-        onConflict: 'auth_id,item_id,item_type'
-      });
-
-    if (completionError) {
-      console.error("Error recording completion:", completionError);
-      return NextResponse.json({
-        error: "Failed to record completion",
-        details: completionError
-      }, { status: 500 });
-    }
-
     // Get module data to check for follow-up requirements (only for modules)
     let followUpDueDate = null;
     let followUpRequired = false;

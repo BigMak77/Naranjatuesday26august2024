@@ -10,60 +10,31 @@ export interface TrainingCompletion {
 
 /**
  * Gets comprehensive training completion data for the TrainingMatrix
- * Combines current assignments with permanent completion history
+ * Uses user_assignments as the single source of truth for both current and historical completions
  */
 export async function getTrainingCompletions(): Promise<TrainingCompletion[]> {
   try {
-    // Get current assignments (what users should be working on now)
-    const { data: currentAssignments, error: assignmentsError } = await supabase
+    // Get all assignments (current and completed)
+    // Completed assignments remain in the table with their completion dates preserved
+    const { data: assignments, error: assignmentsError } = await supabase
       .from("user_assignments")
       .select("auth_id, item_id, item_type, completed_at");
 
     if (assignmentsError) {
-      console.error("Error fetching current assignments:", assignmentsError);
+      console.error("Error fetching assignments:", assignmentsError);
       throw assignmentsError;
     }
 
-    // Get all permanent completion records
-    const { data: permanentCompletions, error: completionsError } = await supabase
-      .from("user_training_completions")
-      .select("auth_id, item_id, item_type, completed_at");
+    // Map assignments to completion records
+    const completions: TrainingCompletion[] = (assignments || []).map(assignment => ({
+      auth_id: assignment.auth_id,
+      item_id: assignment.item_id,
+      item_type: assignment.item_type,
+      completed_at: assignment.completed_at,
+      is_current_assignment: true // All records in user_assignments are considered active
+    }));
 
-    if (completionsError) {
-      console.error("Error fetching permanent completions:", completionsError);
-      // Don't throw - we can still show current assignments even without completion history
-    }
-
-    // Create a comprehensive map of completions
-    const completionMap = new Map<string, TrainingCompletion>();
-
-    // First, add all current assignments
-    (currentAssignments || []).forEach(assignment => {
-      const key = `${assignment.auth_id}|${assignment.item_id}|${assignment.item_type}`;
-      completionMap.set(key, {
-        ...assignment,
-        is_current_assignment: true
-      });
-    });
-
-    // Then, overlay permanent completions (these take priority for completion dates)
-    (permanentCompletions || []).forEach(completion => {
-      const key = `${completion.auth_id}|${completion.item_id}|${completion.item_type}`;
-      const existing = completionMap.get(key);
-      
-      if (existing) {
-        // Update existing record with completion data from permanent table
-        existing.completed_at = completion.completed_at;
-      } else {
-        // Add completion record for training that's no longer assigned but was completed
-        completionMap.set(key, {
-          ...completion,
-          is_current_assignment: false
-        });
-      }
-    });
-
-    return Array.from(completionMap.values());
+    return completions;
 
   } catch (error) {
     console.error("Error getting training completions:", error);

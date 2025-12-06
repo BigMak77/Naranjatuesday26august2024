@@ -20,12 +20,6 @@ type Assignment = {
   completed_at: string | null;
 };
 
-type HistoricalCompletion = {
-  auth_id: string | null;
-  item_id: string | null;
-  item_type: "module" | "document" | string;
-  completed_at: string | null;
-};
 
 const COL_WIDTH = 75;
 const USER_COL_WIDTH = 120;
@@ -36,7 +30,6 @@ export default function MyTeamComplianceMatrix() {
   const [modules, setModules] = useState<Module[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
-  const [historicalCompletions, setHistoricalCompletions] = useState<HistoricalCompletion[]>([]);
   const [loading, setLoading] = useState(true);
   const [fatalError, setFatalError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -56,23 +49,17 @@ export default function MyTeamComplianceMatrix() {
           modulesRes,
           assignmentsRes,
           documentsRes,
-          historicalCompletionsRes,
         ] = await Promise.all([
           supabase.from("users").select("auth_id, first_name, last_name, department_id, role_id"),
           supabase.from("modules").select("id, name").order("name", { ascending: true }),
           supabase.from("user_assignments").select("auth_id, item_id, item_type, completed_at"),
           supabase.from("documents").select("id, title").order("title", { ascending: true }),
-          // Query historical completions (gracefully handle if table doesn't exist yet)
-          supabase.from("user_training_completions").select("auth_id, item_id, item_type, completed_at"),
         ]);
 
         if (usersRes.error) console.error("Users query failed:", usersRes.error);
         if (modulesRes.error) console.error("Modules query failed:", modulesRes.error);
         if (assignmentsRes.error) console.error("Assignments query failed:", assignmentsRes.error);
         if (documentsRes.error) console.error("Documents query failed:", documentsRes.error);
-        if (historicalCompletionsRes.error) {
-          console.warn("Historical completions query failed (table may not exist yet):", historicalCompletionsRes.error);
-        }
 
         if (!isMounted) return;
 
@@ -84,7 +71,6 @@ export default function MyTeamComplianceMatrix() {
         const rawModules = modulesRes.data ?? [];
         const rawDocuments = documentsRes.data ?? [];
         const rawAssignments = assignmentsRes.data ?? [];
-        const rawHistoricalCompletions = historicalCompletionsRes.data ?? [];
 
         // Build safe users list with guaranteed unique, non-empty keys - FILTERED to manager's department
         const userList: User[] = rawUsers
@@ -136,19 +122,10 @@ export default function MyTeamComplianceMatrix() {
         // Assignments as-is, but we'll ignore ones that reference null ids in lookups
         const assignmentRows: Assignment[] = rawAssignments;
 
-        // Process historical completions (may be empty if table doesn't exist yet)
-        const historicalCompletionRows: HistoricalCompletion[] = rawHistoricalCompletions.map((h: any) => ({
-          auth_id: h.auth_id,
-          item_id: h.item_id,
-          item_type: h.item_type,
-          completed_at: h.completed_at,
-        }));
-
         setUsers(userList);
         setModules(moduleList);
         setDocuments(documentList);
         setAssignments(assignmentRows);
-        setHistoricalCompletions(historicalCompletionRows);
         setLastUpdated(new Date());
       } catch (err: any) {
         console.error("Unexpected error loading matrix:", err);
@@ -171,15 +148,7 @@ export default function MyTeamComplianceMatrix() {
     return map;
   }, [assignments]);
 
-  // Map (user, item) -> historical completion
-  const historicalCompletionMap = useMemo(() => {
-    const map = new Map<string, HistoricalCompletion>();
-    for (const h of historicalCompletions) {
-      if (!h.auth_id || !h.item_id) continue; // skip bad rows
-      map.set(`${h.auth_id}|${h.item_id}|${h.item_type}`, h);
-    }
-    return map;
-  }, [historicalCompletions]);
+  // Historical completions are now in user_assignments - no separate map needed
 
   // Combine modules and documents for columns, including historical completions
   const displayedItems: Array<{ id: string | null; title: string; _colKey: string; type: "module" | "document" }> = useMemo(() => {
@@ -198,34 +167,18 @@ export default function MyTeamComplianceMatrix() {
         .map((a) => a.item_id as string)
     );
 
-    // Get items from historical completions
-    const historicalModuleIds = new Set(
-      historicalCompletions
-        .filter((h) => h.item_type === "module" && !!h.auth_id && !!h.item_id && visibleUserIds.has(h.auth_id))
-        .map((h) => h.item_id as string)
-    );
-    
-    const historicalDocumentIds = new Set(
-      historicalCompletions
-        .filter((h) => h.item_type === "document" && !!h.auth_id && !!h.item_id && visibleUserIds.has(h.auth_id))
-        .map((h) => h.item_id as string)
-    );
-
-    // Combine all relevant modules
-    const relevantModuleIds = new Set([...currentModuleIds, ...historicalModuleIds]);
+    // All completions (current and historical) are in user_assignments
     const relevantModules = modules
-      .filter((m) => m.id && relevantModuleIds.has(m.id))
+      .filter((m) => m.id && currentModuleIds.has(m.id))
       .map((m) => ({ ...m, type: "module" as const }));
 
-    // Combine all relevant documents
-    const relevantDocumentIds = new Set([...currentDocumentIds, ...historicalDocumentIds]);
     const relevantDocuments = documents
-      .filter((d) => d.id && relevantDocumentIds.has(d.id))
+      .filter((d) => d.id && currentDocumentIds.has(d.id))
       .map((d) => ({ ...d, type: "document" as const }));
 
     const combined = [...relevantModules, ...relevantDocuments];
     return combined.sort((a, b) => a.title.localeCompare(b.title));
-  }, [users, assignments, historicalCompletions, modules, documents]);
+  }, [users, assignments, modules, documents]);
 
   if (loading) {
     return (
@@ -282,7 +235,6 @@ export default function MyTeamComplianceMatrix() {
                   displayedItems.forEach(item => {
                     const aKey = user.auth_id && item.id ? `${user.auth_id}|${item.id}|${item.type}` : null;
                     const a = aKey ? assignmentMap.get(aKey) : undefined;
-                    const h = aKey ? historicalCompletionMap.get(aKey) : undefined;
                     
                     let cellContent = "";
                     if (a && a.completed_at) {
@@ -293,12 +245,6 @@ export default function MyTeamComplianceMatrix() {
                       cellContent = `${day}/${month}/${year}`;
                     } else if (a && !a.completed_at) {
                       cellContent = "NO";
-                    } else if (h && h.completed_at) {
-                      const d = new Date(h.completed_at);
-                      const day = String(d.getDate()).padStart(2, "0");
-                      const month = String(d.getMonth() + 1).padStart(2, "0");
-                      const year = String(d.getFullYear()).slice(-2);
-                      cellContent = `H ${day}/${month}/${year}`;
                     }
                     row.push(cellContent);
                   });
@@ -449,14 +395,13 @@ export default function MyTeamComplianceMatrix() {
                 {displayedItems.map((item) => {
                   const aKey = user.auth_id && item.id ? `${user.auth_id}|${item.id}|${item.type}` : null;
                   const a = aKey ? assignmentMap.get(aKey) : undefined;
-                  const h = aKey ? historicalCompletionMap.get(aKey) : undefined;
 
                   let bgColor = "var(--text-white)";
                   let textColor = "var(--panel)";
                   let cellText = "";
 
                   if (a && a.completed_at) {
-                    // Current assignment completed
+                    // Assignment completed
                     bgColor = "var(--status-success)";
                     textColor = "var(--text-white)";
                     const d = new Date(a.completed_at);
@@ -465,21 +410,12 @@ export default function MyTeamComplianceMatrix() {
                     const year = String(d.getFullYear()).slice(-2);
                     cellText = `${day}/${month}/${year}`;
                   } else if (a && !a.completed_at) {
-                    // Current assignment incomplete
+                    // Assignment incomplete
                     bgColor = "var(--status-danger)";
                     textColor = "var(--text-white)";
                     cellText = "NO";
-                  } else if (h && h.completed_at) {
-                    // Historical completion (no current assignment)
-                    bgColor = "var(--status-info)";
-                    textColor = "var(--text-white)";
-                    const d = new Date(h.completed_at);
-                    const day = String(d.getDate()).padStart(2, "0");
-                    const month = String(d.getMonth() + 1).padStart(2, "0");
-                    const year = String(d.getFullYear()).slice(-2);
-                    cellText = `H ${day}/${month}/${year}`;
                   }
-                  // else: no assignment, no historical → empty cell (white background)
+                  // else: no assignment → empty cell (white background)
 
                   return (
                     <td

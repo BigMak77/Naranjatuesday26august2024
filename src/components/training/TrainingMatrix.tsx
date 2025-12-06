@@ -19,12 +19,6 @@ type Assignment = {
   completed_at: string | null;
 };
 
-type HistoricalCompletion = {
-  auth_id: string | null;
-  item_id: string | null;
-  item_type: "module" | "document" | string;
-  completed_at: string | null;
-};
 
 const COL_WIDTH = 75;
 const USER_COL_WIDTH = 120;
@@ -39,7 +33,6 @@ const TrainingMatrix: React.FC<TrainingMatrixProps> = ({ filterByDepartmentId })
   const [modules, setModules] = useState<Module[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
-  const [historicalCompletions, setHistoricalCompletions] = useState<HistoricalCompletion[]>([]);
   const [loading, setLoading] = useState(true);
   const [fatalError, setFatalError] = useState<string | null>(null);
 
@@ -78,7 +71,6 @@ const TrainingMatrix: React.FC<TrainingMatrixProps> = ({ filterByDepartmentId })
           departmentsRes,
           rolesRes,
           documentsRes,
-          historicalCompletionsRes,
         ] = await Promise.all([
           supabase.from("users").select("auth_id, first_name, last_name, department_id, role_id"),
           supabase.from("modules").select("id, name").order("name", { ascending: true }),
@@ -86,8 +78,6 @@ const TrainingMatrix: React.FC<TrainingMatrixProps> = ({ filterByDepartmentId })
           supabase.from("departments").select("id, name").order("name", { ascending: true }),
           supabase.from("roles").select("id, title, department_id").order("title", { ascending: true }),
           supabase.from("documents").select("id, title").order("title", { ascending: true }),
-          // Query historical completions (gracefully handle if table doesn't exist yet)
-          supabase.from("user_training_completions").select("auth_id, item_id, item_type, completed_at"),
         ]);
 
         if (usersRes.error) console.error("Users query failed:", usersRes.error);
@@ -96,9 +86,6 @@ const TrainingMatrix: React.FC<TrainingMatrixProps> = ({ filterByDepartmentId })
         if (departmentsRes.error) console.error("Departments query failed:", departmentsRes.error);
         if (rolesRes.error) console.error("Roles query failed:", rolesRes.error);
         if (documentsRes.error) console.error("Documents query failed:", documentsRes.error);
-        if (historicalCompletionsRes.error) {
-          console.warn("Historical completions query failed (table may not exist yet):", historicalCompletionsRes.error);
-        }
 
         if (!isMounted) return;
 
@@ -110,7 +97,6 @@ const TrainingMatrix: React.FC<TrainingMatrixProps> = ({ filterByDepartmentId })
         const rawModules = modulesRes.data ?? [];
         const rawDocuments = documentsRes.data ?? [];
         const rawAssignments = assignmentsRes.data ?? [];
-        const rawHistoricalCompletions = historicalCompletionsRes.data ?? [];
         const deptRows = departmentsRes.data ?? [];
         const roleRows = rolesRes.data ?? [];
 
@@ -162,19 +148,10 @@ const TrainingMatrix: React.FC<TrainingMatrixProps> = ({ filterByDepartmentId })
         // Assignments as-is, but we'll ignore ones that reference null ids in lookups
         const assignmentRows: Assignment[] = rawAssignments;
 
-        // Process historical completions (may be empty if table doesn't exist yet)
-        const historicalCompletionRows: HistoricalCompletion[] = rawHistoricalCompletions.map((h: any) => ({
-          auth_id: h.auth_id,
-          item_id: h.item_id,
-          item_type: h.item_type,
-          completed_at: h.completed_at,
-        }));
-
         setUsers(userList);
         setModules(moduleList);
         setDocuments(documentList);
         setAssignments(assignmentRows);
-        setHistoricalCompletions(historicalCompletionRows);
         setDepartments([
           { id: "", name: "All Departments" },
           ...deptRows
@@ -230,15 +207,8 @@ const TrainingMatrix: React.FC<TrainingMatrixProps> = ({ filterByDepartmentId })
     return map;
   }, [assignments]);
 
-  // Map (user, item) -> historical completion
-  const historicalCompletionMap = useMemo(() => {
-    const map = new Map<string, HistoricalCompletion>();
-    for (const h of historicalCompletions) {
-      if (!h.auth_id || !h.item_id) continue; // skip bad rows
-      map.set(`${h.auth_id}|${h.item_id}|${h.item_type}`, h);
-    }
-    return map;
-  }, [historicalCompletions]);
+  // Note: Historical completions are now stored in user_assignments table
+  // No separate historical completions map needed
 
   // Filtering
   const filteredUsers = useMemo(() => {
@@ -267,27 +237,15 @@ const TrainingMatrix: React.FC<TrainingMatrixProps> = ({ filterByDepartmentId })
         .map((a) => a.item_id as string)
     );
 
-    // Get items from historical completions
-    const historicalModuleIds = new Set(
-      historicalCompletions
-        .filter((h) => h.item_type === "module" && !!h.auth_id && !!h.item_id && visibleUserIds.has(h.auth_id))
-        .map((h) => h.item_id as string)
-    );
-    const historicalDocumentIds = new Set(
-      historicalCompletions
-        .filter((h) => h.item_type === "document" && !!h.auth_id && !!h.item_id && visibleUserIds.has(h.auth_id))
-        .map((h) => h.item_id as string)
-    );
-
-    // Combine current and historical IDs
-    const allModuleIds = new Set([...currentModuleIds, ...historicalModuleIds]);
-    const allDocumentIds = new Set([...currentDocumentIds, ...historicalDocumentIds]);
+    // All completions (both current and historical) are in user_assignments
+    const allModuleIds = currentModuleIds;
+    const allDocumentIds = currentDocumentIds;
 
     const moduleCols = modules.filter((m) => !!m.id && allModuleIds.has(m.id as string)).map((m) => ({ ...m, type: "module" as const }));
     const documentCols = documents.filter((d) => !!d.id && allDocumentIds.has(d.id as string)).map((d) => ({ ...d, type: "document" as const }));
-    
+
     return [...moduleCols, ...documentCols];
-  }, [modules, documents, assignments, historicalCompletions, filteredUsers]);
+  }, [modules, documents, assignments, filteredUsers]);
 
   const filteredRoles = useMemo(() => {
     if (roles.length === 0) return [];
@@ -406,7 +364,7 @@ const TrainingMatrix: React.FC<TrainingMatrixProps> = ({ filterByDepartmentId })
                 variant="download"
                 label="Download CSV"
                 onClick={() => {
-              // Download CSV of visible matrix with historical completions
+              // Download CSV of visible matrix
               const rows: string[] = [];
               const header = ["User", ...displayedItems.map(item => item.title + (item.type === "document" ? " (Document)" : ""))];
               rows.push(header.join(","));
@@ -415,8 +373,7 @@ const TrainingMatrix: React.FC<TrainingMatrixProps> = ({ filterByDepartmentId })
                 displayedItems.forEach(item => {
                   const aKey = user.auth_id && item.id ? `${user.auth_id}|${item.id}|${item.type}` : null;
                   const a = aKey ? assignmentMap.get(aKey) : undefined;
-                  const h = aKey ? historicalCompletionMap.get(aKey) : undefined;
-                  
+
                   let cellContent = "";
                   if (a && a.completed_at) {
                     const d = new Date(a.completed_at);
@@ -426,12 +383,6 @@ const TrainingMatrix: React.FC<TrainingMatrixProps> = ({ filterByDepartmentId })
                     cellContent = `${day}/${month}/${year}`;
                   } else if (a && !a.completed_at) {
                     cellContent = "NO";
-                  } else if (h && h.completed_at) {
-                    const d = new Date(h.completed_at);
-                    const day = String(d.getDate()).padStart(2, "0");
-                    const month = String(d.getMonth() + 1).padStart(2, "0");
-                    const year = String(d.getFullYear()).slice(-2);
-                    cellContent = `H ${day}/${month}/${year}`;
                   }
                   row.push(cellContent);
                 });
@@ -562,12 +513,11 @@ const TrainingMatrix: React.FC<TrainingMatrixProps> = ({ filterByDepartmentId })
                   {displayedItems.map((item) => {
                     const aKey = user.auth_id && item.id ? `${user.auth_id}|${item.id}|${item.type}` : null;
                     const a = aKey ? assignmentMap.get(aKey) : undefined;
-                    const h = aKey ? historicalCompletionMap.get(aKey) : undefined;
 
                     let cellContent = "";
-                    let cellStatus: "complete" | "incomplete" | "unassigned" | "historical" = "unassigned";
+                    let cellStatus: "complete" | "incomplete" | "unassigned" = "unassigned";
 
-                    // Priority: Current assignment completion > Current assignment incomplete > Historical completion
+                    // All completions (current and historical) are in user_assignments
                     if (a) {
                       if (a.completed_at) {
                         const d = new Date(a.completed_at);
@@ -580,14 +530,6 @@ const TrainingMatrix: React.FC<TrainingMatrixProps> = ({ filterByDepartmentId })
                         cellContent = "NO";
                         cellStatus = "incomplete";
                       }
-                    } else if (h && h.completed_at) {
-                      // Show historical completion only if no current assignment
-                      const d = new Date(h.completed_at);
-                      const day = String(d.getDate()).padStart(2, "0");
-                      const month = String(d.getMonth() + 1).padStart(2, "0");
-                      const year = String(d.getFullYear()).slice(-2);
-                      cellContent = `H ${day}/${month}/${year}`;
-                      cellStatus = "historical";
                     }
 
                     return (
@@ -603,8 +545,8 @@ const TrainingMatrix: React.FC<TrainingMatrixProps> = ({ filterByDepartmentId })
                           whiteSpace: "nowrap",
                           direction: "ltr",
                           color: statusColor(cellStatus),
-                          fontWeight: cellStatus === "complete" ? 700 : cellStatus === "historical" ? 600 : 500,
-                          fontStyle: cellStatus === "historical" ? "italic" : "normal",
+                          fontWeight: cellStatus === "complete" ? 700 : 500,
+                          fontStyle: "normal",
                         }}
                       >
                         {cellContent}

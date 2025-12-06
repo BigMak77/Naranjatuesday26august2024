@@ -609,16 +609,103 @@ export default function TrainerRecordingPage() {
   const [historyBusy, setHistoryBusy] = useState(false);
 
   const openHistory = async (user: UserRow) => {
+    console.log("=== Opening training history ===");
+    console.log("User:", user.name);
+    console.log("User auth_id:", user.auth_id);
     setHistoryFor(user);
     setHistoryBusy(true);
     try {
-      const { data, error } = await supabase
+      // Fetch from training_logs (detailed session records with signatures)
+      const { data: logsData, error: logsError } = await supabase
         .from("training_logs")
         .select("id, date, topic, duration_hours, outcome, notes, signature")
         .eq("auth_id", user.auth_id)
         .order("date", { ascending: false });
-      if (error) throw error;
-      setHistoryLogs(data || []);
+
+      console.log("Training logs - data:", logsData);
+      console.log("Training logs - error:", logsError);
+
+      // Fetch from user_assignments (all completions including historical)
+      const { data: assignmentsData, error: assignmentsError } = await supabase
+        .from("user_assignments")
+        .select("item_id, item_type, completed_at")
+        .eq("auth_id", user.auth_id)
+        .not("completed_at", "is", null)
+        .order("completed_at", { ascending: false});
+
+      console.log("User assignments - data:", assignmentsData);
+      console.log("User assignments - error:", assignmentsError);
+
+      if (logsError) throw logsError;
+
+      // Combine both sources into a unified history
+      const combinedLogs: TrainingLog[] = [];
+
+      // Add detailed training logs
+      if (logsData && logsData.length > 0) {
+        combinedLogs.push(...logsData.map(log => ({
+          id: log.id,
+          date: log.date,
+          topic: log.topic,
+          duration_hours: log.duration_hours,
+          outcome: log.outcome,
+          notes: log.notes,
+          signature: log.signature,
+        })));
+      }
+
+      // Fetch module and document names for assignments
+      const allItemIds = (assignmentsData || []).map(a => a.item_id).filter(Boolean);
+      const moduleIds = [...new Set(allItemIds)];
+      let moduleNamesMap = new Map<string, string>();
+      let documentNamesMap = new Map<string, string>();
+
+      if (moduleIds.length > 0) {
+        const { data: modulesData } = await supabase
+          .from("modules")
+          .select("id, name")
+          .in("id", moduleIds);
+
+        if (modulesData) {
+          modulesData.forEach(m => moduleNamesMap.set(m.id, m.name));
+        }
+
+        const { data: documentsData } = await supabase
+          .from("documents")
+          .select("id, title")
+          .in("id", moduleIds);
+
+        if (documentsData) {
+          documentsData.forEach(d => documentNamesMap.set(d.id, d.title));
+        }
+      }
+
+      // Add completion records from assignments (if not already in training_logs)
+      if (assignmentsData && assignmentsData.length > 0) {
+        for (const assignment of assignmentsData) {
+          if (!combinedLogs.some(log => log.topic === assignment.item_id && log.date === assignment.completed_at?.split('T')[0])) {
+            const itemName = assignment.item_type === 'module'
+              ? moduleNamesMap.get(assignment.item_id || '')
+              : documentNamesMap.get(assignment.item_id || '');
+
+            combinedLogs.push({
+              id: `assignment-${assignment.item_id}`,
+              date: assignment.completed_at?.split('T')[0] || '',
+              topic: itemName || assignment.item_id || '',
+              duration_hours: 0,
+              outcome: 'completed',
+              notes: `Completed ${assignment.item_type}`,
+              signature: null,
+            });
+          }
+        }
+      }
+
+      // Sort by date descending
+      combinedLogs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+      console.log("Combined logs count:", combinedLogs.length);
+      setHistoryLogs(combinedLogs);
     } catch (e) {
       console.error("Failed to fetch training logs:", e);
       setHistoryLogs([]);
