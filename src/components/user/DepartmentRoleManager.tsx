@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase-client";
 import TextIconButton from "@/components/ui/TextIconButtons";
 import OverlayDialog from "@/components/ui/OverlayDialog";
 import SuccessModal from "@/components/ui/SuccessModal";
-import { FiEdit, FiSave, FiX } from "react-icons/fi";
+import { FiEdit, FiSave } from "react-icons/fi";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 import { useUser } from "@/lib/useUser";
 
@@ -25,6 +25,7 @@ interface User {
   first_name?: string;
   last_name?: string;
   email: string;
+  employee_number?: string;
   department_id?: string;
   role_id?: string;
   auth_id?: string;
@@ -169,15 +170,15 @@ export default function DepartmentRoleManager({
         autoCloseMs={1500}
       />
 
-      <div className="neon-form-content" style={{ minWidth: "700px", maxWidth: "800px" }}>
+      <div className="neon-form-content" style={{ minWidth: "700px", maxWidth: "800px", overflow: "visible" }}>
         <div className="neon-form-title" style={{ marginBottom: "1.5rem" }}>
           Change Department & Role
         </div>
 
-        {/* Personal Details Section */}
+        {/* Personal Details & Current Assignment Section */}
         <div
           style={{
-            padding: "1.25rem",
+            padding: "0.75rem",
             background: "rgba(64, 224, 208, 0.08)",
             borderRadius: "8px",
             marginBottom: "1.5rem",
@@ -187,63 +188,34 @@ export default function DepartmentRoleManager({
           <div style={{
             fontWeight: 600,
             color: "#40e0d0",
-            marginBottom: "1rem",
+            marginBottom: "0.5rem",
             fontSize: "1.1rem",
             borderBottom: "1px solid rgba(64, 224, 208, 0.3)",
             paddingBottom: "0.5rem"
           }}>
-            Personal Details
+            Current Details
           </div>
           <div style={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
+            gridTemplateColumns: "repeat(4, 1fr)",
             gap: "0.75rem",
             fontSize: "0.95rem"
           }}>
             <div>
-              <div style={{ opacity: 0.7, fontSize: "0.85rem", marginBottom: "0.25rem" }}>Name</div>
-              <div style={{ fontWeight: 500 }}>{user.first_name || ""} {user.last_name || ""}</div>
+              <div style={{ fontWeight: 600, fontSize: "0.85rem", marginBottom: "0.25rem" }}>Name</div>
+              <div>{user.first_name || ""} {user.last_name || ""}</div>
             </div>
             <div>
-              <div style={{ opacity: 0.7, fontSize: "0.85rem", marginBottom: "0.25rem" }}>Email</div>
-              <div style={{ fontWeight: 500 }}>{user.email}</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Current Role & Department Section */}
-        <div
-          style={{
-            padding: "1.25rem",
-            background: "rgba(255, 165, 0, 0.08)",
-            borderRadius: "8px",
-            marginBottom: "1.5rem",
-            border: "1px solid rgba(255, 165, 0, 0.2)"
-          }}
-        >
-          <div style={{
-            fontWeight: 600,
-            color: "#ffa500",
-            marginBottom: "1rem",
-            fontSize: "1.1rem",
-            borderBottom: "1px solid rgba(255, 165, 0, 0.3)",
-            paddingBottom: "0.5rem"
-          }}>
-            Current Assignment
-          </div>
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "0.75rem",
-            fontSize: "0.95rem"
-          }}>
-            <div>
-              <div style={{ opacity: 0.7, fontSize: "0.85rem", marginBottom: "0.25rem" }}>Department</div>
-              <div style={{ fontWeight: 500 }}>{originalDepartmentName}</div>
+              <div style={{ fontWeight: 600, fontSize: "0.85rem", marginBottom: "0.25rem" }}>Employee Number</div>
+              <div>{user.employee_number || "—"}</div>
             </div>
             <div>
-              <div style={{ opacity: 0.7, fontSize: "0.85rem", marginBottom: "0.25rem" }}>Role</div>
-              <div style={{ fontWeight: 500 }}>{originalRoleName}</div>
+              <div style={{ fontWeight: 600, fontSize: "0.85rem", marginBottom: "0.25rem" }}>Department</div>
+              <div>{originalDepartmentName}</div>
+            </div>
+            <div>
+              <div style={{ fontWeight: 600, fontSize: "0.85rem", marginBottom: "0.25rem" }}>Role</div>
+              <div>{originalRoleName}</div>
             </div>
           </div>
         </div>
@@ -273,7 +245,7 @@ export default function DepartmentRoleManager({
             {/* New Assignment Section */}
             <div
               style={{
-                padding: "1.25rem",
+                padding: "0.75rem",
                 background: "rgba(57, 255, 20, 0.08)",
                 borderRadius: "8px",
                 marginBottom: "1.5rem",
@@ -283,7 +255,7 @@ export default function DepartmentRoleManager({
               <div style={{
                 fontWeight: 600,
                 color: "#39ff14",
-                marginBottom: "1rem",
+                marginBottom: "0.5rem",
                 fontSize: "1.1rem",
                 borderBottom: "1px solid rgba(57, 255, 20, 0.3)",
                 paddingBottom: "0.5rem"
@@ -347,7 +319,7 @@ export default function DepartmentRoleManager({
             {/* Change Reason Section */}
             <div
               style={{
-                padding: "1.25rem",
+                padding: "0.75rem",
                 background: "rgba(138, 43, 226, 0.08)",
                 borderRadius: "8px",
                 marginBottom: "1.5rem",
@@ -357,7 +329,7 @@ export default function DepartmentRoleManager({
               <div style={{
                 fontWeight: 600,
                 color: "#9370db",
-                marginBottom: "1rem",
+                marginBottom: "0.5rem",
                 fontSize: "1.1rem",
                 borderBottom: "1px solid rgba(138, 43, 226, 0.3)",
                 paddingBottom: "0.5rem"
@@ -369,16 +341,19 @@ export default function DepartmentRoleManager({
                 <label className="neon-label" htmlFor="change-reason">
                   Reason for Change *
                 </label>
-                <textarea
+                <select
                   id="change-reason"
                   className="neon-input"
                   value={changeReason}
                   onChange={(e) => setChangeReason(e.target.value)}
-                  placeholder="e.g., Promotion, Transfer, Reorganization..."
-                  rows={3}
                   disabled={saving}
-                  style={{ resize: "vertical", minHeight: "80px" }}
-                />
+                >
+                  <option value="">Select a reason...</option>
+                  <option value="Promotion">Promotion</option>
+                  <option value="Change of Role">Change of Role</option>
+                  <option value="Secondment (Temporary)">Secondment (Temporary)</option>
+                  <option value="Admin Error">Admin Error</option>
+                </select>
               </div>
             </div>
 
@@ -442,16 +417,6 @@ export default function DepartmentRoleManager({
             borderTop: "1px solid rgba(64, 224, 208, 0.2)"
           }}
         >
-          <CustomTooltip text="Cancel and close without saving">
-            <TextIconButton
-              variant="delete"
-              icon={<FiX />}
-              label="Cancel"
-              onClick={onClose}
-              disabled={saving}
-            />
-          </CustomTooltip>
-
           <CustomTooltip
             text={
               !hasChanges()

@@ -207,6 +207,17 @@ export default function Structure() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [roles, setRoles] = useState<RoleRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Expose refresh function via window for parent components
+  useEffect(() => {
+    (window as any).refreshRoleStructure = () => {
+      setRefreshTrigger(prev => prev + 1);
+    };
+    return () => {
+      delete (window as any).refreshRoleStructure;
+    };
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
@@ -221,7 +232,7 @@ export default function Structure() {
       setLoading(false);
     }
     fetchData();
-  }, []);
+  }, [refreshTrigger]);
 
   const tree = useMemo(() => {
     // —— CONFIG ——
@@ -581,7 +592,7 @@ export function AddDepartmentButton({ onAdded }: { onAdded?: () => void }) {
             <label style={{ color: "#fff", fontSize: 13 }}>Parent department (optional):</label>
             <select value={parentId || ""} onChange={e => setParentId(e.target.value || null)} style={{ width: "100%", marginTop: 4, marginBottom: 12 }}>
               <option value="">-- None (top level) --</option>
-              {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+              {departments.sort((a, b) => a.name.localeCompare(b.name)).map(d => <option key={d.id} value={d.id}>{d.name} [{d.level}]</option>)}
             </select>
             {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
             {success && <div style={{ color: "#00ff99", marginBottom: 8 }}>{success}</div>}
@@ -626,8 +637,16 @@ export function AddRoleButton({ departments, onAdded }: { departments: Departmen
       async function fetchTrainingContent() {
         const { data: modulesData } = await supabase.from("modules").select("id, name");
         const { data: documentsData } = await supabase.from("documents").select("id, title");
-        setModules((modulesData || []).map((m: any) => ({ value: m.id, label: m.name })));
-        setDocuments((documentsData || []).map((d: any) => ({ value: d.id, label: d.title })));
+        setModules(
+          (modulesData || [])
+            .map((m: any) => ({ value: m.id, label: m.name }))
+            .sort((a, b) => a.label.toLowerCase().localeCompare(b.label.toLowerCase()))
+        );
+        setDocuments(
+          (documentsData || [])
+            .map((d: any) => ({ value: d.id, label: d.title }))
+            .sort((a, b) => a.label.toLowerCase().localeCompare(b.label.toLowerCase()))
+        );
       }
       fetchTrainingContent();
     }
@@ -738,7 +757,7 @@ export function AddRoleButton({ departments, onAdded }: { departments: Departmen
       <OverlayDialog
         open={open}
         onClose={handleClose}
-        width={stage === 'assign' ? 800 : 400}
+        width={stage === 'assign' ? 1000 : 400}
         showCloseButton={true}
       >
         <div style={{ padding: 24 }}>
@@ -764,7 +783,7 @@ export function AddRoleButton({ departments, onAdded }: { departments: Departmen
                   disabled={loading}
                 >
                   <option value="">-- Select Department --</option>
-                  {visibleDepts.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                  {visibleDepts.sort((a, b) => a.name.localeCompare(b.name)).map(d => <option key={d.id} value={d.id}>{d.name} [{d.level}]</option>)}
                 </select>
                 {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
                 <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
@@ -782,12 +801,70 @@ export function AddRoleButton({ departments, onAdded }: { departments: Departmen
 
           {/* Stage 2: Confirm Training Assignment */}
           {stage === 'confirm' && (
-            <>
-              <div style={{ fontWeight: 600, color: "#fff", marginBottom: 16 }}>Role Created Successfully</div>
-              <p style={{ color: "#fff", marginBottom: 24 }}>
-                Would you like to assign training to <strong style={{ color: "#00fff7" }}>{title}</strong> now?
-              </p>
-              <div style={{ display: "flex", gap: "12px" }}>
+            <div style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              minHeight: "350px",
+              padding: "40px 24px"
+            }}>
+              {/* Success Icon */}
+              <div style={{
+                width: 100,
+                height: 100,
+                borderRadius: "50%",
+                background: "#00cc99",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 28
+              }}>
+                <div style={{
+                  fontSize: 60,
+                  color: "#1e1e28",
+                  fontWeight: 900,
+                  lineHeight: 1
+                }}>
+                  ✓
+                </div>
+              </div>
+
+              {/* Success Message */}
+              <div style={{
+                textAlign: "center",
+                marginBottom: 36
+              }}>
+                <div style={{
+                  fontSize: 28,
+                  fontWeight: 700,
+                  color: "#00cc99",
+                  marginBottom: 16,
+                  textTransform: "uppercase",
+                  letterSpacing: "1px"
+                }}>
+                  Role Created Successfully!
+                </div>
+                <div style={{
+                  fontSize: 22,
+                  fontWeight: 600,
+                  color: "#fff",
+                  marginBottom: 20
+                }}>
+                  {title}
+                </div>
+                <p style={{
+                  color: "#fff",
+                  fontSize: 16,
+                  fontWeight: 400,
+                  lineHeight: 1.6
+                }}>
+                  Would you like to assign training to this role now?
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div style={{ display: "flex", gap: "16px", justifyContent: "center" }}>
                 <TextIconButton
                   variant="submit"
                   label="Yes, assign training"
@@ -799,7 +876,7 @@ export function AddRoleButton({ departments, onAdded }: { departments: Departmen
                   onClick={handleNoTraining}
                 />
               </div>
-            </>
+            </div>
           )}
 
           {/* Stage 3: Assign Training */}
@@ -820,16 +897,16 @@ export function AddRoleButton({ departments, onAdded }: { departments: Departmen
                     searchPlaceholder="Search modules..."
                   />
                   {error && <div style={{ color: "#ff4444", marginTop: 8 }}>{error}</div>}
-                  <div style={{ marginTop: 16, display: "flex", gap: "12px" }}>
-                    <TextIconButton
-                      variant="next"
-                      label="Next Step"
-                      onClick={() => setAssignmentStep('documents')}
-                    />
+                  <div style={{ marginTop: 16, display: "flex", gap: "12px", justifyContent: "space-between" }}>
                     <TextIconButton
                       variant="back"
                       label="Go Back"
                       onClick={() => setStage('confirm')}
+                    />
+                    <TextIconButton
+                      variant="next"
+                      label="Next Step"
+                      onClick={() => setAssignmentStep('documents')}
                     />
                   </div>
                 </>
@@ -846,7 +923,7 @@ export function AddRoleButton({ departments, onAdded }: { departments: Departmen
                     searchPlaceholder="Search documents..."
                   />
                   {error && <div style={{ color: "#ff4444", marginTop: 8 }}>{error}</div>}
-                  <div style={{ marginTop: 16, display: "flex", gap: "12px" }}>
+                  <div style={{ marginTop: 16, display: "flex", gap: "12px", justifyContent: "space-between" }}>
                     <TextIconButton
                       variant="back"
                       label="Go Back"

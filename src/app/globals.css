@@ -1811,6 +1811,11 @@ textarea.neon-input {
   position: relative;
 }
 
+/* Compact height variant for dialogs - 80% of viewport */
+.ui-dialog-content.compact-height {
+  max-height: 80vh;
+}
+
 /* Neon Dialog variant for larger content */
 .neon-dialog {
   min-width: 500px;

@@ -14,6 +14,7 @@ type OverlayDialogProps = {
   width?: number; // custom width in pixels
   transparentOverlay?: boolean; // for login page background visibility
   showCloseButton?: boolean; // show circular X button in top-right corner
+  compactHeight?: boolean; // use 80vh max-height instead of 90vh
 };
 
 export default function OverlayDialog({
@@ -27,6 +28,7 @@ export default function OverlayDialog({
   width = 900,
   transparentOverlay = false,
   showCloseButton = false,
+  compactHeight = false,
 }: OverlayDialogProps) {
   const mountRef = useRef<HTMLElement | null>(null);
   const [isMounted, setIsMounted] = useState(false);
@@ -81,7 +83,7 @@ export default function OverlayDialog({
       aria-hidden={false}
     >
       <div
-        className="ui-dialog-content neon-dialog"
+        className={`ui-dialog-content neon-dialog${compactHeight ? ' compact-height' : ''}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby={ariaLabelledby}

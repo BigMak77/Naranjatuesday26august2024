@@ -73,6 +73,9 @@ interface UserRoleHistoryProps {
   onControlsReady?: (controls: {
     roleHistoryCount: number;
     refreshData: () => void;
+    searchTerm: string;
+    setSearchTerm: (term: string) => void;
+    filteredCount: number;
   }) => void;
 }
 
@@ -84,20 +87,50 @@ const UserRoleHistory: React.FC<UserRoleHistoryProps> = ({ onControlsReady }) =>
   const [expandedEntries, setExpandedEntries] = useState<Set<string>>(new Set());
   const [userAssignments, setUserAssignments] = useState<Map<string, UserAssignment[]>>(new Map());
   const [loadingAssignments, setLoadingAssignments] = useState<Set<string>>(new Set());
+  const [searchTerm, setSearchTerm] = useState("");
 
 
   useEffect(() => {
     fetchData();
   }, []);
 
+  // Filter role history based on search term
+  const filteredRoleHistory = roleHistory.filter(entry => {
+    if (!searchTerm.trim()) return true;
+
+    const search = searchTerm.toLowerCase();
+    const userName = `${entry.user?.first_name || ""} ${entry.user?.last_name || ""}`.toLowerCase();
+    const userEmail = entry.user?.email?.toLowerCase() || "";
+    const oldRole = entry.old_role?.title?.toLowerCase() || "";
+    const newRole = entry.new_role?.title?.toLowerCase() || "";
+    const oldDept = entry.old_department?.name?.toLowerCase() || "";
+    const newDept = entry.new_department?.name?.toLowerCase() || "";
+    const changedBy = entry.changed_by_user
+      ? `${entry.changed_by_user.first_name} ${entry.changed_by_user.last_name}`.toLowerCase()
+      : "system";
+    const reason = entry.change_reason?.toLowerCase() || "";
+
+    return userName.includes(search) ||
+           userEmail.includes(search) ||
+           oldRole.includes(search) ||
+           newRole.includes(search) ||
+           oldDept.includes(search) ||
+           newDept.includes(search) ||
+           changedBy.includes(search) ||
+           reason.includes(search);
+  });
+
   useEffect(() => {
     if (onControlsReady) {
       onControlsReady({
         roleHistoryCount: roleHistory.length,
-        refreshData: fetchData
+        refreshData: fetchData,
+        searchTerm,
+        setSearchTerm,
+        filteredCount: filteredRoleHistory.length
       });
     }
-  }, [roleHistory.length, onControlsReady]);
+  }, [roleHistory.length, searchTerm, filteredRoleHistory.length, onControlsReady]);
 
   const fetchData = async () => {
     try {
@@ -328,6 +361,16 @@ const UserRoleHistory: React.FC<UserRoleHistoryProps> = ({ onControlsReady }) =>
         }}>
           No role history entries found
         </div>
+      ) : filteredRoleHistory.length === 0 ? (
+        <div style={{
+          textAlign: "center",
+          padding: "2rem",
+          opacity: 0.7,
+          background: "rgba(64, 224, 208, 0.05)",
+          borderRadius: "8px"
+        }}>
+          No results found for "{searchTerm}"
+        </div>
       ) : (
         <div className="user-role-history-list">
           <table className="neon-table">
@@ -345,7 +388,7 @@ const UserRoleHistory: React.FC<UserRoleHistoryProps> = ({ onControlsReady }) =>
               </tr>
             </thead>
             <tbody>
-              {roleHistory.map((entry: RoleHistoryEntry) => {
+              {filteredRoleHistory.map((entry: RoleHistoryEntry) => {
                 const isExpanded = expandedEntries.has(entry.id);
                 const assignments = userAssignments.get(entry.id) || [];
                 const isLoadingAssignments = loadingAssignments.has(entry.id);

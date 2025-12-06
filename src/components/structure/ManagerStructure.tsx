@@ -233,6 +233,17 @@ export default function Structure() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Expose refresh function via window for parent components
+  useEffect(() => {
+    (window as any).refreshManagerStructure = () => {
+      setRefreshTrigger(prev => prev + 1);
+    };
+    return () => {
+      delete (window as any).refreshManagerStructure;
+    };
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
@@ -253,7 +264,7 @@ export default function Structure() {
       setLoading(false);
     }
     fetchData();
-  }, []);
+  }, [refreshTrigger]);
 
   const tree = useMemo(() => {
     // —— CONFIG ——

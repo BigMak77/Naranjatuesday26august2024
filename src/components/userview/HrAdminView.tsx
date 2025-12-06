@@ -25,6 +25,7 @@ import UserManagementPanel from "@/components/user/UserManagementPanel";
 import { sendWelcomeEmail } from "@/lib/email-service";
 import UserRoleHistory from "@/components/roles/UserRoleHistory";
 import ComponentDescription from "@/components/ui/ComponentDescription";
+import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
 const tabs: Tab[] = [
   { key: "people", label: "People" },
@@ -37,6 +38,17 @@ const tabs: Tab[] = [
   { key: "permissions", label: "Permissions" },
   { key: "startdate", label: "Users by Start Date" },
 ];
+
+// Helper to format date as dd/mm/yyyy
+function formatDateUK(dateStr: string | undefined | null): string {
+  if (!dateStr) return "—";
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return "—";
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = String(d.getFullYear());
+  return `${day}/${month}/${year}`;
+}
 
 // Styles for reassign dialog
 const reassignStyles = `
@@ -115,12 +127,16 @@ const UserManager: React.FC = () => {
     showLeavers: boolean;
     setShowLeavers: (val: boolean) => void;
     UserCSVImportComponent: React.ReactNode;
+    refreshData: () => void;
   } | null>(null);
 
   // Role History controls
   const [roleHistoryControls, setRoleHistoryControls] = useState<{
     roleHistoryCount: number;
     refreshData: () => void;
+    searchTerm: string;
+    setSearchTerm: (term: string) => void;
+    filteredCount: number;
   } | null>(null);
 
   // New Starters state
@@ -144,6 +160,13 @@ const UserManager: React.FC = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
+  // Invite User state
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteFirstName, setInviteFirstName] = useState("");
+  const [inviteLastName, setInviteLastName] = useState("");
+  const [inviteLoading, setInviteLoading] = useState(false);
+
   // Save active tab to localStorage whenever it changes
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -163,7 +186,7 @@ const UserManager: React.FC = () => {
         { data: leaversRows, error: leaversError },
         { data: shiftsRows, error: shiftsError }
       ] = await Promise.all([
-        supabase.from("departments").select("id, name, parent_id, is_archived"),
+        supabase.from("departments").select("id, name, parent_id, is_archived, level"),
         supabase.from("users").select("id, department_id, access_level, first_name, last_name, start_date, email, shift_id, is_leaver, employee_number").not("employee_number", "is", null),
         supabase.from("roles").select("id, title, department_id"),
         supabase.from("users").select("id, first_name, last_name, email, phone, start_date, created_at").is("employee_number", null).eq("is_leaver", false).order("created_at", { ascending: false }),
@@ -193,6 +216,11 @@ const UserManager: React.FC = () => {
       setShifts(shiftsRows || []);
 
       console.log("New starters fetched:", startersRows?.length || 0);
+
+      // Also refresh UserManagementPanel if it's active
+      if (activeTab === "people" && userPanelControls?.refreshData) {
+        userPanelControls.refreshData();
+      }
     } catch (error: any) {
       console.error("Error in fetchData:", error);
       setError(error.message || "Failed to fetch data");
@@ -597,6 +625,45 @@ const UserManager: React.FC = () => {
     }
   };
 
+  // Handle inviting a user via email
+  const handleInviteUser = async () => {
+    if (!inviteEmail.trim() || !inviteFirstName.trim() || !inviteLastName.trim()) {
+      setError("Please fill in all fields");
+      return;
+    }
+
+    try {
+      setInviteLoading(true);
+      setError("");
+
+      // Send invitation email using Supabase auth
+      const emailResult = await sendWelcomeEmail({
+        email: inviteEmail.trim(),
+        firstName: inviteFirstName.trim(),
+        lastName: inviteLastName.trim(),
+        employeeNumber: "", // No employee number yet for invited users
+        startDate: "",
+      });
+
+      setInviteDialogOpen(false);
+      setInviteEmail("");
+      setInviteFirstName("");
+      setInviteLastName("");
+
+      if (emailResult.success) {
+        setSuccessMessage(`Invitation sent successfully to ${inviteEmail}!`);
+      } else {
+        setSuccessMessage(`Invitation sent, but email may have failed: ${emailResult.error}`);
+      }
+      setShowSuccess(true);
+    } catch (error: any) {
+      console.error("Error inviting user:", error);
+      setError(error.message || "Failed to send invitation");
+    } finally {
+      setInviteLoading(false);
+    }
+  };
+
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: reassignStyles }} />
@@ -654,30 +721,38 @@ const UserManager: React.FC = () => {
                   {userPanelControls.filteredUsersCount} users
                 </span>
                 <div style={{ flex: 1 }} />
-                <TextIconButton
-                  variant="add"
-                  icon={<FiUserPlus />}
-                  label="Add User"
-                  onClick={userPanelControls.handleAddUser}
-                />
-                <TextIconButton
-                  variant="send"
-                  label="Invite User"
-                  onClick={() => console.log("Invite user")}
-                />
-                <TextIconButton
-                  icon={<FiDownload />}
-                  variant="download"
-                  label="Download CSV"
-                  onClick={userPanelControls.handleExportUsers}
-                />
+                <CustomTooltip text="Add a new user to the system">
+                  <TextIconButton
+                    variant="add"
+                    icon={<FiUserPlus />}
+                    label="Add User"
+                    onClick={userPanelControls.handleAddUser}
+                  />
+                </CustomTooltip>
+                <CustomTooltip text="Bulk assign departments, roles, or shifts to multiple users">
+                  <TextIconButton
+                    variant="edit"
+                    icon={<FiEdit />}
+                    label="Bulk Assign"
+                    onClick={userPanelControls.handleBulkAssign}
+                  />
+                </CustomTooltip>
+                <CustomTooltip text="Send joining instructions email to a new user">
+                  <TextIconButton
+                    variant="send"
+                    label="Invite User"
+                    onClick={() => setInviteDialogOpen(true)}
+                  />
+                </CustomTooltip>
+                <CustomTooltip text="Export all users to CSV file">
+                  <TextIconButton
+                    icon={<FiDownload />}
+                    variant="download"
+                    label="Download CSV"
+                    onClick={userPanelControls.handleExportUsers}
+                  />
+                </CustomTooltip>
                 {userPanelControls.UserCSVImportComponent}
-                <TextIconButton
-                  variant="edit"
-                  icon={<FiEdit />}
-                  label="Bulk Assign"
-                  onClick={userPanelControls.handleBulkAssign}
-                />
                 <label style={{ fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                   Rows:
                   <select
@@ -773,8 +848,20 @@ const UserManager: React.FC = () => {
             )}
             {activeTab === "rolehistory" && roleHistoryControls && (
               <>
+                <input
+                  type="search"
+                  className="neon-input"
+                  placeholder="Search role history..."
+                  value={roleHistoryControls.searchTerm}
+                  onChange={(e) => roleHistoryControls.setSearchTerm(e.target.value)}
+                  style={{
+                    width: '250px',
+                    height: '32px',
+                    margin: 0
+                  }}
+                />
                 <span style={{ opacity: 0.7, fontSize: '0.875rem' }}>
-                  {roleHistoryControls.roleHistoryCount} entries
+                  {roleHistoryControls.filteredCount} of {roleHistoryControls.roleHistoryCount} entries
                 </span>
                 <div style={{ flex: 1 }} />
                 <TextIconButton
@@ -819,7 +906,16 @@ const UserManager: React.FC = () => {
                 <TextIconButton
                   variant="refresh"
                   label="Refresh"
-                  onClick={fetchData}
+                  onClick={() => {
+                    fetchData();
+                    // Also refresh the RoleStructure or ManagerStructure component if it's mounted
+                    if (structureView === 'role' && (window as any).refreshRoleStructure) {
+                      (window as any).refreshRoleStructure();
+                    }
+                    if (structureView === 'manager' && (window as any).refreshManagerStructure) {
+                      (window as any).refreshManagerStructure();
+                    }
+                  }}
                 />
               </>
             )}
@@ -833,9 +929,12 @@ const UserManager: React.FC = () => {
                   style={{ marginLeft: '0.5rem', width: '200px' }}
                 >
                   <option value="">Select a department...</option>
-                  {departments.map(dept => (
-                    <option key={dept.id} value={dept.id}>{dept.name}</option>
-                  ))}
+                  {[...departments]
+                    .filter(dept => dept.level !== 1)
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map(dept => (
+                      <option key={dept.id} value={dept.id}>{dept.name}</option>
+                    ))}
                 </select>
                 <div style={{ flex: 1 }} />
                 <TextIconButton
@@ -978,7 +1077,10 @@ const UserManager: React.FC = () => {
         }
       />
       {activeTab === "people" && (
-          <UserManagementPanel onControlsReady={setUserPanelControls} />
+          <UserManagementPanel
+            onControlsReady={setUserPanelControls}
+            onDataChange={fetchData}
+          />
         )}
         {activeTab === "users" && (
           loading ? (
@@ -1048,8 +1150,8 @@ const UserManager: React.FC = () => {
                         <td className="user-manager-name">{`${leaver.first_name || ""} ${leaver.last_name || ""}`.trim()}</td>
                         <td>{leaver.email}</td>
                         <td>{getDepartmentName(leaver.department_id)}</td>
-                        <td>{leaver.start_date || "—"}</td>
-                        <td>{leaver.leaver_date || "—"}</td>
+                        <td>{formatDateUK(leaver.start_date)}</td>
+                        <td>{formatDateUK(leaver.leaver_date)}</td>
                         <td>{leaver.leaver_reason || "—"}</td>
                         <td>
                           <div className="user-manager-actions-cell">
@@ -1106,8 +1208,8 @@ const UserManager: React.FC = () => {
                         <td className="user-manager-name">{`${starter.first_name || ""} ${starter.last_name || ""}`.trim()}</td>
                         <td>{starter.email}</td>
                         <td>{starter.phone}</td>
-                        <td>{starter.start_date || "—"}</td>
-                        <td>{new Date(starter.created_at).toLocaleDateString()}</td>
+                        <td>{formatDateUK(starter.start_date)}</td>
+                        <td>{formatDateUK(starter.created_at)}</td>
                         <td>
                           <div className="user-manager-actions-cell">
                             <TextIconButton
@@ -1235,7 +1337,6 @@ const UserManager: React.FC = () => {
             user={selectedUser}
             departments={departments}
             onSave={handleSaveUser}
-            onCancel={handleCloseDialog}
             isAddMode={isAddMode}
             isDepartmentOnlyMode={isDepartmentOnlyMode}
           />
@@ -1288,17 +1389,6 @@ const UserManager: React.FC = () => {
             </div>
 
             <div className="user-manager-form-actions">
-              <TextIconButton
-                variant="secondary"
-                label="Cancel"
-                onClick={() => {
-                  setAssignDialogOpen(false);
-                  setSelectedStarter(null);
-                  setEmployeeNumber("");
-                  setError("");
-                }}
-                disabled={assignLoading}
-              />
               <TextIconButton
                 variant="primary"
                 label={assignLoading ? "Assigning..." : "Assign & Send Welcome Email"}
@@ -1378,17 +1468,6 @@ const UserManager: React.FC = () => {
 
             <div className="user-manager-form-actions">
               <TextIconButton
-                variant="secondary"
-                label="Cancel"
-                onClick={() => {
-                  setReassignDialogOpen(false);
-                  setSelectedLeaver(null);
-                  setReassignMode(null);
-                  setError("");
-                }}
-                disabled={loading}
-              />
-              <TextIconButton
                 variant="primary"
                 label={loading ? "Processing..." : "Continue"}
                 onClick={() => {
@@ -1405,6 +1484,84 @@ const UserManager: React.FC = () => {
             </div>
           </div>
         )}
+      </OverlayDialog>
+
+      {/* Invite User Dialog */}
+      <OverlayDialog
+        showCloseButton={true}
+        open={inviteDialogOpen}
+        onClose={() => {
+          setInviteDialogOpen(false);
+          setInviteEmail("");
+          setInviteFirstName("");
+          setInviteLastName("");
+          setError("");
+        }}
+        ariaLabelledby="invite-user-title"
+      >
+        <div className="neon-form-title user-manager-dialog-title" id="invite-user-title">
+          Invite User
+        </div>
+
+        {error && (
+          <div className="neon-error-message user-manager-dialog-error">
+            {error}
+          </div>
+        )}
+
+        <div className="user-manager-form">
+          <div style={{ marginBottom: "1.5rem", padding: "1rem", background: "rgba(64, 224, 208, 0.1)", borderRadius: "8px" }}>
+            <p style={{ margin: "0.25rem 0", fontSize: "0.9rem" }}>
+              Send a joining instructions email to invite a new user to the system. They will receive an email with a link to set up their account.
+            </p>
+          </div>
+
+          <div className="user-manager-form-field">
+            <label htmlFor="invite_first_name">First Name *</label>
+            <input
+              id="invite_first_name"
+              type="text"
+              value={inviteFirstName}
+              onChange={(e) => setInviteFirstName(e.target.value)}
+              placeholder="Enter first name"
+              autoFocus
+            />
+          </div>
+
+          <div className="user-manager-form-field">
+            <label htmlFor="invite_last_name">Last Name *</label>
+            <input
+              id="invite_last_name"
+              type="text"
+              value={inviteLastName}
+              onChange={(e) => setInviteLastName(e.target.value)}
+              placeholder="Enter last name"
+            />
+          </div>
+
+          <div className="user-manager-form-field">
+            <label htmlFor="invite_email">Email Address *</label>
+            <input
+              id="invite_email"
+              type="email"
+              value={inviteEmail}
+              onChange={(e) => setInviteEmail(e.target.value)}
+              placeholder="Enter email address"
+            />
+            <small style={{ color: "#40e0d0", fontSize: "0.75rem", marginTop: "0.25rem", display: "block" }}>
+              An invitation email with joining instructions will be sent to this address.
+            </small>
+          </div>
+
+          <div className="user-manager-form-actions">
+            <TextIconButton
+              variant="primary"
+              label={inviteLoading ? "Sending..." : "Send Invitation"}
+              onClick={handleInviteUser}
+              disabled={inviteLoading || !inviteEmail.trim() || !inviteFirstName.trim() || !inviteLastName.trim()}
+            />
+          </div>
+        </div>
       </OverlayDialog>
 
       {/* Success Modal */}
@@ -1426,12 +1583,11 @@ interface UserEditFormProps {
   user: any;
   departments: any[];
   onSave: (userData: any) => void;
-  onCancel: () => void;
   isAddMode: boolean;
   isDepartmentOnlyMode?: boolean;
 }
 
-function UserEditForm({ user, departments, onSave, onCancel, isAddMode, isDepartmentOnlyMode }: UserEditFormProps) {
+function UserEditForm({ user, departments, onSave, isAddMode, isDepartmentOnlyMode }: UserEditFormProps) {
   const [formData, setFormData] = useState({
     first_name: user.first_name || '',
     last_name: user.last_name || '',
@@ -1479,11 +1635,6 @@ function UserEditForm({ user, departments, onSave, onCancel, isAddMode, isDepart
         </div>
 
         <div className="user-manager-form-actions">
-          <TextIconButton
-            variant="secondary"
-            label="Cancel"
-            onClick={onCancel}
-          />
           <TextIconButton
             variant="primary"
             label="Assign Department"
@@ -1564,11 +1715,6 @@ function UserEditForm({ user, departments, onSave, onCancel, isAddMode, isDepart
       </div>
 
       <div className="user-manager-form-actions">
-        <TextIconButton
-          variant="secondary"
-          label="Cancel"
-          onClick={onCancel}
-        />
         <TextIconButton
           variant="primary"
           label={isAddMode ? 'Add User' : 'Save Changes'}

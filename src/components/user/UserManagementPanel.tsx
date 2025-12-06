@@ -91,11 +91,13 @@ interface UserManagementPanelProps {
     showLeavers: boolean;
     setShowLeavers: (val: boolean) => void;
     UserCSVImportComponent: React.ReactNode;
+    refreshData: () => void; // Add refresh function to controls
   }) => void;
+  onDataChange?: () => void; // Callback when data is modified
 }
 
 // ---------------------- Main component ----------------------
-export default function UserManagementPanel({ onControlsReady }: UserManagementPanelProps) {
+export default function UserManagementPanel({ onControlsReady, onDataChange }: UserManagementPanelProps) {
   useUser();
   const [users, setUsers] = useState<User[]>([]);
   const [departments, setDepartments] = useState<{ id: string; name: string }[]>([]);
@@ -171,24 +173,8 @@ export default function UserManagementPanel({ onControlsReady }: UserManagementP
 
   // Handler for successful dept/role change
   const handleDeptRoleSuccess = async () => {
-    // Refresh users list
-    const { data: refreshedUsers } = await supabase.from("users").select("*, shift_id");
-    if (refreshedUsers) {
-      const usersWithNames = refreshedUsers.map((user) => {
-        const role = roles.find((role) => role.id === user.role_id);
-        const department = departments.find((dept) => dept.id === user.department_id);
-        return {
-          ...user,
-          access_level: typeof user.access_level === "string" ? user.access_level : String(user.access_level ?? "User"),
-          shift_name: shiftPatterns?.find((sp) => sp.id === user.shift_id)?.name || "",
-          shift_id: user.shift_id || "",
-          role_title: role ? role.title : "—",
-          department_name: department ? department.name : "—",
-          receive_notifications: user.receive_notifications === true
-        };
-      });
-      setUsers(usersWithNames);
-    }
+    // Refresh all data to get updated users, departments, roles, and shifts
+    await refreshAllData();
     // Also update selectedUser if it's still open
     if (selectedUser && deptRoleUser && selectedUser.id === deptRoleUser.id) {
       const updatedUser = await supabase
@@ -200,6 +186,8 @@ export default function UserManagementPanel({ onControlsReady }: UserManagementP
         setSelectedUser({ ...selectedUser, ...updatedUser.data });
       }
     }
+    // Notify parent component of data change
+    onDataChange?.();
   };
 
   // Debug: log users and search value
@@ -255,6 +243,48 @@ export default function UserManagementPanel({ onControlsReady }: UserManagementP
     // Reset to first page if filter/search changes
     setCurrentPage(1);
   }, [userSearch, showLeavers, pageSize, bulkDeptFilter, bulkShiftFilter]);
+
+  // Centralized function to refresh all data
+  const refreshAllData = async () => {
+    try {
+      const [
+        { data: u, error: userErr },
+        { data: d, error: deptErr },
+        { data: r, error: roleErr },
+        { data: s, error: shiftErr }
+      ] = await Promise.all([
+        supabase.from("users").select("*, shift_id"),
+        supabase.from("departments").select("id, name"),
+        supabase.from("roles").select("id, title, department_id"),
+        supabase.from("shift_patterns").select("id, name")
+      ]);
+      if (userErr || deptErr || roleErr || shiftErr) {
+        setErrorMsg("Failed to load data. Please check your connection and try again.");
+        return;
+      }
+      // Ensure access_level is always a string and present
+      const usersWithNames = (u || []).map((user) => {
+        const role = r?.find((role) => role.id === user.role_id);
+        const department = d?.find((dept) => dept.id === user.department_id);
+        return {
+          ...user,
+          access_level: typeof user.access_level === "string" ? user.access_level : String(user.access_level ?? "User"),
+          shift_name: s?.find((sp) => sp.id === user.shift_id)?.name || "",
+          shift_id: user.shift_id || "",
+          role_title: role ? role.title : "—",
+          department_name: department ? department.name : "—",
+          receive_notifications: user.receive_notifications === true
+        };
+      });
+      setUsers(usersWithNames);
+      setDepartments(d || []);
+      setRoles(r || []);
+      setShiftPatterns(s || []);
+    } catch (err) {
+      setErrorMsg("Unexpected error loading users.");
+      console.error("[UserManagementPanel] Unexpected error loading users:", err);
+    }
+  };
 
   // Expose controls to parent component
   useEffect(() => {
@@ -319,8 +349,9 @@ export default function UserManagementPanel({ onControlsReady }: UserManagementP
               }
               try {
                 await supabase.from("users").upsert(validUsers, { onConflict: "id" });
-                const { data: u } = await supabase.from("users").select("*");
-                setUsers(u || []);
+                await refreshAllData();
+                // Notify parent component of data change
+                onDataChange?.();
                 setShowSuccess(true);
                 setTimeout(() => setShowSuccess(false), 1000);
                 if (validUsers.length < usersToImport.length) {
@@ -334,7 +365,8 @@ export default function UserManagementPanel({ onControlsReady }: UserManagementP
             }}
             onError={setErrorMsg}
           />
-        )
+        ),
+        refreshData: refreshAllData
       });
     }
   }, [userSearch, filteredUsers.length, pageSize, currentPage, totalPages, showLeavers, onControlsReady]);
@@ -342,66 +374,10 @@ export default function UserManagementPanel({ onControlsReady }: UserManagementP
   useEffect(() => {
     setLoading(true);
     const load = async () => {
-      try {
-        const [
-          { data: u, error: userErr },
-          { data: d, error: deptErr },
-          { data: r, error: roleErr },
-          { data: s, error: shiftErr }
-        ] = await Promise.all([
-          supabase.from("users").select("*, shift_id"),
-          supabase.from("departments").select("id, name"),
-          supabase.from("roles").select("id, title, department_id"),
-          supabase.from("shift_patterns").select("id, name")
-        ]);
-        if (userErr || deptErr || roleErr || shiftErr) {
-          setErrorMsg("Failed to load data. Please check your connection and try again.");
-          return;
-        }
-        // Ensure access_level is always a string and present
-        const usersWithNames = (u || []).map((user) => {
-          const role = r?.find((role) => role.id === user.role_id);
-          const department = d?.find((dept) => dept.id === user.department_id);
-          return {
-            ...user,
-            access_level: typeof user.access_level === "string" ? user.access_level : String(user.access_level ?? "User"),
-            shift_name: s?.find((sp) => sp.id === user.shift_id)?.name || "",
-            shift_id: user.shift_id || "",
-            role_title: role ? role.title : "—",
-            department_name: department ? department.name : "—",
-            receive_notifications: user.receive_notifications === true
-          };
-        });
-        setUsers(usersWithNames);
-        setDepartments(d || []);
-        setRoles(r || []);
-        setShiftPatterns(s || []);
-      } catch (err) {
-        setErrorMsg("Unexpected error loading users.");
-        console.error("[UserManagementPanel] Unexpected error loading users:", err);
-      } finally {
-        setLoading(false);
-      }
+      await refreshAllData();
+      setLoading(false);
     };
     load();
-  }, []);
-
-  useEffect(() => {
-    async function fetchUsersAndShifts() {
-      const { data: usersData } = await supabase.from("users").select("*");
-      const { data: shiftPatternsData } = await supabase.from("shift_patterns").select("*");
-      // Map shift name to each user
-      const usersWithShiftName = (usersData || []).map((user: any) => {
-        const shift = (shiftPatternsData || []).find((s: any) => s.id === user.shift_id);
-        return {
-          ...user,
-          shift_name: shift ? shift.name : "—"
-        };
-      });
-      setUsers(usersWithShiftName);
-      setShiftPatterns(shiftPatternsData || []);
-    }
-    fetchUsersAndShifts();
   }, []);
 
   const handleOpenDialog = (user: User, addMode = false, opener?: HTMLElement | null) => {
@@ -461,9 +437,10 @@ export default function UserManagementPanel({ onControlsReady }: UserManagementP
       prevUsers.map((u) => (bulkSelectedUserIds.includes(u.id) ? { ...u, ...updateObj } : u))
     );
     await supabase.from("users").update(updateObj).in("id", bulkSelectedUserIds);
-    // Immediately refresh users from supabase for consistency
-    const { data: refreshedUsers } = await supabase.from("users").select("*, shift_id");
-    setUsers(refreshedUsers || []);
+    // Immediately refresh all data from supabase for consistency
+    await refreshAllData();
+    // Notify parent component of data change
+    onDataChange?.();
     setShowSuccess(true);
     setBulkAssignOpen(false);
     setBulkAssignLoading(false);
@@ -674,27 +651,10 @@ export default function UserManagementPanel({ onControlsReady }: UserManagementP
         // This ensures proper history tracking and assignment syncing
       }
       setShowSuccess(true);
-      // Optimistically update the table before re-fetching from supabase
-      if (isAddMode) {
-        setUsers((prev) => [...prev, cleanedUser]);
-      } else {
-        setUsers((prev) => prev.map((u) => (u.id === cleanedUser.id ? { ...u, ...cleanedUser } : u)));
-      }
-      // Immediately refresh users from supabase after save
-      const { data: refreshedUsers, error: fetchError } = await supabase.from("users").select("*, shift_id");
-      if (fetchError) {
-        setErrorMsg("Failed to fetch users after save: " + fetchError.message);
-        setSaving(false);
-        return;
-      }
-      if (!refreshedUsers) {
-        setErrorMsg("No users returned from fetch after save.");
-        setSaving(false);
-        return;
-      }
-      // Debug: log the updated users
-      console.log("[handleSave] Refreshed users after save:", refreshedUsers);
-      setUsers(refreshedUsers);
+      // Immediately refresh all data from supabase after save
+      await refreshAllData();
+      // Notify parent component of data change
+      onDataChange?.();
       setTimeout(() => {
         setShowSuccess(false);
         handleCloseDialog();
@@ -1577,8 +1537,8 @@ export default function UserManagementPanel({ onControlsReady }: UserManagementP
                 marginTop: "2rem"
               }}
             >
-              {/* Register as Leaver button, only if not already a leaver */}
-              {!selectedUser?.is_leaver && (
+              {/* Register as Leaver button, only if editing (not adding) and not already a leaver */}
+              {!isAddMode && !selectedUser?.is_leaver && (
                 <CustomTooltip text="Mark this user as having left the company">
                   <TextIconButton
                     variant="archive"
@@ -1623,16 +1583,6 @@ export default function UserManagementPanel({ onControlsReady }: UserManagementP
                   disabled={saving}
                 />
               </CustomTooltip>
-              <CustomTooltip text="Cancel changes and close dialog">
-                <TextIconButton
-                  variant="close"
-                  icon={<FiX />}
-                  label="Cancel"
-                  type="button"
-                  onClick={handleCloseDialog}
-                  className="neon-btn-close"
-                />
-              </CustomTooltip>
             </div>
           </OverlayDialog>
 
@@ -1666,6 +1616,7 @@ export default function UserManagementPanel({ onControlsReady }: UserManagementP
               open={deptRoleDialogOpen}
               onClose={() => setDeptRoleDialogOpen(false)}
               ariaLabelledby="dept-role-manager-title"
+              compactHeight={true}
             >
               <DepartmentRoleManager
                 user={deptRoleUser}
@@ -1756,14 +1707,6 @@ export default function UserManagementPanel({ onControlsReady }: UserManagementP
                     </div>
                   </div>
                   <div className="neon-dialog-actions">
-                    <CustomTooltip text="Cancel bulk assignment and close dialog">
-                      <TextIconButton
-                        variant="close"
-                        icon={<FiX />}
-                        label="Cancel"
-                        onClick={handleBulkAssignCancel}
-                      />
-                    </CustomTooltip>
                     <CustomTooltip text="Proceed to configure selected assignment type">
                       <TextIconButton
                         variant="next"
