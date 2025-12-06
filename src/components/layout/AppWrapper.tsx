@@ -10,6 +10,7 @@ import DynamicToolbar from "@/components/ui-toolbars/DynamicToolbar";
 import GlobalSearchModal from "@/components/ui/GlobalSearchModal";
 import AuthListener from "@/app/AuthListener";
 import RaiseIssueModalProvider from "@/components/layout/RaiseIssueModalProvider";
+import InactivityLogoutManager from "@/components/auth/InactivityLogoutManager";
 
 interface AppWrapperProps {
   children: ReactNode;
@@ -30,6 +31,11 @@ export default function AppWrapper({ children }: AppWrapperProps) {
           <RaiseIssueModalProvider>
             <AuthListener />
             <GlobalSearchModal />
+            <InactivityLogoutManager
+              timeoutMinutes={30}
+              warningSeconds={60}
+              enabled={!isLogin}
+            />
             {isHomepage ? (
               // Homepage: Header only, no app-shell wrapper, no toolbar (layout handles footer)
               <>
