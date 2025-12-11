@@ -77,7 +77,6 @@ export async function POST(req: NextRequest) {
       for (const assignment of fullDeptAssignments) {
         userAssignments.push({
           auth_id: user.auth_id,
-          assignment_id: assignment.id,  // Reference to department_assignments
           item_id: assignment.item_id,
           item_type: assignment.type,
           due_at: new Date().toISOString()

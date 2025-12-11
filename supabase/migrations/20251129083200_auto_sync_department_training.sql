@@ -27,8 +27,8 @@ BEGIN
     WHERE department_id = dept_id
   LOOP
     -- Insert user assignment if it doesn't already exist
-    INSERT INTO user_assignments (auth_id, assignment_id, item_id, item_type, due_at)
-    VALUES (NEW.auth_id, assignment_record.id, assignment_record.item_id, assignment_record.type, NOW())
+    INSERT INTO user_assignments (auth_id, item_id, item_type, due_at)
+    VALUES (NEW.auth_id, assignment_record.item_id, assignment_record.type, NOW())
     ON CONFLICT (auth_id, item_id, item_type) DO NOTHING;
   END LOOP;
 
@@ -65,9 +65,8 @@ BEGIN
       SELECT auth_id FROM users WHERE role_id = role_record.id AND auth_id IS NOT NULL
     LOOP
       -- Insert user assignment if it doesn't already exist
-      -- NEW.id is the department_assignments.id that was just inserted
-      INSERT INTO user_assignments (auth_id, assignment_id, item_id, item_type, due_at)
-      VALUES (user_record.auth_id, NEW.id, NEW.item_id, NEW.type, NOW())
+      INSERT INTO user_assignments (auth_id, item_id, item_type, due_at)
+      VALUES (user_record.auth_id, NEW.item_id, NEW.type, NOW())
       ON CONFLICT (auth_id, item_id, item_type) DO NOTHING;
     END LOOP;
   END LOOP;

@@ -23,11 +23,17 @@ export default function SearchableMultiSelect<T extends Record<string, any>>({
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Filter options based on search term
-  const filteredOptions = options.filter((option) => {
-    const label = String(option[labelKey] || "").toLowerCase();
-    return label.includes(searchTerm.toLowerCase());
-  });
+  // Filter options based on search term and sort alphabetically
+  const filteredOptions = options
+    .filter((option) => {
+      const label = String(option[labelKey] || "").toLowerCase();
+      return label.includes(searchTerm.toLowerCase());
+    })
+    .sort((a, b) => {
+      const labelA = String(a[labelKey] || "").toLowerCase();
+      const labelB = String(b[labelKey] || "").toLowerCase();
+      return labelA.localeCompare(labelB);
+    });
 
   // Handle click outside to close dropdown
   useEffect(() => {

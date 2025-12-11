@@ -39,8 +39,16 @@ type User = {
   department_id: string | null;
 };
 
-export default function RiskAssessmentManager() {
-  const [mode, setMode] = useState<"list" | "create" | "edit" | "assign">(
+type RiskAssessmentManagerProps = {
+  createAction?: "create" | null;
+  onActionComplete?: () => void;
+};
+
+export default function RiskAssessmentManager({
+  createAction,
+  onActionComplete
+}: RiskAssessmentManagerProps = {}) {
+  const [mode, setMode] = useState<"list" | "create" | "edit" | "assign" | "clone">(
     "list",
   );
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -77,11 +85,22 @@ export default function RiskAssessmentManager() {
     fetchData();
   }, []);
 
+  // Handle external create action trigger
   useEffect(() => {
-    if (mode === "edit" && selectedId) {
+    if (createAction === "create") {
+      setMode("create");
+      if (onActionComplete) {
+        onActionComplete();
+      }
+    }
+  }, [createAction, onActionComplete]);
+
+  useEffect(() => {
+    if ((mode === "edit" || mode === "clone") && selectedId) {
       const selected = riskAssessments.find((r) => r.id === selectedId);
       if (selected) {
-        setTitle(selected.title);
+        // For clone mode, add "Copy of " prefix to the title
+        setTitle(mode === "clone" ? `Copy of ${selected.title}` : selected.title);
         setDescription(selected.description);
         setSeverity(selected.severity);
         setLikelihood(selected.likelihood || 3);
@@ -193,8 +212,9 @@ export default function RiskAssessmentManager() {
       created_by: null,
     };
 
+    // Clone mode creates a new entry, edit mode updates existing
     const query =
-      mode === "create"
+      mode === "create" || mode === "clone"
         ? supabase.from("turkus_risks").insert(payload)
         : supabase.from("turkus_risks").update(payload).eq("id", selectedId);
 
@@ -378,6 +398,14 @@ export default function RiskAssessmentManager() {
                     }}
                   />
                   <TextIconButton
+                    variant="copy"
+                    label="Clone"
+                    onClick={() => {
+                      setMode("clone");
+                      setSelectedId(risk.id);
+                    }}
+                  />
+                  <TextIconButton
                     variant="assign"
                     label="Assign"
                     onClick={() => {
@@ -394,7 +422,7 @@ export default function RiskAssessmentManager() {
       )}
 
       <OverlayDialog showCloseButton={true}
-        open={mode === "create" || mode === "edit"}
+        open={mode === "create" || mode === "edit" || mode === "clone"}
         onClose={handleCancel}
         ariaLabelledby="risk-assessment-form-title"
       >
@@ -402,6 +430,8 @@ export default function RiskAssessmentManager() {
           title={
             mode === "create"
               ? "Create Risk Assessment"
+              : mode === "clone"
+              ? "Clone Risk Assessment"
               : "Edit Risk Assessment"
           }
           onSubmit={handleSubmit}

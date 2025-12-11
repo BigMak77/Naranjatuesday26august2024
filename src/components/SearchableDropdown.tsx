@@ -45,9 +45,9 @@ export default function SearchableDropdown({
 
   // Determine which search string to use based on mode
   const activeSearch = (multi ? modalQuery : query).toLowerCase();
-  const filteredOptions = options.filter((opt) =>
-    opt.label.toLowerCase().includes(activeSearch)
-  );
+  const filteredOptions = options
+    .filter((opt) => opt.label.toLowerCase().includes(activeSearch))
+    .sort((a, b) => a.label.localeCompare(b.label));
 
   const handleSelect = (val: string) => {
     if (multi) {

@@ -48,7 +48,7 @@ export type LogTrainingPayload = {
   date: string; // ISO yyyy-mm-dd
   topic: string; // module_id or human topic
   duration_hours: number;
-  outcome: "completed" | "needs-followup";
+  outcome: "completed" | "needs_improvement" | "failed";
   notes?: string | null;
   signature: string; // base64 PNG dataURL
   assignment_id?: string | null;
@@ -210,9 +210,17 @@ const SignatureBox = React.memo(function SignatureBox({
             type="button"
             onClick={handleClear}
             disabled={disabled}
-            className="neon-btn neon-btn-danger neon-btn-utility neon-btn-global"
+            className="neon-btn neon-btn-back"
+            style={{
+              padding: '8px',
+              fontSize: '0.875rem',
+              minWidth: 'auto',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
           >
-            Clear
+            <FiX size={18} />
           </button>
         </CustomTooltip>
       </div>
@@ -852,13 +860,17 @@ export default function TrainerRecordingPage() {
       alert("Please select a module.");
       return;
     }
-    if (!form.learnerSignature.trim()) {
-      alert("Please provide the learner's e-signature.");
-      return;
-    }
-    if (!form.trainerSignature.trim()) {
-      alert("Please provide the trainer's e-signature.");
-      return;
+
+    // Only require signatures for satisfactory completion
+    if (form.outcome === "completed") {
+      if (!form.learnerSignature.trim()) {
+        alert("Please provide the learner's e-signature for satisfactory training completion.");
+        return;
+      }
+      if (!form.trainerSignature.trim()) {
+        alert("Please provide the trainer's e-signature for satisfactory training completion.");
+        return;
+      }
     }
 
     setBusy(true);
@@ -881,8 +893,9 @@ export default function TrainerRecordingPage() {
           duration_hours: Number(form.durationHours) || 1,
           outcome: form.outcome,
           notes: form.notes?.trim() || null,
-          signature: form.learnerSignature,
-          trainer_signature: form.trainerSignature,
+          // Only include signatures for satisfactory completion
+          signature: form.outcome === "completed" ? form.learnerSignature : null,
+          trainer_signature: form.outcome === "completed" ? form.trainerSignature : null,
           // assignment_id: assignment?.id ?? null,               // uncomment if column exists
         },
       ]);
@@ -918,43 +931,49 @@ export default function TrainerRecordingPage() {
         }
       }
 
-      // 3) Record completion using the proper API (handles follow-up dates, permanent records, etc.)
-      if (form.outcome === "completed") {
-        console.log("📚 Recording training completion via API...");
-        console.log("📅 Training date from form:", form.date);
-        console.log("🔍 Date type:", typeof form.date);
-        console.log("🔍 Full form state:", form);
-        try {
-          const payload = {
-            auth_id: openFor.auth_id,
-            item_id: selectedModuleId,
-            item_type: 'module',
-            completed_date: form.date // Pass the actual training date for follow-up calculation
-          };
-          console.log("🔍 Sending payload to API:", payload);
+      // 3) Record completion or outcome using the proper API
+      console.log("📚 Recording training outcome via API...");
+      console.log("📅 Training date from form:", form.date);
+      console.log("📊 Training outcome:", form.outcome);
 
-          const response = await fetch('/api/record-training-completion', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload)
-          });
+      try {
+        const payload = {
+          auth_id: openFor.auth_id,
+          item_id: selectedModuleId,
+          item_type: 'module',
+          completed_date: form.date, // Pass the actual training date
+          training_outcome: form.outcome // Pass the outcome: completed, needs_improvement, or failed
+        };
+        console.log("🔍 Sending payload to API:", payload);
 
-          if (!response.ok) {
-            const error = await response.json();
-            console.error("❌ API error:", error);
-            throw new Error(error.error || 'Failed to record completion');
-          }
+        const response = await fetch('/api/record-training-completion', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload)
+        });
 
-          const result = await response.json();
-          console.log("✅ Completion recorded successfully:", result);
-        } catch (apiError) {
-          console.error("❌ Failed to record completion via API:", apiError);
-          alert("Training logged but completion may not be fully recorded. Please check the assignment status.");
+        if (!response.ok) {
+          const error = await response.json();
+          console.error("❌ API error:", error);
+          throw new Error(error.error || 'Failed to record training outcome');
         }
-      } else {
-        console.log("ℹ️ Outcome is 'needs-followup', not marking as completed");
+
+        const result = await response.json();
+        console.log("✅ Training outcome recorded successfully:", result);
+
+        // Show appropriate message based on outcome
+        if (form.outcome === "completed") {
+          console.log("✅ Training completed satisfactorily");
+        } else if (form.outcome === "needs_improvement") {
+          console.log("⚠️ Training requires improvement - assignment remains open");
+        } else if (form.outcome === "failed") {
+          console.log("❌ Training failed - assignment remains open for re-training");
+        }
+      } catch (apiError) {
+        console.error("❌ Failed to record training outcome via API:", apiError);
+        alert("Training logged but outcome may not be fully recorded. Please check the assignment status.");
       }
 
       // Refresh the user list if training was completed
@@ -1488,7 +1507,6 @@ export default function TrainerRecordingPage() {
                 e.preventDefault();
                 submitLog();
               }}
-              onCancel={() => !busy && setOpenFor(null)}
             >
               <span className="font-body font-medium opacity-75 mb-2 block">
                 Today: {new Date().toLocaleDateString()}
@@ -1556,7 +1574,7 @@ export default function TrainerRecordingPage() {
                 </label>
 
                 <label className="grid gap-1">
-                  <span className="text-base font-body font-medium opacity-80">Outcome</span>
+                  <span className="text-base font-body font-medium opacity-80">Training Outcome</span>
                   <select
                     className="neon-input"
                     value={form.outcome}
@@ -1568,9 +1586,15 @@ export default function TrainerRecordingPage() {
                     }
                     disabled={busy}
                   >
-                    <option value="completed">Completed</option>
-                    <option value="needs-followup">Needs follow-up</option>
+                    <option value="completed">Completed - Satisfactory</option>
+                    <option value="needs_improvement">Needs Improvement - Re-train Required</option>
+                    <option value="failed">Failed - Must Re-train</option>
                   </select>
+                  <div style={{ fontSize: "0.75rem", opacity: 0.7, marginTop: "4px" }}>
+                    {form.outcome === "completed" && "Training completed to satisfactory standard"}
+                    {form.outcome === "needs_improvement" && "Training logged but requires additional practice"}
+                    {form.outcome === "failed" && "Training not completed, immediate re-training needed"}
+                  </div>
                 </label>
               </div>
 
@@ -1588,47 +1612,67 @@ export default function TrainerRecordingPage() {
                 />
               </label>
 
-              {/* Learner E-signature field */}
-              <div className="grid gap-2 mt-3">
-                <span className="text-base font-body font-medium opacity-80">
-                  Learner E-Signature
-                </span>
-                <SignatureBox
-                  disabled={busy}
-                  onChange={handleLearnerSignatureChange}
-                />
-                {form.learnerSignature && (
-                  <div className="mt-1 bg-black/10 rounded p-2" style={{ maxWidth: '300px', maxHeight: '100px' }}>
-                    <img
-                      alt="Learner signature preview"
-                      src={form.learnerSignature}
-                      className="object-contain"
-                      style={{ maxWidth: '100%', maxHeight: '96px', display: 'block' }}
+              {/* Signature fields - only shown for satisfactory completion */}
+              {form.outcome === "completed" && (
+                <>
+                  {/* Learner E-signature field */}
+                  <div className="grid gap-2 mt-3">
+                    <span className="text-base font-body font-medium opacity-80">
+                      Learner E-Signature *
+                    </span>
+                    <SignatureBox
+                      disabled={busy}
+                      onChange={handleLearnerSignatureChange}
                     />
+                    {form.learnerSignature && (
+                      <div className="mt-1 bg-black/10 rounded p-2" style={{ maxWidth: '300px', maxHeight: '100px' }}>
+                        <img
+                          alt="Learner signature preview"
+                          src={form.learnerSignature}
+                          className="object-contain"
+                          style={{ maxWidth: '100%', maxHeight: '96px', display: 'block' }}
+                        />
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
 
-              {/* Trainer E-signature field */}
-              <div className="grid gap-2 mt-3">
-                <span className="text-base font-body font-medium opacity-80">
-                  Trainer E-Signature
-                </span>
-                <SignatureBox
-                  disabled={busy}
-                  onChange={handleTrainerSignatureChange}
-                />
-                {form.trainerSignature && (
-                  <div className="mt-1 bg-black/10 rounded p-2" style={{ maxWidth: '300px', maxHeight: '100px' }}>
-                    <img
-                      alt="Trainer signature preview"
-                      src={form.trainerSignature}
-                      className="object-contain"
-                      style={{ maxWidth: '100%', maxHeight: '96px', display: 'block' }}
+                  {/* Trainer E-signature field */}
+                  <div className="grid gap-2 mt-3">
+                    <span className="text-base font-body font-medium opacity-80">
+                      Trainer E-Signature *
+                    </span>
+                    <SignatureBox
+                      disabled={busy}
+                      onChange={handleTrainerSignatureChange}
                     />
+                    {form.trainerSignature && (
+                      <div className="mt-1 bg-black/10 rounded p-2" style={{ maxWidth: '300px', maxHeight: '100px' }}>
+                        <img
+                          alt="Trainer signature preview"
+                          src={form.trainerSignature}
+                          className="object-contain"
+                          style={{ maxWidth: '100%', maxHeight: '96px', display: 'block' }}
+                        />
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
+                </>
+              )}
+
+              {/* Info message for unsatisfactory outcomes */}
+              {(form.outcome === "needs_improvement" || form.outcome === "failed") && (
+                <div style={{
+                  marginTop: "16px",
+                  padding: "12px",
+                  background: "rgba(245, 158, 11, 0.1)",
+                  borderLeft: "3px solid #f59e0b",
+                  fontSize: "0.9rem",
+                  lineHeight: "1.5"
+                }}>
+                  <strong>Note:</strong> Signatures are not required for unsatisfactory training outcomes.
+                  This training session will be logged but the assignment will remain open for re-training.
+                </div>
+              )}
 
               {/* Associated Tests Section */}
               {associatedTests.length > 0 && (

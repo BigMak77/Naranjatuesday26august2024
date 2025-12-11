@@ -3841,11 +3841,6 @@ textarea.neon-input {
   border-top: 1px solid rgba(64, 224, 208, 0.2);
 }
 
-/* ========== NEON FORM BUTTON STYLING ========== */
-.neon-form-submit-btn {
-  /* No color overrides - uses default TextIconButton styling */
-}
-
 /* ==================================================================================
    END MISSING NEON CLASSES
    ================================================================================== */
@@ -4417,6 +4412,37 @@ textarea.neon-input {
 .text-icon-btn-secondary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Change Dept/Role button - orange variant */
+.change-dept-role-btn {
+  color: #ffa500 !important;
+  border-color: #ffa500 !important;
+  background: transparent !important;
+}
+
+.change-dept-role-btn .text-icon-btn-icon,
+.change-dept-role-btn .text-icon-btn-label {
+  color: #ffa500 !important;
+}
+
+.change-dept-role-btn:hover {
+  background: rgba(255, 165, 0, 0.1) !important;
+}
+
+/* Hide horizontal scrollbar in user management panel */
+.neon-table-scroll {
+  overflow-x: hidden !important;
+}
+
+/* Hide scrollbars globally */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, and Opera */
 }
 
 /* ==================================================================================

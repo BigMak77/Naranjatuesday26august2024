@@ -42,14 +42,13 @@ export default function EditModuleTab({ module, onSuccess }: EditModuleTabProps)
   const [name, setName] = useState(module.name || "");
   const [description, setDescription] = useState(module.description || "");
   const [version, setVersion] = useState<number>(module.version || 1);
-  const [learningObjectives, setLearningObjectives] = useState(module.learning_objectives || "");
-  const [estimatedDuration, setEstimatedDuration] = useState(module.estimated_duration || "");
+  const [estimatedDuration, setEstimatedDuration] = useState<number>(
+    module.estimated_duration ? parseInt(module.estimated_duration) : 0
+  );
   const [deliveryFormat, setDeliveryFormat] = useState(module.delivery_format || "");
-  const [targetAudience, setTargetAudience] = useState(module.target_audience || "");
   const [prerequisites, setPrerequisites] = useState<string[]>(module.prerequisites || []);
   const [tags, setTags] = useState<string[]>(module.tags || []);
   const [tagInput, setTagInput] = useState("");
-  const [thumbnailUrl, setThumbnailUrl] = useState(module.thumbnail_url || "");
   const [requiresFollowUp, setRequiresFollowUp] = useState(module.requires_follow_up || false);
   const [reviewPeriod, setReviewPeriod] = useState(module.review_period || "0");
   const [attachments, setAttachments] = useState<ModuleAttachment[]>(module.attachments || []);
@@ -59,13 +58,10 @@ export default function EditModuleTab({ module, onSuccess }: EditModuleTabProps)
     setName(module.name || "");
     setDescription(module.description || "");
     setVersion(module.version || 1);
-    setLearningObjectives(module.learning_objectives || "");
-    setEstimatedDuration(module.estimated_duration || "");
+    setEstimatedDuration(module.estimated_duration ? parseInt(module.estimated_duration) : 0);
     setDeliveryFormat(module.delivery_format || "");
-    setTargetAudience(module.target_audience || "");
     setPrerequisites(module.prerequisites || []);
     setTags(module.tags || []);
-    setThumbnailUrl(module.thumbnail_url || "");
     setRequiresFollowUp(module.requires_follow_up || false);
     setReviewPeriod(module.review_period || "0");
     setAttachments(module.attachments || []);
@@ -111,19 +107,18 @@ export default function EditModuleTab({ module, onSuccess }: EditModuleTabProps)
       setVersion(newVersion);
     }
 
+    // Note: Need to add refresh_period to state and form
     const payload = {
       name,
       description,
       version: newVersion,
-      learning_objectives: learningObjectives,
       estimated_duration: estimatedDuration,
       delivery_format: deliveryFormat,
-      target_audience: targetAudience,
       prerequisites,
       tags: tags.length > 0 ? tags : null,
-      thumbnail_url: thumbnailUrl,
       requires_follow_up: requiresFollowUp,
-      review_period: requiresFollowUp ? reviewPeriod : "0",
+      follow_up_period: requiresFollowUp ? reviewPeriod : "0",
+      // refresh_period: refreshPeriod, // TODO: Add this field to form
       attachments: attachments.length > 0 ? attachments : [],
       updated_at: new Date().toISOString(),
     };
@@ -177,88 +172,35 @@ export default function EditModuleTab({ module, onSuccess }: EditModuleTabProps)
           />
         </div>
 
-        <div className="add-module-tab-field">
-          <label className="add-module-tab-label">Learning Objectives</label>
-          <textarea
-            value={learningObjectives}
-            onChange={(e) => setLearningObjectives(e.target.value)}
-            className="add-module-tab-input neon-input"
-            rows={2}
-          />
-        </div>
-
-        <div className="add-module-tab-field">
-          <label className="add-module-tab-label">Estimated Duration</label>
-          <input
-            type="text"
-            value={estimatedDuration}
-            onChange={(e) => setEstimatedDuration(e.target.value)}
-            className="add-module-tab-input neon-input"
-            placeholder="e.g. 1h 30m"
-          />
-        </div>
-
-        <div className="add-module-tab-field">
-          <label className="add-module-tab-label">Delivery Format</label>
-          <input
-            type="text"
-            value={deliveryFormat}
-            onChange={(e) => setDeliveryFormat(e.target.value)}
-            className="add-module-tab-input neon-input"
-          />
-        </div>
-
-        <div className="add-module-tab-field">
-          <label className="add-module-tab-label">Target Audience</label>
-          <input
-            type="text"
-            value={targetAudience}
-            onChange={(e) => setTargetAudience(e.target.value)}
-            className="add-module-tab-input neon-input"
-          />
-        </div>
-
-        <div className="add-module-tab-field">
-          <label className="add-module-tab-label">Thumbnail URL</label>
-          <input
-            type="text"
-            value={thumbnailUrl}
-            onChange={(e) => setThumbnailUrl(e.target.value)}
-            className="add-module-tab-input neon-input"
-          />
-        </div>
-
-        <div className="add-module-tab-field">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '16px' }}>
+          <div className="add-module-tab-field" style={{ flex: 1 }}>
+            <label className="add-module-tab-label">Estimated Duration (minutes)</label>
             <input
-              type="checkbox"
-              id="requiresFollowUpEdit"
-              checked={requiresFollowUp}
-              onChange={(e) => {
-                const checked = e.target.checked;
-                if (checked) {
-                  setRequiresFollowUp(true);
-                  if (reviewPeriod === "0") {
-                    setReviewPeriod("1 week");
-                  }
-                  setShowFollowUpDialog(true);
-                } else {
-                  setRequiresFollowUp(false);
-                  setReviewPeriod("0");
-                  setShowFollowUpDialog(false);
-                }
-              }}
-              className="neon-checkbox"
+              type="number"
+              value={estimatedDuration}
+              onChange={(e) => setEstimatedDuration(parseInt(e.target.value) || 0)}
+              className="add-module-tab-input neon-input"
+              min="0"
+              step="1"
             />
-            <label htmlFor="requiresFollowUpEdit" className="add-module-tab-label" style={{ margin: 0 }}>
-              After completion, does this training require a follow-up assessment?
-            </label>
           </div>
-          {requiresFollowUp && (
-            <div style={{ marginTop: '8px', marginLeft: '24px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-              Review period: {reviewPeriod}
-            </div>
-          )}
+
+          <div className="add-module-tab-field" style={{ flex: 1 }}>
+            <label className="add-module-tab-label">Delivery Format</label>
+            <select
+              value={deliveryFormat}
+              onChange={(e) => setDeliveryFormat(e.target.value)}
+              className="add-module-tab-input neon-input"
+            >
+              <option value="">Select delivery format</option>
+              <option value="online/elearning">Online/eLearning</option>
+              <option value="delivered in person">Delivered in person</option>
+              <option value="read instruction">Read instruction</option>
+              <option value="step-by-step instruction">Step-by-step instruction</option>
+              <option value="classroom delivery">Classroom delivery</option>
+              <option value="delivered off-site">Delivered off-site</option>
+            </select>
+          </div>
         </div>
 
         <div className="add-module-tab-field">
@@ -295,6 +237,96 @@ export default function EditModuleTab({ module, onSuccess }: EditModuleTabProps)
               </span>
             ))}
           </div>
+        </div>
+
+        {/* Section Divider */}
+        <div style={{
+          margin: '24px 0 16px 0',
+          padding: '12px 0',
+          borderTop: '1px solid var(--border)',
+          borderBottom: '1px solid var(--border)'
+        }}>
+          <h3 style={{
+            color: 'var(--accent)',
+            fontWeight: 600,
+            fontSize: '1rem',
+            margin: 0
+          }}>
+            Review Periods & Assessment
+          </h3>
+        </div>
+
+        <div className="add-module-tab-field">
+          <label className="add-module-tab-label">Review Period</label>
+          <select
+            value={reviewPeriod}
+            onChange={(e) => setReviewPeriod(e.target.value)}
+            className="add-module-tab-input neon-input"
+          >
+            <option value="0">No review required</option>
+            <option value="1">1 month</option>
+            <option value="2">2 months</option>
+            <option value="3">3 months</option>
+            <option value="4">4 months</option>
+            <option value="5">5 months</option>
+            <option value="6">6 months</option>
+            <option value="7">7 months</option>
+            <option value="8">8 months</option>
+            <option value="9">9 months</option>
+            <option value="10">10 months</option>
+            <option value="11">11 months</option>
+            <option value="12">12 months</option>
+            <option value="12-18">12-18 months</option>
+            <option value="18">18 months</option>
+            <option value="24">24 months</option>
+            <option value="36">36 months</option>
+            <option value="48">48 months</option>
+            <option value="60">60 months</option>
+          </select>
+        </div>
+
+        <div className="add-module-tab-field">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <input
+              type="checkbox"
+              id="requiresFollowUpEdit"
+              checked={requiresFollowUp}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                if (checked) {
+                  setRequiresFollowUp(true);
+                  if (reviewPeriod === "0") {
+                    setReviewPeriod("1");
+                  }
+                  setShowFollowUpDialog(true);
+                } else {
+                  setRequiresFollowUp(false);
+                  setShowFollowUpDialog(false);
+                }
+              }}
+              className="neon-checkbox"
+            />
+            <label htmlFor="requiresFollowUpEdit" className="add-module-tab-label" style={{ margin: 0 }}>
+              After completion, does this training require a follow-up assessment?
+            </label>
+          </div>
+        </div>
+
+        {/* Section Divider */}
+        <div style={{
+          margin: '24px 0 16px 0',
+          padding: '12px 0',
+          borderTop: '1px solid var(--border)',
+          borderBottom: '1px solid var(--border)'
+        }}>
+          <h3 style={{
+            color: 'var(--accent)',
+            fontWeight: 600,
+            fontSize: '1rem',
+            margin: 0
+          }}>
+            Training Materials
+          </h3>
         </div>
 
         <div className="add-module-tab-field">

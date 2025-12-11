@@ -48,8 +48,8 @@ export default function DepartmentModuleAssignment({ onSaved }: DepartmentModule
       const { data: documentsData } = await supabase.from("documents").select("id, title");
 
       setDepartments(departmentsData || []);
-      setModules((modulesData || []).map((m: any) => ({ value: m.id, label: m.name })));
-      setDocuments((documentsData || []).map((d: any) => ({ value: d.id, label: d.title })));
+      setModules((modulesData || []).map((m: any) => ({ value: m.id, label: m.name })).sort((a, b) => a.label.localeCompare(b.label)));
+      setDocuments((documentsData || []).map((d: any) => ({ value: d.id, label: d.title })).sort((a, b) => a.label.localeCompare(b.label)));
       setLoading(false);
     }
     fetchData();
@@ -218,7 +218,7 @@ export default function DepartmentModuleAssignment({ onSaved }: DepartmentModule
                   searchPlaceholder="Search modules..."
                 />
               </div>
-              <div style={{ marginTop: 16, display: "flex", gap: "12px" }}>
+              <div style={{ marginTop: 16, display: "flex", gap: "12px", justifyContent: "flex-end" }}>
                 <TextIconButton
                   variant="next"
                   label="Next Step"
@@ -241,7 +241,7 @@ export default function DepartmentModuleAssignment({ onSaved }: DepartmentModule
                   searchPlaceholder="Search documents..."
                 />
               </div>
-              <div style={{ marginTop: 16, display: "flex", gap: "12px" }}>
+              <div style={{ marginTop: 16, display: "flex", gap: "12px", justifyContent: "space-between" }}>
                 <TextIconButton
                   variant="back"
                   label="Go Back"

@@ -254,9 +254,9 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
         { data: s, error: shiftErr }
       ] = await Promise.all([
         supabase.from("users").select("*, shift_id"),
-        supabase.from("departments").select("id, name"),
-        supabase.from("roles").select("id, title, department_id"),
-        supabase.from("shift_patterns").select("id, name")
+        supabase.from("departments").select("id, name").order("name", { ascending: true }),
+        supabase.from("roles").select("id, title, department_id").order("title", { ascending: true }),
+        supabase.from("shift_patterns").select("id, name").order("name", { ascending: true })
       ]);
       if (userErr || deptErr || roleErr || shiftErr) {
         setErrorMsg("Failed to load data. Please check your connection and try again.");
@@ -1043,7 +1043,7 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
           </div>
 
           {/* Overlaid dialog rendered via portal */}
-          <OverlayDialog showCloseButton={true} open={dialogOpen} onClose={handleCloseDialog} ariaLabelledby="user-editor-title">
+          <OverlayDialog showCloseButton={true} open={dialogOpen} onClose={handleCloseDialog} ariaLabelledby="user-editor-title" closeOnOutsideClick={false} closeOnEscape={false}>
             <div className="neon-form-title" id="user-editor-title" style={{ marginBottom: "1.25rem" }}>
               {isAddMode ? "Add User" : "Edit User"}
             </div>
@@ -1057,12 +1057,12 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
 {selectedUser && (
               <>
                 {/* PERSONAL DETAILS SECTION */}
-                <div style={{ marginBottom: "2rem" }}>
+                <div style={{ marginBottom: "1rem" }}>
                   <div
                     style={{
                       fontWeight: 600,
                       color: "#40e0d0",
-                      marginBottom: "1rem",
+                      marginBottom: "0.75rem",
                       fontSize: "1.1rem",
                       borderBottom: "2px solid rgba(64, 224, 208, 0.3)",
                       paddingBottom: "0.5rem"
@@ -1074,7 +1074,7 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
                     style={{
                       display: "grid",
                       gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                      gap: "1.5rem"
+                      gap: "1rem"
                     }}
                   >
                     {/* first_name */}
@@ -1171,11 +1171,15 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
                         }
                       >
                         <option value="">Select Nationality</option>
-                        {nationalities.map((nat: { name: string; flag: string }) => (
-                          <option key={nat.name} value={nat.name}>
-                            {nat.flag} {nat.name}
-                          </option>
-                        ))}
+                        {nationalities
+                          .sort((a: { name: string; flag: string }, b: { name: string; flag: string }) =>
+                            a.name.localeCompare(b.name)
+                          )
+                          .map((nat: { name: string; flag: string }) => (
+                            <option key={nat.name} value={nat.name}>
+                              {nat.flag} {nat.name}
+                            </option>
+                          ))}
                       </select>
                     </div>
                     {/* start_date */}
@@ -1200,134 +1204,13 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
                   </div>
                 </div>
 
-                {/* ROLE & ACCESS SECTION */}
-                <div style={{ marginBottom: "2rem" }}>
-                  <div
-                    style={{
-                      fontWeight: 600,
-                      color: "#ffa500",
-                      marginBottom: "1rem",
-                      fontSize: "1.1rem",
-                      borderBottom: "2px solid rgba(255, 165, 0, 0.3)",
-                      paddingBottom: "0.5rem"
-                    }}
-                  >
-                    Role & Access
-                  </div>
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                      gap: "1.5rem"
-                    }}
-                  >
-                    {/* department_id */}
-                    <div>
-                      <label className="neon-label" htmlFor="dept-select">
-                        Department {!isAddMode && "(read-only)"}
-                      </label>
-                      <select
-                        id="dept-select"
-                        className="neon-input"
-                        value={selectedUser.department_id || ""}
-                        onChange={(e) => {
-                          setSelectedUser({
-                            ...selectedUser,
-                            department_id: e.target.value,
-                            role_id: "" // Reset role when department changes
-                          });
-                        }}
-                        disabled={!isAddMode}
-                        style={{
-                          opacity: !isAddMode ? 0.6 : 1,
-                          cursor: !isAddMode ? "not-allowed" : "default"
-                        }}
-                      >
-                        <option value="">Select Department</option>
-                        {departments.map((d) => (
-                          <option key={d.id} value={d.id}>
-                            {d.name}
-                          </option>
-                        ))}
-                      </select>
-                      {!isAddMode && (
-                        <div style={{ fontSize: "0.85rem", color: "#ffa500", marginTop: "0.5rem" }}>
-                          Use "Change Dept/Role" button to modify
-                        </div>
-                      )}
-                    </div>
-                    {/* role_id */}
-                    <div>
-                      <label className="neon-label" htmlFor="role-select">
-                        Role {!isAddMode && "(read-only)"}
-                      </label>
-                      <select
-                        id="role-select"
-                        className="neon-input"
-                        value={selectedUser.role_id || ""}
-                        onChange={(e) =>
-                          setSelectedUser({
-                            ...selectedUser,
-                            role_id: e.target.value
-                          })
-                        }
-                        disabled={!isAddMode || !selectedUser.department_id}
-                        style={{
-                          opacity: !isAddMode ? 0.6 : 1,
-                          cursor: !isAddMode ? "not-allowed" : "default"
-                        }}
-                      >
-                        <option value="">Select Role</option>
-                        {roles
-                          .filter((r) => r.department_id === selectedUser.department_id)
-                          .map((r) => (
-                            <option key={r.id} value={r.id}>
-                              {r.title}
-                            </option>
-                          ))}
-                      </select>
-                      {!isAddMode && (
-                        <div style={{ fontSize: "0.85rem", color: "#ffa500", marginTop: "0.5rem" }}>
-                          Use "Change Dept/Role" button to modify
-                        </div>
-                      )}
-                    </div>
-                    {/* access_level */}
-                    <div>
-                      <label className="neon-label" htmlFor="access-select">
-                        Access Level
-                      </label>
-                      <select
-                        id="access-select"
-                        className="neon-input"
-                        value={selectedUser.access_level || "User"}
-                        onChange={(e) =>
-                          setSelectedUser({
-                            ...selectedUser,
-                            access_level: e.target.value
-                          })
-                        }
-                      >
-                        <option value="Super Admin">Super Admin - System owners, full access</option>
-                        <option value="Admin">Admin - IT administrators</option>
-                        <option value="HR Admin">HR Admin - Human Resources team</option>
-                        <option value="H&S Admin">H&S Admin - Health & Safety officers</option>
-                        <option value="Dept. Manager">Dept. Manager - Department managers (see all shifts)</option>
-                        <option value="Manager">Manager - Shift managers (see only their shift)</option>
-                        <option value="Trainer">Trainer - Training coordinators</option>
-                        <option value="User">User - Regular employees</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
                 {/* WORK DETAILS SECTION */}
-                <div style={{ marginBottom: "2rem" }}>
+                <div style={{ marginBottom: "1rem" }}>
                   <div
                     style={{
                       fontWeight: 600,
                       color: "#39ff14",
-                      marginBottom: "1rem",
+                      marginBottom: "0.75rem",
                       fontSize: "1.1rem",
                       borderBottom: "2px solid rgba(57, 255, 20, 0.3)",
                       paddingBottom: "0.5rem"
@@ -1339,7 +1222,7 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
                     style={{
                       display: "grid",
                       gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-                      gap: "1.5rem"
+                      gap: "1rem"
                     }}
                   >
                     {/* shift_id */}
@@ -1434,14 +1317,146 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
                   </div>
                 </div>
 
+                {/* ROLE & ACCESS SECTION */}
+                <div style={{ marginBottom: "1rem" }}>
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      color: "#ffa500",
+                      marginBottom: "0.75rem",
+                      fontSize: "1.1rem",
+                      borderBottom: "2px solid rgba(255, 165, 0, 0.3)",
+                      paddingBottom: "0.5rem",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "1rem"
+                    }}
+                  >
+                    <span>Role & Access</span>
+                    {!isAddMode && (
+                      <span style={{ fontSize: "0.85rem", fontStyle: "italic", fontWeight: 400, opacity: 0.8 }}>
+                        Use "Change Dept/Role" button to modify
+                      </span>
+                    )}
+                  </div>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                      gap: "1rem"
+                    }}
+                  >
+                    {/* department_id */}
+                    <div>
+                      <label className="neon-label" htmlFor="dept-select">
+                        Department {!isAddMode && "(read-only)"}
+                      </label>
+                      <select
+                        id="dept-select"
+                        className="neon-input"
+                        value={selectedUser.department_id || ""}
+                        onChange={(e) => {
+                          setSelectedUser({
+                            ...selectedUser,
+                            department_id: e.target.value,
+                            role_id: "" // Reset role when department changes
+                          });
+                        }}
+                        disabled={!isAddMode}
+                        style={{
+                          opacity: !isAddMode ? 0.6 : 1,
+                          cursor: !isAddMode ? "not-allowed" : "default"
+                        }}
+                      >
+                        <option value="">Select Department</option>
+                        {departments.map((d) => (
+                          <option key={d.id} value={d.id}>
+                            {d.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    {/* role_id */}
+                    <div>
+                      <label className="neon-label" htmlFor="role-select">
+                        Role {!isAddMode && "(read-only)"}
+                      </label>
+                      <select
+                        id="role-select"
+                        className="neon-input"
+                        value={selectedUser.role_id || ""}
+                        onChange={(e) =>
+                          setSelectedUser({
+                            ...selectedUser,
+                            role_id: e.target.value
+                          })
+                        }
+                        disabled={!isAddMode || !selectedUser.department_id}
+                        style={{
+                          opacity: !isAddMode ? 0.6 : 1,
+                          cursor: !isAddMode ? "not-allowed" : "default"
+                        }}
+                      >
+                        <option value="">Select Role</option>
+                        {roles
+                          .filter((r) => r.department_id === selectedUser.department_id)
+                          .map((r) => (
+                            <option key={r.id} value={r.id}>
+                              {r.title}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+                    {/* access_level */}
+                    <div>
+                      <label className="neon-label" htmlFor="access-select">
+                        Access Level
+                      </label>
+                      <select
+                        id="access-select"
+                        className="neon-input"
+                        value={selectedUser.access_level || "User"}
+                        onChange={(e) =>
+                          setSelectedUser({
+                            ...selectedUser,
+                            access_level: e.target.value
+                          })
+                        }
+                      >
+                        <option value="Super Admin">Super Admin - System owners, full access</option>
+                        <option value="Admin">Admin - IT administrators</option>
+                        <option value="HR Admin">HR Admin - Human Resources team</option>
+                        <option value="H&S Admin">H&S Admin - Health & Safety officers</option>
+                        <option value="Dept. Manager">Dept. Manager - Department managers (see all shifts)</option>
+                        <option value="Manager">Manager - Shift managers (see only their shift)</option>
+                        <option value="Trainer">Trainer - Training coordinators</option>
+                        <option value="User">User - Regular employees</option>
+                      </select>
+                    </div>
+                  </div>
+                  {!isAddMode && (
+                    <div style={{ marginTop: "0.75rem" }}>
+                      <CustomTooltip text="Change user's department and role with history tracking">
+                        <TextIconButton
+                          variant="edit"
+                          icon={<FiUsers />}
+                          label="Change Dept/Role"
+                          onClick={() => handleOpenDeptRoleManager(selectedUser)}
+                          className="change-dept-role-btn"
+                        />
+                      </CustomTooltip>
+                    </div>
+                  )}
+                </div>
+
                 {/* LEAVER INFORMATION SECTION - Only show if is_leaver is true */}
                 {selectedUser.is_leaver && (
-                  <div style={{ marginBottom: "2rem" }}>
+                  <div style={{ marginBottom: "1rem" }}>
                     <div
                       style={{
                         fontWeight: 600,
                         color: "#ea1c1c",
-                        marginBottom: "1rem",
+                        marginBottom: "0.75rem",
                         fontSize: "1.1rem",
                         borderBottom: "2px solid rgba(234, 28, 28, 0.3)",
                         paddingBottom: "0.5rem"
@@ -1453,7 +1468,7 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
                       style={{
                         display: "grid",
                         gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                        gap: "1.5rem"
+                        gap: "1rem"
                       }}
                     >
                       {/* is_leaver */}
@@ -1553,26 +1568,6 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
                     }}
                   />
                 </CustomTooltip>
-              )}
-              {!isAddMode && selectedUser && (
-                <>
-                  <CustomTooltip text="Change user's department and role with history tracking">
-                    <TextIconButton
-                      variant="edit"
-                      icon={<FiUsers />}
-                      label="Change Dept/Role"
-                      onClick={() => handleOpenDeptRoleManager(selectedUser)}
-                    />
-                  </CustomTooltip>
-                  <CustomTooltip text="Manage user's system permissions and access levels">
-                    <TextIconButton
-                      variant="edit"
-                      icon={<FiKey />}
-                      label="Manage Permissions"
-                      onClick={() => handleOpenPermissions(selectedUser)}
-                    />
-                  </CustomTooltip>
-                </>
               )}
               <CustomTooltip text={saving ? "Saving user changes..." : "Save all changes to this user"}>
                 <TextIconButton

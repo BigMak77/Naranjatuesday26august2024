@@ -99,7 +99,7 @@ export default function MultiSelectDropdown({
             </div>
           ) : (
             <div style={{ maxHeight: "300px", overflowY: "auto" }}>
-              {options.map((option) => (
+              {options.sort((a, b) => a.name.localeCompare(b.name)).map((option) => (
                 <div
                   key={option.id}
                   onClick={() => handleToggle(option.id)}

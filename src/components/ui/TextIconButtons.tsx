@@ -28,6 +28,7 @@ import {
   FiList,
   FiClock,
   FiCheckCircle,
+  FiCopy,
 } from "react-icons/fi";
 
 const ICONS = {
@@ -49,6 +50,7 @@ const ICONS = {
   login: <FiLogIn />,
   close: <FiX />,
   assign: <FiCheckSquare />,
+  copy: <FiCopy />,
   viewArchive: <FiServer />,
   submitApplication: <FiShare />,
   send: <FiSend />,

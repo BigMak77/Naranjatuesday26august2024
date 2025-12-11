@@ -22,6 +22,7 @@ import UserPermissionsManager from "@/components/admin/UserPermissionsManager";
 import OverlayDialog from "@/components/ui/OverlayDialog";
 import SuccessModal from "@/components/ui/SuccessModal";
 import UserManagementPanel from "@/components/user/UserManagementPanel";
+import SimpleRoleAssignment from "@/components/user/SimpleRoleAssignment";
 import { sendWelcomeEmail } from "@/lib/email-service";
 import UserRoleHistory from "@/components/roles/UserRoleHistory";
 import ComponentDescription from "@/components/ui/ComponentDescription";
@@ -29,7 +30,7 @@ import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
 const tabs: Tab[] = [
   { key: "people", label: "People" },
-  { key: "users", label: "Users without department" },
+  { key: "users", label: "User - Without Dept./Role" },
   { key: "newstarters", label: "New Starters" },
   { key: "leavers", label: "Leavers" },
   { key: "rolehistory", label: "Role History" },
@@ -167,6 +168,10 @@ const UserManager: React.FC = () => {
   const [inviteLastName, setInviteLastName] = useState("");
   const [inviteLoading, setInviteLoading] = useState(false);
 
+  // Role assignment state
+  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+  const [selectedRoleUser, setSelectedRoleUser] = useState<any>(null);
+
   // Save active tab to localStorage whenever it changes
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -186,12 +191,12 @@ const UserManager: React.FC = () => {
         { data: leaversRows, error: leaversError },
         { data: shiftsRows, error: shiftsError }
       ] = await Promise.all([
-        supabase.from("departments").select("id, name, parent_id, is_archived, level"),
-        supabase.from("users").select("id, department_id, access_level, first_name, last_name, start_date, email, shift_id, is_leaver, employee_number").not("employee_number", "is", null),
-        supabase.from("roles").select("id, title, department_id"),
+        supabase.from("departments").select("id, name, parent_id, is_archived, level").order("name", { ascending: true }),
+        supabase.from("users").select("id, auth_id, department_id, role_id, access_level, first_name, last_name, start_date, email, shift_id, is_leaver, employee_number").not("employee_number", "is", null),
+        supabase.from("roles").select("id, title, department_id").order("title", { ascending: true }),
         supabase.from("users").select("id, first_name, last_name, email, phone, start_date, created_at").is("employee_number", null).eq("is_leaver", false).order("created_at", { ascending: false }),
         supabase.from("users").select("id, email, first_name, last_name, department_id, leaver_date, leaver_reason, start_date").eq("is_leaver", true).order("leaver_date", { ascending: false }),
-        supabase.from("shift_patterns").select("id, name")
+        supabase.from("shift_patterns").select("id, name").order("name", { ascending: true })
       ]);
 
       if (deptError) console.error("Error fetching departments:", deptError);
@@ -265,6 +270,9 @@ const UserManager: React.FC = () => {
   // Helper: find users without a department
   const usersWithoutDepartment = users.filter(u => !u.department_id);
 
+  // Helper: find users without a role
+  const usersWithoutRole = users.filter(u => !u.role_id);
+
   // Helper: get department name for a user
   const getDepartmentName = (deptId: string) => {
     const dept = departments.find((d) => d.id === deptId);
@@ -290,10 +298,21 @@ const UserManager: React.FC = () => {
   };
 
   const handleAssignDepartment = (user: any) => {
-    setSelectedUser(user);
-    setIsAddMode(false);
-    setIsDepartmentOnlyMode(true);
-    setDialogOpen(true);
+    setSelectedRoleUser(user);
+    setRoleDialogOpen(true);
+  };
+
+  const handleAssignRole = (user: any) => {
+    setSelectedRoleUser(user);
+    setRoleDialogOpen(true);
+  };
+
+  const handleRoleAssignmentSuccess = async () => {
+    setRoleDialogOpen(false);
+    setSelectedRoleUser(null);
+    setSuccessMessage("Department and role updated successfully!");
+    setShowSuccess(true);
+    await fetchData();
   };
 
   const handleAddUser = () => {
@@ -787,7 +806,7 @@ const UserManager: React.FC = () => {
               <>
                 <div style={{ flex: 1 }} />
                 <span style={{ opacity: 0.7, fontSize: '0.875rem' }}>
-                  {usersWithoutDepartment.length} without department
+                  {usersWithoutDepartment.length} without department | {usersWithoutRole.length} without role
                 </span>
               </>
             )}
@@ -1088,37 +1107,80 @@ const UserManager: React.FC = () => {
           ) : error ? (
             <div className="user-manager-error">{error}</div>
           ) : (
-            <div>
-              <table className="neon-table user-manager-table">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th style={{ textAlign: 'center' }}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {usersWithoutDepartment.length === 0 ? (
-                    <tr><td colSpan={3} className="user-manager-empty">All users have a department</td></tr>
-                  ) : (
-                    usersWithoutDepartment.map((user) => (
-                      <tr key={user.id}>
-                        <td className="user-manager-name">{`${user.first_name || ""} ${user.last_name || ""}`.trim()}</td>
-                        <td>{user.email}</td>
-                        <td style={{ textAlign: 'center' }}>
-                          <div className="user-manager-actions-cell" style={{ justifyContent: 'center' }}>
-                            <TextIconButton
-                              variant="assign"
-                              label="Assign to Department"
-                              onClick={() => handleAssignDepartment(user)}
-                            />
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+              {/* Users Without Department */}
+              <div>
+                <h3 style={{ color: '#40e0d0', marginBottom: '1rem', fontSize: '1.1rem' }}>
+                  Users Without Department ({usersWithoutDepartment.length})
+                </h3>
+                <table className="neon-table user-manager-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th style={{ textAlign: 'center' }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {usersWithoutDepartment.length === 0 ? (
+                      <tr><td colSpan={3} className="user-manager-empty">All users have a department</td></tr>
+                    ) : (
+                      usersWithoutDepartment.map((user) => (
+                        <tr key={user.id}>
+                          <td className="user-manager-name">{`${user.first_name || ""} ${user.last_name || ""}`.trim()}</td>
+                          <td>{user.email}</td>
+                          <td style={{ textAlign: 'center' }}>
+                            <div className="user-manager-actions-cell" style={{ justifyContent: 'center' }}>
+                              <TextIconButton
+                                variant="assign"
+                                label="Assign Department"
+                                onClick={() => handleAssignDepartment(user)}
+                              />
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Users Without Role */}
+              <div>
+                <h3 style={{ color: '#40e0d0', marginBottom: '1rem', fontSize: '1.1rem' }}>
+                  Users Without Role ({usersWithoutRole.length})
+                </h3>
+                <table className="neon-table user-manager-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Employee Number</th>
+                      <th style={{ textAlign: 'center' }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {usersWithoutRole.length === 0 ? (
+                      <tr><td colSpan={3} className="user-manager-empty">All users have a role</td></tr>
+                    ) : (
+                      usersWithoutRole.map((user) => (
+                        <tr key={user.id}>
+                          <td className="user-manager-name">{`${user.first_name || ""} ${user.last_name || ""}`.trim()}</td>
+                          <td>{user.employee_number || "—"}</td>
+                          <td style={{ textAlign: 'center' }}>
+                            <div className="user-manager-actions-cell" style={{ justifyContent: 'center' }}>
+                              <TextIconButton
+                                variant="assign"
+                                label="Assign Role"
+                                onClick={() => handleAssignRole(user)}
+                              />
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )
         )}
@@ -1321,7 +1383,7 @@ const UserManager: React.FC = () => {
         )}
 
       {/* User Edit/Add Dialog */}
-      <OverlayDialog showCloseButton={true} open={dialogOpen} onClose={handleCloseDialog} ariaLabelledby="user-editor-title">
+      <OverlayDialog showCloseButton={true} open={dialogOpen} onClose={handleCloseDialog} ariaLabelledby="user-editor-title" closeOnOutsideClick={false} closeOnEscape={false}>
         <div className="neon-form-title user-manager-dialog-title" id="user-editor-title">
           {isDepartmentOnlyMode ? "Assign to Department" : isAddMode ? "Add User" : "Edit User"}
         </div>
@@ -1563,6 +1625,29 @@ const UserManager: React.FC = () => {
           </div>
         </div>
       </OverlayDialog>
+
+      {/* Role Assignment Dialog */}
+      {roleDialogOpen && selectedRoleUser && (
+        <OverlayDialog
+          showCloseButton={true}
+          open={roleDialogOpen}
+          onClose={() => {
+            setRoleDialogOpen(false);
+            setSelectedRoleUser(null);
+          }}
+          ariaLabelledby="role-assignment-title"
+          compactHeight={true}
+        >
+          <SimpleRoleAssignment
+            user={selectedRoleUser}
+            onClose={() => {
+              setRoleDialogOpen(false);
+              setSelectedRoleUser(null);
+            }}
+            onSuccess={handleRoleAssignmentSuccess}
+          />
+        </OverlayDialog>
+      )}
 
       {/* Success Modal */}
       <SuccessModal

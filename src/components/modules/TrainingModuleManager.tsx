@@ -14,6 +14,8 @@ import {
   FiRotateCcw,
   FiFileText,
   FiUsers,
+  FiEye,
+  FiUser,
 } from "react-icons/fi";
 
 import AddModuleTab from "@/components/modules/AddModuleTab";
@@ -26,6 +28,7 @@ import OverlayDialog from "@/components/ui/OverlayDialog";
 import { getFileIcon } from "@/lib/file-utils";
 import RoleModuleDocumentAssignment from "@/components/roles/RoleModuleDocumentAssignment";
 import DepartmentModuleAssignment from "@/components/departments/DepartmentModuleAssignment";
+import ViewRoleAssignments from "@/components/roles/ViewRoleAssignments";
 
 // Define Module type inline
 interface Module {
@@ -56,7 +59,7 @@ interface Module {
 
 export default function TrainingModuleManager() {
   const [activeTab, setActiveTab] = useState<
-    "add" | "view" | "assign" | "archive" | "tests" | "roletraining" | "depttraining"
+    "add" | "view" | "assign" | "archive" | "tests" | "roletraining" | "depttraining" | "viewroletraining"
   >("view");
   const [modules, setModules] = useState<Module[]>([]);
   const [moduleToArchive, setModuleToArchive] = useState<Module | null>(null);
@@ -64,13 +67,16 @@ export default function TrainingModuleManager() {
   const [moduleToEdit, setModuleToEdit] = useState<Module | null>(null);
   const [search, setSearch] = useState("");
   const [archiveLoading, setArchiveLoading] = useState(false);
+  const [trainedUsersModule, setTrainedUsersModule] = useState<Module | null>(null);
+  const [trainedUsers, setTrainedUsers] = useState<any[]>([]);
+  const [loadingTrainedUsers, setLoadingTrainedUsers] = useState(false);
 
   // Helper function to refresh modules data
   const refreshModules = async () => {
     const { data, error } = await supabase
       .from("modules")
       .select("*")
-      .order("created_at", { ascending: false });
+      .order("name", { ascending: true });
 
     if (!error && data) {
       console.log("🔍 DEBUG: Raw modules data from database:", data);
@@ -133,6 +139,12 @@ export default function TrainingModuleManager() {
       tooltip: "Assign training modules and documents to roles",
     },
     {
+      key: "viewroletraining",
+      label: "View Role Training",
+      icon: <FiEye />,
+      tooltip: "View training modules and documents assigned to roles",
+    },
+    {
       key: "depttraining",
       label: "Department Training",
       icon: <FiUsers />,
@@ -167,6 +179,174 @@ export default function TrainingModuleManager() {
   console.log("🔍 DEBUG: View tab modules:", viewTabModules.map(m => ({ id: m.id, name: m.name, is_archived: m.is_archived })));
   console.log("🔍 DEBUG: Archive tab modules:", archiveTabModules.map(m => ({ id: m.id, name: m.name, is_archived: m.is_archived })));
 
+  // CSV export function
+  const exportToCSV = () => {
+    const dataToExport = activeTab === "archive" ? archiveTabModules : viewTabModules;
+
+    if (dataToExport.length === 0) {
+      alert("No data to export");
+      return;
+    }
+
+    // Define CSV headers
+    const headers = [
+      "Name",
+      "Description",
+      "Version",
+      "Learning Objectives",
+      "Estimated Duration",
+      "Delivery Format",
+      "Target Audience",
+      "Prerequisites",
+      "Tags",
+      "Requires Follow-up",
+      "Review Period",
+      "Status",
+      "Created At",
+      "Updated At"
+    ];
+
+    // Convert data to CSV rows
+    const rows = dataToExport.map(module => [
+      module.name,
+      module.description,
+      module.version,
+      module.learning_objectives || "",
+      module.estimated_duration || "",
+      module.delivery_format || "",
+      module.target_audience || "",
+      (module.prerequisites || []).join("; "),
+      (module.tags || []).join("; "),
+      module.requires_follow_up ? "Yes" : "No",
+      module.review_period || "",
+      module.is_archived ? "Archived" : "Active",
+      module.created_at || "",
+      module.updated_at || ""
+    ]);
+
+    // Escape CSV values
+    const escapeCSV = (value: string) => {
+      if (value.includes(",") || value.includes('"') || value.includes("\n")) {
+        return `"${value.replace(/"/g, '""')}"`;
+      }
+      return value;
+    };
+
+    // Build CSV content
+    const csvContent = [
+      headers.map(escapeCSV).join(","),
+      ...rows.map(row => row.map(cell => escapeCSV(String(cell))).join(","))
+    ].join("\n");
+
+    // Create download link
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `training-modules-${activeTab}-${new Date().toISOString().split("T")[0]}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Fetch trained users for a module
+  const fetchTrainedUsers = async (moduleId: string) => {
+    setLoadingTrainedUsers(true);
+
+    // Fetch from user_assignments table (completed assignments only)
+    const { data, error } = await supabase
+      .from("user_assignments")
+      .select(`
+        id,
+        completed_at,
+        users (
+          id,
+          first_name,
+          last_name
+        )
+      `)
+      .eq("item_id", moduleId)
+      .eq("item_type", "module")
+      .not("completed_at", "is", null);
+
+    if (error) {
+      console.error("Error fetching trained users:", error);
+      setTrainedUsers([]);
+    } else {
+      // Sort by last name, then first name
+      const sortedData = (data || []).sort((a, b) => {
+        // Handle users being an array (Supabase returns it as single-item array)
+        const userA = Array.isArray(a.users) ? a.users[0] : a.users;
+        const userB = Array.isArray(b.users) ? b.users[0] : b.users;
+
+        const lastNameCompare = (userA?.last_name || "").localeCompare(
+          userB?.last_name || "",
+          undefined,
+          { sensitivity: 'base' }
+        );
+        if (lastNameCompare !== 0) return lastNameCompare;
+        return (userA?.first_name || "").localeCompare(
+          userB?.first_name || "",
+          undefined,
+          { sensitivity: 'base' }
+        );
+      });
+      setTrainedUsers(sortedData);
+    }
+
+    setLoadingTrainedUsers(false);
+  };
+
+  // Handle opening trained users dialog
+  const handleViewTrainedUsers = async (module: Module) => {
+    setTrainedUsersModule(module);
+    await fetchTrainedUsers(module.id);
+  };
+
+  // Export trained users to CSV
+  const exportTrainedUsersCSV = () => {
+    if (!trainedUsersModule || trainedUsers.length === 0) {
+      alert("No trained users data to export");
+      return;
+    }
+
+    const headers = ["Name", "Date Trained", "Version Trained"];
+
+    const rows = trainedUsers.map(log => {
+      const user = Array.isArray(log.users) ? log.users[0] : log.users;
+      const fullName = user ? `${user.last_name}, ${user.first_name}` : "N/A";
+
+      return [
+        fullName,
+        log.completed_at ? new Date(log.completed_at).toLocaleDateString() : "",
+        trainedUsersModule?.version || ""
+      ];
+    });
+
+    const escapeCSV = (value: string) => {
+      if (value.includes(",") || value.includes('"') || value.includes("\n")) {
+        return `"${value.replace(/"/g, '""')}"`;
+      }
+      return value;
+    };
+
+    const csvContent = [
+      headers.map(escapeCSV).join(","),
+      ...rows.map(row => row.map(cell => escapeCSV(String(cell))).join(","))
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `trained-users-${trainedUsersModule.name}-${new Date().toISOString().split("T")[0]}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <>
       <div className="folder-container">
@@ -184,9 +364,27 @@ export default function TrainingModuleManager() {
             setModuleToEdit(null);
           }}
           toolbar={
-            <div style={{ opacity: 0.7, fontSize: '0.875rem' }}>
-              Training Module Management
-            </div>
+            (activeTab === "view" || activeTab === "archive") ? (
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', width: '100%', flexWrap: 'wrap' }}>
+                <CustomTooltip text="Search modules by name or description">
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search modules..."
+                    className="neon-input"
+                    style={{ flex: 1, minWidth: '200px' }}
+                  />
+                </CustomTooltip>
+                <CustomTooltip text="Export current view to CSV">
+                  <TextIconButton
+                    variant="download"
+                    label="Export CSV"
+                    onClick={exportToCSV}
+                  />
+                </CustomTooltip>
+              </div>
+            ) : undefined
           }
         />
       </div>
@@ -201,17 +399,6 @@ export default function TrainingModuleManager() {
           <h2 style={{ color: "var(--accent)", fontWeight: 600, fontSize: "1.125rem", marginBottom: 16 }}>
             Browse and edit your training modules
           </h2>
-          <div style={{ marginBottom: 16 }}>
-            <CustomTooltip text="Search modules by name or description">
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search modules..."
-                className="neon-input"
-              />
-            </CustomTooltip>
-          </div>
           <NeonTable
             columns={[
               { header: "Name", accessor: "name" },
@@ -219,7 +406,7 @@ export default function TrainingModuleManager() {
               { header: "Version", accessor: "version", width: 80 },
               { header: "Files", accessor: "files", width: 120 },
               { header: "Status", accessor: "status", width: 100 },
-              { header: "Actions", accessor: "actions", width: 120 },
+              { header: "Actions", accessor: "actions", width: 180 },
             ]}
             data={filteredModules
               .filter((m) => !m.is_archived) // Only show non-archived modules in view tab
@@ -241,6 +428,14 @@ export default function TrainingModuleManager() {
               status: m.is_archived ? "Archived" : "Active",
               actions: (
                 <div style={{ display: "flex", gap: "4px", justifyContent: "center" }}>
+                  <CustomTooltip text="View trained users">
+                    <TextIconButton
+                      variant="view"
+                      icon={<FiUser />}
+                      label="Trained Users"
+                      onClick={() => handleViewTrainedUsers(m)}
+                    />
+                  </CustomTooltip>
                   <CustomTooltip text="Edit this training module">
                     <TextIconButton
                       variant="edit"
@@ -277,6 +472,9 @@ export default function TrainingModuleManager() {
       {activeTab === "roletraining" && (
         <RoleModuleDocumentAssignment onSaved={refreshModules} skipRoleCreation={true} />
       )}
+      {activeTab === "viewroletraining" && (
+        <ViewRoleAssignments />
+      )}
       {activeTab === "depttraining" && (
         <DepartmentModuleAssignment onSaved={refreshModules} />
       )}
@@ -285,17 +483,6 @@ export default function TrainingModuleManager() {
           <h2 style={{ color: "var(--accent)", fontWeight: 600, fontSize: "1.125rem", marginBottom: 16 }}>
             Archived Training Modules
           </h2>
-          <div style={{ marginBottom: 16 }}>
-            <CustomTooltip text="Search archived modules">
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search archived modules..."
-                className="neon-input"
-              />
-            </CustomTooltip>
-          </div>
           <NeonTable
             columns={[
               { header: "Name", accessor: "name" },
@@ -486,6 +673,72 @@ export default function TrainingModuleManager() {
                 />
               </CustomTooltip>
             </div>
+          </div>
+        </OverlayDialog>
+      )}
+
+      {/* Trained Users Dialog */}
+      {trainedUsersModule && (
+        <OverlayDialog
+          open={true}
+          onClose={() => {
+            setTrainedUsersModule(null);
+            setTrainedUsers([]);
+          }}
+          showCloseButton={true}
+          width={900}
+        >
+          <div style={{ padding: 24 }}>
+            <h2 style={{ color: "var(--accent)", fontWeight: 600, fontSize: "1.5rem", marginBottom: 8 }}>
+              Trained Users
+            </h2>
+            <p style={{ color: "var(--text-secondary)", marginBottom: 24 }}>
+              Module: <span style={{ color: "var(--neon)", fontWeight: 600 }}>{trainedUsersModule.name}</span>
+            </p>
+
+            {loadingTrainedUsers ? (
+              <div style={{ textAlign: "center", padding: "40px 0" }}>
+                <p>Loading trained users...</p>
+              </div>
+            ) : trainedUsers.length > 0 ? (
+              <>
+                <div style={{ marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem" }}>
+                    Total: {trainedUsers.length} user{trainedUsers.length !== 1 ? "s" : ""}
+                  </p>
+                  <CustomTooltip text="Export trained users to CSV">
+                    <TextIconButton
+                      variant="download"
+                      label="Export CSV"
+                      onClick={exportTrainedUsersCSV}
+                    />
+                  </CustomTooltip>
+                </div>
+                <NeonTable
+                  columns={[
+                    { header: "Name", accessor: "name", width: "50%" },
+                    { header: "Date Trained", accessor: "date_trained", width: "30%" },
+                    { header: "Version Trained", accessor: "version_trained", width: "20%" },
+                  ]}
+                  data={trainedUsers.map(log => {
+                    const user = Array.isArray(log.users) ? log.users[0] : log.users;
+                    const fullName = user ? `${user.last_name}, ${user.first_name}` : "N/A";
+
+                    return {
+                      name: fullName,
+                      date_trained: log.completed_at
+                        ? new Date(log.completed_at).toLocaleDateString()
+                        : "N/A",
+                      version_trained: trainedUsersModule?.version || "N/A",
+                    };
+                  })}
+                />
+              </>
+            ) : (
+              <p style={{ color: "var(--text-secondary)", fontStyle: "italic", textAlign: "center", padding: "40px 0" }}>
+                No users have completed this training module yet.
+              </p>
+            )}
           </div>
         </OverlayDialog>
       )}

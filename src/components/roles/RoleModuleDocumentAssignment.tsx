@@ -52,10 +52,10 @@ export default function RoleModuleDocumentAssignment({ onSaved, skipRoleCreation
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
-      const { data: rolesData } = await supabase.from("roles").select("id, title");
-      const { data: modulesData } = await supabase.from("modules").select("id, name");
-      const { data: documentsData } = await supabase.from("documents").select("id, title");
-      const { data: departmentsData } = await supabase.from("departments").select("id, name");
+      const { data: rolesData } = await supabase.from("roles").select("id, title").order("title", { ascending: true });
+      const { data: modulesData } = await supabase.from("modules").select("id, name").order("name", { ascending: true });
+      const { data: documentsData } = await supabase.from("documents").select("id, title").order("title", { ascending: true });
+      const { data: departmentsData } = await supabase.from("departments").select("id, name").order("name", { ascending: true });
       setRoles(rolesData || []);
       setModules((modulesData || []).map((m: any) => ({ value: m.id, label: m.name })));
       setDocuments((documentsData || []).map((d: any) => ({ value: d.id, label: d.title })));
@@ -112,44 +112,76 @@ export default function RoleModuleDocumentAssignment({ onSaved, skipRoleCreation
 
   const handleSave = async (roleId: string) => {
     // Save assignments for modules and documents using role_assignments table
-    const { modules: modIds = [], documents: docIds = [] } = assignments[roleId] || {};
+    const { modules: newModIds = [], documents: newDocIds = [] } = assignments[roleId] || {};
 
-    // First, clear existing assignments for this role to avoid conflicts
-    const { error: deleteError } = await supabase
+    // Fetch current assignments from database to calculate diff
+    const { data: currentAssignments } = await supabase
       .from("role_assignments")
-      .delete()
+      .select("item_id, type")
       .eq("role_id", roleId);
 
-    if (deleteError) {
-      alert("Error clearing existing assignments: " + deleteError.message);
-      console.error("Supabase delete error:", deleteError);
-      return;
+    const currentModIds = (currentAssignments || [])
+      .filter(a => a.type === "module")
+      .map(a => a.item_id);
+    const currentDocIds = (currentAssignments || [])
+      .filter(a => a.type === "document")
+      .map(a => a.item_id);
+
+    // Calculate what to add and remove
+    const modulesToAdd = newModIds.filter(id => !currentModIds.includes(id));
+    const modulesToRemove = currentModIds.filter(id => !newModIds.includes(id));
+    const documentsToAdd = newDocIds.filter(id => !currentDocIds.includes(id));
+    const documentsToRemove = currentDocIds.filter(id => !newDocIds.includes(id));
+
+    // Remove assignments that are no longer selected
+    const itemsToRemove = [...modulesToRemove, ...documentsToRemove];
+    if (itemsToRemove.length > 0) {
+      const { error: deleteError } = await supabase
+        .from("role_assignments")
+        .delete()
+        .eq("role_id", roleId)
+        .in("item_id", itemsToRemove);
+
+      if (deleteError) {
+        alert("Error removing assignments: " + deleteError.message);
+        console.error("Supabase delete error:", deleteError);
+        return;
+      }
     }
 
-    // Only insert new assignments if there are any
-    if (modIds.length > 0 || docIds.length > 0) {
-      // Insert module assignments - include both new item_id and legacy columns for compatibility
-      const moduleRows = modIds.map((item_id: string) => ({
+    // Add new assignments
+    const rowsToInsert = [];
+
+    // Add new module assignments
+    for (const item_id of modulesToAdd) {
+      rowsToInsert.push({
         role_id: roleId,
         item_id,
         module_id: item_id, // Legacy column for constraint compatibility
         document_id: null,  // Legacy column for constraint compatibility
         type: "module"
-      }));
-      // Insert document assignments - include both new item_id and legacy columns for compatibility
-      const documentRows = docIds.map((item_id: string) => ({
+      });
+    }
+
+    // Add new document assignments
+    for (const item_id of documentsToAdd) {
+      rowsToInsert.push({
         role_id: roleId,
         item_id,
         module_id: null,    // Legacy column for constraint compatibility
         document_id: item_id, // Legacy column for constraint compatibility
         type: "document"
-      }));
-      const allRows = [...moduleRows, ...documentRows];
-      const { error: assignmentError } = await supabase.from("role_assignments").insert(allRows);
+      });
+    }
 
-      if (assignmentError) {
-        alert("Error saving assignments: " + assignmentError.message);
-        console.error("Supabase assignment insert error:", assignmentError);
+    if (rowsToInsert.length > 0) {
+      const { error: insertError } = await supabase
+        .from("role_assignments")
+        .insert(rowsToInsert);
+
+      if (insertError) {
+        alert("Error adding assignments: " + insertError.message);
+        console.error("Supabase insert error:", insertError);
         return;
       }
     }
@@ -164,13 +196,8 @@ export default function RoleModuleDocumentAssignment({ onSaved, skipRoleCreation
       });
     }
 
-    // If skipRoleCreation is true, reset to role selection instead of showing modal
-    if (skipRoleCreation) {
-      setSelectedRoleId("");
-      setAssignmentStep("modules");
-    } else {
-      setShowSuccessModal(true);
-    }
+    // Show success modal and reset form
+    setShowSuccessModal(true);
 
     // Call onSaved callback to refresh parent data
     if (onSaved) {
@@ -179,7 +206,22 @@ export default function RoleModuleDocumentAssignment({ onSaved, skipRoleCreation
   };
 
   if (showSuccessModal) {
-    return <SuccessModal open={true} onClose={() => setShowSuccessModal(false)} message="Assignments saved and users updated for role." />;
+    return <SuccessModal
+      open={true}
+      onClose={() => {
+        setShowSuccessModal(false);
+        // Reset to role selection after closing modal
+        if (skipRoleCreation) {
+          setSelectedRoleId("");
+          setAssignmentStep("modules");
+        } else {
+          setStage("choose");
+          setSelectedRoleId("");
+          setAssignmentStep("modules");
+        }
+      }}
+      message="Assignments saved and users updated for role."
+    />;
   }
 
   if (loading) return <div>Loading...</div>;
@@ -232,7 +274,7 @@ export default function RoleModuleDocumentAssignment({ onSaved, skipRoleCreation
             setCreatingRole(false);
             setStage("choose");
             // Refresh roles list
-            const { data: rolesData } = await supabase.from("roles").select("id, title");
+            const { data: rolesData } = await supabase.from("roles").select("id, title").order("title", { ascending: true });
             setRoles(rolesData || []);
 
             // Call onSaved callback to refresh parent data

@@ -11,6 +11,7 @@ type OverlayDialogProps = {
   zIndexOverlay?: number; // defaults safe
   zIndexContent?: number; // defaults safe
   closeOnOutsideClick?: boolean;
+  closeOnEscape?: boolean; // disable ESC key closing
   width?: number; // custom width in pixels
   transparentOverlay?: boolean; // for login page background visibility
   showCloseButton?: boolean; // show circular X button in top-right corner
@@ -25,6 +26,7 @@ export default function OverlayDialog({
   zIndexOverlay = 60000,
   zIndexContent = 60001,
   closeOnOutsideClick = true,
+  closeOnEscape = true,
   width = 900,
   transparentOverlay = false,
   showCloseButton = false,
@@ -60,13 +62,13 @@ export default function OverlayDialog({
 
   // ESC to close
   useEffect(() => {
-    if (!open) return;
+    if (!open || !closeOnEscape) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
     document.addEventListener("keydown", onKey, true);
     return () => document.removeEventListener("keydown", onKey, true);
-  }, [open, onClose]);
+  }, [open, closeOnEscape, onClose]);
 
   if (!open || !isMounted || !mountRef.current) return null;
 
@@ -77,6 +79,7 @@ export default function OverlayDialog({
         zIndex: zIndexOverlay,
       }}
       onClick={(e) => {
+        console.log('Overlay clicked. closeOnOutsideClick:', closeOnOutsideClick, 'target matches:', e.target === e.currentTarget);
         if (!closeOnOutsideClick) return;
         if (e.target === e.currentTarget) onClose();
       }}

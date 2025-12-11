@@ -25,7 +25,7 @@ export default function RaiseIssueWizard({ onClose }: RaiseIssueWizardProps) {
   // Fetch departments on mount
   useEffect(() => {
     async function fetchDepartments() {
-      const { data, error } = await supabase.from("departments").select("id, name");
+      const { data, error } = await supabase.from("departments").select("id, name").order("name", { ascending: true });
       if (data) setDepartments(data);
     }
     fetchDepartments();

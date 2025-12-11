@@ -32,6 +32,7 @@ export default function HealthSafetyManager() {
   const [showViewFirstAidersDialog, setShowViewFirstAidersDialog] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [riskAssessmentAction, setRiskAssessmentAction] = useState<"create" | null>(null);
   
   // Dialog states for upload/download feedback
   const [showDialog, setShowDialog] = useState(false);
@@ -365,17 +366,17 @@ export default function HealthSafetyManager() {
                     <TextIconButton
                       variant="add"
                       label="Create Risk Assessment"
-                      onClick={() => console.log("Create assessment")}
+                      onClick={() => setRiskAssessmentAction("create")}
                     />
                     <TextIconButton
                       variant="download"
                       label="Download Risk Assessments"
-                      onClick={() => console.log("Download assessments")}
+                      onClick={() => console.log("Download assessments - TODO")}
                     />
                     <TextIconButton
                       variant="upload"
                       label="Upload Risk Assessment"
-                      onClick={() => console.log("Upload assessment")}
+                      onClick={() => console.log("Upload assessment - TODO")}
                     />
                   </>
                 )}
@@ -458,16 +459,18 @@ export default function HealthSafetyManager() {
             }
           />
 
-          {activeTab === "assessments" && <RiskAssessmentManager />}
+          {activeTab === "assessments" && (
+            <RiskAssessmentManager
+              createAction={riskAssessmentAction}
+              onActionComplete={() => setRiskAssessmentAction(null)}
+            />
+          )}
 
           {activeTab === "incidents" && (
             <NeonPanel>
               {/* Render the minimal incident form from incidents/add */}
               <IncidentFormMinimal
-                onSubmit={async (data: MinimalIncidentForm) => {
-                  // TODO: handle incident submission (e.g., save to supabase)
-                  // You can add your logic here or pass a handler from parent
-                }}
+                onSubmit={handleIncidentSubmit}
               />
             </NeonPanel>
           )}
