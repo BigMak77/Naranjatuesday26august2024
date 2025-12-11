@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -12,16 +16,20 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
-
     // ✅ Set up baseUrl and paths for @/ imports from /src
     "baseUrl": "src",
     "paths": {
-      "@/*": ["*"]
+      "@/*": [
+        "*"
+      ]
     },
-
-    "types": ["react", "react-dom", "node"],
+    "types": [
+      "react",
+      "react-dom",
+      "node"
+    ],
     "plugins": [
       {
         "name": "next"
@@ -34,6 +42,12 @@
     "**/*.tsx",
     ".next/types/**/*.ts"
     // Removed postcss.config.mjs from TS include
+    ,
+    ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules", "supabase/functions", "examples"]
+  "exclude": [
+    "node_modules",
+    "supabase/functions",
+    "examples"
+  ]
 }
