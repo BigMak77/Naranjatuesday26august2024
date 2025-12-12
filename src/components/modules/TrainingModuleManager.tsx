@@ -37,6 +37,8 @@ interface Module {
   description: string;
   version: string;
   is_archived: boolean;
+  ref_code?: string;
+  categories?: string[];
   learning_objectives?: string;
   estimated_duration?: string;
   delivery_format?: string;
@@ -70,6 +72,7 @@ export default function TrainingModuleManager() {
   const [trainedUsersModule, setTrainedUsersModule] = useState<Module | null>(null);
   const [trainedUsers, setTrainedUsers] = useState<any[]>([]);
   const [loadingTrainedUsers, setLoadingTrainedUsers] = useState(false);
+  const [paginationControls, setPaginationControls] = useState<React.ReactNode>(null);
 
   // Helper function to refresh modules data
   const refreshModules = async () => {
@@ -365,24 +368,31 @@ export default function TrainingModuleManager() {
           }}
           toolbar={
             (activeTab === "view" || activeTab === "archive") ? (
-              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', width: '100%', flexWrap: 'wrap' }}>
-                <CustomTooltip text="Search modules by name or description">
-                  <input
-                    type="text"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search modules..."
-                    className="neon-input"
-                    style={{ flex: 1, minWidth: '200px' }}
-                  />
-                </CustomTooltip>
-                <CustomTooltip text="Export current view to CSV">
-                  <TextIconButton
-                    variant="download"
-                    label="Export CSV"
-                    onClick={exportToCSV}
-                  />
-                </CustomTooltip>
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', width: '100%', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flex: 1 }}>
+                  <CustomTooltip text="Search modules by name or description">
+                    <input
+                      type="text"
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      placeholder="Search modules..."
+                      className="neon-input"
+                      style={{ flex: 1, minWidth: '200px', maxWidth: '300px' }}
+                    />
+                  </CustomTooltip>
+                  <CustomTooltip text="Export current view to CSV">
+                    <TextIconButton
+                      variant="download"
+                      label="Export CSV"
+                      onClick={exportToCSV}
+                    />
+                  </CustomTooltip>
+                </div>
+                {paginationControls && (
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    {paginationControls}
+                  </div>
+                )}
               </div>
             ) : undefined
           }
@@ -400,8 +410,11 @@ export default function TrainingModuleManager() {
             Browse and edit your training modules
           </h2>
           <NeonTable
+            paginationPosition="toolbar"
+            onPaginationChange={setPaginationControls}
             columns={[
               { header: "Name", accessor: "name" },
+              { header: "Ref Code", accessor: "ref_code", width: 120 },
               { header: "Description", accessor: "description" },
               { header: "Version", accessor: "version", width: 80 },
               { header: "Files", accessor: "files", width: 120 },
@@ -412,6 +425,7 @@ export default function TrainingModuleManager() {
               .filter((m) => !m.is_archived) // Only show non-archived modules in view tab
               .map((m) => ({
               ...m,
+              ref_code: m.ref_code || <span style={{ color: "var(--text-secondary)", fontSize: "0.85rem" }}>—</span>,
               files: m.attachments && m.attachments.length > 0 ? (
                 <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
                   {m.attachments.map((attachment, idx) => (
@@ -484,8 +498,11 @@ export default function TrainingModuleManager() {
             Archived Training Modules
           </h2>
           <NeonTable
+            paginationPosition="toolbar"
+            onPaginationChange={setPaginationControls}
             columns={[
               { header: "Name", accessor: "name" },
+              { header: "Ref Code", accessor: "ref_code", width: 120 },
               { header: "Description", accessor: "description" },
               { header: "Version", accessor: "version", width: 80 },
               { header: "Files", accessor: "files", width: 120 },
@@ -495,6 +512,7 @@ export default function TrainingModuleManager() {
               .filter((m) => m.is_archived)
               .map((m) => ({
                 ...m,
+                ref_code: m.ref_code || <span style={{ color: "var(--text-secondary)", fontSize: "0.85rem" }}>—</span>,
                 files: m.attachments && m.attachments.length > 0 ? (
                   <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
                     {m.attachments.map((attachment, idx) => (

@@ -8,10 +8,18 @@ import { FiPlus, FiX } from "react-icons/fi";
 import OverlayDialog from "@/components/ui/OverlayDialog";
 import ModuleFileAttachments, { ModuleAttachment } from "@/components/modules/ModuleFileAttachments";
 
+interface Category {
+  id: string;
+  name: string;
+  description?: string;
+  prefix?: string;
+}
+
 interface Module {
   id: string;
   name: string;
   description?: string;
+  ref_code?: string;
   version?: number;
   is_archived?: boolean;
   learning_objectives?: string;
@@ -24,6 +32,7 @@ interface Module {
   requires_follow_up?: boolean;
   review_period?: string;
   attachments?: ModuleAttachment[];
+  categories?: string[];
 }
 
 interface EditModuleTabProps {
@@ -41,6 +50,7 @@ export default function EditModuleTab({ module, onSuccess }: EditModuleTabProps)
   // Form state
   const [name, setName] = useState(module.name || "");
   const [description, setDescription] = useState(module.description || "");
+  const [refCode, setRefCode] = useState(module.ref_code || "");
   const [version, setVersion] = useState<number>(module.version || 1);
   const [estimatedDuration, setEstimatedDuration] = useState<number>(
     module.estimated_duration ? parseInt(module.estimated_duration) : 0
@@ -52,11 +62,48 @@ export default function EditModuleTab({ module, onSuccess }: EditModuleTabProps)
   const [requiresFollowUp, setRequiresFollowUp] = useState(module.requires_follow_up || false);
   const [reviewPeriod, setReviewPeriod] = useState(module.review_period || "0");
   const [attachments, setAttachments] = useState<ModuleAttachment[]>(module.attachments || []);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(module.categories || []);
+
+  // Categories state
+  const [availableCategories, setAvailableCategories] = useState<Category[]>([]);
+
+  // Reference code validation state
+  const [refCodeExists, setRefCodeExists] = useState(false);
+  const [allModules, setAllModules] = useState<any[]>([]);
+
+  // Fetch categories and modules on component mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const { data, error } = await supabase
+        .from("module_categories")
+        .select("id, name, description, prefix")
+        .eq("archived", false)
+        .order("name");
+
+      if (!error && data) {
+        setAvailableCategories(data);
+      }
+    };
+
+    const fetchModules = async () => {
+      const { data, error } = await supabase
+        .from("modules")
+        .select("id, ref_code");
+
+      if (!error && data) {
+        setAllModules(data);
+      }
+    };
+
+    fetchCategories();
+    fetchModules();
+  }, []);
 
   // Update state when module prop changes
   useEffect(() => {
     setName(module.name || "");
     setDescription(module.description || "");
+    setRefCode(module.ref_code || "");
     setVersion(module.version || 1);
     setEstimatedDuration(module.estimated_duration ? parseInt(module.estimated_duration) : 0);
     setDeliveryFormat(module.delivery_format || "");
@@ -65,7 +112,22 @@ export default function EditModuleTab({ module, onSuccess }: EditModuleTabProps)
     setRequiresFollowUp(module.requires_follow_up || false);
     setReviewPeriod(module.review_period || "0");
     setAttachments(module.attachments || []);
+    setSelectedCategories(module.categories || []);
   }, [module]);
+
+  // Check for duplicate ref code (exclude current module)
+  useEffect(() => {
+    if (!refCode.trim()) {
+      setRefCodeExists(false);
+      return;
+    }
+
+    // Check if ref code already exists (excluding current module)
+    const isDuplicate = allModules.some(
+      m => m.id !== module.id && m.ref_code && m.ref_code.toLowerCase() === refCode.toLowerCase()
+    );
+    setRefCodeExists(isDuplicate);
+  }, [refCode, allModules, module.id]);
 
   const addTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
@@ -90,6 +152,13 @@ export default function EditModuleTab({ module, onSuccess }: EditModuleTabProps)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Check for duplicate ref code before submitting
+    if (refCodeExists) {
+      setError("This reference code already exists. Please choose a different one.");
+      return;
+    }
+
     setShowVersionModal(true);
   };
 
@@ -111,6 +180,7 @@ export default function EditModuleTab({ module, onSuccess }: EditModuleTabProps)
     const payload = {
       name,
       description,
+      ref_code: refCode || null,
       version: newVersion,
       estimated_duration: estimatedDuration,
       delivery_format: deliveryFormat,
@@ -120,6 +190,7 @@ export default function EditModuleTab({ module, onSuccess }: EditModuleTabProps)
       follow_up_period: requiresFollowUp ? reviewPeriod : "0",
       // refresh_period: refreshPeriod, // TODO: Add this field to form
       attachments: attachments.length > 0 ? attachments : [],
+      categories: selectedCategories.length > 0 ? selectedCategories : [],
       updated_at: new Date().toISOString(),
     };
 
@@ -151,15 +222,117 @@ export default function EditModuleTab({ module, onSuccess }: EditModuleTabProps)
       </h2>
 
       <NeonForm onSubmit={handleSubmit}>
-        <div className="add-module-tab-field">
-          <label className="add-module-tab-label">Name</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="add-module-tab-input neon-input"
-            required
-          />
+        <div style={{ display: 'flex', gap: '16px' }}>
+          <div className="add-module-tab-field" style={{ flex: 2 }}>
+            <label className="add-module-tab-label">Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="add-module-tab-input neon-input"
+              required
+            />
+          </div>
+
+          <div className="add-module-tab-field" style={{ flex: 1 }}>
+            <label className="add-module-tab-label">Category</label>
+            <select
+              value={selectedCategories[0] || ""}
+              onChange={(e) => {
+                const newCategoryId = e.target.value;
+                setSelectedCategories(newCategoryId ? [newCategoryId] : []);
+              }}
+              className="add-module-tab-input neon-input"
+            >
+              <option value="">Select category</option>
+              {availableCategories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="add-module-tab-field" style={{ flex: 1 }}>
+            <label className="add-module-tab-label">Reference Code</label>
+            {selectedCategories.length > 0 && availableCategories.find(c => c.id === selectedCategories[0])?.prefix ? (
+              <div style={{ display: 'flex', alignItems: 'stretch' }}>
+                <div className="neon-input" style={{
+                  borderRight: 'none',
+                  borderRadius: '4px 0 0 4px',
+                  color: 'var(--accent)',
+                  fontWeight: 600,
+                  whiteSpace: 'nowrap',
+                  display: 'flex',
+                  alignItems: 'center',
+                  paddingRight: '4px',
+                  paddingLeft: '8px',
+                  flex: '0 0 auto',
+                  width: 'auto',
+                  minWidth: 'auto'
+                }}>
+                  {availableCategories.find(c => c.id === selectedCategories[0])?.prefix}-
+                </div>
+                <input
+                  type="text"
+                  value={(() => {
+                    const prefix = availableCategories.find(c => c.id === selectedCategories[0])?.prefix || '';
+                    if (refCode.startsWith(`${prefix}-`)) {
+                      return refCode.substring(prefix.length + 1);
+                    }
+                    return refCode;
+                  })()}
+                  onChange={(e) => {
+                    const prefix = availableCategories.find(c => c.id === selectedCategories[0])?.prefix || '';
+                    const value = e.target.value.toUpperCase();
+
+                    // Remove all non-alphanumeric characters
+                    const alphanumericOnly = value.replace(/[^A-Z0-9]/g, '');
+
+                    // Format as YY (2 characters max for suffix)
+                    const suffix = alphanumericOnly.slice(0, 2);
+
+                    setRefCode(`${prefix}-${suffix}`);
+                  }}
+                  onKeyDown={(e) => {
+                    // Allow navigation keys
+                    if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
+                      return;
+                    }
+                    // Only allow alphanumeric characters
+                    if (!/^[a-zA-Z0-9]$/.test(e.key)) {
+                      e.preventDefault();
+                    }
+                  }}
+                  className="add-module-tab-input neon-input"
+                  placeholder="__"
+                  maxLength={2}
+                  style={{
+                    flex: 1,
+                    borderRadius: '0 4px 4px 0',
+                    paddingLeft: '4px',
+                    borderColor: refCodeExists ? 'var(--danger)' : undefined
+                  }}
+                />
+              </div>
+            ) : (
+              <input
+                type="text"
+                value={refCode}
+                onChange={(e) => setRefCode(e.target.value)}
+                className="add-module-tab-input neon-input"
+                placeholder="e.g., HS-01-23"
+                style={{
+                  borderColor: refCodeExists ? 'var(--danger)' : undefined
+                }}
+              />
+            )}
+            {refCodeExists && (
+              <p style={{ color: 'var(--danger)', fontSize: '0.75rem', marginTop: '4px' }}>
+                This reference code already exists
+              </p>
+            )}
+          </div>
         </div>
 
         <div className="add-module-tab-field">
