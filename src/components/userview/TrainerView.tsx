@@ -414,6 +414,7 @@ export default function TrainerRecordingPage() {
     trainerSignature: "",
   });
   const [busy, setBusy] = useState(false);
+  const [csvUploading, setCsvUploading] = useState(false);
 
   // ==========================
   // Assignment fetch for log modal (from user_assignments)
@@ -1168,6 +1169,7 @@ export default function TrainerRecordingPage() {
 
     try {
       setBusy(true);
+      setCsvUploading(true);
       const text = await file.text();
       const lines = text.split('\n').filter(line => line.trim());
       
@@ -1366,11 +1368,57 @@ export default function TrainerRecordingPage() {
       });
     } finally {
       setBusy(false);
+      setCsvUploading(false);
     }
   };
 
   return (
     <>
+      {/* CSV Upload Loading Overlay */}
+      {csvUploading && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            gap: '1.5rem'
+          }}
+        >
+          <style jsx>{`
+            @keyframes spin {
+              from {
+                transform: rotate(0deg);
+              }
+              to {
+                transform: rotate(360deg);
+              }
+            }
+            .spinning-logo {
+              animation: spin 2s linear infinite;
+            }
+          `}</style>
+          <Image
+            src="/logo-turq-orange.png"
+            alt="Loading"
+            width={120}
+            height={120}
+            className="spinning-logo"
+            unoptimized
+          />
+          <div style={{ color: 'var(--neon)', fontSize: '1.25rem', fontWeight: 600 }}>
+            Processing CSV Upload...
+          </div>
+        </div>
+      )}
+
       <TrainingMaterialsManagerDialog open={materialsDialogOpen} onClose={() => setMaterialsDialogOpen(false)} />
       <ContentHeader
         title="Trainer View"

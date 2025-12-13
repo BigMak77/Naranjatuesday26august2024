@@ -135,11 +135,12 @@ export default function DepartmentRoleManager({
       }
 
       const result = await response.json();
-      console.log("Department/role change successful:", result);
+      console.log("[DepartmentRoleManager] Department/role change successful:", result);
 
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
+        console.log("[DepartmentRoleManager] Calling onSuccess callback...");
         onSuccess();
         onClose();
       }, 1500);

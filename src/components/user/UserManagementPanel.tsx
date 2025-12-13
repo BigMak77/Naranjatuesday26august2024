@@ -173,8 +173,15 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
 
   // Handler for successful dept/role change
   const handleDeptRoleSuccess = async () => {
+    console.log("[UserManagementPanel] Handling dept/role success...");
+    
+    // Small delay to ensure database changes are committed
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
     // Refresh all data to get updated users, departments, roles, and shifts
     await refreshAllData();
+    console.log("[UserManagementPanel] Local data refreshed");
+    
     // Also update selectedUser if it's still open
     if (selectedUser && deptRoleUser && selectedUser.id === deptRoleUser.id) {
       const updatedUser = await supabase
@@ -186,7 +193,12 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
         setSelectedUser({ ...selectedUser, ...updatedUser.data });
       }
     }
+    
+    // Small delay before notifying parent to prevent race conditions
+    await new Promise(resolve => setTimeout(resolve, 50));
+    
     // Notify parent component of data change
+    console.log("[UserManagementPanel] Calling onDataChange callback...");
     onDataChange?.();
   };
 
@@ -246,6 +258,7 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
 
   // Centralized function to refresh all data
   const refreshAllData = async () => {
+    console.log("[UserManagementPanel] Starting refreshAllData...");
     try {
       const [
         { data: u, error: userErr },
@@ -259,6 +272,7 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
         supabase.from("shift_patterns").select("id, name").order("name", { ascending: true })
       ]);
       if (userErr || deptErr || roleErr || shiftErr) {
+        console.error("[UserManagementPanel] Error in refreshAllData:", { userErr, deptErr, roleErr, shiftErr });
         setErrorMsg("Failed to load data. Please check your connection and try again.");
         return;
       }
@@ -276,9 +290,12 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
           receive_notifications: user.receive_notifications === true
         };
       });
-      setUsers(usersWithNames);
-      setDepartments(d || []);
-      setRoles(r || []);
+      console.log("[UserManagementPanel] Users updated:", usersWithNames.length, "users with proper role/dept names");
+      
+      // Force a state update by creating new arrays to ensure React detects the change
+      setUsers([...usersWithNames]);
+      setDepartments([...(d || [])]);
+      setRoles([...(r || [])]);
       setShiftPatterns(s || []);
     } catch (err) {
       setErrorMsg("Unexpected error loading users.");

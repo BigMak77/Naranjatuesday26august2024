@@ -10,10 +10,17 @@
 -- STEP 1: Add new fields to modules table
 -- ============================================
 
--- Rename existing review_period to follow_up_period for clarity
+-- Rename existing review_period to follow_up_period for clarity (if it exists)
 -- This is for post-training competency assessments
-ALTER TABLE modules
-RENAME COLUMN review_period TO follow_up_period;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT FROM information_schema.columns
+    WHERE table_name = 'modules' AND column_name = 'review_period'
+  ) THEN
+    ALTER TABLE modules RENAME COLUMN review_period TO follow_up_period;
+  END IF;
+END $$;
 
 -- Add comment to clarify the purpose
 COMMENT ON COLUMN modules.follow_up_period IS 'Period after training completion when a follow-up assessment is required (e.g., "1 week", "2 weeks", "1 month", "3 months"). Used when requires_follow_up is true.';
@@ -34,15 +41,30 @@ ADD COLUMN IF NOT EXISTS assignment_reason TEXT DEFAULT 'initial';
 
 COMMENT ON COLUMN user_assignments.assignment_reason IS 'Reason for assignment: "initial", "refresh", "follow_up_assessment", "unsatisfactory_retrain"';
 
--- Rename follow_up fields for clarity
-ALTER TABLE user_assignments
-RENAME COLUMN follow_up_required TO follow_up_assessment_required;
+-- Rename follow_up fields for clarity (if they exist)
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT FROM information_schema.columns
+    WHERE table_name = 'user_assignments' AND column_name = 'follow_up_required'
+  ) THEN
+    ALTER TABLE user_assignments RENAME COLUMN follow_up_required TO follow_up_assessment_required;
+  END IF;
 
-ALTER TABLE user_assignments
-RENAME COLUMN follow_up_due_date TO follow_up_assessment_due_date;
+  IF EXISTS (
+    SELECT FROM information_schema.columns
+    WHERE table_name = 'user_assignments' AND column_name = 'follow_up_due_date'
+  ) THEN
+    ALTER TABLE user_assignments RENAME COLUMN follow_up_due_date TO follow_up_assessment_due_date;
+  END IF;
 
-ALTER TABLE user_assignments
-RENAME COLUMN follow_up_completed_at TO follow_up_assessment_completed_at;
+  IF EXISTS (
+    SELECT FROM information_schema.columns
+    WHERE table_name = 'user_assignments' AND column_name = 'follow_up_completed_at'
+  ) THEN
+    ALTER TABLE user_assignments RENAME COLUMN follow_up_completed_at TO follow_up_assessment_completed_at;
+  END IF;
+END $$;
 
 -- Add fields for tracking training outcome
 ALTER TABLE user_assignments
@@ -99,17 +121,32 @@ WHERE assignment_reason IS NULL;
 -- STEP 5: Add check constraints
 -- ============================================
 
-ALTER TABLE user_assignments
-ADD CONSTRAINT chk_assignment_reason
-CHECK (assignment_reason IN ('initial', 'refresh', 'follow_up_assessment', 'unsatisfactory_retrain'));
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT FROM pg_constraint WHERE conname = 'chk_assignment_reason'
+  ) THEN
+    ALTER TABLE user_assignments
+    ADD CONSTRAINT chk_assignment_reason
+    CHECK (assignment_reason IN ('initial', 'refresh', 'follow_up_assessment', 'unsatisfactory_retrain'));
+  END IF;
 
-ALTER TABLE user_assignments
-ADD CONSTRAINT chk_training_outcome
-CHECK (training_outcome IN ('completed', 'needs_improvement', 'failed') OR training_outcome IS NULL);
+  IF NOT EXISTS (
+    SELECT FROM pg_constraint WHERE conname = 'chk_training_outcome'
+  ) THEN
+    ALTER TABLE user_assignments
+    ADD CONSTRAINT chk_training_outcome
+    CHECK (training_outcome IN ('completed', 'needs_improvement', 'failed') OR training_outcome IS NULL);
+  END IF;
 
-ALTER TABLE user_assignments
-ADD CONSTRAINT chk_follow_up_assessment_outcome
-CHECK (follow_up_assessment_outcome IN ('satisfactory', 'needs_improvement') OR follow_up_assessment_outcome IS NULL);
+  IF NOT EXISTS (
+    SELECT FROM pg_constraint WHERE conname = 'chk_follow_up_assessment_outcome'
+  ) THEN
+    ALTER TABLE user_assignments
+    ADD CONSTRAINT chk_follow_up_assessment_outcome
+    CHECK (follow_up_assessment_outcome IN ('satisfactory', 'needs_improvement') OR follow_up_assessment_outcome IS NULL);
+  END IF;
+END $$;
 
 -- ============================================
 -- STEP 6: Function to calculate next refresh date

@@ -8,7 +8,6 @@ import { supabase } from "@/lib/supabase-client";
 import {
   FiClipboard,
   FiPlus,
-  FiSend,
   FiArchive,
   FiEdit,
   FiRotateCcw,
@@ -16,11 +15,11 @@ import {
   FiUsers,
   FiEye,
   FiUser,
+  FiUpload,
 } from "react-icons/fi";
 
 import AddModuleTab from "@/components/modules/AddModuleTab";
 import EditModuleTab from "@/components/modules/EditModuleTab";
-import AssignModuleTab from "@/components/modules/AssignModuleTab";
 import TestBuilder from "@/components/training/TestBuilder";
 import TextIconButton from "@/components/ui/TextIconButtons";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
@@ -29,6 +28,8 @@ import { getFileIcon } from "@/lib/file-utils";
 import RoleModuleDocumentAssignment from "@/components/roles/RoleModuleDocumentAssignment";
 import DepartmentModuleAssignment from "@/components/departments/DepartmentModuleAssignment";
 import ViewRoleAssignments from "@/components/roles/ViewRoleAssignments";
+import ViewModuleAssignments from "@/components/modules/ViewModuleAssignments";
+import BulkModuleAssignment from "@/components/modules/BulkModuleAssignment";
 
 // Define Module type inline
 interface Module {
@@ -48,6 +49,7 @@ interface Module {
   thumbnail_url?: string;
   requires_follow_up?: boolean;
   review_period?: string;
+  follow_up_period?: string;
   created_at?: string;
   updated_at?: string;
   attachments?: Array<{
@@ -61,7 +63,7 @@ interface Module {
 
 export default function TrainingModuleManager() {
   const [activeTab, setActiveTab] = useState<
-    "add" | "view" | "assign" | "archive" | "tests" | "roletraining" | "depttraining" | "viewroletraining"
+    "add" | "view" | "archive" | "tests" | "roletraining" | "depttraining" | "viewroletraining" | "viewmoduleassignments"
   >("view");
   const [modules, setModules] = useState<Module[]>([]);
   const [moduleToArchive, setModuleToArchive] = useState<Module | null>(null);
@@ -73,6 +75,13 @@ export default function TrainingModuleManager() {
   const [trainedUsers, setTrainedUsers] = useState<any[]>([]);
   const [loadingTrainedUsers, setLoadingTrainedUsers] = useState(false);
   const [paginationControls, setPaginationControls] = useState<React.ReactNode>(null);
+  const [uploadResults, setUploadResults] = useState<{
+    success: number;
+    failed: number;
+    errors: Array<{ row: number; name: string; error: string }>;
+  } | null>(null);
+  const [showUploadResults, setShowUploadResults] = useState(false);
+  const [bulkAssignModuleId, setBulkAssignModuleId] = useState<string | null>(null);
 
   // Helper function to refresh modules data
   const refreshModules = async () => {
@@ -130,12 +139,6 @@ export default function TrainingModuleManager() {
       tooltip: "Create and manage tests",
     },
     {
-      key: "assign",
-      label: "Assign",
-      icon: <FiSend />,
-      tooltip: "Assign modules to users",
-    },
-    {
       key: "roletraining",
       label: "Amend Role Training",
       icon: <FiEdit />,
@@ -146,6 +149,12 @@ export default function TrainingModuleManager() {
       label: "View Role Training",
       icon: <FiEye />,
       tooltip: "View training modules and documents assigned to roles",
+    },
+    {
+      key: "viewmoduleassignments",
+      label: "View Module Assignments",
+      icon: <FiClipboard />,
+      tooltip: "Search modules and view which roles/departments are assigned",
     },
     {
       key: "depttraining",
@@ -183,7 +192,7 @@ export default function TrainingModuleManager() {
   console.log("🔍 DEBUG: Archive tab modules:", archiveTabModules.map(m => ({ id: m.id, name: m.name, is_archived: m.is_archived })));
 
   // CSV export function
-  const exportToCSV = () => {
+  const exportToCSV = async () => {
     const dataToExport = activeTab === "archive" ? archiveTabModules : viewTabModules;
 
     if (dataToExport.length === 0) {
@@ -191,9 +200,20 @@ export default function TrainingModuleManager() {
       return;
     }
 
+    // Fetch categories to get their names
+    const { data: categories } = await supabase
+      .from('module_categories')
+      .select('id, name');
+
+    const categoryIdToName = new Map(
+      (categories || []).map(c => [c.id, c.name])
+    );
+
     // Define CSV headers
     const headers = [
       "Name",
+      "Category",
+      "Ref Code",
       "Description",
       "Version",
       "Learning Objectives",
@@ -210,22 +230,31 @@ export default function TrainingModuleManager() {
     ];
 
     // Convert data to CSV rows
-    const rows = dataToExport.map(module => [
-      module.name,
-      module.description,
-      module.version,
-      module.learning_objectives || "",
-      module.estimated_duration || "",
-      module.delivery_format || "",
-      module.target_audience || "",
-      (module.prerequisites || []).join("; "),
-      (module.tags || []).join("; "),
-      module.requires_follow_up ? "Yes" : "No",
-      module.review_period || "",
-      module.is_archived ? "Archived" : "Active",
-      module.created_at || "",
-      module.updated_at || ""
-    ]);
+    const rows = dataToExport.map(module => {
+      // Get category name from first category ID
+      const categoryName = module.categories && module.categories.length > 0
+        ? categoryIdToName.get(module.categories[0]) || ""
+        : "";
+
+      return [
+        module.name,
+        categoryName,
+        module.ref_code || "",
+        module.description,
+        module.version,
+        module.learning_objectives || "",
+        module.estimated_duration || "",
+        module.delivery_format || "",
+        module.target_audience || "",
+        (module.prerequisites || []).join("; "),
+        (module.tags || []).join("; "),
+        module.requires_follow_up ? "Yes" : "No",
+        module.follow_up_period || module.review_period || "",
+        module.is_archived ? "Archived" : "Active",
+        module.created_at || "",
+        module.updated_at || ""
+      ];
+    });
 
     // Escape CSV values
     const escapeCSV = (value: string) => {
@@ -307,6 +336,267 @@ export default function TrainingModuleManager() {
     await fetchTrainedUsers(module.id);
   };
 
+  // Handle CSV file upload for bulk module creation
+  const handleUploadCSV = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.name.endsWith('.csv')) {
+      alert('Please upload a CSV file');
+      event.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const text = e.target?.result as string;
+      await processCSV(text);
+    };
+    reader.readAsText(file);
+    event.target.value = ''; // Reset input
+  };
+
+  // Process CSV content and bulk insert modules
+  const processCSV = async (csvText: string) => {
+    const lines = csvText.split('\n').filter(line => line.trim());
+    if (lines.length < 2) {
+      alert('CSV file is empty or has no data rows');
+      return;
+    }
+
+    // Parse header
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+
+    // Validate required columns
+    const nameIndex = headers.indexOf('name');
+    const refCodeIndex = headers.indexOf('ref_code') >= 0 ? headers.indexOf('ref_code') : headers.indexOf('ref code');
+    const categoryIndex = headers.indexOf('category');
+
+    if (nameIndex === -1) {
+      alert('CSV must contain a "name" column');
+      return;
+    }
+
+    // Get existing modules to check for duplicates
+    const { data: existingModules } = await supabase
+      .from('modules')
+      .select('id, ref_code');
+
+    const existingRefCodes = new Set(
+      (existingModules || [])
+        .map(m => m.ref_code?.toLowerCase())
+        .filter(Boolean)
+    );
+
+    // Get all categories with their prefixes for auto-assignment
+    const { data: categories } = await supabase
+      .from('module_categories')
+      .select('id, name, prefix')
+      .eq('archived', false);
+
+    // Map category name -> category data (id and prefix)
+    const categoryNameMap = new Map(
+      (categories || []).map(c => [c.name.toLowerCase(), { id: c.id, prefix: c.prefix }])
+    );
+
+    const results = {
+      success: 0,
+      failed: 0,
+      errors: [] as Array<{ row: number; name: string; error: string }>
+    };
+
+    // Process each row
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+
+      try {
+        // Parse CSV line (handle quoted values)
+        const values = parseCSVLine(line);
+
+        const name = values[nameIndex]?.trim();
+        if (!name) {
+          results.failed++;
+          results.errors.push({
+            row: i + 1,
+            name: 'Unknown',
+            error: 'Missing required field: name'
+          });
+          continue;
+        }
+
+        // Get category from CSV (if provided)
+        const categoryName = categoryIndex >= 0 ? values[categoryIndex]?.trim() : '';
+        let categoryId: string | null = null;
+        let categoryPrefix: string | null = null;
+
+        if (categoryName) {
+          const categoryData = categoryNameMap.get(categoryName.toLowerCase());
+          if (categoryData) {
+            categoryId = categoryData.id;
+            categoryPrefix = categoryData.prefix;
+          } else {
+            results.failed++;
+            results.errors.push({
+              row: i + 1,
+              name,
+              error: `Category "${categoryName}" not found`
+            });
+            continue;
+          }
+        }
+
+        // Get or generate ref_code
+        let refCode = refCodeIndex >= 0 ? values[refCodeIndex]?.trim() : '';
+
+        // If no ref_code but category has prefix, we could auto-generate (optional)
+        // For now, just use the provided ref_code or empty string
+
+        // Check for duplicate ref_code (only if ref_code is provided)
+        if (refCode && existingRefCodes.has(refCode.toLowerCase())) {
+          results.failed++;
+          results.errors.push({
+            row: i + 1,
+            name,
+            error: `Duplicate ref_code: ${refCode} already exists`
+          });
+          continue;
+        }
+
+        // Validate ref_code matches category prefix (if both are provided)
+        if (refCode && categoryPrefix) {
+          const refCodePrefix = refCode.match(/^([A-Z]+)-/)?.[1];
+          if (refCodePrefix && refCodePrefix.toUpperCase() !== categoryPrefix.toUpperCase()) {
+            results.failed++;
+            results.errors.push({
+              row: i + 1,
+              name,
+              error: `Ref code "${refCode}" doesn't match category prefix "${categoryPrefix}"`
+            });
+            continue;
+          }
+        }
+
+        // Get tags from CSV or generate from module name
+        let tags = parseArrayField(getCSVValue(values, headers, 'tags'));
+
+        // If no tags provided, auto-generate from module name
+        if (tags.length === 0) {
+          // Extract meaningful words from the module name (ignore common words)
+          const commonWords = ['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with'];
+          const words = name
+            .toLowerCase()
+            .replace(/[^\w\s]/g, '') // Remove punctuation
+            .split(/\s+/) // Split by whitespace
+            .filter(word => word.length > 2 && !commonWords.includes(word)); // Filter out short and common words
+
+          // Use the first 3-5 meaningful words as tags
+          tags = words.slice(0, 5);
+        }
+
+        // Build module object with defaults
+        const moduleData: any = {
+          name,
+          ref_code: refCode || null,
+          description: getCSVValue(values, headers, 'description') || '',
+          version: parseInt(getCSVValue(values, headers, 'version')) || 1,
+          estimated_duration: parseInt(getCSVValue(values, headers, 'estimated_duration') || getCSVValue(values, headers, 'estimated duration')) || 60,
+          delivery_format: getCSVValue(values, headers, 'delivery_format') || getCSVValue(values, headers, 'delivery format') || '',
+          prerequisites: parseArrayField(getCSVValue(values, headers, 'prerequisites')),
+          tags: tags,
+          requires_follow_up: parseBooleanField(getCSVValue(values, headers, 'requires_follow_up') || getCSVValue(values, headers, 'requires follow up')),
+          follow_up_period: getCSVValue(values, headers, 'review_period') || getCSVValue(values, headers, 'review period') || '12',
+          attachments: [],
+          categories: categoryId ? [categoryId] : [],
+          is_archived: false,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+
+        // Insert module
+        const { error } = await supabase
+          .from('modules')
+          .insert([moduleData]);
+
+        if (error) {
+          results.failed++;
+          results.errors.push({
+            row: i + 1,
+            name,
+            error: error.message
+          });
+        } else {
+          results.success++;
+          // Add to existing ref codes to check for duplicates within the same CSV
+          if (refCode) {
+            existingRefCodes.add(refCode.toLowerCase());
+          }
+        }
+      } catch (err) {
+        results.failed++;
+        results.errors.push({
+          row: i + 1,
+          name: 'Error',
+          error: err instanceof Error ? err.message : 'Unknown error'
+        });
+      }
+    }
+
+    // Show results
+    setUploadResults(results);
+    setShowUploadResults(true);
+
+    // Refresh modules list
+    await refreshModules();
+  };
+
+  // Helper function to parse CSV line with quoted values
+  const parseCSVLine = (line: string): string[] => {
+    const result: string[] = [];
+    let current = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+
+      if (char === '"') {
+        if (inQuotes && line[i + 1] === '"') {
+          current += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (char === ',' && !inQuotes) {
+        result.push(current);
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    result.push(current);
+
+    return result.map(v => v.trim());
+  };
+
+  // Helper to get CSV value by column name
+  const getCSVValue = (values: string[], headers: string[], columnName: string): string => {
+    const index = headers.indexOf(columnName.toLowerCase());
+    return index >= 0 ? values[index]?.trim() || '' : '';
+  };
+
+  // Helper to parse array fields (semicolon-separated)
+  const parseArrayField = (value: string): string[] => {
+    if (!value) return [];
+    return value.split(';').map(v => v.trim()).filter(Boolean);
+  };
+
+  // Helper to parse boolean fields
+  const parseBooleanField = (value: string): boolean => {
+    const normalized = value?.toLowerCase().trim();
+    return normalized === 'yes' || normalized === 'true' || normalized === '1';
+  };
+
   // Export trained users to CSV
   const exportTrainedUsersCSV = () => {
     if (!trainedUsersModule || trainedUsers.length === 0) {
@@ -367,28 +657,50 @@ export default function TrainingModuleManager() {
             setModuleToEdit(null);
           }}
           toolbar={
-            (activeTab === "view" || activeTab === "archive") ? (
+            (activeTab === "view" || activeTab === "archive" || activeTab === "add") ? (
               <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', width: '100%', flexWrap: 'wrap', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flex: 1 }}>
-                  <CustomTooltip text="Search modules by name or description">
-                    <input
-                      type="text"
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      placeholder="Search modules..."
-                      className="neon-input"
-                      style={{ flex: 1, minWidth: '200px', maxWidth: '300px' }}
-                    />
-                  </CustomTooltip>
-                  <CustomTooltip text="Export current view to CSV">
-                    <TextIconButton
-                      variant="download"
-                      label="Export CSV"
-                      onClick={exportToCSV}
-                    />
-                  </CustomTooltip>
+                  {activeTab !== "add" && (
+                    <CustomTooltip text="Search modules by name or description">
+                      <input
+                        type="text"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder="Search modules..."
+                        className="neon-input"
+                        style={{ flex: 1, minWidth: '200px', maxWidth: '300px' }}
+                      />
+                    </CustomTooltip>
+                  )}
+                  {activeTab === "add" ? (
+                    <CustomTooltip text="Upload CSV file to bulk create modules">
+                      <label htmlFor="csv-upload" style={{ display: 'inline-block' }}>
+                        <input
+                          id="csv-upload"
+                          type="file"
+                          accept=".csv"
+                          onChange={handleUploadCSV}
+                          style={{ display: 'none' }}
+                        />
+                        <TextIconButton
+                          variant="add"
+                          icon={<FiUpload />}
+                          label="Upload CSV"
+                          onClick={() => document.getElementById('csv-upload')?.click()}
+                        />
+                      </label>
+                    </CustomTooltip>
+                  ) : (
+                    <CustomTooltip text="Export current view to CSV">
+                      <TextIconButton
+                        variant="download"
+                        label="Export CSV"
+                        onClick={exportToCSV}
+                      />
+                    </CustomTooltip>
+                  )}
                 </div>
-                {paginationControls && (
+                {(activeTab === "view" || activeTab === "archive") && paginationControls && (
                   <div style={{ display: 'flex', alignItems: 'center' }}>
                     {paginationControls}
                   </div>
@@ -419,7 +731,7 @@ export default function TrainingModuleManager() {
               { header: "Version", accessor: "version", width: 80 },
               { header: "Files", accessor: "files", width: 120 },
               { header: "Status", accessor: "status", width: 100 },
-              { header: "Actions", accessor: "actions", width: 180 },
+              { header: "Actions", accessor: "actions", width: 240 },
             ]}
             data={filteredModules
               .filter((m) => !m.is_archived) // Only show non-archived modules in view tab
@@ -448,6 +760,14 @@ export default function TrainingModuleManager() {
                       icon={<FiUser />}
                       label="Trained Users"
                       onClick={() => handleViewTrainedUsers(m)}
+                    />
+                  </CustomTooltip>
+                  <CustomTooltip text="Bulk assign to roles or departments">
+                    <TextIconButton
+                      variant="next"
+                      icon={<FiUsers />}
+                      label="Bulk Assign"
+                      onClick={() => setBulkAssignModuleId(m.id)}
                     />
                   </CustomTooltip>
                   <CustomTooltip text="Edit this training module">
@@ -480,14 +800,14 @@ export default function TrainingModuleManager() {
       {activeTab === "tests" && (
         <TestBuilder />
       )}
-      {activeTab === "assign" && (
-        <AssignModuleTab />
-      )}
       {activeTab === "roletraining" && (
         <RoleModuleDocumentAssignment onSaved={refreshModules} skipRoleCreation={true} />
       )}
       {activeTab === "viewroletraining" && (
         <ViewRoleAssignments />
+      )}
+      {activeTab === "viewmoduleassignments" && (
+        <ViewModuleAssignments />
       )}
       {activeTab === "depttraining" && (
         <DepartmentModuleAssignment onSaved={refreshModules} />
@@ -758,6 +1078,92 @@ export default function TrainingModuleManager() {
               </p>
             )}
           </div>
+        </OverlayDialog>
+      )}
+
+      {/* Upload Results Dialog */}
+      {showUploadResults && uploadResults && (
+        <OverlayDialog
+          open={true}
+          onClose={() => {
+            setShowUploadResults(false);
+            setUploadResults(null);
+          }}
+          showCloseButton={true}
+          width={800}
+        >
+          <div style={{ padding: 24 }}>
+            <h2 style={{ color: "var(--accent)", fontWeight: 600, fontSize: "1.5rem", marginBottom: 16 }}>
+              Bulk Upload Results
+            </h2>
+
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ display: "flex", gap: 24, marginBottom: 16 }}>
+                <div style={{ flex: 1, padding: 16, background: "var(--surface)", borderRadius: 8, border: "1px solid var(--border)" }}>
+                  <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem", marginBottom: 4 }}>Successfully Created</p>
+                  <p style={{ color: "var(--success)", fontSize: "2rem", fontWeight: 600 }}>{uploadResults.success}</p>
+                </div>
+                <div style={{ flex: 1, padding: 16, background: "var(--surface)", borderRadius: 8, border: "1px solid var(--border)" }}>
+                  <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem", marginBottom: 4 }}>Failed</p>
+                  <p style={{ color: "var(--danger)", fontSize: "2rem", fontWeight: 600 }}>{uploadResults.failed}</p>
+                </div>
+              </div>
+
+              {uploadResults.errors.length > 0 && (
+                <>
+                  <h3 style={{ color: "var(--accent)", fontWeight: 600, fontSize: "1.125rem", marginBottom: 12 }}>
+                    Errors ({uploadResults.errors.length})
+                  </h3>
+                  <div style={{ maxHeight: 400, overflowY: "auto", background: "var(--surface)", borderRadius: 8, border: "1px solid var(--border)" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                      <thead>
+                        <tr style={{ borderBottom: "1px solid var(--border)", background: "var(--background)" }}>
+                          <th style={{ padding: 12, textAlign: "left", color: "var(--accent)", fontWeight: 600, width: 80 }}>Row</th>
+                          <th style={{ padding: 12, textAlign: "left", color: "var(--accent)", fontWeight: 600 }}>Module Name</th>
+                          <th style={{ padding: 12, textAlign: "left", color: "var(--accent)", fontWeight: 600 }}>Error</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {uploadResults.errors.map((error, idx) => (
+                          <tr key={idx} style={{ borderBottom: idx < uploadResults.errors.length - 1 ? "1px solid var(--border)" : "none" }}>
+                            <td style={{ padding: 12, color: "var(--text-secondary)" }}>{error.row}</td>
+                            <td style={{ padding: 12, color: "var(--text)" }}>{error.name}</td>
+                            <td style={{ padding: 12, color: "var(--danger)", fontSize: "0.875rem" }}>{error.error}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <TextIconButton
+                variant="save"
+                label="Close"
+                onClick={() => {
+                  setShowUploadResults(false);
+                  setUploadResults(null);
+                }}
+              />
+            </div>
+          </div>
+        </OverlayDialog>
+      )}
+
+      {/* Bulk Assign Dialog */}
+      {bulkAssignModuleId && (
+        <OverlayDialog
+          open={true}
+          onClose={() => setBulkAssignModuleId(null)}
+          showCloseButton={true}
+          width={900}
+        >
+          <BulkModuleAssignment
+            preSelectedModuleId={bulkAssignModuleId}
+            onClose={() => setBulkAssignModuleId(null)}
+          />
         </OverlayDialog>
       )}
     </>

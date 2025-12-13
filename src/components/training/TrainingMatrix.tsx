@@ -33,6 +33,8 @@ const TrainingMatrix: React.FC<TrainingMatrixProps> = ({ filterByDepartmentId })
   const [modules, setModules] = useState<Module[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [roleAssignments, setRoleAssignments] = useState<{ role_id: string; item_id: string; type: string }[]>([]);
+  const [departmentAssignments, setDepartmentAssignments] = useState<{ department_id: string; item_id: string; type: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [fatalError, setFatalError] = useState<string | null>(null);
 
@@ -59,6 +61,43 @@ const TrainingMatrix: React.FC<TrainingMatrixProps> = ({ filterByDepartmentId })
     let isMounted = true;
     let intervalId: NodeJS.Timeout | null = null;
 
+    // Helper to fetch all rows from a table (bypassing 1000 row limit)
+    async function fetchAllRows<T>(
+      tableName: string,
+      selectQuery: string,
+      orderBy?: { column: string; ascending: boolean }
+    ): Promise<{ data: T[] | null; error: any }> {
+      const allData: T[] = [];
+      let page = 0;
+      const pageSize = 1000;
+
+      while (true) {
+        let query = supabase
+          .from(tableName)
+          .select(selectQuery)
+          .range(page * pageSize, (page + 1) * pageSize - 1);
+
+        if (orderBy) {
+          query = query.order(orderBy.column, { ascending: orderBy.ascending });
+        }
+
+        const { data, error } = await query;
+
+        if (error) {
+          return { data: null, error };
+        }
+
+        if (!data || data.length === 0) break;
+
+        allData.push(...(data as T[]));
+
+        if (data.length < pageSize) break;
+        page++;
+      }
+
+      return { data: allData, error: null };
+    }
+
     async function fetchData() {
       setLoading(true);
       setFatalError(null);
@@ -71,13 +110,18 @@ const TrainingMatrix: React.FC<TrainingMatrixProps> = ({ filterByDepartmentId })
           departmentsRes,
           rolesRes,
           documentsRes,
+          roleAssignmentsRes,
+          departmentAssignmentsRes,
         ] = await Promise.all([
-          supabase.from("users").select("auth_id, first_name, last_name, department_id, role_id"),
-          supabase.from("modules").select("id, name").order("name", { ascending: true }),
-          supabase.from("user_assignments").select("auth_id, item_id, item_type, completed_at"),
-          supabase.from("departments").select("id, name").order("name", { ascending: true }),
-          supabase.from("roles").select("id, title, department_id").order("title", { ascending: true }),
-          supabase.from("documents").select("id, title").order("title", { ascending: true }),
+          // Only fetch active users (not leavers)
+          supabase.from("users").select("auth_id, first_name, last_name, department_id, role_id").eq("is_leaver", false).order("first_name"),
+          fetchAllRows("modules", "id, name", { column: "name", ascending: true }),
+          fetchAllRows("user_assignments", "auth_id, item_id, item_type, completed_at"),
+          fetchAllRows("departments", "id, name", { column: "name", ascending: true }),
+          fetchAllRows("roles", "id, title, department_id", { column: "title", ascending: true }),
+          fetchAllRows("documents", "id, title", { column: "title", ascending: true }),
+          fetchAllRows("role_assignments", "role_id, item_id, type"),
+          fetchAllRows("department_assignments", "department_id, item_id, type"),
         ]);
 
         if (usersRes.error) console.error("Users query failed:", usersRes.error);
@@ -86,6 +130,8 @@ const TrainingMatrix: React.FC<TrainingMatrixProps> = ({ filterByDepartmentId })
         if (departmentsRes.error) console.error("Departments query failed:", departmentsRes.error);
         if (rolesRes.error) console.error("Roles query failed:", rolesRes.error);
         if (documentsRes.error) console.error("Documents query failed:", documentsRes.error);
+        if (roleAssignmentsRes.error) console.error("Role assignments query failed:", roleAssignmentsRes.error);
+        if (departmentAssignmentsRes.error) console.error("Department assignments query failed:", departmentAssignmentsRes.error);
 
         if (!isMounted) return;
 
@@ -99,6 +145,8 @@ const TrainingMatrix: React.FC<TrainingMatrixProps> = ({ filterByDepartmentId })
         const rawAssignments = assignmentsRes.data ?? [];
         const deptRows = departmentsRes.data ?? [];
         const roleRows = rolesRes.data ?? [];
+        const rawRoleAssignments = roleAssignmentsRes.data ?? [];
+        const rawDepartmentAssignments = departmentAssignmentsRes.data ?? [];
 
         // Build safe users list with guaranteed unique, non-empty keys
         const userList: User[] = rawUsers.map((u: any, idx: number) => {
@@ -146,12 +194,14 @@ const TrainingMatrix: React.FC<TrainingMatrixProps> = ({ filterByDepartmentId })
         }
 
         // Assignments as-is, but we'll ignore ones that reference null ids in lookups
-        const assignmentRows: Assignment[] = rawAssignments;
+        const assignmentRows: Assignment[] = rawAssignments as Assignment[];
 
         setUsers(userList);
         setModules(moduleList);
         setDocuments(documentList);
         setAssignments(assignmentRows);
+        setRoleAssignments(rawRoleAssignments as { role_id: string; item_id: string; type: string }[]);
+        setDepartmentAssignments(rawDepartmentAssignments as { department_id: string; item_id: string; type: string }[]);
         setDepartments([
           { id: "", name: "All Departments" },
           ...deptRows
@@ -221,31 +271,57 @@ const TrainingMatrix: React.FC<TrainingMatrixProps> = ({ filterByDepartmentId })
     });
   }, [users, nameFilter, departmentFilter, roleFilter]);
 
-  // Combine modules and documents for columns, including historical completions
+  // Combine modules and documents for columns, including all assignments (user, role, and department)
   const displayedItems: Array<{ id: string | null; title: string; _colKey: string; type: "module" | "document" }> = useMemo(() => {
     const visibleUserIds = new Set(filteredUsers.map((u) => u.auth_id).filter(Boolean) as string[]);
-    
-    // Get items from current assignments
-    const currentModuleIds = new Set(
+    const visibleRoleIds = new Set(filteredUsers.map((u) => u.role).filter(Boolean) as string[]);
+    const visibleDepartmentIds = new Set(filteredUsers.map((u) => u.department).filter(Boolean) as string[]);
+
+    // Get items from user assignments
+    const userModuleIds = new Set(
       assignments
         .filter((a) => a.item_type === "module" && !!a.auth_id && !!a.item_id && visibleUserIds.has(a.auth_id))
         .map((a) => a.item_id as string)
     );
-    const currentDocumentIds = new Set(
+    const userDocumentIds = new Set(
       assignments
         .filter((a) => a.item_type === "document" && !!a.auth_id && !!a.item_id && visibleUserIds.has(a.auth_id))
         .map((a) => a.item_id as string)
     );
 
-    // All completions (both current and historical) are in user_assignments
-    const allModuleIds = currentModuleIds;
-    const allDocumentIds = currentDocumentIds;
+    // Get items from role assignments
+    const roleModuleIds = new Set(
+      roleAssignments
+        .filter((a) => a.type === "module" && !!a.role_id && !!a.item_id && visibleRoleIds.has(a.role_id))
+        .map((a) => a.item_id as string)
+    );
+    const roleDocumentIds = new Set(
+      roleAssignments
+        .filter((a) => a.type === "document" && !!a.role_id && !!a.item_id && visibleRoleIds.has(a.role_id))
+        .map((a) => a.item_id as string)
+    );
+
+    // Get items from department assignments
+    const deptModuleIds = new Set(
+      departmentAssignments
+        .filter((a) => a.type === "module" && !!a.department_id && !!a.item_id && visibleDepartmentIds.has(a.department_id))
+        .map((a) => a.item_id as string)
+    );
+    const deptDocumentIds = new Set(
+      departmentAssignments
+        .filter((a) => a.type === "document" && !!a.department_id && !!a.item_id && visibleDepartmentIds.has(a.department_id))
+        .map((a) => a.item_id as string)
+    );
+
+    // Combine all module and document IDs
+    const allModuleIds = new Set([...userModuleIds, ...roleModuleIds, ...deptModuleIds]);
+    const allDocumentIds = new Set([...userDocumentIds, ...roleDocumentIds, ...deptDocumentIds]);
 
     const moduleCols = modules.filter((m) => !!m.id && allModuleIds.has(m.id as string)).map((m) => ({ ...m, type: "module" as const }));
     const documentCols = documents.filter((d) => !!d.id && allDocumentIds.has(d.id as string)).map((d) => ({ ...d, type: "document" as const }));
 
     return [...moduleCols, ...documentCols];
-  }, [modules, documents, assignments, filteredUsers]);
+  }, [modules, documents, assignments, roleAssignments, departmentAssignments, filteredUsers]);
 
   const filteredRoles = useMemo(() => {
     if (roles.length === 0) return [];

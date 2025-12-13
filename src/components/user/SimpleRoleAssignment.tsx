@@ -85,25 +85,40 @@ export default function SimpleRoleAssignment({
       setSaving(true);
       setError("");
 
-      // Simple update - just update the user's department and role
-      const { error: updateError } = await supabase
-        .from("users")
-        .update({
-          department_id: selectedDepartmentId,
-          role_id: selectedRoleId
-        })
-        .eq("id", user.id);
+      console.log("[SimpleRoleAssignment] Updating user role via API...");
 
-      if (updateError) throw updateError;
+      // Use the same API endpoint as DepartmentRoleManager for consistency
+      const response = await fetch("/api/change-user-department-role", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: user.id,
+          old_department_id: user.department_id || null,
+          old_role_id: user.role_id || null,
+          new_department_id: selectedDepartmentId,
+          new_role_id: selectedRoleId,
+          changed_by: null, // SimpleRoleAssignment doesn't have current user context
+          change_reason: "Department and role assignment via HR admin"
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to update department and role");
+      }
+
+      const result = await response.json();
+      console.log("[SimpleRoleAssignment] Update successful:", result);
 
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
+        console.log("[SimpleRoleAssignment] Calling onSuccess callback...");
         onSuccess();
         onClose();
       }, 1500);
     } catch (err: any) {
-      console.error("Error saving:", err);
+      console.error("[SimpleRoleAssignment] Error saving:", err);
       setError(err.message || "Failed to save changes");
     } finally {
       setSaving(false);

@@ -12,6 +12,8 @@
     "lint": "next lint",
     "run:scheduler": "ts-node --project tsconfig.scripts.json scripts/runAutoScheduler.ts",
     "backfill": "ts-node --project tsconfig.scripts.json scripts/backfill-user-assignments.ts",
+    "backfill:role-training": "tsx scripts/backfill-role-training.ts",
+    "backfill:all-training": "tsx scripts/backfill-all-training.ts",
     "check-db": "ts-node --project tsconfig.scripts.json scripts/quick-check.ts",
     "migrate": "node scripts/complete-migration.js"
   },

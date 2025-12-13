@@ -181,6 +181,7 @@ const UserManager: React.FC = () => {
 
   // Fetch all data function (can be called to refresh)
   const fetchData = async () => {
+    console.log("[HrAdminView] Starting data fetch...");
     setLoading(true);
     try {
       const [
@@ -220,10 +221,12 @@ const UserManager: React.FC = () => {
       setLeavers(leaversRows || []);
       setShifts(shiftsRows || []);
 
+      console.log("[HrAdminView] Data updated - Users:", userRows?.length || 0);
       console.log("New starters fetched:", startersRows?.length || 0);
 
       // Also refresh UserManagementPanel if it's active
       if (activeTab === "people" && userPanelControls?.refreshData) {
+        console.log("[HrAdminView] Calling UserManagementPanel refreshData...");
         userPanelControls.refreshData();
       }
     } catch (error: any) {
@@ -231,6 +234,7 @@ const UserManager: React.FC = () => {
       setError(error.message || "Failed to fetch data");
     } finally {
       setLoading(false);
+      console.log("[HrAdminView] Data fetch completed");
     }
   };
 
@@ -308,10 +312,16 @@ const UserManager: React.FC = () => {
   };
 
   const handleRoleAssignmentSuccess = async () => {
+    console.log("[HrAdminView] Handling role assignment success...");
     setRoleDialogOpen(false);
     setSelectedRoleUser(null);
     setSuccessMessage("Department and role updated successfully!");
     setShowSuccess(true);
+    
+    // Small delay to ensure database changes are committed
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
+    console.log("[HrAdminView] Calling fetchData to refresh all data...");
     await fetchData();
   };
 

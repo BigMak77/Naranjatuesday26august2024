@@ -52,19 +52,57 @@ export default function ViewRoleAssignments() {
     setSelectedRoleName(role.title);
     setLoading(true);
 
-    // Fetch assignments for this role
-    const { data: assignments } = await supabase
+    // Fetch direct role assignments
+    const { data: roleAssignments, error: roleError } = await supabase
       .from("role_assignments")
       .select("item_id, type")
       .eq("role_id", roleId);
 
-    const moduleIds = (assignments || [])
+    console.log("🔍 Role assignments:", roleAssignments);
+    if (roleError) console.error("❌ Role assignments error:", roleError);
+
+    // Fetch department assignments for this role's department
+    const { data: roleWithDept, error: roleError2 } = await supabase
+      .from("roles")
+      .select("department_id")
+      .eq("id", roleId)
+      .single();
+
+    console.log("🔍 Role department data:", roleWithDept);
+    if (roleError2) console.error("❌ Role department error:", roleError2);
+
+    let departmentAssignments: { item_id: string; type: string }[] = [];
+    if (roleWithDept?.department_id) {
+      const { data: deptAssignments, error: deptError } = await supabase
+        .from("department_assignments")
+        .select("item_id, type")
+        .eq("department_id", roleWithDept.department_id);
+      departmentAssignments = deptAssignments || [];
+      console.log("🔍 Department assignments:", departmentAssignments);
+      if (deptError) console.error("❌ Department assignments error:", deptError);
+    } else {
+      console.log("⚠️ No department_id found for this role");
+    }
+
+    // Combine both role and department assignments (remove duplicates)
+    const allAssignments = [...(roleAssignments || []), ...departmentAssignments];
+    console.log("🔍 All assignments before deduplication:", allAssignments);
+
+    const uniqueAssignments = Array.from(
+      new Map(allAssignments.map(a => [`${a.item_id}-${a.type}`, a])).values()
+    );
+    console.log("🔍 Unique assignments after deduplication:", uniqueAssignments);
+
+    const moduleIds = uniqueAssignments
       .filter(a => a.type === "module")
       .map(a => a.item_id);
 
-    const documentIds = (assignments || [])
+    const documentIds = uniqueAssignments
       .filter(a => a.type === "document")
       .map(a => a.item_id);
+
+    console.log("🔍 Module IDs:", moduleIds);
+    console.log("🔍 Document IDs:", documentIds);
 
     // Fetch module details
     if (moduleIds.length > 0) {
