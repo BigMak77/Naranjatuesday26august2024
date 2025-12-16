@@ -193,10 +193,10 @@ const UserManager: React.FC = () => {
         { data: shiftsRows, error: shiftsError }
       ] = await Promise.all([
         supabase.from("departments").select("id, name, parent_id, is_archived, level").order("name", { ascending: true }),
-        supabase.from("users").select("id, auth_id, department_id, role_id, access_level, first_name, last_name, start_date, email, shift_id, is_leaver, employee_number").not("employee_number", "is", null),
+        supabase.from("users").select("id, auth_id, department_id, role_id, access_level, first_name, last_name, start_date, email, shift_id, is_leaver, employee_number, location").not("employee_number", "is", null),
         supabase.from("roles").select("id, title, department_id").order("title", { ascending: true }),
-        supabase.from("users").select("id, first_name, last_name, email, phone, start_date, created_at").is("employee_number", null).eq("is_leaver", false).order("created_at", { ascending: false }),
-        supabase.from("users").select("id, email, first_name, last_name, department_id, leaver_date, leaver_reason, start_date").eq("is_leaver", true).order("leaver_date", { ascending: false }),
+        supabase.from("users").select("id, first_name, last_name, email, phone, start_date, created_at, location").is("employee_number", null).eq("is_leaver", false).order("created_at", { ascending: false }),
+        supabase.from("users").select("id, email, first_name, last_name, department_id, leaver_date, leaver_reason, start_date, location").eq("is_leaver", true).order("leaver_date", { ascending: false }),
         supabase.from("shift_patterns").select("id, name").order("name", { ascending: true })
       ]);
 
@@ -333,7 +333,8 @@ const UserManager: React.FC = () => {
       email: '',
       department_id: '',
       access_level: 'user',
-      start_date: ''
+      start_date: '',
+      location: ''
     });
     setIsAddMode(true);
     setIsDepartmentOnlyMode(false);
@@ -1689,7 +1690,8 @@ function UserEditForm({ user, departments, onSave, isAddMode, isDepartmentOnlyMo
     email: user.email || '',
     department_id: user.department_id || '',
     access_level: user.access_level || 'user',
-    start_date: user.start_date || ''
+    start_date: user.start_date || '',
+    location: user.location || ''
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -1772,6 +1774,20 @@ function UserEditForm({ user, departments, onSave, isAddMode, isDepartmentOnlyMo
           onChange={(e) => handleChange('email', e.target.value)}
           required
         />
+      </div>
+
+      <div className="user-manager-form-field">
+        <label>Location</label>
+        <select
+          value={formData.location}
+          onChange={(e) => handleChange('location', e.target.value)}
+        >
+          <option value="">Select Location</option>
+          <option value="England">England</option>
+          <option value="Wales">Wales</option>
+          <option value="Poland">Poland</option>
+          <option value="Group">Group</option>
+        </select>
       </div>
 
       <div className="user-manager-form-row">

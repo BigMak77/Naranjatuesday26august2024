@@ -41,7 +41,7 @@ export default function LoginPage() {
 
     const { data: userProfile, error: profileError } = await supabase
       .from("users")
-      .select("access_level")
+      .select("access_level, location")
       .eq("auth_id", authUser.id)
       .single();
 
@@ -51,8 +51,8 @@ export default function LoginPage() {
       return;
     }
 
-    // Redirect to appropriate dashboard based on access level
-    const dashboardUrl = getDashboardUrl(userProfile.access_level);
+    // Redirect to appropriate dashboard based on access level and location
+    const dashboardUrl = getDashboardUrl(userProfile.access_level, userProfile.location);
     router.push(dashboardUrl);
     setLoading(false);
   };

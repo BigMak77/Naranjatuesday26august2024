@@ -282,7 +282,7 @@ export default function GlobalHeader({
                     className="global-header-user-dropdown"
                   >
                     <Link
-                      href={getDashboardUrl(user?.access_level)}
+                      href={getDashboardUrl(user?.access_level, user?.location)}
                       role="menuitem"
                       onClick={() => setMenuOpen(false)}
                       className="global-header-menu-item"

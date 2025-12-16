@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/context/UserContext";
-import { FiMail, FiBook } from "react-icons/fi";
+import { FiMail, FiBook, FiFileText } from "react-icons/fi";
 import TextIconButton from "@/components/ui/TextIconButtons";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
@@ -141,6 +141,16 @@ export default function TrainerToolbar() {
             variant="view"
             label="Training Modules"
             onClick={() => router.push('/trainer/modules')}
+          />
+        </CustomTooltip>
+
+        {/* Training Documents Button */}
+        <CustomTooltip text="View Training Documents" placement="bottom">
+          <TextIconButton
+            icon={<FiFileText />}
+            variant="view"
+            label="Training Documents"
+            onClick={() => router.push('/trainer/documents')}
           />
         </CustomTooltip>
 

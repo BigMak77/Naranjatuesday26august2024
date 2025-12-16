@@ -14,6 +14,7 @@ export function useUser() {
     last_name?: string;
     receive_notifications?: boolean;
     permissions?: string[]; // granular permissions array
+    location?: string; // user's selected location
   } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -33,7 +34,7 @@ export function useUser() {
       const { data, error } = await supabase
         .from("users")
         .select(
-          "id, auth_id, access_level, department_id, first_name, last_name, receive_notifications, permissions",
+          "id, auth_id, access_level, department_id, first_name, last_name, receive_notifications, permissions, location",
         )
         .eq("auth_id", authUser.id)
         .single();

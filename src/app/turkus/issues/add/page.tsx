@@ -17,7 +17,7 @@ export default function RaiseIssuePage() {
   useEffect(() => {
     if (!loading && user) {
       raiseIssueModalCtx?.openRaiseIssue();
-      const dashboardUrl = getDashboardUrl(user.access_level);
+      const dashboardUrl = getDashboardUrl(user.access_level, user.location);
       router.replace(dashboardUrl);
     } else if (!loading && !user) {
       router.push("/homepage/login");

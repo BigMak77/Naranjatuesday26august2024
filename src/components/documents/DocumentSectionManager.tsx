@@ -16,6 +16,7 @@ import StorageFileBrowser from "@/components/ui/StorageFileBrowser";
 import { STORAGE_BUCKETS } from "@/lib/storage-config";
 import SuccessModal from "@/components/ui/SuccessModal";
 import DocumentAssignmentDialog from "@/components/documents/DocumentAssignmentDialog";
+import DocumentModuleLinkDialog from "@/components/documents/DocumentModuleLinkDialog";
 
 interface DocumentType {
   id: string;
@@ -445,6 +446,11 @@ export default function DocumentManager() {
   const [assignmentDocId, setAssignmentDocId] = useState<string | null>(null);
   const [assignmentDocTitle, setAssignmentDocTitle] = useState("");
 
+  // Module link dialog state
+  const [showModuleLinkDialog, setShowModuleLinkDialog] = useState(false);
+  const [moduleLinkDocId, setModuleLinkDocId] = useState<string | null>(null);
+  const [moduleLinkDocTitle, setModuleLinkDocTitle] = useState("");
+
   // Active tab state
   const [activeTab, setActiveTab] = useState<string>("documents");
 
@@ -826,6 +832,12 @@ export default function DocumentManager() {
                 setAssignmentDocId={setAssignmentDocId}
                 assignmentDocTitle={assignmentDocTitle}
                 setAssignmentDocTitle={setAssignmentDocTitle}
+                showModuleLinkDialog={showModuleLinkDialog}
+                setShowModuleLinkDialog={setShowModuleLinkDialog}
+                moduleLinkDocId={moduleLinkDocId}
+                setModuleLinkDocId={setModuleLinkDocId}
+                moduleLinkDocTitle={moduleLinkDocTitle}
+                setModuleLinkDocTitle={setModuleLinkDocTitle}
               />
             )}
 
@@ -2032,6 +2044,12 @@ function DocumentsTabContent({
   setAssignmentDocId,
   assignmentDocTitle,
   setAssignmentDocTitle,
+  showModuleLinkDialog,
+  setShowModuleLinkDialog,
+  moduleLinkDocId,
+  setModuleLinkDocId,
+  moduleLinkDocTitle,
+  setModuleLinkDocTitle,
 }: any) {
   // Filter sections based on selected standard
   const filteredSections = useMemo(() => {
@@ -2263,6 +2281,7 @@ function DocumentsTabContent({
             { header: "Version", accessor: "version", width: columnWidths.version },
             { header: "View", accessor: "view", width: 60 },
             { header: "Users", accessor: "users", width: 70 },
+            { header: "Modules", accessor: "modules", width: 80 },
             { header: "Edit", accessor: "edit", width: columnWidths.edit },
           ]}
           data={paginatedData
@@ -2330,6 +2349,22 @@ function DocumentsTabContent({
                     </CustomTooltip>
                   </div>
                 ),
+                modules: (
+                  <div className="document-modules-cell">
+                    <CustomTooltip text="Link training modules">
+                      <TextIconButton
+                        variant="secondary"
+                        label="Modules"
+                        aria-label="Link training modules"
+                        onClick={() => {
+                          setModuleLinkDocId(doc.id);
+                          setModuleLinkDocTitle(doc.title);
+                          setShowModuleLinkDialog(true);
+                        }}
+                      />
+                    </CustomTooltip>
+                  </div>
+                ),
                 edit: (
                   <div className="document-edit-cell">
                     <CustomTooltip text="Edit document">
@@ -2362,6 +2397,20 @@ function DocumentsTabContent({
           }}
           documentId={assignmentDocId}
           documentTitle={assignmentDocTitle}
+        />
+      )}
+
+      {/* Document Module Link Dialog */}
+      {moduleLinkDocId && (
+        <DocumentModuleLinkDialog
+          open={showModuleLinkDialog}
+          onClose={() => {
+            setShowModuleLinkDialog(false);
+            setModuleLinkDocId(null);
+            setModuleLinkDocTitle("");
+          }}
+          documentId={moduleLinkDocId}
+          documentTitle={moduleLinkDocTitle}
         />
       )}
     </>

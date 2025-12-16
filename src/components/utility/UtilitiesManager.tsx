@@ -10,7 +10,8 @@ import AddAuditorWidget from "@/components/audit/AddAuditorWidget";
 import AddTrainerWidget from "@/components/audit/AddTrainerWidget";
 import AddFirstAidWidget from "@/components/healthsafety/AddFirstAidWidget";
 import ModuleCategoriesTable from "@/components/modules/ModuleCategoriesTable";
-import { FiUsers, FiFileText, FiGrid, FiClock, FiUserCheck } from "react-icons/fi";
+import LoggedUsers from "@/components/utility/LoggedUsers";
+import { FiUsers, FiFileText, FiGrid, FiClock, FiUserCheck, FiActivity } from "react-icons/fi";
 
 export default function UtilitiesManager() {
   const [activeTab, setActiveTab] = useState('departments');
@@ -45,6 +46,12 @@ export default function UtilitiesManager() {
       label: 'Shift Patterns',
       icon: <FiClock />,
       tooltip: 'Define work shift time patterns'
+    },
+    {
+      key: 'logins',
+      label: 'User Logins',
+      icon: <FiActivity />,
+      tooltip: 'View user login history and activity'
     }
   ];
 
@@ -66,6 +73,8 @@ export default function UtilitiesManager() {
         return <ModuleCategoriesTable />;
       case 'shifts':
         return <ShiftPatternsTable />;
+      case 'logins':
+        return <LoggedUsers />;
       default:
         return <DepartmentRoleManager />;
     }
@@ -145,6 +154,21 @@ export default function UtilitiesManager() {
               variant="view"
               label="View All Shifts"
               onClick={() => console.log('View all shifts')}
+            />
+          </>
+        );
+      case 'logins':
+        return (
+          <>
+            <TextIconButton
+              variant="download"
+              label="Export Login Data"
+              onClick={() => console.log('Export login data')}
+            />
+            <TextIconButton
+              variant="view"
+              label="Refresh"
+              onClick={() => window.location.reload()}
             />
           </>
         );

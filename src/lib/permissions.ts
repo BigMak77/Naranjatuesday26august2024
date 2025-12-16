@@ -186,12 +186,13 @@ export function canAccessRoute(
 
 /**
  * Get the appropriate dashboard URL for a user
+ * Always redirects to location selector after login
  */
-export function getDashboardUrl(userAccessLevel: string | undefined): string {
+export function getDashboardUrl(userAccessLevel: string | undefined, userLocation?: string | null): string {
   if (!userAccessLevel) return "/login";
 
-  // All authenticated users now land on the standard landing page
-  return "/landingpage";
+  // All authenticated users go to location selector after login
+  return "/location-selector";
 }
 
 /**

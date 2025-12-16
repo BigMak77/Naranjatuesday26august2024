@@ -40,6 +40,8 @@ export type UserRow = {
   name: string;
   departmentId: string;
   departmentName: string;
+  roleId: string;
+  roleName: string;
   lastTrainingDate?: string; // ISO
 };
 
@@ -332,7 +334,9 @@ export default function TrainerRecordingPage() {
         last_name,
         email,
         department_id,
-        departments ( name )
+        role_id,
+        departments ( name ),
+        roles!users_role_id_fkey ( title )
       `,
       )
       .in("auth_id", authIdsWithIncomplete)
@@ -352,9 +356,14 @@ export default function TrainerRecordingPage() {
       name?: string | null;
       email?: string | null;
       department_id?: string | null;
+      role_id?: string | null;
       departments?:
         | { name?: string | null }[]
         | { name?: string | null }
+        | null;
+      roles?:
+        | { title?: string | null }[]
+        | { title?: string | null }
         | null;
     };
 
@@ -376,12 +385,25 @@ export default function TrainerRecordingPage() {
           departmentName =
             (u.departments as { name?: string | null }).name ?? "";
         }
+        let roleName = "";
+        if (Array.isArray(u.roles) && u.roles.length > 0) {
+          roleName = u.roles[0]?.title ?? "";
+        } else if (
+          u.roles &&
+          typeof u.roles === "object" &&
+          "title" in u.roles
+        ) {
+          roleName =
+            (u.roles as { title?: string | null }).title ?? "";
+        }
         return {
           id: u.id,
           auth_id: u.auth_id ?? "", // filtered out below if missing
           name: displayName,
           departmentId: u.department_id ?? "",
           departmentName,
+          roleId: u.role_id ?? "",
+          roleName,
           lastTrainingDate: undefined,
         };
       })
@@ -732,7 +754,8 @@ export default function TrainerRecordingPage() {
         const term = searchTerm.toLowerCase();
         return (
           r.name.toLowerCase().includes(term) ||
-          r.departmentName.toLowerCase().includes(term)
+          r.departmentName.toLowerCase().includes(term) ||
+          r.roleName.toLowerCase().includes(term)
         );
       })
       .sort((a, b) => a.name.localeCompare(b.name));
@@ -1453,6 +1476,7 @@ export default function TrainerRecordingPage() {
           columns={[
             { header: "Name", accessor: "name" },
             { header: "Department", accessor: "departmentName" },
+            { header: "Job Role", accessor: "roleName" },
             {
               header: "Last Training",
               accessor: "lastTrainingDate",

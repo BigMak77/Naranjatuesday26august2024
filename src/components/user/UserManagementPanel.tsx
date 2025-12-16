@@ -31,6 +31,7 @@ import SuccessModal from "../ui/SuccessModal";
 import UserCSVImport from "./UserCSVImport";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 import DepartmentRoleManager from "./DepartmentRoleManager";
+import UserViewPermissionsDialog from "./UserViewPermissionsDialog";
 
 interface User {
   id: string;
@@ -62,6 +63,7 @@ interface User {
   leaver_reason?: string;
   receive_notifications?: boolean;
   employee_number?: string;
+  location?: string;
 }
 
 // Helper to format date as UK style dd/mm/yy
@@ -148,6 +150,10 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
   const [deptRoleDialogOpen, setDeptRoleDialogOpen] = useState(false);
   const [deptRoleUser, setDeptRoleUser] = useState<User | null>(null);
 
+  // Trainer Permissions state
+  const [trainerPermissionsDialogOpen, setTrainerPermissionsDialogOpen] = useState(false);
+  const [trainerPermissionsUser, setTrainerPermissionsUser] = useState<User | null>(null);
+
   // Helper to open permissions dialog and fetch permissions
   const handleOpenPermissions = async (user: User) => {
     setPermissionsUser(user);
@@ -169,6 +175,12 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
   const handleOpenDeptRoleManager = (user: User) => {
     setDeptRoleUser(user);
     setDeptRoleDialogOpen(true);
+  };
+
+  // Helper to open trainer permissions dialog
+  const handleOpenTrainerPermissions = (user: User) => {
+    setTrainerPermissionsUser(user);
+    setTrainerPermissionsDialogOpen(true);
   };
 
   // Handler for successful dept/role change
@@ -1036,11 +1048,33 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
                     ) : (
                       <FiX className="neon-table-icon" color="#ea1c1c" size={18} style={{ verticalAlign: "middle" }} />
                     ),
-                    is_trainer: user.is_trainer ? (
-                      <FiCheck className="neon-table-icon" color="#39ff14" size={18} style={{ verticalAlign: "middle" }} />
-                    ) : (
-                      <FiX className="neon-table-icon" color="#ea1c1c" size={18} style={{ verticalAlign: "middle" }} />
-                    ),
+                    is_trainer: (user.is_trainer || user.access_level === "Manager" || user.access_level === "Dept. Manager" || user.access_level === "Trainer") ? (
+                      <CustomTooltip text="Click to configure view permissions (additional departments and shifts)">
+                        <span
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenTrainerPermissions(user);
+                          }}
+                          style={{
+                            cursor: "pointer",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            padding: "4px",
+                            borderRadius: "4px",
+                            transition: "background-color 0.2s"
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = "rgba(57, 255, 20, 0.1)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = "transparent";
+                          }}
+                        >
+                          <FiUsers className="neon-table-icon" color="#39ff14" size={18} style={{ verticalAlign: "middle" }} />
+                        </span>
+                      </CustomTooltip>
+                    ) : null,
                     actions: (
                       <CustomTooltip text="Edit this user's details">
                         <TextIconButton
@@ -1217,6 +1251,29 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
                         }
                         placeholder="Start Date"
                       />
+                    </div>
+                    {/* location */}
+                    <div>
+                      <label className="neon-label" htmlFor="location-select">
+                        Location
+                      </label>
+                      <select
+                        id="location-select"
+                        className="neon-input"
+                        value={selectedUser.location || ""}
+                        onChange={(e) =>
+                          setSelectedUser({
+                            ...selectedUser,
+                            location: e.target.value
+                          })
+                        }
+                      >
+                        <option value="">Select Location</option>
+                        <option value="England">England</option>
+                        <option value="Wales">Wales</option>
+                        <option value="Poland">Poland</option>
+                        <option value="Group">Group</option>
+                      </select>
                     </div>
                   </div>
                 </div>
@@ -1926,6 +1983,18 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
                 </div>
               )}
             </OverlayDialog>
+          )}
+
+          {/* User View Permissions Dialog */}
+          {trainerPermissionsUser && (
+            <UserViewPermissionsDialog
+              open={trainerPermissionsDialogOpen}
+              onClose={() => {
+                setTrainerPermissionsDialogOpen(false);
+                setTrainerPermissionsUser(null);
+              }}
+              user={trainerPermissionsUser}
+            />
           )}
         </div>
       </div>

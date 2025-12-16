@@ -433,26 +433,6 @@ export default function HealthSafetyManager() {
                       label="View Trained First Aiders"
                       onClick={() => setShowViewFirstAidersDialog(true)}
                     />
-                    <TextIconButton
-                      variant="view"
-                      label="View All First Aiders"
-                      onClick={() => (window.location.href = "/health-safety/firstaid")}
-                    />
-                  </>
-                )}
-
-                {activeTab === "utilities" && (
-                  <>
-                    <TextIconButton
-                      variant="edit"
-                      label="System Settings"
-                      onClick={() => (window.location.href = "/health-safety/settings")}
-                    />
-                    <TextIconButton
-                      variant="view"
-                      label="View Audit Log"
-                      onClick={() => (window.location.href = "/health-safety/audit-log")}
-                    />
                   </>
                 )}
               </>
@@ -525,12 +505,6 @@ export default function HealthSafetyManager() {
                   </p>
                   <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
                     <TextIconButton
-                      variant="view"
-                      icon={<FiClipboard />}
-                      label="Manage Locations"
-                      onClick={() => (window.location.href = "/health-safety/locations")}
-                    />
-                    <TextIconButton
                       variant="download"
                       label={isDownloading ? "Downloading..." : "Download CSV"}
                       title={isDownloading ? "Downloading..." : "Download CSV"}
@@ -547,109 +521,22 @@ export default function HealthSafetyManager() {
                   </div>
                 </div>
 
-                {/* Reports & Analytics */}
-                <div style={{ 
-                  padding: '1.5rem', 
-                  border: '1px solid var(--border)', 
+                {/* Location Management Note */}
+                <div style={{
+                  padding: '1.5rem',
+                  border: '1px solid var(--border)',
                   borderRadius: '8px',
                   backgroundColor: 'var(--background-secondary)'
                 }}>
                   <h3 style={{ color: 'var(--neon)', marginBottom: '0.75rem', fontSize: '1.125rem' }}>
-                    Reports & Analytics
+                    System Information
                   </h3>
-                  <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.875rem' }}>
-                    View incident trends, weather correlations, and safety metrics.
+                  <p style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
+                    Health & Safety utilities and data management tools.
                   </p>
-                  <TextIconButton
-                    variant="view"
-                    icon={<FiAlertCircle />}
-                    label="View Reports"
-                    onClick={() => (window.location.href = "/health-safety/reports")}
-                  />
-                </div>
-
-                {/* Safety Templates */}
-                <div style={{ 
-                  padding: '1.5rem', 
-                  border: '1px solid var(--border)', 
-                  borderRadius: '8px',
-                  backgroundColor: 'var(--background-secondary)'
-                }}>
-                  <h3 style={{ color: 'var(--neon)', marginBottom: '0.75rem', fontSize: '1.125rem' }}>
-                    Safety Templates
-                  </h3>
-                  <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.875rem' }}>
-                    Access and customize safety forms, checklists, and documentation templates.
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginTop: '1rem' }}>
+                    Use the tabs above to manage risk assessments, incidents, policies, and first aid designations.
                   </p>
-                  <TextIconButton
-                    variant="view"
-                    icon={<FiFileText />}
-                    label="View Templates"
-                    onClick={() => (window.location.href = "/health-safety/templates")}
-                  />
-                </div>
-
-                {/* Emergency Contacts */}
-                <div style={{ 
-                  padding: '1.5rem', 
-                  border: '1px solid var(--border)', 
-                  borderRadius: '8px',
-                  backgroundColor: 'var(--background-secondary)'
-                }}>
-                  <h3 style={{ color: 'var(--neon)', marginBottom: '0.75rem', fontSize: '1.125rem' }}>
-                    Emergency Contacts
-                  </h3>
-                  <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.875rem' }}>
-                    Manage emergency contact lists and notification settings.
-                  </p>
-                  <TextIconButton
-                    variant="view"
-                    icon={<FiHeart />}
-                    label="Manage Contacts"
-                    onClick={() => (window.location.href = "/health-safety/emergency-contacts")}
-                  />
-                </div>
-
-                {/* Audit Trail */}
-                <div style={{ 
-                  padding: '1.5rem', 
-                  border: '1px solid var(--border)', 
-                  borderRadius: '8px',
-                  backgroundColor: 'var(--background-secondary)'
-                }}>
-                  <h3 style={{ color: 'var(--neon)', marginBottom: '0.75rem', fontSize: '1.125rem' }}>
-                    Audit Trail
-                  </h3>
-                  <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.875rem' }}>
-                    Review system activity logs and compliance audit history.
-                  </p>
-                  <TextIconButton
-                    variant="view"
-                    icon={<FiClipboard />}
-                    label="View Audit Log"
-                    onClick={() => (window.location.href = "/health-safety/audit-log")}
-                  />
-                </div>
-
-                {/* Settings */}
-                <div style={{ 
-                  padding: '1.5rem', 
-                  border: '1px solid var(--border)', 
-                  borderRadius: '8px',
-                  backgroundColor: 'var(--background-secondary)'
-                }}>
-                  <h3 style={{ color: 'var(--neon)', marginBottom: '0.75rem', fontSize: '1.125rem' }}>
-                    System Settings
-                  </h3>
-                  <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.875rem' }}>
-                    Configure notification preferences, incident types, and system defaults.
-                  </p>
-                  <TextIconButton
-                    variant="edit"
-                    icon={<FiTool />}
-                    label="Settings"
-                    onClick={() => (window.location.href = "/health-safety/settings")}
-                  />
                 </div>
               </div>
             </NeonPanel>

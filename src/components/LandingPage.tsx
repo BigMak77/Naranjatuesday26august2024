@@ -8,6 +8,7 @@ export default function LandingPage() {
   const { user, loading } = useUser();
 
   const userName = user?.first_name || 'User';
+
   return (
     <div className="landing-page-wrapper">
       {/* Logo Section */}

@@ -107,7 +107,7 @@ export default function AccessControlWrapper({
       
       // Handle redirect behavior
       if (redirectOnNoAccess) {
-        const redirectUrl = redirectTo || getDashboardUrl(user.access_level);
+        const redirectUrl = redirectTo || getDashboardUrl(user.access_level, user.location);
         router.push(redirectUrl, 500);
       }
     }
