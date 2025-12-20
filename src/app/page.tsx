@@ -11,9 +11,13 @@ import {
 } from "react-icons/fi";
 import Image from "next/image";
 import GlobalFooter from "@/components/ui/GlobalFooter";
+import { useTranslation } from "@/context/TranslationContext";
 import styles from "./homepage.module.css";
 
 export default function HomePage() {
+  const { t } = useTranslation();
+  const FEATURES = getFeatures(t);
+
   return (
     <>
       <main className={styles.homepage} aria-label="Homepage">
@@ -30,11 +34,11 @@ export default function HomePage() {
             <div className={styles.heroPanelOverlay} />
           </div>
           <div className={styles.heroPanelContent}>
-            <h1 className={styles.heroTitle}>Welcome to Naranja</h1>
+            <h1 className={styles.heroTitle}>{t('homepage.heroTitle')}</h1>
             <p className={styles.heroSubtitle}>
-              Professional training & compliance solutions for food manufacturing.
+              {t('homepage.heroSubtitle')}
               <br />
-              Streamline SOPs, policies, risk assessments, and training with our comprehensive platform.
+              {t('homepage.heroSubtitleLine2')}
             </p>
           </div>
         </div>
@@ -52,41 +56,41 @@ export default function HomePage() {
               />
               <div className={styles.backgroundOverlay} />
             </div>
-            
+
             {/* Problem & Solution Section */}
             <div className={styles.cardsGrid}>
               <div className={styles.problemSolutionCard}>
                 <h2 className={styles.cardTitle}>
                   <FiAlertTriangle />
-                  The Challenge
+                  {t('homepage.theChallenge')}
                 </h2>
                 <ul className={styles.cardList}>
-                  <li>Scattered SOPs and outdated document versions</li>
-                  <li>Difficult to track training completion and compliance</li>
-                  <li>Time-consuming audit preparation and gaps in evidence</li>
+                  <li>{t('homepage.challengeItem1')}</li>
+                  <li>{t('homepage.challengeItem2')}</li>
+                  <li>{t('homepage.challengeItem3')}</li>
                 </ul>
                 <hr className={styles.cardDivider} />
                 <h2 className={styles.cardTitle}>
                   <FiCheckCircle />
-                  Our Solution
+                  {t('homepage.ourSolution')}
                 </h2>
                 <ul className={styles.cardList}>
-                  <li>Centralized document management with version control</li>
-                  <li>Automated training assignments and progress tracking</li>
-                  <li>Real-time compliance dashboards and audit-ready reports</li>
+                  <li>{t('homepage.solutionItem1')}</li>
+                  <li>{t('homepage.solutionItem2')}</li>
+                  <li>{t('homepage.solutionItem3')}</li>
                 </ul>
               </div>
 
               <div className={styles.problemSolutionCard}>
                 <h2 className={styles.cardTitle}>
                   <FiStar />
-                  Why Choose Naranja
+                  {t('homepage.whyChoose')}
                 </h2>
                 <ul className={styles.cardList}>
-                  <li>Purpose-built for food manufacturing compliance</li>
-                  <li>Intuitive interface that teams actually want to use</li>
-                  <li>Comprehensive audit trails and evidence management</li>
-                  <li>Scalable solution that grows with your business</li>
+                  <li>{t('homepage.whyItem1')}</li>
+                  <li>{t('homepage.whyItem2')}</li>
+                  <li>{t('homepage.whyItem3')}</li>
+                  <li>{t('homepage.whyItem4')}</li>
                 </ul>
               </div>
             </div>
@@ -154,19 +158,19 @@ export default function HomePage() {
             <div className={styles.metricsGrid}>
               <div className={`${styles.metricCard} ${styles.success}`}>
                 <div className={styles.metricValue}>98%</div>
-                <div className={styles.metricLabel}>Training Completion</div>
+                <div className={styles.metricLabel}>{t('homepage.trainingCompletion')}</div>
               </div>
               <div className={`${styles.metricCard} ${styles.info}`}>
                 <div className={styles.metricValue}>100%</div>
-                <div className={styles.metricLabel}>Audit Readiness</div>
+                <div className={styles.metricLabel}>{t('homepage.auditReadiness')}</div>
               </div>
               <div className={`${styles.metricCard} ${styles.warning}`}>
                 <div className={styles.metricValue}>24/7</div>
-                <div className={styles.metricLabel}>Access Anywhere</div>
+                <div className={styles.metricLabel}>{t('homepage.accessAnywhere')}</div>
               </div>
               <div className={`${styles.metricCard} ${styles.error}`}>
                 <div className={styles.metricValue}>Zero</div>
-                <div className={styles.metricLabel}>Lost Documents</div>
+                <div className={styles.metricLabel}>{t('homepage.lostDocuments')}</div>
               </div>
             </div>
           </div>
@@ -180,17 +184,13 @@ export default function HomePage() {
             </div>
             <div className={styles.ctoText}>
               <h3 className={styles.ctoTitle}>
-                Our Purpose is Simple 
+                {t('homepage.ctoPurpose')}
                 <span className={styles.ctoHighlight}>
-                  — To help food and drink businesses keep their people safe
+                  {t('homepage.ctoPurposeHighlight')}
                 </span>
               </h3>
               <blockquote className={styles.ctoQuote}>
-                "We built Naranja to help food and drink businesses keep
-                their people safe and deliver the highest quality products to
-                consumers. By taking care of compliance, training, and audit
-                readiness, we free you to focus on what matters most — running
-                your operation and making great products."
+                "{t('homepage.ctoQuote')}"
               </blockquote>
             </div>
           </div>
@@ -202,29 +202,31 @@ export default function HomePage() {
   );
 }
 
-const FEATURES = [
-  {
-    Icon: FiFileText,
-    title: "SOPs & Policies",
-    text: "Create, assign, and manage controlled documents with acknowledgments & audit trail.",
-    href: "/homepage/sops-policies",
-  },
-  {
-    Icon: FiLayers,
-    title: "Turkus",
-    text: "Your single source of truth: versioned docs, linked to modules and roles.",
-    href: "/homepage/turkus",
-  },
-  {
-    Icon: FiAlertTriangle,
-    title: "Health & Safety Management",
-    text: "Assign and track risk controls with evidence, sign-off, and reminders.",
-    href: "/homepage/managing-risks",
-  },
-  {
-    Icon: FiPlayCircle,
-    title: "Instructional Media",
-    text: "Embed videos and visuals straight into training to boost retention.",
-    href: "/homepage/instructional-media",
-  },
-];
+function getFeatures(t: (key: string) => string) {
+  return [
+    {
+      Icon: FiFileText,
+      title: t('homepage.sopsPoliciesTitle'),
+      text: t('homepage.sopsPoliciesText'),
+      href: "/homepage/sops-policies",
+    },
+    {
+      Icon: FiLayers,
+      title: t('homepage.turkusTitle'),
+      text: t('homepage.turkusText'),
+      href: "/homepage/turkus",
+    },
+    {
+      Icon: FiAlertTriangle,
+      title: t('homepage.healthSafetyTitle'),
+      text: t('homepage.healthSafetyText'),
+      href: "/homepage/managing-risks",
+    },
+    {
+      Icon: FiPlayCircle,
+      title: t('homepage.instructionalMediaTitle'),
+      text: t('homepage.instructionalMediaText'),
+      href: "/homepage/instructional-media",
+    },
+  ];
+}

@@ -135,34 +135,28 @@ export default function TrainerToolbar() {
         </div>
 
         {/* Training Modules Button */}
-        <CustomTooltip text="View Training Modules" placement="bottom">
-          <TextIconButton
-            icon={<FiBook />}
-            variant="view"
-            label="Training Modules"
-            onClick={() => router.push('/trainer/modules')}
-          />
-        </CustomTooltip>
+        <TextIconButton
+          icon={<FiBook />}
+          variant="view"
+          label="Training Modules"
+          onClick={() => router.push('/trainer/modules')}
+        />
 
         {/* Training Documents Button */}
-        <CustomTooltip text="View Training Documents" placement="bottom">
-          <TextIconButton
-            icon={<FiFileText />}
-            variant="view"
-            label="Training Documents"
-            onClick={() => router.push('/trainer/documents')}
-          />
-        </CustomTooltip>
+        <TextIconButton
+          icon={<FiFileText />}
+          variant="view"
+          label="Training Documents"
+          onClick={() => router.push('/trainer/documents')}
+        />
 
         {/* Contact Admin Button */}
-        <CustomTooltip text="Contact Admin" placement="bottom">
-          <TextIconButton
-            icon={<FiMail />}
-            variant="send"
-            label="Contact Admin"
-            onClick={handleContactAdmin}
-          />
-        </CustomTooltip>
+        <TextIconButton
+          icon={<FiMail />}
+          variant="send"
+          label="Contact Admin"
+          onClick={handleContactAdmin}
+        />
       </div>
 
       <span className="toolbar-user-info">

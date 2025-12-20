@@ -3,10 +3,12 @@
 import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "@/context/TranslationContext";
 import { FiUpload, FiFolder, FiUsers, FiClock, FiShield, FiSearch } from "react-icons/fi";
 
 export default function TurkusPage() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   return (
     <div className="neon-panel">
@@ -16,9 +18,9 @@ export default function TurkusPage() {
         <div className="page-close-button">
           <button
             onClick={() => router.push('/')}
-            aria-label="Close and return to homepage"
+            aria-label={t('featurePages.closeButton')}
             className="overlay-close-button"
-            title="Return to Homepage"
+            title={t('featurePages.closeButton')}
           >
             <svg
               width="12"
@@ -38,17 +40,17 @@ export default function TurkusPage() {
           </button>
         </div>
 
-        <h1 className="main-header">Turkus Document Management</h1>
+        <h1 className="main-header">{t('turkus.title')}</h1>
         <p className="main-subheader">
-          Your central hub for managing controlled documents with version control, role-based access, and complete audit trails.
+          {t('turkus.subtitle')}
         </p>
       </div>
 
       {/* Overview Section */}
       <div className="neon-panel">
-        <h2 className="neon-heading">Centralized Document Control</h2>
+        <h2 className="neon-heading">{t('turkus.overviewHeading')}</h2>
         <p className="main-subheader">
-          Turkus provides a powerful, intuitive platform for managing all your controlled documents. Upload, organize, version, and assign documents to users and roles, ensuring everyone always has access to the latest, compliant information.
+          {t('turkus.overviewText')}
         </p>
       </div>
 
@@ -58,9 +60,9 @@ export default function TurkusPage() {
           <div className="feature-icon">
             <FiUpload />
           </div>
-          <h3 className="feature-title">Easy Document Upload</h3>
+          <h3 className="feature-title">{t('turkus.easyUploadTitle')}</h3>
           <p className="feature-description">
-            Drag and drop documents or upload in bulk. Support for all common file formats including PDFs, Word docs, Excel spreadsheets, and images.
+            {t('turkus.easyUploadDesc')}
           </p>
         </div>
 
@@ -68,9 +70,9 @@ export default function TurkusPage() {
           <div className="feature-icon">
             <FiFolder />
           </div>
-          <h3 className="feature-title">Smart Organization</h3>
+          <h3 className="feature-title">{t('turkus.smartOrganizationTitle')}</h3>
           <p className="feature-description">
-            Organize documents by category, department, or custom tags. Create folder structures that mirror your organizational hierarchy.
+            {t('turkus.smartOrganizationDesc')}
           </p>
         </div>
 
@@ -78,9 +80,9 @@ export default function TurkusPage() {
           <div className="feature-icon">
             <FiUsers />
           </div>
-          <h3 className="feature-title">Role-Based Access</h3>
+          <h3 className="feature-title">{t('turkus.roleBasedAccessTitle')}</h3>
           <p className="feature-description">
-            Assign documents to specific users, roles, or departments with granular permission controls ensuring the right people have the right access.
+            {t('turkus.roleBasedAccessDesc')}
           </p>
         </div>
 
@@ -88,9 +90,9 @@ export default function TurkusPage() {
           <div className="feature-icon">
             <FiClock />
           </div>
-          <h3 className="feature-title">Version Control</h3>
+          <h3 className="feature-title">{t('turkus.versionControlTitle')}</h3>
           <p className="feature-description">
-            Automatic version tracking with complete history. Easily compare versions, restore previous editions, and see exactly what changed and when.
+            {t('turkus.versionControlDesc')}
           </p>
         </div>
 
@@ -98,9 +100,9 @@ export default function TurkusPage() {
           <div className="feature-icon">
             <FiShield />
           </div>
-          <h3 className="feature-title">Audit Trails</h3>
+          <h3 className="feature-title">{t('turkus.auditTrailsTitle')}</h3>
           <p className="feature-description">
-            Comprehensive audit logs track every document access, modification, and download for complete compliance and regulatory readiness.
+            {t('turkus.auditTrailsDesc')}
           </p>
         </div>
 
@@ -108,34 +110,34 @@ export default function TurkusPage() {
           <div className="feature-icon">
             <FiSearch />
           </div>
-          <h3 className="feature-title">Powerful Search</h3>
+          <h3 className="feature-title">{t('turkus.powerfulSearchTitle')}</h3>
           <p className="feature-description">
-            Find documents instantly with advanced search and filtering. Search by title, content, tags, author, date, or custom metadata.
+            {t('turkus.powerfulSearchDesc')}
           </p>
         </div>
       </div>
 
       {/* Benefits Section */}
       <div className="neon-panel">
-        <h2 className="neon-heading">Why Choose Turkus</h2>
+        <h2 className="neon-heading">{t('turkus.benefitsHeading')}</h2>
         <div className="content-grid">
           <div className="content-section">
-            <h3 className="section-title">Complete Control</h3>
+            <h3 className="section-title">{t('turkus.completeControlTitle')}</h3>
             <ul className="feature-list">
-              <li>Centralized document repository</li>
-              <li>Granular access permissions</li>
-              <li>Automated version management</li>
-              <li>Full audit and compliance tracking</li>
+              <li>{t('turkus.completeControlItem1')}</li>
+              <li>{t('turkus.completeControlItem2')}</li>
+              <li>{t('turkus.completeControlItem3')}</li>
+              <li>{t('turkus.completeControlItem4')}</li>
             </ul>
           </div>
 
           <div className="content-section">
-            <h3 className="section-title">Enhanced Productivity</h3>
+            <h3 className="section-title">{t('turkus.enhancedProductivityTitle')}</h3>
             <ul className="feature-list">
-              <li>Quick document retrieval</li>
-              <li>Eliminate document confusion</li>
-              <li>Always access latest versions</li>
-              <li>Streamlined collaboration</li>
+              <li>{t('turkus.enhancedProductivityItem1')}</li>
+              <li>{t('turkus.enhancedProductivityItem2')}</li>
+              <li>{t('turkus.enhancedProductivityItem3')}</li>
+              <li>{t('turkus.enhancedProductivityItem4')}</li>
             </ul>
           </div>
         </div>
@@ -143,39 +145,39 @@ export default function TurkusPage() {
 
       {/* Document Types */}
       <div className="neon-panel">
-        <h2 className="neon-heading">Perfect for All Document Types</h2>
+        <h2 className="neon-heading">{t('turkus.documentTypesHeading')}</h2>
         <div className="use-case-grid">
           <div className="use-case-card">
-            <h4>Quality Documents</h4>
-            <p>Quality manuals, inspection procedures, non-conformance reports, and CAPA documentation.</p>
+            <h4>{t('turkus.qualityDocsTitle')}</h4>
+            <p>{t('turkus.qualityDocsDesc')}</p>
           </div>
           <div className="use-case-card">
-            <h4>Safety & Compliance</h4>
-            <p>Safety data sheets, risk assessments, HACCP plans, and regulatory compliance documents.</p>
+            <h4>{t('turkus.safetyComplianceTitle')}</h4>
+            <p>{t('turkus.safetyComplianceDesc')}</p>
           </div>
           <div className="use-case-card">
-            <h4>Training Materials</h4>
-            <p>Training guides, certification records, competency assessments, and learning resources.</p>
+            <h4>{t('turkus.trainingMaterialsTitle')}</h4>
+            <p>{t('turkus.trainingMaterialsDesc')}</p>
           </div>
           <div className="use-case-card">
-            <h4>Operational Docs</h4>
-            <p>Standard forms, checklists, maintenance schedules, and equipment manuals.</p>
+            <h4>{t('turkus.operationalDocsTitle')}</h4>
+            <p>{t('turkus.operationalDocsDesc')}</p>
           </div>
         </div>
       </div>
 
       {/* Call to Action */}
       <div className="neon-panel">
-        <h2 className="neon-heading">Ready to Take Control of Your Documents?</h2>
+        <h2 className="neon-heading">{t('turkus.ctaHeading')}</h2>
         <p className="main-subheader">
-          Transform document chaos into organized, compliant, and accessible information your team can trust.
+          {t('turkus.ctaText')}
         </p>
         <div className="cta-container">
           <Link href="/homepage/contact-us" className="cta-button primary">
-            Schedule a Demo
+            {t('featurePages.scheduleDemo')}
           </Link>
           <Link href="/homepage/about" className="cta-button secondary">
-            Learn More
+            {t('featurePages.learnMore')}
           </Link>
         </div>
       </div>

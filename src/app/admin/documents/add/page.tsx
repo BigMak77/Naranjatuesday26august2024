@@ -8,17 +8,28 @@ import Modal from "@/components/modal";
 import { STORAGE_BUCKETS } from "@/lib/storage-config";
 
 type Std = { id: string; name: string };
-type Sec = { id: string; code: string; title: string };
+type Sec = { id: string; code: string; title: string; ref_code?: string };
 type Mod = { id: string; name: string };
-type DocType = { id: string; name: string };
+type DocType = { id: string; name: string; ref_code?: string };
+
+// Location reference code mapping
+const LOCATION_REF_CODES: Record<string, string> = {
+  'England': 'EN',
+  'Wales': 'WA',
+  'Poland': 'PL',
+  'Group': 'GR'
+};
 
 export default function AddDocumentPage() {
   const [title, setTitle] = useState("");
   const [referenceCode, setReferenceCode] = useState("");
+  const [referencePrefix, setReferencePrefix] = useState("");
+  const [referenceSuffix, setReferenceSuffix] = useState("");
   const [notes, setNotes] = useState("");
   const [standardId, setStandardId] = useState("");
   const [sectionId, setSectionId] = useState("");
   const [documentTypeId, setDocumentTypeId] = useState("");
+  const [location, setLocation] = useState("");
   const [file, setFile] = useState<File | null>(null);
 
   const [standards, setStandards] = useState<Std[]>([]);
@@ -34,6 +45,8 @@ export default function AddDocumentPage() {
   const [createdDocId, setCreatedDocId] = useState<string | null>(null);
 
   const [submitting, setSubmitting] = useState(false);
+  const [existingReferenceCodes, setExistingReferenceCodes] = useState<string[]>([]);
+  const [referenceCodeExists, setReferenceCodeExists] = useState(false);
 
   const router = useRouter();
 
@@ -51,7 +64,7 @@ export default function AddDocumentPage() {
     };
   }, []);
 
-  // Load Sections for selected standard
+  // Load Sections for selected standard (only parent sections)
   useEffect(() => {
     if (!standardId) {
       setSections([]);
@@ -62,8 +75,9 @@ export default function AddDocumentPage() {
     void (async () => {
       const { data, error } = await supabase
         .from("standard_sections")
-        .select("id, code, title")
+        .select("id, code, title, ref_code")
         .eq("standard_id", standardId)
+        .is("parent_section_id", null)
         .order("code", { ascending: true });
       if (!cancelled && !error) setSections(data || []);
     })();
@@ -78,13 +92,92 @@ export default function AddDocumentPage() {
     void (async () => {
       const { data, error } = await supabase
         .from("document_types")
-        .select("id, name");
+        .select("id, name, ref_code");
       if (!cancelled && !error) setDocumentTypes(data || []);
     })();
     return () => {
       cancelled = true;
     };
   }, []);
+
+  // Fetch existing reference codes for duplicate checking
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const { data, error } = await supabase
+        .from("documents")
+        .select("reference_code")
+        .not("reference_code", "is", null);
+      if (!cancelled && !error) {
+        const codes = data.map(d => d.reference_code).filter(Boolean) as string[];
+        setExistingReferenceCodes(codes);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Build reference code progressively as user selects each field
+  useEffect(() => {
+    // Collect all the parts independently
+    const locationCode = location ? LOCATION_REF_CODES[location] || '' : '';
+
+    const selectedDocType = documentTypeId ? documentTypes.find(dt => dt.id === documentTypeId) : null;
+    const typeCode = selectedDocType?.ref_code || '';
+
+    const selectedSection = sectionId ? sections.find(s => s.id === sectionId) : null;
+    const sectionCode = selectedSection?.ref_code || selectedSection?.code || '';
+
+    // Debug logging
+    console.log('🔍 Building Reference Code:');
+    console.log('  Location:', location, '→ Code:', locationCode);
+    console.log('  Doc Type:', selectedDocType?.name, '→ Code:', typeCode);
+    console.log('  Section:', selectedSection?.title, '→ Code:', sectionCode);
+
+    // Build the prefix progressively based on what's available
+    let buildingPrefix = '';
+
+    if (locationCode) {
+      buildingPrefix = locationCode;
+
+      if (typeCode) {
+        buildingPrefix += `-${typeCode}`;
+
+        if (sectionCode) {
+          buildingPrefix += `-${sectionCode}`;
+        }
+      }
+    }
+
+    setReferencePrefix(buildingPrefix);
+    console.log('  ✅ Prefix:', buildingPrefix);
+  }, [location, documentTypeId, sectionId, documentTypes, sections, existingReferenceCodes]);
+
+  // Update the full reference code when prefix or suffix changes
+  useEffect(() => {
+    if (referencePrefix && referenceSuffix) {
+      setReferenceCode(`${referencePrefix}-${referenceSuffix}`);
+    } else if (referencePrefix) {
+      // Just show the prefix if suffix is not entered yet
+      setReferenceCode(referencePrefix);
+    } else {
+      setReferenceCode('');
+    }
+  }, [referencePrefix, referenceSuffix]);
+
+  // Check for duplicate reference code in real-time
+  useEffect(() => {
+    // Only check if we have both prefix and suffix
+    if (!referencePrefix || !referenceSuffix) {
+      setReferenceCodeExists(false);
+      return;
+    }
+
+    const fullCode = `${referencePrefix}-${referenceSuffix}`;
+    const isDuplicate = existingReferenceCodes.includes(fullCode);
+    setReferenceCodeExists(isDuplicate);
+  }, [referencePrefix, referenceSuffix, existingReferenceCodes]);
 
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -117,6 +210,12 @@ export default function AddDocumentPage() {
         // Required fields
         if (!file || !title || !documentTypeId) {
           alert("Title, file, and document type are required.");
+          return;
+        }
+
+        // Check for duplicate reference code
+        if (referenceCodeExists) {
+          alert("This reference code already exists. Please use a different code.");
           return;
         }
 
@@ -314,13 +413,47 @@ export default function AddDocumentPage() {
                 <label htmlFor="doc-ref" className="neon-label">
                   Reference Code
                 </label>
-                <input
-                  id="doc-ref"
-                  type="text"
-                  className="neon-input"
-                  value={referenceCode}
-                  onChange={(e) => setReferenceCode(e.target.value)}
-                />
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    className="neon-input"
+                    value={referencePrefix}
+                    readOnly
+                    style={{
+                      flex: 1,
+                      backgroundColor: '#1a1a1a',
+                      cursor: 'not-allowed',
+                      opacity: 0.7
+                    }}
+                    placeholder="Select location, type & section"
+                  />
+                  <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>-</span>
+                  <input
+                    id="doc-ref"
+                    type="text"
+                    className="neon-input"
+                    value={referenceSuffix}
+                    onChange={(e) => setReferenceSuffix(e.target.value.toUpperCase())}
+                    style={{
+                      width: '150px',
+                      borderColor: referenceCodeExists ? '#ff4d4f' : undefined
+                    }}
+                    placeholder="Enter code"
+                  />
+                </div>
+                {referencePrefix && referenceSuffix && (
+                  <>
+                    {referenceCodeExists ? (
+                      <div style={{ color: '#ff4d4f', fontSize: '0.875rem', marginTop: '0.5rem' }}>
+                        ✗ Reference code {referenceCode} already exists. Please use a different suffix.
+                      </div>
+                    ) : (
+                      <div style={{ color: '#52c41a', fontSize: '0.875rem', marginTop: '0.5rem' }}>
+                        ✓ Reference code {referenceCode} is available
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
               {/* Document Type */}
               <div className="neon-form-row">
@@ -338,6 +471,25 @@ export default function AddDocumentPage() {
                   {documentTypes.map((dt) => (
                     <option key={dt.id} value={dt.id}>{dt.name}</option>
                   ))}
+                </select>
+              </div>
+              {/* Location */}
+              <div className="neon-form-row">
+                <label htmlFor="doc-location" className="neon-label">
+                  Location *
+                </label>
+                <select
+                  id="doc-location"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="neon-input"
+                  required
+                >
+                  <option value="">Select location</option>
+                  <option value="England">England</option>
+                  <option value="Wales">Wales</option>
+                  <option value="Poland">Poland</option>
+                  <option value="Group">Group</option>
                 </select>
               </div>
               {/* Standard + Section */}

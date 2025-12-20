@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { UserProvider } from "@/context/UserContext";
 import { ManagerProvider } from "@/context/ManagerContext";
 import { GlobalSearchProvider } from "@/context/GlobalSearchContext";
+import { TranslationProvider } from "@/context/TranslationContext";
 import ProjectGlobalHeader from "@/components/ui/ProjectGlobalHeader";
 import DynamicToolbar from "@/components/ui-toolbars/DynamicToolbar";
 import GlobalSearchModal from "@/components/ui/GlobalSearchModal";
@@ -25,10 +26,11 @@ export default function AppWrapper({ children }: AppWrapperProps) {
   const isLandingPage = pathname === "/landingpage";
 
   return (
-    <UserProvider>
-      <ManagerProvider>
-        <GlobalSearchProvider>
-          <RaiseIssueModalProvider>
+    <TranslationProvider>
+      <UserProvider>
+        <ManagerProvider>
+          <GlobalSearchProvider>
+            <RaiseIssueModalProvider>
             <AuthListener />
             <GlobalSearchModal />
             <InactivityLogoutManager
@@ -63,9 +65,10 @@ export default function AppWrapper({ children }: AppWrapperProps) {
                 </footer>
               </div>
             )}
-          </RaiseIssueModalProvider>
-        </GlobalSearchProvider>
-      </ManagerProvider>
-    </UserProvider>
+            </RaiseIssueModalProvider>
+          </GlobalSearchProvider>
+        </ManagerProvider>
+      </UserProvider>
+    </TranslationProvider>
   );
 }

@@ -3,10 +3,12 @@
 import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "@/context/TranslationContext";
 import { FiAlertTriangle, FiCheckSquare, FiActivity, FiPieChart, FiFileText, FiTrendingDown } from "react-icons/fi";
 
 export default function ManagingRisksAboutPage() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   return (
     <div className="neon-panel">
@@ -16,9 +18,9 @@ export default function ManagingRisksAboutPage() {
         <div className="page-close-button">
           <button
             onClick={() => router.push('/')}
-            aria-label="Close and return to homepage"
+            aria-label={t('featurePages.closeButton')}
             className="overlay-close-button"
-            title="Return to Homepage"
+            title={t('featurePages.closeButton')}
           >
             <svg
               width="12"
@@ -38,17 +40,17 @@ export default function ManagingRisksAboutPage() {
           </button>
         </div>
 
-        <h1 className="main-header">Managing Risks</h1>
+        <h1 className="main-header">{t('managingRisks.title')}</h1>
         <p className="main-subheader">
-          Identify, assess, and control workplace hazards with comprehensive risk management tools that keep your team safe and operations compliant.
+          {t('managingRisks.subtitle')}
         </p>
       </div>
 
       {/* Overview Section */}
       <div className="neon-panel">
-        <h2 className="neon-heading">Proactive Risk Management</h2>
+        <h2 className="neon-heading">{t('managingRisks.overviewHeading')}</h2>
         <p className="main-subheader">
-          Effective risk management is essential for workplace safety and regulatory compliance. Naranja provides powerful tools for conducting risk assessments, tracking hazards in real-time, implementing corrective actions, and maintaining complete audit trails across your organization.
+          {t('managingRisks.overviewText')}
         </p>
       </div>
 
@@ -58,9 +60,9 @@ export default function ManagingRisksAboutPage() {
           <div className="feature-icon">
             <FiAlertTriangle />
           </div>
-          <h3 className="feature-title">Custom Risk Assessments</h3>
+          <h3 className="feature-title">{t('managingRisks.customAssessmentsTitle')}</h3>
           <p className="feature-description">
-            Create tailored risk assessments for specific roles, departments, equipment, and processes. Standardized templates ensure consistent evaluation across your organization.
+            {t('managingRisks.customAssessmentsDesc')}
           </p>
         </div>
 
@@ -68,9 +70,9 @@ export default function ManagingRisksAboutPage() {
           <div className="feature-icon">
             <FiCheckSquare />
           </div>
-          <h3 className="feature-title">Integrated Training</h3>
+          <h3 className="feature-title">{t('managingRisks.integratedTrainingTitle')}</h3>
           <p className="feature-description">
-            Link risk assessments directly to training modules ensuring employees understand hazards and control measures before starting work.
+            {t('managingRisks.integratedTrainingDesc')}
           </p>
         </div>
 
@@ -78,9 +80,9 @@ export default function ManagingRisksAboutPage() {
           <div className="feature-icon">
             <FiActivity />
           </div>
-          <h3 className="feature-title">Real-Time Hazard Tracking</h3>
+          <h3 className="feature-title">{t('managingRisks.realTimeTrackingTitle')}</h3>
           <p className="feature-description">
-            Report and track hazards as they occur with instant notifications to managers. Monitor corrective actions from identification through resolution.
+            {t('managingRisks.realTimeTrackingDesc')}
           </p>
         </div>
 
@@ -88,9 +90,9 @@ export default function ManagingRisksAboutPage() {
           <div className="feature-icon">
             <FiPieChart />
           </div>
-          <h3 className="feature-title">Manager Dashboards</h3>
+          <h3 className="feature-title">{t('managingRisks.managerDashboardsTitle')}</h3>
           <p className="feature-description">
-            Comprehensive dashboards provide real-time visibility into risk levels, outstanding actions, and compliance status across departments and sites.
+            {t('managingRisks.managerDashboardsDesc')}
           </p>
         </div>
 
@@ -98,9 +100,9 @@ export default function ManagingRisksAboutPage() {
           <div className="feature-icon">
             <FiFileText />
           </div>
-          <h3 className="feature-title">Complete Audit Trails</h3>
+          <h3 className="feature-title">{t('managingRisks.completeAuditTrailsTitle')}</h3>
           <p className="feature-description">
-            Maintain detailed records of all risk assessments, control measures, and corrective actions with timestamped audit trails ready for inspections.
+            {t('managingRisks.completeAuditTrailsDesc')}
           </p>
         </div>
 
@@ -108,34 +110,34 @@ export default function ManagingRisksAboutPage() {
           <div className="feature-icon">
             <FiTrendingDown />
           </div>
-          <h3 className="feature-title">Trend Analysis</h3>
+          <h3 className="feature-title">{t('managingRisks.trendAnalysisTitle')}</h3>
           <p className="feature-description">
-            Identify patterns and recurring risks with analytics and reporting tools. Make data-driven decisions to continuously improve safety.
+            {t('managingRisks.trendAnalysisDesc')}
           </p>
         </div>
       </div>
 
       {/* Benefits Section */}
       <div className="neon-panel">
-        <h2 className="neon-heading">Why Choose Naranja for Risk Management</h2>
+        <h2 className="neon-heading">{t('managingRisks.benefitsHeading')}</h2>
         <div className="content-grid">
           <div className="content-section">
-            <h3 className="section-title">Safety First</h3>
+            <h3 className="section-title">{t('managingRisks.safetyFirstTitle')}</h3>
             <ul className="feature-list">
-              <li>Reduce workplace incidents</li>
-              <li>Systematic hazard identification</li>
-              <li>Clear control measures</li>
-              <li>Employee awareness and training</li>
+              <li>{t('managingRisks.safetyFirstItem1')}</li>
+              <li>{t('managingRisks.safetyFirstItem2')}</li>
+              <li>{t('managingRisks.safetyFirstItem3')}</li>
+              <li>{t('managingRisks.safetyFirstItem4')}</li>
             </ul>
           </div>
 
           <div className="content-section">
-            <h3 className="section-title">Compliance Ready</h3>
+            <h3 className="section-title">{t('managingRisks.complianceReadyTitle')}</h3>
             <ul className="feature-list">
-              <li>Meet regulatory requirements</li>
-              <li>Documented risk assessments</li>
-              <li>Inspection-ready audit trails</li>
-              <li>Continuous improvement tracking</li>
+              <li>{t('managingRisks.complianceReadyItem1')}</li>
+              <li>{t('managingRisks.complianceReadyItem2')}</li>
+              <li>{t('managingRisks.complianceReadyItem3')}</li>
+              <li>{t('managingRisks.complianceReadyItem4')}</li>
             </ul>
           </div>
         </div>
@@ -143,39 +145,39 @@ export default function ManagingRisksAboutPage() {
 
       {/* Risk Types */}
       <div className="neon-panel">
-        <h2 className="neon-heading">Manage All Types of Risks</h2>
+        <h2 className="neon-heading">{t('managingRisks.riskTypesHeading')}</h2>
         <div className="use-case-grid">
           <div className="use-case-card">
-            <h4>Operational Hazards</h4>
-            <p>Equipment operation, machinery safety, moving parts, noise, vibration, and manual handling risks.</p>
+            <h4>{t('managingRisks.operationalHazardsTitle')}</h4>
+            <p>{t('managingRisks.operationalHazardsDesc')}</p>
           </div>
           <div className="use-case-card">
-            <h4>Chemical & Biological</h4>
-            <p>Hazardous substances, cleaning chemicals, allergens, microbial contamination, and exposure controls.</p>
+            <h4>{t('managingRisks.chemicalBiologicalTitle')}</h4>
+            <p>{t('managingRisks.chemicalBiologicalDesc')}</p>
           </div>
           <div className="use-case-card">
-            <h4>Environmental Risks</h4>
-            <p>Temperature extremes, slips and trips, working at height, confined spaces, and emergency scenarios.</p>
+            <h4>{t('managingRisks.environmentalRisksTitle')}</h4>
+            <p>{t('managingRisks.environmentalRisksDesc')}</p>
           </div>
           <div className="use-case-card">
-            <h4>Human Factors</h4>
-            <p>Fatigue, stress, lone working, new starters, contractor safety, and behavioral risks.</p>
+            <h4>{t('managingRisks.humanFactorsTitle')}</h4>
+            <p>{t('managingRisks.humanFactorsDesc')}</p>
           </div>
         </div>
       </div>
 
       {/* Call to Action */}
       <div className="neon-panel">
-        <h2 className="neon-heading">Ready to Strengthen Your Risk Management?</h2>
+        <h2 className="neon-heading">{t('managingRisks.ctaHeading')}</h2>
         <p className="main-subheader">
-          Create a safer workplace with systematic risk assessment and proactive hazard control.
+          {t('managingRisks.ctaText')}
         </p>
         <div className="cta-container">
           <Link href="/homepage/contact-us" className="cta-button primary">
-            Schedule a Demo
+            {t('featurePages.scheduleDemo')}
           </Link>
           <Link href="/homepage/about" className="cta-button secondary">
-            Learn More
+            {t('featurePages.learnMore')}
           </Link>
         </div>
       </div>

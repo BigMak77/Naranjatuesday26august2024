@@ -14,10 +14,10 @@ export default function LocationSelector() {
   const [error, setError] = useState<string | null>(null);
 
   const locations = [
-    { name: 'England', color: '#FF0000', borderColor: '#CC0000' }, // Red
-    { name: 'Wales', color: '#00FF00', borderColor: '#00CC00' }, // Green
-    { name: 'Poland', color: '#FF69B4', borderColor: '#FF1493' }, // Pink
-    { name: 'Group', color: '#FFD700', borderColor: '#FFA500' }, // Gold
+    { name: 'England', color: '#001F3F', borderColor: '#001529' }, // Much Darker Blue
+    { name: 'Wales', color: '#FF7F00', borderColor: '#E6720A' }, // Orange
+    { name: 'Poland', color: '#FFD700', borderColor: '#FFA500' }, // Gold
+    { name: 'Group', color: '#004D4D', borderColor: '#00CCCC' }, // Darker Teal with Bright Border
   ];
 
   // Set selected location if user already has one
@@ -69,10 +69,10 @@ export default function LocationSelector() {
       {/* Logo Section */}
       <div className="location-logo-section">
         <Image
-          src="/landing page image.png"
+          src="/logo-dec-2025.png"
           alt="Naranja Logo"
-          width={240}
-          height={240}
+          width={320}
+          height={320}
           priority
           unoptimized
           className="location-logo"
@@ -87,7 +87,6 @@ export default function LocationSelector() {
 
         {/* Location Selector */}
         <div className="location-selector">
-          <h2 className="location-selector-title">Select Your Location</h2>
           <div className="location-options">
             {locations.map((location) => (
               <button
@@ -157,8 +156,8 @@ export default function LocationSelector() {
 
         .location-subtitle {
           font-family: var(--font-family);
-          font-size: var(--font-size-subheader);
-          font-weight: var(--font-weight-normal);
+          font-size: 2rem;
+          font-weight: bold;
           color: rgba(255, 255, 255, 0.8);
           margin: 0;
           animation: slideDown 0.6s ease-out 0.2s both;
@@ -196,8 +195,8 @@ export default function LocationSelector() {
         .location-options {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
-          gap: 1.5rem;
-          max-width: 900px;
+          gap: 2rem;
+          max-width: 1200px;
           margin: 0 auto;
         }
 
@@ -206,7 +205,7 @@ export default function LocationSelector() {
           background: rgba(0, 0, 0, 0.4);
           border: 2px solid var(--location-border-color);
           border-radius: 12px;
-          padding: 3rem 1rem;
+          padding: 2rem;
           cursor: pointer;
           transition: all 0.3s ease;
           font-family: var(--font-family);
@@ -214,7 +213,10 @@ export default function LocationSelector() {
           font-weight: var(--font-weight-bold);
           color: var(--text-white);
           overflow: hidden;
-          min-height: 160px;
+          aspect-ratio: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
         .location-option.disabled {
@@ -230,7 +232,7 @@ export default function LocationSelector() {
           right: 0;
           bottom: 0;
           background: var(--location-color);
-          opacity: 0.1;
+          opacity: 0.7;
           transition: opacity 0.3s ease;
         }
 
@@ -241,7 +243,7 @@ export default function LocationSelector() {
         }
 
         .location-option:hover:not(.disabled)::before {
-          opacity: 0.2;
+          opacity: 0.8;
         }
 
         .location-option.selected {
@@ -251,7 +253,7 @@ export default function LocationSelector() {
         }
 
         .location-option.selected::before {
-          opacity: 0.3;
+          opacity: 0.9;
         }
 
         .location-option-inner {
@@ -264,8 +266,9 @@ export default function LocationSelector() {
         }
 
         .location-name {
-          color: var(--location-color);
-          font-size: 1.2rem;
+          color: white;
+          font-size: 1.5rem;
+          font-weight: bold;
         }
 
         .location-saving {

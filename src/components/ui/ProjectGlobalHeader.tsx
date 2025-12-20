@@ -18,6 +18,8 @@ import Modal from "@/components/modal";
 import TextIconButton from "@/components/ui/TextIconButtons";
 import { RaiseIssueModalContext } from "@/context/RaiseIssueModalContext";
 import { useGlobalSearch } from "@/context/GlobalSearchContext";
+import { useTranslation } from "@/context/TranslationContext";
+import LanguageSelector from "@/components/LanguageSelector";
 
 type NavLink = {
   href?: string;
@@ -47,6 +49,7 @@ export default function GlobalHeader({
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const { openSearch } = useGlobalSearch();
   const [isMac, setIsMac] = useState(false);
+  const { t } = useTranslation();
 
   // Detect Mac for keyboard shortcut display
   useEffect(() => {
@@ -130,12 +133,13 @@ export default function GlobalHeader({
             href="/"
             aria-label="Go to homepage"
             className="neon-text"
+            style={{ display: 'flex', alignItems: 'center', marginTop: '12px' }}
           >
             <Image
-              src="/logo2.png"
+              src="/logo-dec-2025.png"
               alt="Naranja"
-              width={220}
-              height={86}
+              width={180}
+              height={50}
               priority={logoPriority}
             />
           </Link>
@@ -209,7 +213,7 @@ export default function GlobalHeader({
               <FiSearch />
             </span>
             <span className="global-header-search-input" style={{ textAlign: "left" }}>
-              Search...
+              {t('common.search')}
             </span>
             <kbd
               style={{
@@ -230,19 +234,19 @@ export default function GlobalHeader({
           <div className="global-header-auth">
             {loading && (
               <span aria-live="polite">
-                Checking session…
+                {t('common.checkingSession')}
               </span>
             )}
 
             {!loading && !user && (
               <Link
                 href="/login"
-                aria-label="Log in"
+                aria-label={t('common.login')}
                 prefetch
                 className="global-header-login-btn"
               >
                 <FiLogIn aria-hidden="true" />
-                <span>Log In</span>
+                <span>{t('common.login')}</span>
               </Link>
             )}
 
@@ -287,7 +291,7 @@ export default function GlobalHeader({
                       onClick={() => setMenuOpen(false)}
                       className="global-header-menu-item"
                     >
-                      Dashboard
+                      {t('common.dashboard')}
                     </Link>
                     <button
                       type="button"
@@ -298,7 +302,7 @@ export default function GlobalHeader({
                         setProfileModalOpen(true);
                       }}
                     >
-                      Profile
+                      {t('common.profile')}
                     </button>
                     <button
                       type="button"
@@ -312,18 +316,23 @@ export default function GlobalHeader({
                       }}
                     >
                       <FiLogOut aria-hidden="true" />
-                      Log out
+                      {t('common.logout')}
                     </button>
                   </div>
                 )}
               </div>
             )}
 
+            {/* Language Selector */}
+            {!loading && (
+              <LanguageSelector />
+            )}
+
             {/* Raise Issue button */}
             {!loading && user && (
               <TextIconButton
                 variant="alert"
-                label="Raise Issue"
+                label={t('common.raiseIssue')}
                 onClick={() => raiseIssueModalCtx?.openRaiseIssue()}
               />
             )}

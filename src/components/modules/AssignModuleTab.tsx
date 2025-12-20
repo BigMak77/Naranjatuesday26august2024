@@ -303,7 +303,7 @@ export default function AssignModuleWizard() {
         auth_id,
         item_id: selectedModule,
         item_type: "module" as const,
-        follow_up_required: moduleData?.requires_follow_up || false,
+        follow_up_assessment_required: moduleData?.requires_follow_up || false,
       }));
 
       const { error } = await supabase

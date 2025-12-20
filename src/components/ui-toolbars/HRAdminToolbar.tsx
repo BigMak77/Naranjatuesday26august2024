@@ -140,24 +140,20 @@ export default function HRAdminToolbar() {
         </div>
 
         {/* Employee Management Button */}
-        <CustomTooltip text="Manage All Employees" placement="bottom">
-          <TextIconButton
-            icon={<FiUsers />}
-            variant="add"
-            label="Manage Employees"
-            onClick={() => router.push('/hr/employees')}
-          />
-        </CustomTooltip>
+        <TextIconButton
+          icon={<FiUsers />}
+          variant="add"
+          label="Manage Employees"
+          onClick={() => router.push('/hr/employees')}
+        />
 
         {/* Contact Admin Button */}
-        <CustomTooltip text="Contact Admin" placement="bottom">
-          <TextIconButton
-            icon={<FiMail />}
-            variant="send"
-            label="Contact Admin"
-            onClick={handleContactAdmin}
-          />
-        </CustomTooltip>
+        <TextIconButton
+          icon={<FiMail />}
+          variant="send"
+          label="Contact Admin"
+          onClick={handleContactAdmin}
+        />
       </div>
 
       <span className="toolbar-user-info">

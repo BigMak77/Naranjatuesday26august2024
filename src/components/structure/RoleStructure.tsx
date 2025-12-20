@@ -402,12 +402,12 @@ export function AmendDepartmentButton({ departments }: { departments: TreeNode[]
             <label style={{ color: "#fff", fontSize: 13 }}>Select department:</label>
             <select value={fromDept} onChange={e => setFromDept(e.target.value)} style={{ width: "100%", marginTop: 4, marginBottom: 8 }}>
               <option value="">-- Select --</option>
-              {allNames.map(name => <option key={name} value={name}>{name}</option>)}
+              {allNames.sort((a, b) => a.localeCompare(b)).map(name => <option key={name} value={name}>{name}</option>)}
             </select>
             <label style={{ color: "#fff", fontSize: 13 }}>Link to new parent:</label>
             <select value={toDept} onChange={e => setToDept(e.target.value)} style={{ width: "100%", marginTop: 4 }}>
               <option value="">-- Select --</option>
-              {allNames.map(name => <option key={name} value={name}>{name}</option>)}
+              {allNames.sort((a, b) => a.localeCompare(b)).map(name => <option key={name} value={name}>{name}</option>)}
             </select>
           </div>
           {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}
@@ -487,12 +487,12 @@ export function RoleAmendButton({ departments, roles }: { departments: Departmen
             <label style={{ color: "#fff", fontSize: 13 }}>Select role:</label>
             <select value={selectedRole} onChange={e => setSelectedRole(e.target.value)} style={{ width: "100%", marginTop: 4, marginBottom: 8 }}>
               <option value="">-- Select --</option>
-              {roleTitles.map(title => <option key={title} value={title}>{title}</option>)}
+              {roleTitles.sort((a, b) => a.localeCompare(b)).map(title => <option key={title} value={title}>{title}</option>)}
             </select>
             <label style={{ color: "#fff", fontSize: 13 }}>Move to department:</label>
             <select value={toDept} onChange={e => setToDept(e.target.value)} style={{ width: "100%", marginTop: 4 }}>
               <option value="">-- Select --</option>
-              {deptNames.map(name => <option key={name} value={name}>{name}</option>)}
+              {deptNames.sort((a, b) => a.localeCompare(b)).map(name => <option key={name} value={name}>{name}</option>)}
             </select>
           </div>
           {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}

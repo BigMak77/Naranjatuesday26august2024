@@ -120,6 +120,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
   margin: 0;
   overflow-x: hidden;
+  height: auto; /* Allow body to expand */
+  min-height: 100vh; /* Ensure minimum height */
 }
 
 img,
@@ -238,7 +240,7 @@ svg {
   min-height: 100vh;
   /* Ensure no overflow issues that break sticky positioning */
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: visible; /* Changed from auto to visible to allow proper scrolling */
 }
 
 /* ================== Header (Grid Row 1) ================== */
@@ -825,6 +827,8 @@ main.content {
   border: 2px solid #fa7a20;
   border-radius: var(--radius);
   box-sizing: border-box;
+  min-height: fit-content; /* Ensure content can expand */
+  overflow: visible; /* Allow content to be scrollable */
 }
 
 /* ================== Footer (Grid Row 4) ================== */
@@ -1131,9 +1135,15 @@ select {
   border-radius: 8px;
   min-height: 40px;
   height: 40px;
-  transition: border-color 0.2s, background-color 0.2s;
+  transition: all 0.2s ease-in-out;
   box-sizing: border-box;
   vertical-align: middle;
+}
+
+/* Placeholder styling */
+.neon-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
 }
 
 input.neon-input {
@@ -1142,8 +1152,8 @@ input.neon-input {
 }
 
 select.neon-input {
-  padding-top: 0.65rem;
-  padding-bottom: 0.65rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
   padding-left: 1rem;
   padding-right: 2.5rem;
   line-height: 1.5;
@@ -1152,19 +1162,43 @@ select.neon-input {
   background-repeat: no-repeat;
   background-position: right 0.75rem center;
   background-size: 12px;
+  cursor: pointer;
+  min-height: 40px;
+  height: 40px;
+}
+
+/* Style the select dropdown options */
+select.neon-input option {
+  background: var(--field);
+  color: var(--text-white);
+  padding: 0.5rem 1rem;
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  min-height: 56px;
+  line-height: 1.5;
 }
 
 .neon-input:focus {
   outline: none;
   border-color: var(--neon);
+  box-shadow: 0 0 0 2px rgba(64, 224, 208, 0.2);
+  background-color: rgba(64, 224, 208, 0.05);
+}
+
+.neon-input:hover:not(:focus) {
+  border-color: rgba(64, 224, 208, 0.8);
+  background-color: rgba(64, 224, 208, 0.02);
 }
 
 /* Fix textarea height when using neon-input class */
 textarea.neon-input {
   height: auto;
-  min-height: 40px;
+  min-height: 80px; /* Increased minimum height for better usability */
   padding: 0.75rem 1rem;
   resize: vertical;
+  line-height: 1.5;
+  font-family: var(--font-family);
+  overflow-y: auto;
 }
 
 /* Form row and group for horizontal filters */
@@ -1197,6 +1231,24 @@ textarea.neon-input {
   display: flex;
   align-items: center;
   margin-bottom: 0.5rem;
+}
+
+/* Label as container for form elements */
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: var(--header-text);
+  font-size: var(--font-size-subheader);
+  font-weight: var(--font-weight-header);
+  font-family: var(--font-family);
+}
+
+/* Inline labels for checkboxes and radio buttons */
+label.inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .neon-form-label:hover,
@@ -4448,3 +4500,72 @@ textarea.neon-input {
 /* ==================================================================================
    END OF GLOBALS.CSS
    ================================================================================== */
+
+/* ================== Language Selector ================== */
+.language-selector {
+  position: relative;
+  display: inline-block;
+}
+
+.language-selector-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(25, 230, 217, 0.1);
+  border: 1px solid var(--neon);
+  border-radius: 8px;
+  color: var(--text-white);
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.language-selector-btn:hover {
+  background: rgba(25, 230, 217, 0.2);
+  border-color: var(--training-accent);
+}
+
+.language-selector-current {
+  min-width: 60px;
+  text-align: left;
+}
+
+.language-selector-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  min-width: 140px;
+  background: var(--panel);
+  border: 1px solid var(--neon);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.language-selector-option {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  color: var(--text-white);
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.language-selector-option:hover {
+  background: rgba(25, 230, 217, 0.1);
+}
+
+.language-selector-option.active {
+  background: rgba(25, 230, 217, 0.2);
+  font-weight: var(--font-weight-header);
+}

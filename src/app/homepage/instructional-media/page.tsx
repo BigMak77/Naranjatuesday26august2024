@@ -3,10 +3,12 @@
 import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "@/context/TranslationContext";
 import { FiClipboard, FiVideo, FiCheckCircle, FiImage, FiLayers, FiBookOpen } from "react-icons/fi";
 
 export default function InstructionalMediaPage() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   return (
     <div className="neon-panel">
@@ -16,9 +18,9 @@ export default function InstructionalMediaPage() {
         <div className="page-close-button">
           <button
             onClick={() => router.push('/')}
-            aria-label="Close and return to homepage"
+            aria-label={t('featurePages.closeButton')}
             className="overlay-close-button"
-            title="Return to Homepage"
+            title={t('featurePages.closeButton')}
           >
             <svg
               width="12"
@@ -38,17 +40,17 @@ export default function InstructionalMediaPage() {
           </button>
         </div>
 
-        <h1 className="main-header">Instructional Media & Training</h1>
+        <h1 className="main-header">{t('instructionalMedia.title')}</h1>
         <p className="main-subheader">
-          Create engaging, visual work instructions and training materials that ensure consistency, reduce errors, and accelerate learning.
+          {t('instructionalMedia.subtitle')}
         </p>
       </div>
 
       {/* Overview Section */}
       <div className="neon-panel">
-        <h2 className="neon-heading">Visual Learning That Works</h2>
+        <h2 className="neon-heading">{t('instructionalMedia.overviewHeading')}</h2>
         <p className="main-subheader">
-          Transform complex processes into clear, step-by-step visual instructions that employees actually understand and follow. Naranja makes it easy to create, manage, and deliver engaging training content with photos, videos, and interactive elements.
+          {t('instructionalMedia.overviewText')}
         </p>
       </div>
 
@@ -58,9 +60,9 @@ export default function InstructionalMediaPage() {
           <div className="feature-icon">
             <FiClipboard />
           </div>
-          <h3 className="feature-title">Visual Work Instructions</h3>
+          <h3 className="feature-title">{t('instructionalMedia.visualWorkInstructionsTitle')}</h3>
           <p className="feature-description">
-            Create step-by-step visual guides tailored to specific roles and tasks. Break down complex processes into clear, easy-to-follow instructions.
+            {t('instructionalMedia.visualWorkInstructionsDesc')}
           </p>
         </div>
 
@@ -68,9 +70,9 @@ export default function InstructionalMediaPage() {
           <div className="feature-icon">
             <FiVideo />
           </div>
-          <h3 className="feature-title">Video Integration</h3>
+          <h3 className="feature-title">{t('instructionalMedia.videoIntegrationTitle')}</h3>
           <p className="feature-description">
-            Embed photos and videos directly into instructions. Show, don't just tell—make processes clearer and more engaging for your team.
+            {t('instructionalMedia.videoIntegrationDesc')}
           </p>
         </div>
 
@@ -78,9 +80,9 @@ export default function InstructionalMediaPage() {
           <div className="feature-icon">
             <FiCheckCircle />
           </div>
-          <h3 className="feature-title">Knowledge Checks</h3>
+          <h3 className="feature-title">{t('instructionalMedia.knowledgeChecksTitle')}</h3>
           <p className="feature-description">
-            Build in optional quizzes and knowledge checks to verify understanding. Track completion and ensure competency before employees begin work.
+            {t('instructionalMedia.knowledgeChecksDesc')}
           </p>
         </div>
 
@@ -88,9 +90,9 @@ export default function InstructionalMediaPage() {
           <div className="feature-icon">
             <FiImage />
           </div>
-          <h3 className="feature-title">Rich Media Support</h3>
+          <h3 className="feature-title">{t('instructionalMedia.richMediaSupportTitle')}</h3>
           <p className="feature-description">
-            Support for images, videos, diagrams, and documents. Create multimedia training experiences that cater to different learning styles.
+            {t('instructionalMedia.richMediaSupportDesc')}
           </p>
         </div>
 
@@ -98,9 +100,9 @@ export default function InstructionalMediaPage() {
           <div className="feature-icon">
             <FiLayers />
           </div>
-          <h3 className="feature-title">Version Control</h3>
+          <h3 className="feature-title">{t('instructionalMedia.versionControlTitle')}</h3>
           <p className="feature-description">
-            Automatically archive and manage updates to training materials. Ensure everyone always has access to the latest version of instructions.
+            {t('instructionalMedia.versionControlDesc')}
           </p>
         </div>
 
@@ -108,34 +110,34 @@ export default function InstructionalMediaPage() {
           <div className="feature-icon">
             <FiBookOpen />
           </div>
-          <h3 className="feature-title">Role-Based Assignment</h3>
+          <h3 className="feature-title">{t('instructionalMedia.roleBasedAssignmentTitle')}</h3>
           <p className="feature-description">
-            Assign training and work instructions by department, job role, or location. Ensure the right people get the right information at the right time.
+            {t('instructionalMedia.roleBasedAssignmentDesc')}
           </p>
         </div>
       </div>
 
       {/* Benefits Section */}
       <div className="neon-panel">
-        <h2 className="neon-heading">Why Visual Instructions Work Better</h2>
+        <h2 className="neon-heading">{t('instructionalMedia.benefitsHeading')}</h2>
         <div className="content-grid">
           <div className="content-section">
-            <h3 className="section-title">Faster Learning</h3>
+            <h3 className="section-title">{t('instructionalMedia.fasterLearningTitle')}</h3>
             <ul className="feature-list">
-              <li>Reduce training time by up to 60%</li>
-              <li>Visual learning increases retention</li>
-              <li>Self-paced learning at point of need</li>
-              <li>Consistent training across all locations</li>
+              <li>{t('instructionalMedia.fasterLearningItem1')}</li>
+              <li>{t('instructionalMedia.fasterLearningItem2')}</li>
+              <li>{t('instructionalMedia.fasterLearningItem3')}</li>
+              <li>{t('instructionalMedia.fasterLearningItem4')}</li>
             </ul>
           </div>
 
           <div className="content-section">
-            <h3 className="section-title">Fewer Errors</h3>
+            <h3 className="section-title">{t('instructionalMedia.fewerErrorsTitle')}</h3>
             <ul className="feature-list">
-              <li>Clear visual guidance reduces mistakes</li>
-              <li>Easy reference during tasks</li>
-              <li>Standardized procedures across teams</li>
-              <li>Quick onboarding for new employees</li>
+              <li>{t('instructionalMedia.fewerErrorsItem1')}</li>
+              <li>{t('instructionalMedia.fewerErrorsItem2')}</li>
+              <li>{t('instructionalMedia.fewerErrorsItem3')}</li>
+              <li>{t('instructionalMedia.fewerErrorsItem4')}</li>
             </ul>
           </div>
         </div>
@@ -143,39 +145,39 @@ export default function InstructionalMediaPage() {
 
       {/* Content Types */}
       <div className="neon-panel">
-        <h2 className="neon-heading">Perfect for All Training Needs</h2>
+        <h2 className="neon-heading">{t('instructionalMedia.contentTypesHeading')}</h2>
         <div className="use-case-grid">
           <div className="use-case-card">
-            <h4>Equipment Operation</h4>
-            <p>Step-by-step guides for operating machinery, equipment startup/shutdown procedures, and troubleshooting.</p>
+            <h4>{t('instructionalMedia.equipmentOperationTitle')}</h4>
+            <p>{t('instructionalMedia.equipmentOperationDesc')}</p>
           </div>
           <div className="use-case-card">
-            <h4>Quality Procedures</h4>
-            <p>Visual inspection guides, testing procedures, sampling protocols, and quality control checklists.</p>
+            <h4>{t('instructionalMedia.qualityProceduresTitle')}</h4>
+            <p>{t('instructionalMedia.qualityProceduresDesc')}</p>
           </div>
           <div className="use-case-card">
-            <h4>Safety Training</h4>
-            <p>PPE requirements, emergency procedures, hazard identification, and safe work practices.</p>
+            <h4>{t('instructionalMedia.safetyTrainingTitle')}</h4>
+            <p>{t('instructionalMedia.safetyTrainingDesc')}</p>
           </div>
           <div className="use-case-card">
-            <h4>Process Instructions</h4>
-            <p>Manufacturing procedures, cleaning protocols, changeover processes, and product handling.</p>
+            <h4>{t('instructionalMedia.processInstructionsTitle')}</h4>
+            <p>{t('instructionalMedia.processInstructionsDesc')}</p>
           </div>
         </div>
       </div>
 
       {/* Call to Action */}
       <div className="neon-panel">
-        <h2 className="neon-heading">Ready to Transform Your Training?</h2>
+        <h2 className="neon-heading">{t('instructionalMedia.ctaHeading')}</h2>
         <p className="main-subheader">
-          Create visual work instructions that your team will actually use and understand.
+          {t('instructionalMedia.ctaText')}
         </p>
         <div className="cta-container">
           <Link href="/homepage/contact-us" className="cta-button primary">
-            Schedule a Demo
+            {t('featurePages.scheduleDemo')}
           </Link>
           <Link href="/homepage/about" className="cta-button secondary">
-            Learn More
+            {t('featurePages.learnMore')}
           </Link>
         </div>
       </div>

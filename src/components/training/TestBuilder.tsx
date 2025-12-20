@@ -13,7 +13,9 @@ import {
   FiCheck,
   FiX,
   FiList,
-  FiEdit
+  FiEdit,
+  FiArchive,
+  FiRotateCcw
 } from "react-icons/fi";
 import ContentHeader from "@/components/ui/ContentHeader";
 import OverlayDialog from "@/components/ui/OverlayDialog";
@@ -45,6 +47,7 @@ interface TestPack {
   pass_mark: number;
   time_limit_minutes: number | null;
   is_active: boolean;
+  is_archived?: boolean;
   module_id?: string | null;
   document_id?: string | null;
   questions: TestQuestion[];
@@ -71,12 +74,16 @@ export default function TestBuilder() {
   const [existingPacks, setExistingPacks] = useState<TestPack[]>([]);
   const [editingPackId, setEditingPackId] = useState<string | null>(null);
   const [showExistingTests, setShowExistingTests] = useState(false);
+  const [showArchivedTests, setShowArchivedTests] = useState(false);
   const [showAddQuestionDialog, setShowAddQuestionDialog] = useState(false);
   const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
   const [newQuestion, setNewQuestion] = useState<TestQuestion | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [packToArchive, setPackToArchive] = useState<TestPack | null>(null);
+  const [packToRestore, setPackToRestore] = useState<TestPack | null>(null);
+  const [archiveLoading, setArchiveLoading] = useState(false);
 
   // Load modules and existing test packs
   useEffect(() => {
@@ -96,8 +103,8 @@ export default function TestBuilder() {
     }
   };
 
-  const loadExistingPacks = async () => {
-    const { data: packs, error } = await supabase
+  const loadExistingPacks = async (includeArchived = false) => {
+    let query = supabase
       .from("question_packs")
       .select(`
         id,
@@ -106,12 +113,27 @@ export default function TestBuilder() {
         pass_mark,
         time_limit_minutes,
         is_active,
+        is_archived,
         module_id,
         document_id
-      `)
-      .order("created_at", { ascending: false });
+      `);
 
-    if (!error && packs) {
+    if (!includeArchived) {
+      // Show non-archived tests (is_archived is false or null for backward compatibility)
+      query = query.or("is_archived.is.null,is_archived.eq.false");
+    } else {
+      // Show only archived tests
+      query = query.eq("is_archived", true);
+    }
+
+    const { data: packs, error } = await query.order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error loading test packs:", error);
+      setError(`Failed to load tests: ${error.message}`);
+      setExistingPacks([]);
+    } else if (packs) {
+      console.log(`Loaded ${packs.length} ${includeArchived ? 'archived' : 'active'} test packs:`, packs);
       setExistingPacks(packs as TestPack[]);
     }
   };
@@ -128,6 +150,7 @@ export default function TestBuilder() {
           pass_mark,
           time_limit_minutes,
           is_active,
+          is_archived,
           module_id,
           document_id
         `)
@@ -628,6 +651,209 @@ export default function TestBuilder() {
     setSuccess(null);
   };
 
+  const archiveTestPack = async (pack: TestPack) => {
+    if (!pack.id) return;
+    setArchiveLoading(true);
+    console.log("Archiving test pack:", pack.id, pack.title);
+
+    try {
+      const { data, error } = await supabase
+        .from("question_packs")
+        .update({
+          is_archived: true,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", pack.id)
+        .select();
+
+      console.log("Archive result:", { data, error });
+
+      if (error) {
+        console.error("Archive error:", error);
+        setError(`Failed to archive test: ${error.message}`);
+      } else {
+        console.log("Archive successful, reloading packs...");
+        setSuccess("Test archived successfully!");
+        setShowExistingTests(false); // Close the existing tests dialog
+        setPackToArchive(null); // Close confirmation dialog
+        await loadExistingPacks(); // Reload active tests
+        setTimeout(() => setSuccess(null), 2000);
+      }
+    } catch (err: any) {
+      console.error("Archive exception:", err);
+      setError("An error occurred while archiving the test");
+    } finally {
+      setArchiveLoading(false);
+    }
+  };
+
+  const restoreTestPack = async (pack: TestPack) => {
+    if (!pack.id) return;
+    setArchiveLoading(true);
+    console.log("Restoring test pack:", pack.id, pack.title);
+
+    try {
+      const { data, error } = await supabase
+        .from("question_packs")
+        .update({
+          is_archived: false,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", pack.id)
+        .select();
+
+      console.log("Restore result:", { data, error });
+
+      if (error) {
+        console.error("Restore error:", error);
+        setError(`Failed to restore test: ${error.message}`);
+      } else {
+        console.log("Restore successful, reloading packs...");
+        setSuccess("Test restored successfully!");
+        setShowArchivedTests(false); // Close the archived tests dialog
+        setPackToRestore(null); // Close confirmation dialog
+        await loadExistingPacks(true); // Reload archived tests to verify it's gone
+        setTimeout(() => setSuccess(null), 2000);
+      }
+    } catch (err: any) {
+      console.error("Restore exception:", err);
+      setError("An error occurred while restoring the test");
+    } finally {
+      setArchiveLoading(false);
+    }
+  };
+
+  const cloneTestPack = async (pack: TestPack) => {
+    if (!pack.id) return;
+    setSaving(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      console.log("Cloning test pack:", pack.id, pack.title);
+
+      // Load the complete pack data including questions and options
+      const { data: fullPack, error: packError } = await supabase
+        .from("question_packs")
+        .select(`
+          id,
+          title,
+          description,
+          pass_mark,
+          time_limit_minutes,
+          is_active,
+          module_id,
+          document_id
+        `)
+        .eq("id", pack.id)
+        .single();
+
+      if (packError) throw packError;
+
+      // Load questions
+      const { data: questions, error: questionsError } = await supabase
+        .from("questions")
+        .select(`
+          id,
+          question_text,
+          type,
+          points,
+          order_index,
+          correct_answer
+        `)
+        .eq("pack_id", pack.id)
+        .order("order_index");
+
+      if (questionsError) throw questionsError;
+
+      // Load options for each question
+      const questionsWithOptions: TestQuestion[] = await Promise.all(
+        (questions || []).map(async (q) => {
+          const { data: options, error: optionsError } = await supabase
+            .from("question_options")
+            .select("id, option_text, is_correct, order_index")
+            .eq("question_id", q.id)
+            .order("order_index");
+
+          if (optionsError) {
+            console.error("Error loading options:", optionsError);
+          }
+
+          return {
+            ...q,
+            options: options || []
+          };
+        })
+      );
+
+      // Create the cloned pack data
+      const clonedPackData = {
+        title: `Duplicate - ${fullPack.title}`,
+        description: fullPack.description,
+        pass_mark: fullPack.pass_mark,
+        time_limit_minutes: fullPack.time_limit_minutes,
+        is_active: false, // Start as inactive
+        module_id: fullPack.module_id,
+        document_id: fullPack.document_id
+      };
+
+      // Insert the cloned pack
+      const { data: newPack, error: insertError } = await supabase
+        .from("question_packs")
+        .insert(clonedPackData)
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      // Clone all questions
+      for (const question of questionsWithOptions) {
+        const questionData = {
+          pack_id: newPack.id,
+          question_text: question.question_text,
+          type: question.type,
+          points: question.points,
+          order_index: question.order_index,
+          correct_answer: question.type === "short_answer" ? question.correct_answer : null
+        };
+
+        const { data: newQuestion, error: questionError } = await supabase
+          .from("questions")
+          .insert(questionData)
+          .select()
+          .single();
+
+        if (questionError) throw questionError;
+
+        // Clone options for MCQ and true/false questions
+        if (question.type !== "short_answer" && question.options.length > 0) {
+          const optionsData = question.options.map(opt => ({
+            question_id: newQuestion.id,
+            option_text: opt.option_text,
+            is_correct: opt.is_correct,
+            order_index: opt.order_index
+          }));
+
+          const { error: optionsError } = await supabase
+            .from("question_options")
+            .insert(optionsData);
+
+          if (optionsError) throw optionsError;
+        }
+      }
+
+      setSuccess(`Test "${fullPack.title}" cloned successfully!`);
+      await loadExistingPacks(); // Reload to show the new cloned test
+      setTimeout(() => setSuccess(null), 3000);
+
+    } catch (err: any) {
+      console.error("Clone error:", err);
+      setError(`Failed to clone test: ${err.message}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <>
       <ContentHeader
@@ -641,7 +867,19 @@ export default function TestBuilder() {
           variant="add"
           icon={<FiList size={16} />}
           label="View Existing Tests"
-          onClick={() => setShowExistingTests(true)}
+          onClick={() => {
+            loadExistingPacks(false);
+            setShowExistingTests(true);
+          }}
+        />
+        <TextIconButton
+          variant="view"
+          icon={<FiArchive size={16} />}
+          label="View Archived Tests"
+          onClick={() => {
+            loadExistingPacks(true);
+            setShowArchivedTests(true);
+          }}
         />
         {editingPackId && (
           <TextIconButton
@@ -845,33 +1083,48 @@ export default function TestBuilder() {
           showCloseButton={true}
           width={800}
         >
-          <div style={{ padding: "24px" }}>
-            <h2>{editingQuestionId ? "Edit Question" : "Add New Question"}</h2>
+          <div style={{ 
+            display: "flex", 
+            flexDirection: "column", 
+            height: "80vh", 
+            maxHeight: "800px" 
+          }}>
+            <div style={{ padding: "24px 24px 0 24px", flexShrink: 0 }}>
+              <h2>{editingQuestionId ? "Edit Question" : "Add New Question"}</h2>
+            </div>
 
-            <QuestionBuilder
-              question={newQuestion}
-              questionNumber={editingQuestionId
-                ? testPack.questions.findIndex(q => q.id === editingQuestionId) + 1
-                : testPack.questions.length + 1}
-              totalQuestions={testPack.questions.length + 1}
-              onUpdate={updateNewQuestion}
-              onDelete={() => {}}
-              onMoveUp={() => {}}
-              onMoveDown={() => {}}
-              onDuplicate={() => {}}
-              onAddOption={addOptionToNewQuestion}
-              onUpdateOption={updateNewQuestionOption}
-              onDeleteOption={deleteNewQuestionOption}
-              hideActions={true}
-            />
+            <div style={{ 
+              flex: 1, 
+              overflowY: "auto", 
+              padding: "16px 24px",
+              minHeight: 0
+            }}>
+              <QuestionBuilder
+                question={newQuestion}
+                questionNumber={editingQuestionId
+                  ? testPack.questions.findIndex(q => q.id === editingQuestionId) + 1
+                  : testPack.questions.length + 1}
+                totalQuestions={testPack.questions.length + 1}
+                onUpdate={updateNewQuestion}
+                onDelete={() => {}}
+                onMoveUp={() => {}}
+                onMoveDown={() => {}}
+                onDuplicate={() => {}}
+                onAddOption={addOptionToNewQuestion}
+                onUpdateOption={updateNewQuestionOption}
+                onDeleteOption={deleteNewQuestionOption}
+                hideActions={true}
+              />
+            </div>
 
             <div style={{
               display: "flex",
               gap: "12px",
               justifyContent: "flex-end",
-              marginTop: "24px",
-              paddingTop: "20px",
-              borderTop: "1px solid var(--border)"
+              padding: "20px 24px 24px 24px",
+              borderTop: "1px solid var(--border)",
+              flexShrink: 0,
+              backgroundColor: "var(--background)"
             }}>
               <TextIconButton
                 variant="cancel"
@@ -898,54 +1151,254 @@ export default function TestBuilder() {
           showCloseButton={true}
           width={900}
         >
-          <div style={{ padding: "24px" }}>
-            <h2>Existing Tests</h2>
+          <div style={{ 
+            display: "flex", 
+            flexDirection: "column", 
+            height: "80vh", 
+            maxHeight: "700px" 
+          }}>
+            <div style={{ padding: "24px 24px 0 24px", flexShrink: 0 }}>
+              <h2>Existing Tests</h2>
+            </div>
 
-            {existingPacks.length === 0 ? (
-              <p className="neon-info">No tests found.</p>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                {existingPacks.map(pack => (
-                  <div
-                    key={pack.id}
-                    className="neon-panel"
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center"
-                    }}
-                  >
-                    <div style={{ flex: 1 }}>
-                      <h4 style={{ marginBottom: "4px" }}>{pack.title}</h4>
-                      <p style={{ marginBottom: "4px", opacity: 0.8 }}>
-                        {pack.description}
-                      </p>
-                      <div style={{
+            <div style={{ 
+              flex: 1, 
+              overflowY: "auto", 
+              padding: "16px 24px 24px 24px",
+              minHeight: 0
+            }}>
+              {existingPacks.length === 0 ? (
+                <p className="neon-info">No tests found.</p>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {existingPacks.map(pack => (
+                    <div
+                      key={pack.id}
+                      className="neon-panel"
+                      style={{
                         display: "flex",
-                        gap: "12px",
-                        opacity: 0.7
-                      }}>
-                        <span>Pass: {pack.pass_mark}%</span>
-                        {pack.time_limit_minutes && (
-                          <span>Time: {pack.time_limit_minutes}m</span>
-                        )}
-                        <span style={{
-                          color: pack.is_active ? "var(--status-success)" : "var(--status-warning)"
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        gap: "12px"
+                      }}
+                    >
+                      <div style={{ flex: 1 }}>
+                        <h4 style={{ marginBottom: "4px" }}>{pack.title}</h4>
+                        <p style={{ marginBottom: "4px", opacity: 0.8 }}>
+                          {pack.description}
+                        </p>
+                        <div style={{
+                          display: "flex",
+                          gap: "12px",
+                          opacity: 0.7
                         }}>
-                          {pack.is_active ? "Active" : "Inactive"}
-                        </span>
+                          <span>Pass: {pack.pass_mark}%</span>
+                          {pack.time_limit_minutes && (
+                            <span>Time: {pack.time_limit_minutes}m</span>
+                          )}
+                          <span style={{
+                            color: pack.is_active ? "var(--status-success)" : "var(--status-warning)"
+                          }}>
+                            {pack.is_active ? "Active" : "Inactive"}
+                          </span>
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <TextIconButton
+                          variant="edit"
+                          icon={<FiEdit size={16} />}
+                          label="Edit"
+                          onClick={() => loadPackForEditing(pack.id!)}
+                        />
+                        <TextIconButton
+                          variant="add"
+                          icon={<FiCopy size={16} />}
+                          label="Clone"
+                          onClick={() => cloneTestPack(pack)}
+                          disabled={saving}
+                          title="Create a duplicate copy of this test"
+                        />
+                        <TextIconButton
+                          variant="archive"
+                          icon={<FiArchive size={16} />}
+                          label="Archive"
+                          onClick={() => setPackToArchive(pack)}
+                        />
                       </div>
                     </div>
-                    <TextIconButton
-                      variant="edit"
-                      icon={<FiEdit size={16} />}
-                      label="Edit"
-                      onClick={() => loadPackForEditing(pack.id!)}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </OverlayDialog>
+      )}
+
+      {/* Archived Tests Dialog */}
+      {showArchivedTests && (
+        <OverlayDialog
+          open={showArchivedTests}
+          onClose={() => setShowArchivedTests(false)}
+          showCloseButton={true}
+          width={900}
+        >
+          <div style={{ 
+            display: "flex", 
+            flexDirection: "column", 
+            height: "80vh", 
+            maxHeight: "700px" 
+          }}>
+            <div style={{ padding: "24px 24px 0 24px", flexShrink: 0 }}>
+              <h2>Archived Tests</h2>
+            </div>
+
+            <div style={{ 
+              flex: 1, 
+              overflowY: "auto", 
+              padding: "16px 24px 24px 24px",
+              minHeight: 0
+            }}>
+              {existingPacks.length === 0 ? (
+                <p className="neon-info">No archived tests found.</p>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {existingPacks.map(pack => (
+                    <div
+                      key={pack.id}
+                      className="neon-panel"
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        gap: "12px"
+                      }}
+                    >
+                      <div style={{ flex: 1 }}>
+                        <h4 style={{ marginBottom: "4px" }}>{pack.title}</h4>
+                        <p style={{ marginBottom: "4px", opacity: 0.8 }}>
+                          {pack.description}
+                        </p>
+                        <div style={{
+                          display: "flex",
+                          gap: "12px",
+                          opacity: 0.7
+                        }}>
+                          <span>Pass: {pack.pass_mark}%</span>
+                          {pack.time_limit_minutes && (
+                            <span>Time: {pack.time_limit_minutes}m</span>
+                          )}
+                          <span style={{
+                            color: pack.is_active ? "var(--status-success)" : "var(--status-warning)"
+                          }}>
+                            {pack.is_active ? "Active" : "Inactive"}
+                          </span>
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <TextIconButton
+                          variant="edit"
+                          icon={<FiEdit size={16} />}
+                          label="Edit"
+                          onClick={() => loadPackForEditing(pack.id!)}
+                        />
+                        <TextIconButton
+                          variant="add"
+                          icon={<FiCopy size={16} />}
+                          label="Clone"
+                          onClick={() => cloneTestPack(pack)}
+                          disabled={saving}
+                          title="Create a duplicate copy of this test"
+                        />
+                        <TextIconButton
+                          variant="save"
+                          icon={<FiRotateCcw size={16} />}
+                          label="Restore"
+                          onClick={() => setPackToRestore(pack)}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </OverlayDialog>
+      )}
+
+      {/* Archive Confirmation Dialog */}
+      {packToArchive && (
+        <OverlayDialog
+          open={true}
+          onClose={() => setPackToArchive(null)}
+          showCloseButton={true}
+          width={500}
+        >
+          <div style={{ padding: "24px" }}>
+            <h3 style={{ color: "var(--neon)", fontWeight: 600, fontSize: "1.25rem", marginBottom: "16px" }}>
+              Confirm Archive
+            </h3>
+            <p style={{ marginBottom: "24px", fontSize: "1rem", lineHeight: 1.5 }}>
+              Are you sure you want to archive{" "}
+              <span style={{ color: "var(--accent)", fontWeight: 600 }}>
+                {packToArchive.title}
+              </span>
+              ? This will remove it from the active tests list.
+            </p>
+            <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+              <TextIconButton
+                variant="cancel"
+                icon={<FiX size={16} />}
+                label="Cancel"
+                onClick={() => setPackToArchive(null)}
+                disabled={archiveLoading}
+              />
+              <TextIconButton
+                variant="archive"
+                icon={<FiArchive size={16} />}
+                label={archiveLoading ? "Archiving..." : "Archive"}
+                onClick={() => archiveTestPack(packToArchive)}
+                disabled={archiveLoading}
+              />
+            </div>
+          </div>
+        </OverlayDialog>
+      )}
+
+      {/* Restore Confirmation Dialog */}
+      {packToRestore && (
+        <OverlayDialog
+          open={true}
+          onClose={() => setPackToRestore(null)}
+          showCloseButton={true}
+          width={500}
+        >
+          <div style={{ padding: "24px" }}>
+            <h3 style={{ color: "var(--neon)", fontWeight: 600, fontSize: "1.25rem", marginBottom: "16px" }}>
+              Confirm Restore
+            </h3>
+            <p style={{ marginBottom: "24px", fontSize: "1rem", lineHeight: 1.5 }}>
+              Are you sure you want to restore{" "}
+              <span style={{ color: "var(--accent)", fontWeight: 600 }}>
+                {packToRestore.title}
+              </span>
+              ? This will make it available in the active tests list.
+            </p>
+            <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+              <TextIconButton
+                variant="cancel"
+                icon={<FiX size={16} />}
+                label="Cancel"
+                onClick={() => setPackToRestore(null)}
+                disabled={archiveLoading}
+              />
+              <TextIconButton
+                variant="save"
+                icon={<FiRotateCcw size={16} />}
+                label={archiveLoading ? "Restoring..." : "Restore"}
+                onClick={() => restoreTestPack(packToRestore)}
+                disabled={archiveLoading}
+              />
+            </div>
           </div>
         </OverlayDialog>
       )}

@@ -3,9 +3,11 @@
 import React from 'react';
 import Image from 'next/image';
 import { useUser } from '@/lib/useUser';
+import { useTranslation } from '@/context/TranslationContext';
 
 export default function LandingPage() {
   const { user, loading } = useUser();
+  const { t } = useTranslation();
 
   const userName = user?.first_name || 'User';
 
@@ -43,12 +45,12 @@ export default function LandingPage() {
       {/* Content Section */}
       <div className="landing-content">
         {loading ? (
-          <div className="landing-loading">Loading...</div>
+          <div className="landing-loading">{t('common.loading')}</div>
         ) : (
           <>
-            <h1 className="landing-title">Welcome {userName}</h1>
+            <h1 className="landing-title">{t('landing.welcome')} {userName}</h1>
             <p className="landing-subtitle">
-              This is your NARANJA dashboard. Please use the toolbar to access the different sections of the system.
+              {t('landing.subtitle')}
             </p>
           </>
         )}

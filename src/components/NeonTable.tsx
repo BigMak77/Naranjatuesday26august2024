@@ -9,6 +9,7 @@ type Column = {
   accessor: string;
   render?: (value: unknown, row: Record<string, unknown>) => React.ReactNode;
   width?: number | string;
+  align?: 'left' | 'center' | 'right';
 };
 
 type NeonTableProps = {
@@ -68,11 +69,55 @@ export default function NeonTable({
   const sortedData = React.useMemo(() => {
     if (!sortBy) return data;
     return [...data].sort((a, b) => {
-      const aValue = a[sortBy] as string | number;
-      const bValue = b[sortBy] as string | number;
-      if (aValue < bValue) return sortDir === "asc" ? -1 : 1;
-      if (aValue > bValue) return sortDir === "asc" ? 1 : -1;
-      return 0;
+      let aValue = a[sortBy];
+      let bValue = b[sortBy];
+
+      // Extract text from React elements (e.g., name field with clickable spans)
+      if (React.isValidElement(aValue)) {
+        aValue = (aValue.props as any).children || '';
+      }
+      if (React.isValidElement(bValue)) {
+        bValue = (bValue.props as any).children || '';
+      }
+
+      // Handle name sorting - extract last name for proper sorting
+      if (sortBy === 'name' && typeof aValue === 'string' && typeof bValue === 'string') {
+        const aLastName = aValue.trim().split(' ').slice(-1)[0] || '';
+        const bLastName = bValue.trim().split(' ').slice(-1)[0] || '';
+        const comparison = aLastName.toLowerCase().localeCompare(bLastName.toLowerCase());
+        return sortDir === "asc" ? comparison : -comparison;
+      }
+
+      // Handle employee number sorting - convert to number if possible
+      if (sortBy === 'employee_number') {
+        const aStr = String(aValue || '').trim();
+        const bStr = String(bValue || '').trim();
+
+        // Check if values are missing or placeholder
+        const aIsMissing = aStr === '—' || aStr === '' || aStr === 'undefined' || aStr === 'null';
+        const bIsMissing = bStr === '—' || bStr === '' || bStr === 'undefined' || bStr === 'null';
+
+        const aNum = aIsMissing ? Infinity : parseInt(aStr, 10);
+        const bNum = bIsMissing ? Infinity : parseInt(bStr, 10);
+
+        // Only use numeric comparison if both successfully parsed
+        if (!isNaN(aNum) && !isNaN(bNum)) {
+          return sortDir === "asc" ? aNum - bNum : bNum - aNum;
+        }
+      }
+
+      // Handle numeric sorting for any field that looks like a number
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return sortDir === "asc" ? aValue - bValue : bValue - aValue;
+      }
+
+      // Convert to string for comparison
+      const aStr = String(aValue ?? '');
+      const bStr = String(bValue ?? '');
+
+      // Case-insensitive string comparison
+      const comparison = aStr.toLowerCase().localeCompare(bStr.toLowerCase());
+      return sortDir === "asc" ? comparison : -comparison;
     });
   }, [data, sortBy, sortDir]);
 
@@ -163,6 +208,7 @@ export default function NeonTable({
                   ...(col.width ? { width: typeof col.width === 'number' ? `${col.width}px` : col.width } : {}),
                   position: 'relative',
                   userSelect: resizingCol === col.accessor ? 'none' : undefined,
+                  textAlign: col.align || 'left',
                 }}
                 onClick={() => {
                   if (sortBy === col.accessor) {
@@ -218,6 +264,7 @@ export default function NeonTable({
                     className="neon-table-cell"
                     style={{
                       ...(col.width ? { width: typeof col.width === 'number' ? `${col.width}px` : col.width } : {}),
+                      textAlign: col.align || 'left',
                     }}
                   >
                     {col.render

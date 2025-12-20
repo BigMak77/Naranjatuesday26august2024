@@ -21,7 +21,16 @@ import DocumentModuleLinkDialog from "@/components/documents/DocumentModuleLinkD
 interface DocumentType {
   id: string;
   name: string;
+  ref_code?: string;
 }
+
+// Location reference code mapping
+const LOCATION_REF_CODES: Record<string, string> = {
+  'England': 'EN',
+  'Wales': 'WA',
+  'Poland': 'PL',
+  'Group': 'GR'
+};
 
 interface Document {
   id: string;
@@ -46,6 +55,7 @@ interface Section {
   description?: string;
   parent_section_id?: string | null;
   standard_id?: string | null;
+  ref_code?: string;
 }
 
 interface Standard {
@@ -140,7 +150,7 @@ export default function DocumentManager() {
       // Fetch document types
       const { data: docTypes, error: docTypesErr } = await supabase
         .from("document_types")
-        .select("id, name");
+        .select("id, name, ref_code");
       if (docTypesErr) console.error("Error fetching document types:", docTypesErr);
 
       // Map document type info into documents
@@ -3185,15 +3195,19 @@ function DocumentForm({
   onSaved: (doc: Document) => void;
   onCancel: () => void;
 }) {
+  const { user } = useUser(); // Get current user for location
   const [loading, setLoading] = useState<boolean>(!!id);
   const [error, setError] = useState("");
   const [title, setTitle] = useState("");
   const [documentTypeId, setDocumentTypeId] = useState<string>("");
+  const [location, setLocation] = useState<string>("");
   const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
   const [standards, setStandards] = useState<Standard[]>([]);
   const [standardId, setStandardId] = useState<string>("");
   const [sectionId, setSectionId] = useState<string>("");
   const [referenceCode, setReferenceCode] = useState("");
+  const [referencePrefix, setReferencePrefix] = useState("");
+  const [referenceSuffix, setReferenceSuffix] = useState("");
   const [fileUrl, setFileUrl] = useState("");
   const [notes, setNotes] = useState("");
   const [reviewPeriodMonths, setReviewPeriodMonths] = useState<number>(12); // default 12 months
@@ -3206,10 +3220,10 @@ function DocumentForm({
   const [suggestedReferenceCodes, setSuggestedReferenceCodes] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  // Filter sections based on selected standard
+  // Filter sections based on selected standard (only parent sections)
   const filteredSections = useMemo(() => {
     if (!standardId) return [];
-    return sections.filter(s => s.standard_id === standardId);
+    return sections.filter(s => s.standard_id === standardId && !s.parent_section_id);
   }, [sections, standardId]);
 
   // Fetch all existing reference codes
@@ -3230,63 +3244,108 @@ function DocumentForm({
     return () => { cancelled = true; };
   }, []);
 
+  // Build reference code progressively as user selects each field (only for new documents)
+  useEffect(() => {
+    if (id) return; // Don't auto-generate for existing documents
+
+    // Collect all the parts independently
+    const locationCode = location ? LOCATION_REF_CODES[location] || '' : '';
+
+    const selectedDocType = documentTypeId ? documentTypes.find(dt => dt.id === documentTypeId) : null;
+    const typeCode = selectedDocType?.ref_code || '';
+
+    const selectedSection = sectionId ? sections.find(s => s.id === sectionId) : null;
+    const sectionCode = selectedSection?.ref_code || selectedSection?.code || '';
+
+    // Build the prefix progressively based on what's available
+    let buildingPrefix = '';
+
+    if (locationCode) {
+      buildingPrefix = locationCode;
+
+      if (typeCode) {
+        buildingPrefix += `-${typeCode}`;
+
+        if (sectionCode) {
+          buildingPrefix += `-${sectionCode}`;
+        }
+      }
+    }
+
+    setReferencePrefix(buildingPrefix);
+  }, [location, documentTypeId, sectionId, documentTypes, sections, id, existingReferenceCodes]);
+
+  // Update the full reference code when prefix or suffix changes
+  useEffect(() => {
+    if (referencePrefix && referenceSuffix) {
+      setReferenceCode(`${referencePrefix}-${referenceSuffix}`);
+    } else if (referencePrefix) {
+      // Just show the prefix if suffix is not entered yet
+      setReferenceCode(referencePrefix);
+    } else {
+      setReferenceCode('');
+    }
+  }, [referencePrefix, referenceSuffix]);
+
   // Check for duplicate reference code in real-time
   useEffect(() => {
-    if (!referenceCode.trim()) {
+    // Only check if we have both prefix and suffix (for new documents)
+    if (id || !referencePrefix || !referenceSuffix) {
       setReferenceCodeExists(false);
       setSuggestedReferenceCodes([]);
       setShowSuggestions(false);
       return;
     }
 
-    // When editing, allow the current document's reference code
-    if (id) {
-      setReferenceCodeExists(false);
-      setShowSuggestions(false);
-      return;
-    }
-
-    const trimmedCode = referenceCode.trim();
-    const isDuplicate = existingReferenceCodes.includes(trimmedCode);
+    const fullCode = `${referencePrefix}-${referenceSuffix}`;
+    const isDuplicate = existingReferenceCodes.includes(fullCode);
     setReferenceCodeExists(isDuplicate);
 
-    // Generate smart suggestions based on what user is typing
-    if (trimmedCode.length > 0) {
-      const suggestions = generateReferenceSuggestions(trimmedCode, existingReferenceCodes);
+    // Generate smart suggestions if duplicate
+    if (isDuplicate && referenceSuffix.length > 0) {
+      const suggestions = generateReferenceSuggestions(fullCode, existingReferenceCodes);
       setSuggestedReferenceCodes(suggestions);
       setShowSuggestions(suggestions.length > 0);
     } else {
       setSuggestedReferenceCodes([]);
       setShowSuggestions(false);
     }
-  }, [referenceCode, existingReferenceCodes, id]);
+  }, [referencePrefix, referenceSuffix, existingReferenceCodes, id, documentTypeId, documentTypes]);
 
-  // Generate smart reference code suggestions
+  // Generate smart reference code suggestions (composite prefix-aware)
   const generateReferenceSuggestions = (input: string, existing: string[]): string[] => {
     const suggestions: string[] = [];
 
-    // Extract numeric part from input
-    const numMatch = input.match(/(\d+)/);
-    if (numMatch) {
-      const prefix = input.slice(0, numMatch.index);
-      const suffix = input.slice((numMatch.index || 0) + numMatch[0].length);
-      const baseNum = parseInt(numMatch[0]);
+    // Build composite prefix if all parts are available
+    if (location && documentTypeId && sectionId) {
+      const locationCode = LOCATION_REF_CODES[location] || '';
+      const selectedDocType = documentTypes.find(dt => dt.id === documentTypeId);
+      const typeCode = selectedDocType?.ref_code || '';
+      const selectedSection = sections.find(s => s.id === sectionId);
+      const sectionCode = selectedSection?.code || '';
 
-      // Try incrementing numbers
-      for (let i = 1; i <= 10; i++) {
-        const newNum = baseNum + i;
-        const suggestion = `${prefix}${newNum}${suffix}`;
-        if (!existing.includes(suggestion)) {
-          suggestions.push(suggestion);
-          if (suggestions.length >= 5) break;
-        }
-      }
-    } else {
-      // If no number found, suggest adding numbers
-      for (let i = 1; i <= 5; i++) {
-        const suggestion = `${input}-${i}`;
-        if (!existing.includes(suggestion)) {
-          suggestions.push(suggestion);
+      if (locationCode && typeCode && sectionCode) {
+        const compositePrefix = `${locationCode}${typeCode}${sectionCode}`;
+
+        // If input starts with composite prefix, suggest next sequential numbers
+        if (input.startsWith(compositePrefix + '-')) {
+          const existingWithPrefix = existing.filter(code => code.startsWith(compositePrefix + '-'));
+
+          const existingNumbers = existingWithPrefix
+            .map(code => {
+              const match = code.match(/-(\d+)$/);
+              return match ? parseInt(match[1]) : null;
+            })
+            .filter((n): n is number => n !== null)
+            .sort((a, b) => b - a);
+
+          const maxNum = existingNumbers.length > 0 ? existingNumbers[0] : 0;
+          for (let i = 1; i <= 5; i++) {
+            const suggestion = `${compositePrefix}-${String(maxNum + i).padStart(3, '0')}`;
+            if (!existing.includes(suggestion)) {
+              suggestions.push(suggestion);
+            }
+          }
         }
       }
     }
@@ -3300,7 +3359,7 @@ function DocumentForm({
       // Fetch document types for dropdown
       const { data: docTypes, error: docTypesErr } = await supabase
         .from("document_types")
-        .select("id, name");
+        .select("id, name, ref_code");
       if (!cancelled && docTypes) setDocumentTypes(docTypes);
 
       // Fetch standards
@@ -3477,6 +3536,15 @@ function DocumentForm({
         ))}
       </select>
 
+      <label className="neon-label" htmlFor="docLocation">Location</label>
+      <select id="docLocation" className="neon-select mb-2" value={location} onChange={e=>setLocation(e.target.value)} required>
+        <option value="">— Select Location —</option>
+        <option value="England">England</option>
+        <option value="Wales">Wales</option>
+        <option value="Poland">Poland</option>
+        <option value="Group">Group</option>
+      </select>
+
       <label className="neon-label" htmlFor="docStandard">Standard</label>
       <select id="docStandard" className="neon-select mb-2" value={standardId} onChange={e=>{setStandardId(e.target.value); setSectionId("");}}>
         <option value="">— Select Standard —</option>
@@ -3498,21 +3566,39 @@ function DocumentForm({
       <label className="neon-label" htmlFor="referenceCode">
         Reference Code <span className="danger-text">*</span>
       </label>
-      <input
-        id="referenceCode"
-        className={`neon-input ${referenceCodeExists ? 'error-input' : ''}`}
-        style={{
-          marginBottom: '0.25rem',
-          borderColor: referenceCodeExists ? '#ff4444' : undefined,
-        }}
-        value={referenceCode}
-        onChange={e => setReferenceCode(e.target.value)}
-        required
-        placeholder="e.g., DOC-001, HSE-10, QMS-2.1"
-      />
+
+      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.25rem' }}>
+        <input
+          type="text"
+          className="neon-input"
+          value={referencePrefix}
+          readOnly
+          style={{
+            flex: 1,
+            backgroundColor: '#1a1a1a',
+            cursor: 'not-allowed',
+            opacity: 0.7
+          }}
+          placeholder="Select location, type & section"
+        />
+        <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>-</span>
+        <input
+          id="referenceCode"
+          type="text"
+          className="neon-input"
+          value={referenceSuffix}
+          onChange={(e) => setReferenceSuffix(e.target.value.toUpperCase())}
+          style={{
+            width: '150px',
+            borderColor: referenceCodeExists ? '#ff4d4f' : undefined
+          }}
+          placeholder="Enter code"
+          required
+        />
+      </div>
 
       {/* Real-time validation feedback */}
-      {!id && referenceCode.trim() && (
+      {!id && referencePrefix && referenceSuffix && (
         <div style={{ marginBottom: '0.5rem' }}>
           {referenceCodeExists ? (
             <div style={{
@@ -3523,7 +3609,7 @@ function DocumentForm({
               fontSize: '0.875rem',
               color: '#ff4444'
             }}>
-              ⚠️ This reference code already exists
+              ⚠️ Reference code {referenceCode} already exists
             </div>
           ) : (
             <div style={{
@@ -3534,7 +3620,7 @@ function DocumentForm({
               fontSize: '0.875rem',
               color: '#00ffaa'
             }}>
-              ✓ This reference code is available
+              ✓ Reference code {referenceCode} is available
             </div>
           )}
         </div>
@@ -3637,23 +3723,27 @@ function AmendDocumentForm({
   onSaved: () => void;
   onCancel: () => void;
 }) {
+  const { user } = useUser(); // Get current user for location
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState("");
   const [title, setTitle] = useState("");
   const [documentTypeId, setDocumentTypeId] = useState<string>("");
+  const [location, setLocation] = useState<string>("");
   const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
   const [standards, setStandards] = useState<Standard[]>([]);
   const [standardId, setStandardId] = useState<string>("");
   const [sectionId, setSectionId] = useState<string>("");
   const [referenceCode, setReferenceCode] = useState("");
+  const [referencePrefix, setReferencePrefix] = useState("");
+  const [referenceSuffix, setReferenceSuffix] = useState("");
   const [fileUrl, setFileUrl] = useState("");
   const [notes, setNotes] = useState("");
   const [showFileBrowser, setShowFileBrowser] = useState(false);
 
-  // Filter sections based on selected standard
+  // Filter sections based on selected standard (only parent sections)
   const filteredSections = useMemo(() => {
     if (!standardId) return [];
-    return sections.filter(s => s.standard_id === standardId);
+    return sections.filter(s => s.standard_id === standardId && !s.parent_section_id);
   }, [sections, standardId]);
 
   useEffect(() => {
@@ -3662,7 +3752,7 @@ function AmendDocumentForm({
       // Fetch document types for dropdown
       const { data: docTypes, error: docTypesErr } = await supabase
         .from("document_types")
-        .select("id, name");
+        .select("id, name, ref_code");
       if (!cancelled && docTypes) setDocumentTypes(docTypes);
 
       // Fetch standards
@@ -3679,7 +3769,19 @@ function AmendDocumentForm({
       setTitle(data.title || "");
       setDocumentTypeId(data.document_type_id || "");
       setSectionId(data.section_id || "");
-      setReferenceCode(data.reference_code || "");
+      setLocation(data.location || "");
+
+      // Split reference code into prefix and suffix
+      const refCode = data.reference_code || "";
+      setReferenceCode(refCode);
+      if (refCode) {
+        const lastDashIndex = refCode.lastIndexOf('-');
+        if (lastDashIndex !== -1) {
+          setReferencePrefix(refCode.substring(0, lastDashIndex));
+          setReferenceSuffix(refCode.substring(lastDashIndex + 1));
+        }
+      }
+
       setFileUrl(data.file_url || "");
       setNotes(data.notes || "");
 
@@ -3695,6 +3797,45 @@ function AmendDocumentForm({
     })();
     return () => { cancelled = true; };
   }, [id, sections]);
+
+  // Rebuild prefix when location/type/section changes (for AmendDocumentForm)
+  useEffect(() => {
+    // Collect all the parts independently
+    const locationCode = location ? LOCATION_REF_CODES[location] || '' : '';
+    const selectedDocType = documentTypeId ? documentTypes.find(dt => dt.id === documentTypeId) : null;
+    const typeCode = selectedDocType?.ref_code || '';
+    const selectedSection = sectionId ? sections.find(s => s.id === sectionId) : null;
+    const sectionCode = selectedSection?.ref_code || selectedSection?.code || '';
+
+    // Build the prefix progressively based on what's available
+    let buildingPrefix = '';
+
+    if (locationCode) {
+      buildingPrefix = locationCode;
+
+      if (typeCode) {
+        buildingPrefix += `-${typeCode}`;
+
+        if (sectionCode) {
+          buildingPrefix += `-${sectionCode}`;
+        }
+      }
+    }
+
+    setReferencePrefix(buildingPrefix);
+  }, [location, documentTypeId, sectionId, documentTypes, sections]);
+
+  // Update the full reference code when prefix or suffix changes (for AmendDocumentForm)
+  useEffect(() => {
+    if (referencePrefix && referenceSuffix) {
+      setReferenceCode(`${referencePrefix}-${referenceSuffix}`);
+    } else if (referencePrefix) {
+      // Just show the prefix if suffix is not entered yet
+      setReferenceCode(referencePrefix);
+    } else {
+      setReferenceCode('');
+    }
+  }, [referencePrefix, referenceSuffix]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -3744,6 +3885,15 @@ function AmendDocumentForm({
         ))}
       </select>
 
+      <label className="neon-label" htmlFor="amendDocLocation">Location</label>
+      <select id="amendDocLocation" className="neon-select mb-2" value={location} onChange={e=>setLocation(e.target.value)} required>
+        <option value="">— Select Location —</option>
+        <option value="England">England</option>
+        <option value="Wales">Wales</option>
+        <option value="Poland">Poland</option>
+        <option value="Group">Group</option>
+      </select>
+
       <label className="neon-label" htmlFor="amendDocStandard">Standard</label>
       <select id="amendDocStandard" className="neon-select mb-2" value={standardId} onChange={e=>{setStandardId(e.target.value); setSectionId("");}}>
         <option value="">— Select Standard —</option>
@@ -3763,7 +3913,34 @@ function AmendDocumentForm({
       </select>
 
       <label className="neon-label" htmlFor="amendReferenceCode">Reference Code</label>
-      <input id="amendReferenceCode" className="neon-input mb-2" value={referenceCode} onChange={e=>setReferenceCode(e.target.value)} />
+
+      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
+        <input
+          type="text"
+          className="neon-input"
+          value={referencePrefix}
+          readOnly
+          style={{
+            flex: 1,
+            backgroundColor: '#1a1a1a',
+            cursor: 'not-allowed',
+            opacity: 0.7
+          }}
+          placeholder="Select location, type & section"
+        />
+        <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>-</span>
+        <input
+          id="amendReferenceCode"
+          type="text"
+          className="neon-input"
+          value={referenceSuffix}
+          onChange={(e) => setReferenceSuffix(e.target.value.toUpperCase())}
+          style={{
+            width: '150px'
+          }}
+          placeholder="Enter code"
+        />
+      </div>
 
       <label className="neon-label" htmlFor="amendFileUrl">File URL</label>
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>

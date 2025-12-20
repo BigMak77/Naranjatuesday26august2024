@@ -141,24 +141,20 @@ export default function AdminToolbar() {
         </div>
 
         {/* System Settings Button */}
-        <CustomTooltip text="System Settings" placement="bottom">
-          <TextIconButton
-            icon={<FiSettings />}
-            variant="edit"
-            label="System Settings"
-            onClick={() => router.push('/admin/settings')}
-          />
-        </CustomTooltip>
+        <TextIconButton
+          icon={<FiSettings />}
+          variant="edit"
+          label="System Settings"
+          onClick={() => router.push('/admin/settings')}
+        />
 
         {/* Contact Support Button */}
-        <CustomTooltip text="Contact Support" placement="bottom">
-          <TextIconButton
-            icon={<FiMail />}
-            variant="send"
-            label="Contact Support"
-            onClick={handleContactAdmin}
-          />
-        </CustomTooltip>
+        <TextIconButton
+          icon={<FiMail />}
+          variant="send"
+          label="Contact Support"
+          onClick={handleContactAdmin}
+        />
       </div>
 
       <span className="toolbar-user-info">

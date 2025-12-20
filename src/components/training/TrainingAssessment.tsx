@@ -12,8 +12,8 @@ interface FollowUpAssignment {
   id: string;
   auth_id: string;
   item_id: string;
-  follow_up_due_date: string;
-  follow_up_completed_at: string | null;
+  follow_up_assessment_due_date: string;
+  follow_up_assessment_completed_at: string | null;
   completed_at: string;
   user_name: string;
   user_email: string;
@@ -50,15 +50,15 @@ export default function TrainingAssessment() {
           id,
           auth_id,
           item_id,
-          follow_up_due_date,
-          follow_up_completed_at,
+          follow_up_assessment_due_date,
+          follow_up_assessment_completed_at,
           completed_at,
-          follow_up_required
+          follow_up_assessment_required
         `)
-        .eq('follow_up_required', true)
-        .not('follow_up_due_date', 'is', null)
+        .eq('follow_up_assessment_required', true)
+        .not('follow_up_assessment_due_date', 'is', null)
         .eq('item_type', 'module')
-        .order('follow_up_due_date', { ascending: true });
+        .order('follow_up_assessment_due_date', { ascending: true });
 
       console.log('📊 Query result:', { data, error });
 
@@ -140,7 +140,7 @@ export default function TrainingAssessment() {
           review_period: 'Unknown'
         };
 
-        const dueDate = new Date(assignment.follow_up_due_date);
+        const dueDate = new Date(assignment.follow_up_assessment_due_date);
         const today = new Date();
         const diffTime = today.getTime() - dueDate.getTime();
         const daysOverdue = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -149,8 +149,8 @@ export default function TrainingAssessment() {
           id: assignment.id,
           auth_id: assignment.auth_id,
           item_id: assignment.item_id,
-          follow_up_due_date: assignment.follow_up_due_date,
-          follow_up_completed_at: assignment.follow_up_completed_at,
+          follow_up_assessment_due_date: assignment.follow_up_assessment_due_date,
+          follow_up_assessment_completed_at: assignment.follow_up_assessment_completed_at,
           completed_at: assignment.completed_at,
           user_name: user.name,
           user_email: user.email,
@@ -214,7 +214,7 @@ export default function TrainingAssessment() {
       const { error: updateError } = await supabase
         .from('user_assignments')
         .update({
-          follow_up_completed_at: completedAt
+          follow_up_assessment_completed_at: completedAt
         })
         .eq('id', selectedAssignment.id);
 
@@ -262,18 +262,18 @@ export default function TrainingAssessment() {
   const filteredAssignments = assignments.filter(assignment => {
     switch (filter) {
       case 'due':
-        return !assignment.follow_up_completed_at && assignment.days_overdue <= 0;
+        return !assignment.follow_up_assessment_completed_at && assignment.days_overdue <= 0;
       case 'overdue':
-        return !assignment.follow_up_completed_at && assignment.days_overdue > 0;
+        return !assignment.follow_up_assessment_completed_at && assignment.days_overdue > 0;
       case 'completed':
-        return assignment.follow_up_completed_at;
+        return assignment.follow_up_assessment_completed_at;
       default:
         return true;
     }
   });
 
   const getStatusIcon = (assignment: FollowUpAssignment) => {
-    if (assignment.follow_up_completed_at) {
+    if (assignment.follow_up_assessment_completed_at) {
       return <FiCheck className="text-green-400" size={18} />;
     } else if (assignment.days_overdue > 0) {
       return <FiAlertTriangle className="text-red-400" size={18} />;
@@ -283,7 +283,7 @@ export default function TrainingAssessment() {
   };
 
   const getStatusText = (assignment: FollowUpAssignment) => {
-    if (assignment.follow_up_completed_at) {
+    if (assignment.follow_up_assessment_completed_at) {
       return 'Completed';
     } else if (assignment.days_overdue > 0) {
       return `${assignment.days_overdue} days overdue`;
@@ -342,9 +342,9 @@ export default function TrainingAssessment() {
       }}>
         {[
           { key: 'all', label: 'All', count: assignments.length },
-          { key: 'due', label: 'Due Soon', count: assignments.filter(a => !a.follow_up_completed_at && a.days_overdue <= 0).length },
-          { key: 'overdue', label: 'Overdue', count: assignments.filter(a => !a.follow_up_completed_at && a.days_overdue > 0).length },
-          { key: 'completed', label: 'Completed', count: assignments.filter(a => a.follow_up_completed_at).length }
+          { key: 'due', label: 'Due Soon', count: assignments.filter(a => !a.follow_up_assessment_completed_at && a.days_overdue <= 0).length },
+          { key: 'overdue', label: 'Overdue', count: assignments.filter(a => !a.follow_up_assessment_completed_at && a.days_overdue > 0).length },
+          { key: 'completed', label: 'Completed', count: assignments.filter(a => a.follow_up_assessment_completed_at).length }
         ].map(({ key, label, count }) => (
           <button
             key={key}
@@ -448,12 +448,12 @@ export default function TrainingAssessment() {
                     color: 'var(--text-secondary)',
                     marginBottom: '2px'
                   }}>
-                    Due: {formatDate(assignment.follow_up_due_date)}
+                    Due: {formatDate(assignment.follow_up_assessment_due_date)}
                   </div>
                   <div style={{
                     fontSize: '0.8rem',
                     fontWeight: 500,
-                    color: assignment.follow_up_completed_at
+                    color: assignment.follow_up_assessment_completed_at
                       ? 'var(--success, #10b981)'
                       : assignment.days_overdue > 0
                         ? 'var(--error, #ef4444)'
@@ -461,19 +461,19 @@ export default function TrainingAssessment() {
                   }}>
                     {getStatusText(assignment)}
                   </div>
-                  {assignment.follow_up_completed_at && (
+                  {assignment.follow_up_assessment_completed_at && (
                     <div style={{
                       fontSize: '0.75rem',
                       color: 'var(--text-secondary)',
                       marginTop: '2px'
                     }}>
-                      Completed: {formatDate(assignment.follow_up_completed_at)}
+                      Completed: {formatDate(assignment.follow_up_assessment_completed_at)}
                     </div>
                   )}
                 </div>
               </div>
 
-              {!assignment.follow_up_completed_at && (
+              {!assignment.follow_up_assessment_completed_at && (
                 <TextIconButton
                   variant="add"
                   icon={<FiCheck size={16} />}
@@ -516,19 +516,19 @@ export default function TrainingAssessment() {
             <div>
               <strong style={{ color: 'var(--warning, #f59e0b)' }}>Due Soon: </strong>
               <span style={{ color: 'var(--text-secondary)' }}>
-                {assignments.filter(a => !a.follow_up_completed_at && a.days_overdue <= 0).length}
+                {assignments.filter(a => !a.follow_up_assessment_completed_at && a.days_overdue <= 0).length}
               </span>
             </div>
             <div>
               <strong style={{ color: 'var(--error, #ef4444)' }}>Overdue: </strong>
               <span style={{ color: 'var(--text-secondary)' }}>
-                {assignments.filter(a => !a.follow_up_completed_at && a.days_overdue > 0).length}
+                {assignments.filter(a => !a.follow_up_assessment_completed_at && a.days_overdue > 0).length}
               </span>
             </div>
             <div>
               <strong style={{ color: 'var(--success, #10b981)' }}>Completed: </strong>
               <span style={{ color: 'var(--text-secondary)' }}>
-                {assignments.filter(a => a.follow_up_completed_at).length}
+                {assignments.filter(a => a.follow_up_assessment_completed_at).length}
               </span>
             </div>
           </div>
@@ -575,7 +575,7 @@ export default function TrainingAssessment() {
                 <div><strong>Trainee:</strong> {selectedAssignment.user_name}</div>
                 <div><strong>Module:</strong> {selectedAssignment.module_name}</div>
                 <div><strong>Completed:</strong> {formatDate(selectedAssignment.completed_at)}</div>
-                <div><strong>Due:</strong> {formatDate(selectedAssignment.follow_up_due_date)}</div>
+                <div><strong>Due:</strong> {formatDate(selectedAssignment.follow_up_assessment_due_date)}</div>
                 <div>
                   <strong>Status:</strong>{' '}
                   <span style={{

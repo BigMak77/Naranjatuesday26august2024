@@ -3,9 +3,6 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  FiArchive,
-  FiHelpCircle,
-  FiCheckSquare,
   FiDownload,
   FiUpload,
   FiSearch,
@@ -18,9 +15,6 @@ import { CustomTooltip } from "@/components/ui/CustomTooltip";
 export type Dept = { id: string; name: string };
 
 interface TrainerViewToolbarProps {
-  onManageMaterials: () => void;
-  onManageQuestions: () => void;
-  onManageCategories: () => void;
   onDownloadCSV: () => void;
   onUploadCSV: () => void;
   onSearch?: (searchTerm: string) => void;
@@ -31,9 +25,6 @@ interface TrainerViewToolbarProps {
 }
 
 export default function TrainerViewToolbar({
-  onManageMaterials,
-  onManageQuestions,
-  onManageCategories,
   onDownloadCSV,
   onUploadCSV,
   onSearch,
@@ -65,36 +56,6 @@ export default function TrainerViewToolbar({
           label="Training Matrix"
           title="View comprehensive training matrix"
           onClick={() => router.push('/training/matrix')}
-          disabled={busy}
-        />
-
-        {/* Training Materials Button */}
-        <TextIconButton
-          icon={<FiArchive />}
-          variant="archive"
-          label="Training Materials"
-          title="Manage training materials"
-          onClick={onManageMaterials}
-          disabled={busy}
-        />
-
-        {/* Training Questions Button */}
-        <TextIconButton
-          icon={<FiHelpCircle />}
-          variant="edit"
-          label="Questions"
-          title="Manage training questions"
-          onClick={onManageQuestions}
-          disabled={busy}
-        />
-
-        {/* Question Categories Button */}
-        <TextIconButton
-          icon={<FiCheckSquare />}
-          variant="view"
-          label="Categories"
-          title="Manage question categories"
-          onClick={onManageCategories}
           disabled={busy}
         />
 

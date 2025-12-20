@@ -432,14 +432,17 @@ export function ChangeManagerButton({
               style={{ width: "100%", marginTop: 4, marginBottom: 8 }}
             >
               <option value="">-- Select --</option>
-              {users.map((u) => {
-                const name = `${u.first_name || ""} ${u.last_name || ""}`.trim() || u.email;
-                return (
+              {users
+                .map((u) => ({
+                  ...u,
+                  displayName: `${u.first_name || ""} ${u.last_name || ""}`.trim() || u.email
+                }))
+                .sort((a, b) => a.displayName.localeCompare(b.displayName))
+                .map((u) => (
                   <option key={u.id} value={`${u.first_name} ${u.last_name}`}>
-                    {name}
+                    {u.displayName}
                   </option>
-                );
-              })}
+                ))}
             </select>
             <label style={{ color: "#fff", fontSize: 13 }}>
               Move to department:
@@ -450,7 +453,7 @@ export function ChangeManagerButton({
               style={{ width: "100%", marginTop: 4, marginBottom: 12 }}
             >
               <option value="">-- Select --</option>
-              {deptNames.map((name) => (
+              {deptNames.sort((a, b) => a.localeCompare(b)).map((name) => (
                 <option key={name} value={name}>
                   {name}
                 </option>
@@ -587,11 +590,14 @@ export function AssignManagerButton({
               }}
             >
               <option value="">-- Select department --</option>
-              {visibleDepts.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                </option>
-              ))}
+              {visibleDepts
+                .slice()
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.name}
+                  </option>
+                ))}
             </select>
 
             <label style={{ color: "#fff", fontSize: 13 }}>Select user from department:</label>
@@ -613,14 +619,17 @@ export function AssignManagerButton({
               }}
             >
               <option value="">-- Select user --</option>
-              {usersInDept.map((u) => {
-                const name = `${u.first_name || ""} ${u.last_name || ""}`.trim() || u.email;
-                return (
+              {usersInDept
+                .map((u) => ({
+                  ...u,
+                  displayName: `${u.first_name || ""} ${u.last_name || ""}`.trim() || u.email
+                }))
+                .sort((a, b) => a.displayName.localeCompare(b.displayName))
+                .map((u) => (
                   <option key={u.id} value={u.id}>
-                    {name}
+                    {u.displayName}
                   </option>
-                );
-              })}
+                ))}
             </select>
 
             {error && <div style={{ color: "#ff4444", marginBottom: 8 }}>{error}</div>}

@@ -146,24 +146,20 @@ export default function HSAdminToolbar() {
         </div>
 
         {/* Incidents Button */}
-        <CustomTooltip text="View All Incidents" placement="bottom">
-          <TextIconButton
-            icon={<FiAlertTriangle />}
-            variant="alert"
-            label="Incidents"
-            onClick={() => router.push('/health-safety/incidents')}
-          />
-        </CustomTooltip>
+        <TextIconButton
+          icon={<FiAlertTriangle />}
+          variant="alert"
+          label="Incidents"
+          onClick={() => router.push('/health-safety/incidents')}
+        />
 
         {/* Contact Admin Button */}
-        <CustomTooltip text="Contact Admin" placement="bottom">
-          <TextIconButton
-            icon={<FiMail />}
-            variant="send"
-            label="Contact Admin"
-            onClick={handleContactAdmin}
-          />
-        </CustomTooltip>
+        <TextIconButton
+          icon={<FiMail />}
+          variant="send"
+          label="Contact Admin"
+          onClick={handleContactAdmin}
+        />
       </div>
 
       <span className="toolbar-user-info">

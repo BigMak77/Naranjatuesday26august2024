@@ -1008,7 +1008,7 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
                   if (col.header === "Trainer") return { ...col, width: 80 };
                   return col;
                 })}
-                data={pagedUsers.map((user) => {
+                data={filteredUsers.map((user) => {
                   const department = departments.find((d) => d.id === user.department_id);
                   const role = roles.find((r) => r.id === user.role_id);
                   return {

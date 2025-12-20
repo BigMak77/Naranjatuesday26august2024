@@ -213,34 +213,28 @@ export default function SuperAdminToolbar() {
         </div>
 
         {/* Health & Safety Button */}
-        <CustomTooltip text="Health & Safety" placement="bottom">
-          <TextIconButton
-            icon={<FiHeart />}
-            variant="add"
-            label="Health & Safety"
-            onClick={handleHealthSafetyClick}
-          />
-        </CustomTooltip>
+        <TextIconButton
+          icon={<FiHeart />}
+          variant="add"
+          label="Health & Safety"
+          onClick={handleHealthSafetyClick}
+        />
 
         {/* Log Training Button */}
-        <CustomTooltip text="Log Training" placement="bottom">
-          <TextIconButton
-            icon={<FiBookOpen />}
-            variant="add"
-            label="Log Training"
-            onClick={handleLogTrainingClick}
-          />
-        </CustomTooltip>
+        <TextIconButton
+          icon={<FiBookOpen />}
+          variant="add"
+          label="Log Training"
+          onClick={handleLogTrainingClick}
+        />
 
         {/* Contact Support Button */}
-        <CustomTooltip text="Contact Support" placement="bottom">
-          <TextIconButton
-            icon={<FiMail />}
-            variant="send"
-            label="Contact Support"
-            onClick={handleContactAdmin}
-          />
-        </CustomTooltip>
+        <TextIconButton
+          icon={<FiMail />}
+          variant="send"
+          label="Contact Support"
+          onClick={handleContactAdmin}
+        />
       </div>
 
       <span className="toolbar-user-info">

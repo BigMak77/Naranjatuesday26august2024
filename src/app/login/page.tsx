@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase-client";
 import { getDashboardUrl } from "@/lib/permissions";
+import { useTranslation } from "@/context/TranslationContext";
 import OverlayDialog from "@/components/ui/OverlayDialog";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -69,24 +71,22 @@ export default function LoginPage() {
         zIndexContent={10001}
       >
         <form onSubmit={handleLogin} className="login-form">
-          <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <img
-                src="/logo-turq-orange.png"
-                alt="Logo Turq Orange"
-                style={{ width: 40, height: 40, objectFit: 'contain' }}
-              />
-              <h1 id="login-title" className="login-title">NARANJA Login</h1>
-            </div>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', gap: '1rem' }}>
+            <img
+              src="/landing page image.png"
+              alt="Landing Page Logo"
+              style={{ width: 100, height: 100, objectFit: 'contain' }}
+            />
+            <h1 id="login-title" className="login-title">{t('auth.loginTitle')}</h1>
           </div>
-          <p className="login-subtitle">Log in to your account</p>
+          <p className="login-subtitle">{t('auth.loginTitle')}</p>
 
           <div>
-            <label className="login-label">Email</label>
+            <label className="login-label">{t('auth.email')}</label>
             <input
               type="email"
               required
-              placeholder="you@example.com"
+              placeholder={t('auth.email')}
               className="login-input"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -94,7 +94,7 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="login-label">Password</label>
+            <label className="login-label">{t('auth.password')}</label>
             <input
               type="password"
               required
@@ -104,8 +104,8 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
             />
             <div style={{ marginTop: '8px', textAlign: 'center' }}>
-              <Link 
-                href="/forgot-password" 
+              <Link
+                href="/forgot-password"
                 style={{
                   color: '#40e0d0',
                   textDecoration: 'none',
@@ -122,7 +122,7 @@ export default function LoginPage() {
                   e.currentTarget.style.textDecoration = 'none';
                 }}
               >
-                Forgot password?
+                {t('auth.forgotPassword')}
               </Link>
             </div>
           </div>
@@ -157,7 +157,7 @@ export default function LoginPage() {
               e.currentTarget.style.transform = 'translateY(0)';
             }}
           >
-            {loading ? 'Logging In...' : 'Log In'}
+            {loading ? t('common.loading') : t('auth.signIn')}
           </button>
 
           {error && <p className="login-error-msg">{error}</p>}

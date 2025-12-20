@@ -1,17 +1,193 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { supabase } from "@/lib/supabase-client";
-import { FiUsers, FiCheckCircle, FiAlertCircle, FiClock, FiTrendingUp, FiRefreshCw, FiDownload } from "react-icons/fi";
+import { FiUsers, FiCheckCircle, FiAlertCircle, FiClock, FiTrendingUp, FiRefreshCw, FiDownload, FiX } from "react-icons/fi";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 import ContentHeader from "@/components/ui/ContentHeader";
 import OverlayDialog from "@/components/ui/OverlayDialog";
 import NeonTable from "@/components/NeonTable";
+import TextIconButton from "@/components/ui/TextIconButtons";
+import SignaturePad from "react-signature-canvas";
+import NeonForm from "@/components/NeonForm";
+import TestRunner from "@/components/training/TestRunner";
 
 /* ===========================
    TRAINING DASHBOARD
    Overview of training compliance for trainers
 =========================== */
+
+// Trim transparent edges from a canvas
+function trimCanvas(src: HTMLCanvasElement): HTMLCanvasElement {
+  const ctx = src.getContext("2d");
+  if (!ctx) return src;
+
+  const { width, height } = src;
+  const { data } = ctx.getImageData(0, 0, width, height);
+
+  let top = 0, left = 0, right = width - 1, bottom = height - 1;
+  let found = false;
+
+  const rowHasInk = (y: number) => {
+    for (let x = 0; x < width; x++) {
+      if (data[(y * width + x) * 4 + 3] !== 0) return true;
+    }
+    return false;
+  };
+
+  const colHasInk = (x: number) => {
+    for (let y = 0; y < height; y++) {
+      if (data[(y * width + x) * 4 + 3] !== 0) return true;
+    }
+    return false;
+  };
+
+  for (let y = 0; y < height; y++) {
+    if (rowHasInk(y)) {
+      top = y;
+      found = true;
+      break;
+    }
+  }
+  if (!found) return src;
+
+  for (let y = height - 1; y >= 0; y--) {
+    if (rowHasInk(y)) {
+      bottom = y;
+      break;
+    }
+  }
+  for (let x = 0; x < width; x++) {
+    if (colHasInk(x)) {
+      left = x;
+      break;
+    }
+  }
+  for (let x = width - 1; x >= 0; x--) {
+    if (colHasInk(x)) {
+      right = x;
+      break;
+    }
+  }
+
+  const w = Math.max(1, right - left + 1);
+  const h = Math.max(1, bottom - top + 1);
+
+  const out = document.createElement("canvas");
+  out.width = w;
+  out.height = h;
+  const outCtx = out.getContext("2d");
+  if (outCtx) outCtx.drawImage(src, left, top, w, h, 0, 0, w, h);
+  return out;
+}
+
+// SignatureBox component
+type SignatureBoxProps = {
+  disabled?: boolean;
+  onChange: (dataUrl: string) => void;
+};
+
+const SignatureBox = React.memo(function SignatureBox({
+  disabled,
+  onChange,
+}: SignatureBoxProps) {
+  const padRef = useRef<SignaturePad>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const canvasProps = useMemo(
+    () => ({
+      className: "neon-panel",
+      style: {
+        width: '100%',
+        height: '200px',
+        borderRadius: '8px',
+        backgroundColor: 'var(--field,#012b2b)',
+        flexShrink: 0,
+        touchAction: 'none',
+        display: 'block',
+      },
+    }),
+    [],
+  );
+
+  useEffect(() => {
+    const resizeCanvas = () => {
+      const canvas = padRef.current?.getCanvas();
+      const container = containerRef.current;
+      if (!canvas || !container) return;
+
+      const rect = container.getBoundingClientRect();
+      const ratio = Math.max(window.devicePixelRatio || 1, 1);
+
+      canvas.width = rect.width * ratio;
+      canvas.height = 200 * ratio;
+      canvas.getContext('2d')?.scale(ratio, ratio);
+
+      padRef.current?.clear();
+    };
+
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    return () => window.removeEventListener('resize', resizeCanvas);
+  }, []);
+
+  const handleEnd = useCallback(() => {
+    const pad = padRef.current;
+    if (!pad || pad.isEmpty()) {
+      onChange("");
+      return;
+    }
+    const canvas = pad.getCanvas();
+    const trimmed = trimCanvas(canvas);
+    onChange(trimmed.toDataURL("image/png"));
+  }, [onChange]);
+
+  const handleClear = useCallback(() => {
+    padRef.current?.clear();
+    onChange("");
+  }, [onChange]);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ fontFamily: 'var(--font-body)', fontWeight: 500, opacity: 0.7, fontSize: '0.875rem' }}>Draw your signature in the area below</div>
+        <CustomTooltip text="Clear signature">
+          <button
+            type="button"
+            onClick={handleClear}
+            disabled={disabled}
+            className="neon-btn neon-btn-back"
+            style={{
+              padding: '8px',
+              fontSize: '0.875rem',
+              minWidth: 'auto',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <FiX size={18} />
+          </button>
+        </CustomTooltip>
+      </div>
+
+      <div ref={containerRef} style={{ width: '100%', maxWidth: '500px' }}>
+        <SignaturePad
+          ref={padRef}
+          penColor="#40E0D0"
+          clearOnResize={false}
+          canvasProps={canvasProps}
+          onEnd={handleEnd}
+          velocityFilterWeight={0.7}
+          minWidth={0.5}
+          maxWidth={2.5}
+          dotSize={1}
+          throttle={8}
+        />
+      </div>
+    </div>
+  );
+});
 
 interface ComplianceStats {
   totalUsers: number;
@@ -49,8 +225,9 @@ interface RecentActivity {
 
 interface UserDetail {
   id: string;
+  authId: string;
   name: string;
-  email: string;
+  empNumber: string;
   department: string;
   totalAssignments: number;
   completedAssignments: number;
@@ -59,9 +236,11 @@ interface UserDetail {
 
 interface AssignmentDetail {
   id: string;
+  authId?: string;
   userName: string;
   userEmail: string;
   moduleName: string;
+  moduleId?: string;
   assignedAt: string;
   completedAt?: string;
   status: string;
@@ -98,13 +277,51 @@ export default function TrainingDashboard() {
   const [dialogOpen, setDialogOpen] = useState<string | null>(null);
   const [dialogData, setDialogData] = useState<UserDetail[] | AssignmentDetail[] | FollowUpDetail[]>([]);
   const [dialogLoading, setDialogLoading] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<{ id: string; name: string } | null>(null);
+  const [incompleteSearchQuery, setIncompleteSearchQuery] = useState('');
+
+  // Log Training Dialog states
+  const [logTrainingOpen, setLogTrainingOpen] = useState(false);
+  const [logTrainingData, setLogTrainingData] = useState<{
+    assignmentId: string;
+    authId: string;
+    userName: string;
+    moduleId: string;
+    moduleName: string;
+  } | null>(null);
+  const [logForm, setLogForm] = useState({
+    date: new Date().toISOString().split('T')[0],
+    durationHours: '1',
+    outcome: 'completed' as 'completed' | 'needs_improvement' | 'failed',
+    notes: '',
+    learnerSignature: '',
+    trainerSignature: ''
+  });
+  const [logBusy, setLogBusy] = useState(false);
+
+  const learnerPadRef = useRef<SignaturePad>(null);
+  const trainerPadRef = useRef<SignaturePad>(null);
+
+  // Test runner dialog state
+  const [testRunnerDialog, setTestRunnerDialog] = useState<{
+    open: boolean;
+    packId: string | null;
+    userId: string | null;
+  }>({
+    open: false,
+    packId: null,
+    userId: null,
+  });
+
+  // Associated tests state
+  const [associatedTests, setAssociatedTests] = useState<Array<{ id: string; title: string }>>([]);
 
   const fetchComplianceData = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      console.log('📊 Fetching training compliance data...');
+      console.log('Fetching training compliance data...');
 
       // Fetch all users
       const { data: usersData, error: usersError } = await supabase
@@ -123,9 +340,9 @@ export default function TrainingDashboard() {
           item_type,
           completed_at,
           assigned_at,
-          follow_up_required,
-          follow_up_due_date,
-          follow_up_completed_at
+          follow_up_assessment_required,
+          follow_up_assessment_due_date,
+          follow_up_assessment_completed_at
         `)
         .eq('item_type', 'module');
 
@@ -152,16 +369,16 @@ export default function TrainingDashboard() {
       const completedAssignments = assignmentsData?.filter(a => a.completed_at)?.length || 0;
       const overdueAssignments = assignmentsData?.filter(a => !a.completed_at)?.length || 0;
 
-      const followUpRequired = assignmentsData?.filter(a => a.follow_up_required && a.follow_up_due_date) || [];
+      const followUpRequired = assignmentsData?.filter(a => a.follow_up_assessment_required && a.follow_up_assessment_due_date) || [];
       const today = new Date();
       const upcomingFollowUps = followUpRequired.filter(a => {
-        if (a.follow_up_completed_at) return false;
-        const dueDate = new Date(a.follow_up_due_date);
+        if (a.follow_up_assessment_completed_at) return false;
+        const dueDate = new Date(a.follow_up_assessment_due_date);
         return dueDate > today;
       }).length;
       const overdueFollowUps = followUpRequired.filter(a => {
-        if (a.follow_up_completed_at) return false;
-        const dueDate = new Date(a.follow_up_due_date);
+        if (a.follow_up_assessment_completed_at) return false;
+        const dueDate = new Date(a.follow_up_assessment_due_date);
         return dueDate <= today;
       }).length;
 
@@ -266,9 +483,9 @@ export default function TrainingDashboard() {
       setRecentActivity(activity);
       setLastUpdated(new Date());
 
-      console.log('✅ Compliance data loaded successfully');
+      console.log('Compliance data loaded successfully');
     } catch (err) {
-      console.error('❌ Error fetching compliance data:', err);
+      console.error('Error fetching compliance data:', err);
       setError(err instanceof Error ? err.message : 'Failed to load compliance data');
     } finally {
       setLoading(false);
@@ -293,41 +510,76 @@ export default function TrainingDashboard() {
     try {
       const { data: usersData, error: usersError } = await supabase
         .from('users')
-        .select('id, auth_id, first_name, last_name, email, department_id, departments(name)');
+        .select('id, auth_id, first_name, last_name, employee_number, department_id, departments(name)');
 
       if (usersError) throw usersError;
 
-      const { data: assignmentsData, error: assignmentsError } = await supabase
-        .from('user_assignments')
-        .select('auth_id, completed_at')
-        .eq('item_type', 'module');
+      console.log('Fetching assignments for', usersData?.length, 'users...');
 
-      if (assignmentsError) throw assignmentsError;
+      // Use RPC call to get accurate counts bypassing RLS
+      // This uses a database function that runs with definer security
+      const { data: assignmentStats, error: statsError } = await supabase.rpc('get_user_assignment_stats');
 
-      const assignmentsByUser = new Map<string, { total: number; completed: number }>();
-      assignmentsData?.forEach(a => {
-        if (!assignmentsByUser.has(a.auth_id)) {
-          assignmentsByUser.set(a.auth_id, { total: 0, completed: 0 });
-        }
-        const stats = assignmentsByUser.get(a.auth_id)!;
-        stats.total++;
-        if (a.completed_at) stats.completed++;
-      });
+      if (statsError) {
+        console.warn('RPC function not available, falling back to client-side aggregation:', statsError);
 
-      const details: UserDetail[] = usersData?.map(u => {
-        const stats = assignmentsByUser.get(u.auth_id) || { total: 0, completed: 0 };
-        return {
-          id: u.id,
-          name: `${u.first_name} ${u.last_name}`,
-          email: u.email || 'N/A',
-          department: (u.departments as any)?.name || 'N/A',
-          totalAssignments: stats.total,
-          completedAssignments: stats.completed,
-          complianceRate: stats.total > 0 ? (stats.completed / stats.total) * 100 : 0,
-        };
-      }) || [];
+        // Fallback: Fetch all assignments with .in() filter for user auth_ids
+        const authIds = usersData?.map(u => u.auth_id) || [];
+        const { data: assignmentsData, error: assignmentsError } = await supabase
+          .from('user_assignments')
+          .select('auth_id, completed_at, item_type')
+          .in('item_type', ['module', 'document'])
+          .in('auth_id', authIds);
 
-      setDialogData(details);
+        if (assignmentsError) throw assignmentsError;
+
+        console.log('Total assignments fetched via .in() (modules + documents):', assignmentsData?.length);
+
+        const assignmentsByUser = new Map<string, { total: number; completed: number }>();
+        assignmentsData?.forEach(a => {
+          if (!assignmentsByUser.has(a.auth_id)) {
+            assignmentsByUser.set(a.auth_id, { total: 0, completed: 0 });
+          }
+          const stats = assignmentsByUser.get(a.auth_id)!;
+          stats.total++;
+          if (a.completed_at) stats.completed++;
+        });
+
+        const details: UserDetail[] = usersData?.map(u => {
+          const stats = assignmentsByUser.get(u.auth_id) || { total: 0, completed: 0 };
+          return {
+            id: u.id,
+            authId: u.auth_id,
+            name: `${u.first_name} ${u.last_name}`,
+            empNumber: u.employee_number || 'N/A',
+            department: (u.departments as any)?.name || 'N/A',
+            totalAssignments: stats.total,
+            completedAssignments: stats.completed,
+            complianceRate: stats.total > 0 ? (stats.completed / stats.total) * 100 : 0,
+          };
+        }) || [];
+
+        setDialogData(details);
+      } else {
+        // Use RPC results
+        const statsMap = new Map(assignmentStats.map((s: any) => [s.auth_id, s]));
+
+        const details: UserDetail[] = usersData?.map(u => {
+          const stats: any = statsMap.get(u.auth_id) || { total: 0, completed: 0 };
+          return {
+            id: u.id,
+            authId: u.auth_id,
+            name: `${u.first_name} ${u.last_name}`,
+            empNumber: u.employee_number || 'N/A',
+            department: (u.departments as any)?.name || 'N/A',
+            totalAssignments: stats.total || 0,
+            completedAssignments: stats.completed || 0,
+            complianceRate: stats.total > 0 ? ((stats.completed || 0) / stats.total) * 100 : 0,
+          };
+        }) || [];
+
+        setDialogData(details);
+      }
     } catch (err) {
       console.error('Error fetching users detail:', err);
     } finally {
@@ -364,6 +616,8 @@ export default function TrainingDashboard() {
         const user = userMap.get(a.auth_id);
         return {
           id: a.id,
+          authId: a.auth_id,
+          moduleId: a.item_id,
           userName: user ? `${user.first_name} ${user.last_name}` : 'Unknown',
           userEmail: user?.email || 'N/A',
           moduleName: moduleMap.get(a.item_id) || 'Unknown',
@@ -386,17 +640,17 @@ export default function TrainingDashboard() {
     try {
       const { data: assignmentsData, error: assignmentsError } = await supabase
         .from('user_assignments')
-        .select('id, auth_id, item_id, follow_up_due_date, follow_up_completed_at')
+        .select('id, auth_id, item_id, follow_up_assessment_due_date, follow_up_assessment_completed_at')
         .eq('item_type', 'module')
-        .eq('follow_up_required', true)
-        .not('follow_up_due_date', 'is', null);
+        .eq('follow_up_assessment_required', true)
+        .not('follow_up_assessment_due_date', 'is', null);
 
       if (assignmentsError) throw assignmentsError;
 
       const today = new Date();
       const filtered = assignmentsData?.filter(a => {
-        if (a.follow_up_completed_at) return false;
-        const dueDate = new Date(a.follow_up_due_date);
+        if (a.follow_up_assessment_completed_at) return false;
+        const dueDate = new Date(a.follow_up_assessment_due_date);
         return type === 'upcoming' ? dueDate > today : dueDate <= today;
       });
 
@@ -415,14 +669,66 @@ export default function TrainingDashboard() {
         id: a.id,
         userName: userMap.get(a.auth_id) || 'Unknown',
         moduleName: moduleMap.get(a.item_id) || 'Unknown',
-        dueDate: new Date(a.follow_up_due_date).toLocaleDateString(),
-        completedAt: a.follow_up_completed_at ? new Date(a.follow_up_completed_at).toLocaleDateString() : undefined,
-        status: a.follow_up_completed_at ? 'Completed' : type === 'overdue' ? 'Overdue' : 'Upcoming',
+        dueDate: new Date(a.follow_up_assessment_due_date).toLocaleDateString(),
+        completedAt: a.follow_up_assessment_completed_at ? new Date(a.follow_up_assessment_completed_at).toLocaleDateString() : undefined,
+        status: a.follow_up_assessment_completed_at ? 'Completed' : type === 'overdue' ? 'Overdue' : 'Upcoming',
       })) || [];
 
       setDialogData(details);
     } catch (err) {
       console.error('Error fetching follow-ups detail:', err);
+    } finally {
+      setDialogLoading(false);
+    }
+  };
+
+  const fetchUserAssignments = async (authId: string, userName: string, filterType: 'all' | 'completed' | 'incomplete') => {
+    setDialogLoading(true);
+    setSelectedUser({ id: authId, name: userName });
+    try {
+      console.log(`Fetching assignments for user: ${userName} (${authId}), filter: ${filterType}`);
+
+      const { data: assignmentsData, error: assignmentsError } = await supabase
+        .from('user_assignments')
+        .select('id, auth_id, item_id, assigned_at, completed_at')
+        .eq('item_type', 'module')
+        .eq('auth_id', authId);
+
+      if (assignmentsError) throw assignmentsError;
+
+      console.log(`Found ${assignmentsData?.length || 0} total assignments for ${userName}`);
+      console.log('Assignments data:', assignmentsData);
+
+      const { data: modulesData } = await supabase
+        .from('modules')
+        .select('id, name');
+
+      const moduleMap = new Map(modulesData?.map(m => [m.id, m.name]) || []);
+
+      // Filter based on type
+      let filteredData = assignmentsData || [];
+      if (filterType === 'completed') {
+        filteredData = filteredData.filter(a => a.completed_at);
+      } else if (filterType === 'incomplete') {
+        filteredData = filteredData.filter(a => !a.completed_at);
+      }
+
+      console.log(`After filtering (${filterType}): ${filteredData.length} assignments`);
+
+      const details: AssignmentDetail[] = filteredData.map(a => ({
+        id: a.id,
+        userName: userName,
+        userEmail: '',
+        moduleName: moduleMap.get(a.item_id) || 'Unknown',
+        assignedAt: new Date(a.assigned_at).toLocaleDateString(),
+        completedAt: a.completed_at ? new Date(a.completed_at).toLocaleDateString() : undefined,
+        status: a.completed_at ? 'Completed' : 'Incomplete',
+      }));
+
+      setDialogData(details);
+      setDialogOpen('user-assignments');
+    } catch (err) {
+      console.error('Error fetching user assignments:', err);
     } finally {
       setDialogLoading(false);
     }
@@ -447,6 +753,168 @@ export default function TrainingDashboard() {
       case 'overdue-followups':
         await fetchFollowUpsDetail('overdue');
         break;
+    }
+  };
+
+  // Fetch associated tests for a module
+  const fetchAssociatedTests = async (moduleId: string) => {
+    try {
+      console.log("Fetching tests for module:", moduleId);
+      const { data: tests, error } = await supabase
+        .from("question_packs")
+        .select("id, title, module_id")
+        .eq("is_active", true)
+        .eq("module_id", moduleId)
+        .order("title", { ascending: true });
+
+      if (error) throw error;
+      console.log("Found tests:", tests);
+
+      const linkedTests = (tests || []).map(t => ({ id: t.id, title: t.title }));
+      console.log("Setting associated tests:", linkedTests);
+
+      setAssociatedTests(linkedTests);
+    } catch (e) {
+      console.error("Failed to fetch associated tests:", e);
+      setAssociatedTests([]);
+    }
+  };
+
+  // Signature change handlers
+  const handleLearnerSignatureChange = useCallback((dataUrl: string) => {
+    setLogForm((f) => ({ ...f, learnerSignature: dataUrl }));
+  }, []);
+
+  const handleTrainerSignatureChange = useCallback((dataUrl: string) => {
+    setLogForm((f) => ({ ...f, trainerSignature: dataUrl }));
+  }, []);
+
+  const handleOpenLogTraining = async (assignment: AssignmentDetail) => {
+    if (!assignment.authId || !assignment.moduleId) {
+      alert('Missing user or module information');
+      return;
+    }
+
+    setLogTrainingData({
+      assignmentId: assignment.id,
+      authId: assignment.authId,
+      userName: assignment.userName,
+      moduleId: assignment.moduleId,
+      moduleName: assignment.moduleName,
+    });
+
+    // Reset form
+    setLogForm({
+      date: new Date().toISOString().split('T')[0],
+      durationHours: '1',
+      outcome: 'completed',
+      notes: '',
+      learnerSignature: '',
+      trainerSignature: ''
+    });
+
+    // Clear signature pads
+    learnerPadRef.current?.clear();
+    trainerPadRef.current?.clear();
+
+    // Fetch associated tests for the module
+    await fetchAssociatedTests(assignment.moduleId);
+
+    setLogTrainingOpen(true);
+  };
+
+  const handleSubmitLogTraining = async () => {
+    if (!logTrainingData) return;
+
+    // Validate signatures for completed outcome
+    if (logForm.outcome === 'completed') {
+      if (!logForm.learnerSignature.trim()) {
+        alert("Please provide the learner's e-signature for satisfactory training completion.");
+        return;
+      }
+      if (!logForm.trainerSignature.trim()) {
+        alert("Please provide the trainer's e-signature for satisfactory training completion.");
+        return;
+      }
+    }
+
+    setLogBusy(true);
+    try {
+      console.log("=== TrainingDashboard: Logging training completion ===");
+      console.log("User auth_id:", logTrainingData.authId);
+      console.log("Module ID:", logTrainingData.moduleId);
+      console.log("Assignment ID:", logTrainingData.assignmentId);
+
+      // 1) Insert into training_logs
+      const { error: insertErr } = await supabase.from("training_logs").insert([
+        {
+          auth_id: logTrainingData.authId,
+          date: logForm.date,
+          topic: logTrainingData.moduleId,
+          duration_hours: Number(logForm.durationHours) || 1,
+          outcome: logForm.outcome,
+          notes: logForm.notes?.trim() || null,
+          signature: logForm.outcome === 'completed' ? logForm.learnerSignature : null,
+          trainer_signature: logForm.outcome === 'completed' ? logForm.trainerSignature : null,
+        },
+      ]);
+
+      if (insertErr) {
+        console.error("Insert training_logs failed:", insertErr);
+        alert(`Failed to log training: ${insertErr.message}`);
+        setLogBusy(false);
+        return;
+      }
+
+      console.log("Training log inserted successfully");
+
+      // 2) Record completion via API
+      console.log("Recording training outcome via API...");
+      const payload = {
+        auth_id: logTrainingData.authId,
+        item_id: logTrainingData.moduleId,
+        item_type: 'module',
+        completed_date: logForm.date,
+        training_outcome: logForm.outcome
+      };
+
+      const response = await fetch('/api/record-training-completion', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        console.error("API error:", error);
+        throw new Error(error.error || 'Failed to record training outcome');
+      }
+
+      const result = await response.json();
+      console.log("Training outcome recorded successfully:", result);
+
+      // Success message
+      alert(`Training logged successfully for ${logTrainingData.userName}`);
+
+      // Close dialog and refresh data
+      setLogTrainingOpen(false);
+      setLogTrainingData(null);
+
+      // Refresh the incomplete assignments list
+      if (dialogOpen === 'incomplete') {
+        await fetchAssignmentsDetail('incomplete');
+      }
+
+      // Refresh overall compliance data
+      await fetchComplianceData();
+
+    } catch (e) {
+      console.error("Error in handleSubmitLogTraining:", e);
+      alert("Failed to log training.");
+    } finally {
+      setLogBusy(false);
     }
   };
 
@@ -805,14 +1273,110 @@ export default function TrainingDashboard() {
             <NeonTable
               columns={[
                 { header: 'Name', accessor: 'name', width: 200 },
-                { header: 'Email', accessor: 'email', width: 250 },
+                { header: 'Emp #', accessor: 'empNumber', width: 120 },
                 { header: 'Department', accessor: 'department', width: 180 },
-                { header: 'Total Assignments', accessor: 'totalAssignments', width: 150 },
-                { header: 'Completed', accessor: 'completedAssignments', width: 120 },
+                {
+                  header: 'Total Assignments',
+                  accessor: 'totalAssignments',
+                  width: 150,
+                  align: 'center',
+                  render: (value, row) => {
+                    const user = row as unknown as UserDetail;
+                    return (
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '50%',
+                          backgroundColor: '#1e3a8a',
+                          color: 'white',
+                          fontWeight: 'bold',
+                          fontSize: '0.875rem',
+                          cursor: 'pointer'
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          fetchUserAssignments(user.authId, user.name, 'all');
+                        }}
+                      >
+                        {value as number}
+                      </span>
+                    );
+                  }
+                },
+                {
+                  header: 'Completed',
+                  accessor: 'completedAssignments',
+                  width: 120,
+                  align: 'center',
+                  render: (value, row) => {
+                    const user = row as unknown as UserDetail;
+                    return (
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '50%',
+                          backgroundColor: 'var(--text-success)',
+                          color: 'white',
+                          fontWeight: 'bold',
+                          fontSize: '0.875rem',
+                          cursor: 'pointer'
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          fetchUserAssignments(user.authId, user.name, 'completed');
+                        }}
+                      >
+                        {value as number}
+                      </span>
+                    );
+                  }
+                },
+                {
+                  header: 'Incomplete',
+                  accessor: 'id',
+                  width: 120,
+                  align: 'center',
+                  render: (_value, row) => {
+                    const user = row as unknown as UserDetail;
+                    const incompleteCount = user.totalAssignments - user.completedAssignments;
+                    return (
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '50%',
+                          backgroundColor: 'var(--text-error)',
+                          color: 'white',
+                          fontWeight: 'bold',
+                          fontSize: '0.875rem',
+                          cursor: 'pointer'
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          fetchUserAssignments(user.authId, user.name, 'incomplete');
+                        }}
+                      >
+                        {incompleteCount}
+                      </span>
+                    );
+                  }
+                },
                 {
                   header: 'Compliance Rate',
                   accessor: 'complianceRate',
                   width: 150,
+                  align: 'center',
                   render: (value) => {
                     const rate = value as number;
                     return (
@@ -862,12 +1426,32 @@ export default function TrainingDashboard() {
 
       <OverlayDialog
         open={dialogOpen === 'incomplete'}
-        onClose={() => setDialogOpen(null)}
-        width={1200}
+        onClose={() => {
+          setDialogOpen(null);
+          setIncompleteSearchQuery('');
+        }}
+        width={1300}
         showCloseButton
       >
         <div style={{ padding: '24px' }}>
           <h2 className="neon-heading" style={{ marginBottom: '24px' }}>Incomplete Assignments</h2>
+
+          {/* Search Bar */}
+          <div style={{ marginBottom: '20px' }}>
+            <input
+              type="text"
+              className="neon-input"
+              placeholder="Search by user name, email, or module name..."
+              value={incompleteSearchQuery}
+              onChange={(e) => setIncompleteSearchQuery(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '12px',
+                fontSize: '0.95rem'
+              }}
+            />
+          </div>
+
           {dialogLoading ? (
             <div style={{ textAlign: 'center', padding: '40px' }}>
               <FiRefreshCw className="animate-spin" size={32} style={{ color: 'var(--neon)' }} />
@@ -879,10 +1463,62 @@ export default function TrainingDashboard() {
                 { header: 'Email', accessor: 'userEmail', width: 250 },
                 { header: 'Module', accessor: 'moduleName', width: 250 },
                 { header: 'Assigned', accessor: 'assignedAt', width: 130 },
-                { header: 'Status', accessor: 'status', width: 120 },
+                { header: 'Status', accessor: 'status', width: 100 },
+                {
+                  header: 'Actions',
+                  accessor: 'id',
+                  width: 120,
+                  render: (_value, row) => {
+                    const assignment = row as unknown as AssignmentDetail;
+                    return (
+                      <TextIconButton
+                        variant="edit"
+                        label="Log Training"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenLogTraining(assignment);
+                        }}
+                      />
+                    );
+                  }
+                },
               ]}
-              data={dialogData as unknown as Record<string, unknown>[]}
+              data={
+                (dialogData as unknown as AssignmentDetail[])
+                  .filter((assignment) => {
+                    if (!incompleteSearchQuery.trim()) return true;
+                    const query = incompleteSearchQuery.toLowerCase();
+                    return (
+                      assignment.userName.toLowerCase().includes(query) ||
+                      assignment.userEmail.toLowerCase().includes(query) ||
+                      assignment.moduleName.toLowerCase().includes(query)
+                    );
+                  }) as unknown as Record<string, unknown>[]
+              }
             />
+          )}
+
+          {/* Show filtered count */}
+          {!dialogLoading && incompleteSearchQuery.trim() && (
+            <div style={{
+              marginTop: '12px',
+              fontSize: '0.9rem',
+              color: 'var(--text-white)',
+              opacity: 0.7,
+              textAlign: 'center'
+            }}>
+              Showing {
+                (dialogData as unknown as AssignmentDetail[])
+                  .filter((assignment) => {
+                    const query = incompleteSearchQuery.toLowerCase();
+                    return (
+                      assignment.userName.toLowerCase().includes(query) ||
+                      assignment.userEmail.toLowerCase().includes(query) ||
+                      assignment.moduleName.toLowerCase().includes(query)
+                    );
+                  }).length
+              } of {(dialogData as unknown as AssignmentDetail[]).length} incomplete assignments
+            </div>
           )}
         </div>
       </OverlayDialog>
@@ -945,6 +1581,248 @@ export default function TrainingDashboard() {
               data={dialogData as unknown as Record<string, unknown>[]}
             />
           )}
+        </div>
+      </OverlayDialog>
+
+      <OverlayDialog
+        open={dialogOpen === 'user-assignments'}
+        onClose={() => setDialogOpen(null)}
+        width={1000}
+        showCloseButton
+      >
+        <div style={{ padding: '24px' }}>
+          <h2 className="neon-heading" style={{ marginBottom: '24px' }}>
+            Assignments for {selectedUser?.name}
+          </h2>
+          {dialogLoading ? (
+            <div style={{ textAlign: 'center', padding: '40px' }}>
+              <FiRefreshCw className="animate-spin" size={32} style={{ color: 'var(--neon)' }} />
+            </div>
+          ) : (
+            <NeonTable
+              columns={[
+                { header: 'Module', accessor: 'moduleName', width: 350 },
+                { header: 'Assigned', accessor: 'assignedAt', width: 130 },
+                { header: 'Completed', accessor: 'completedAt', width: 130 },
+                {
+                  header: 'Status',
+                  accessor: 'status',
+                  width: 120,
+                  render: (value) => (
+                    <span style={{
+                      color: value === 'Completed' ? 'var(--text-success)' : 'var(--text-error)',
+                      fontWeight: 'bold'
+                    }}>
+                      {value as string}
+                    </span>
+                  )
+                },
+              ]}
+              data={dialogData as unknown as Record<string, unknown>[]}
+            />
+          )}
+        </div>
+      </OverlayDialog>
+
+      {/* Log Training Dialog */}
+      <OverlayDialog
+        open={logTrainingOpen}
+        onClose={() => !logBusy && setLogTrainingOpen(false)}
+        width={1000}
+        showCloseButton
+        closeOnOutsideClick={!logBusy}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', height: '85vh', overflow: 'hidden', margin: '-2rem', padding: '0' }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '16px', color: 'var(--neon)', padding: '2rem 2rem 0 2rem', flexShrink: 0 }}>
+            Log Training - {logTrainingData?.userName}
+          </h2>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '0 2rem 2rem 2rem' }}>
+            <NeonForm
+              title=""
+              submitLabel={logBusy ? "Saving..." : "Save Log"}
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSubmitLogTraining();
+              }}
+            >
+              <div style={{ marginBottom: '16px', padding: '12px', background: 'rgba(64, 224, 208, 0.1)', borderRadius: '8px' }}>
+                <strong>Module:</strong> {logTrainingData?.moduleName}
+              </div>
+
+              {/* Date, Duration, and Outcome in a row */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+                <label style={{ display: 'grid', gap: '4px' }}>
+                  <span style={{ fontSize: '1rem', fontFamily: 'var(--font-body)', fontWeight: 500, opacity: 0.8 }}>Date</span>
+                  <input
+                    type="date"
+                    className="neon-input"
+                    value={logForm.date}
+                    onChange={(e) => setLogForm((f) => ({ ...f, date: e.target.value }))}
+                    disabled={logBusy}
+                  />
+                </label>
+
+                <label style={{ display: 'grid', gap: '4px' }}>
+                  <span style={{ fontSize: '1rem', fontFamily: 'var(--font-body)', fontWeight: 500, opacity: 0.8 }}>Duration (Hours)</span>
+                  <input
+                    type="number"
+                    min={0.5}
+                    step={0.5}
+                    className="neon-input"
+                    value={logForm.durationHours}
+                    onChange={(e) => setLogForm((f) => ({ ...f, durationHours: e.target.value }))}
+                    disabled={logBusy}
+                  />
+                </label>
+
+                <label style={{ display: 'grid', gap: '4px' }}>
+                  <span style={{ fontSize: '1rem', fontFamily: 'var(--font-body)', fontWeight: 500, opacity: 0.8 }}>Training Outcome</span>
+                  <select
+                    className="neon-input"
+                    value={logForm.outcome}
+                    onChange={(e) => setLogForm((f) => ({ ...f, outcome: e.target.value as 'completed' | 'needs_improvement' | 'failed' }))}
+                    disabled={logBusy}
+                  >
+                    <option value="completed">Completed - Satisfactory</option>
+                    <option value="needs_improvement">Needs Improvement - Re-train Required</option>
+                    <option value="failed">Failed - Must Re-train</option>
+                  </select>
+                  <div style={{ fontSize: "0.75rem", opacity: 0.7, marginTop: "4px" }}>
+                    {logForm.outcome === "completed" && "Training completed to satisfactory standard"}
+                    {logForm.outcome === "needs_improvement" && "Training logged but requires additional practice"}
+                    {logForm.outcome === "failed" && "Training not completed, immediate re-training needed"}
+                  </div>
+                </label>
+              </div>
+
+              <label style={{ display: 'grid', gap: '4px' }}>
+                <span style={{ fontSize: '1rem', fontFamily: 'var(--font-body)', fontWeight: 500, opacity: 0.8 }}>Notes</span>
+                <textarea
+                  rows={4}
+                  className="neon-input"
+                  value={logForm.notes}
+                  onChange={(e) => setLogForm((f) => ({ ...f, notes: e.target.value }))}
+                  disabled={logBusy}
+                  placeholder="Key points covered, observed competency, follow-up actions..."
+                />
+              </label>
+
+              {/* Associated Tests Section */}
+              {associatedTests.length > 0 && (
+                <div style={{ display: 'grid', gap: '4px' }}>
+                  <span style={{ fontSize: '1rem', fontFamily: 'var(--font-body)', fontWeight: 500, opacity: 0.8 }}>Associated Tests</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {associatedTests.map((test) => (
+                      <div
+                        key={test.id}
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '12px', borderRadius: '8px', border: '1px solid', borderColor: 'var(--neon)', opacity: 0.2, backgroundColor: 'rgba(0, 0, 0, 0.2)' }}
+                      >
+                        <span style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '0.875rem', flex: 1 }}>{test.title}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (logTrainingData) {
+                              setTestRunnerDialog({
+                                open: true,
+                                packId: test.id,
+                                userId: logTrainingData.authId,
+                              });
+                            }
+                          }}
+                          disabled={logBusy}
+                          className="neon-btn neon-btn-next"
+                          style={{ minWidth: '120px' }}
+                        >
+                          Take Test
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Signature fields - only shown for satisfactory completion */}
+              {logForm.outcome === "completed" && (
+                <>
+                  {/* Learner E-signature field */}
+                  <div style={{ display: 'grid', gap: '8px', marginTop: '12px' }}>
+                    <span style={{ fontSize: '1rem', fontFamily: 'var(--font-body)', fontWeight: 500, opacity: 0.8 }}>
+                      Learner E-Signature *
+                    </span>
+                    <SignatureBox
+                      disabled={logBusy}
+                      onChange={handleLearnerSignatureChange}
+                    />
+                    {logForm.learnerSignature && (
+                      <div style={{ marginTop: '4px', backgroundColor: 'rgba(0, 0, 0, 0.1)', borderRadius: '4px', padding: '8px', maxWidth: '300px', maxHeight: '100px' }}>
+                        <img
+                          alt="Learner signature preview"
+                          src={logForm.learnerSignature}
+                          style={{ objectFit: 'contain', maxWidth: '100%', maxHeight: '96px', display: 'block' }}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Trainer E-signature field */}
+                  <div style={{ display: 'grid', gap: '8px', marginTop: '12px' }}>
+                    <span style={{ fontSize: '1rem', fontFamily: 'var(--font-body)', fontWeight: 500, opacity: 0.8 }}>
+                      Trainer E-Signature *
+                    </span>
+                    <SignatureBox
+                      disabled={logBusy}
+                      onChange={handleTrainerSignatureChange}
+                    />
+                    {logForm.trainerSignature && (
+                      <div style={{ marginTop: '4px', backgroundColor: 'rgba(0, 0, 0, 0.1)', borderRadius: '4px', padding: '8px', maxWidth: '300px', maxHeight: '100px' }}>
+                        <img
+                          alt="Trainer signature preview"
+                          src={logForm.trainerSignature}
+                          style={{ objectFit: 'contain', maxWidth: '100%', maxHeight: '96px', display: 'block' }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {/* Info message for unsatisfactory outcomes */}
+              {(logForm.outcome === "needs_improvement" || logForm.outcome === "failed") && (
+                <div style={{
+                  marginTop: "16px",
+                  padding: "12px",
+                  background: "rgba(245, 158, 11, 0.1)",
+                  borderLeft: "3px solid #f59e0b",
+                  fontSize: "0.9rem",
+                  lineHeight: "1.5"
+                }}>
+                  <strong>Note:</strong> Signatures are not required for unsatisfactory training outcomes.
+                  This training session will be logged but the assignment will remain open for re-training.
+                </div>
+              )}
+            </NeonForm>
+          </div>
+        </div>
+      </OverlayDialog>
+
+      {/* Test Runner Dialog */}
+      <OverlayDialog
+        open={testRunnerDialog.open}
+        onClose={() => setTestRunnerDialog({ open: false, packId: null, userId: null })}
+        width={1000}
+        showCloseButton
+      >
+        <div className="ui-dialog-container">
+          <div className="ui-dialog-scrollable">
+            {testRunnerDialog.packId && testRunnerDialog.userId && (
+              <TestRunner
+                rpcMode="simple"
+                testingUserId={testRunnerDialog.userId}
+                packIds={[testRunnerDialog.packId]}
+                onReturnToLog={() => setTestRunnerDialog({ open: false, packId: null, userId: null })}
+              />
+            )}
+          </div>
         </div>
       </OverlayDialog>
     </>

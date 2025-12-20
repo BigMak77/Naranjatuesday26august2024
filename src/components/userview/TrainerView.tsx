@@ -18,11 +18,6 @@ import NeonTable from "../NeonTable";
 import NeonForm from "../NeonForm";
 import NeonPanel from "../NeonPanel";
 import Image from "next/image";
-import TrainingMaterialsManagerDialog from "@/components/training/TrainingMaterialsManagerDialog";
-import TrainingQuestionsSection from "../training/TrainingQuestionsSection";
-import TrainingQuestionForm from "../training/TrainingQuestionForm";
-import TrainingQuestionCategoriesTable from "../training/TrainingQuestionCategoriesTable";
-import TrainingQuestionCategory from "../training/TrainingQuestionCategory";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 import ContentHeader from "@/components/ui/ContentHeader";
 import OverlayDialog from "@/components/ui/OverlayDialog";
@@ -56,7 +51,7 @@ export type LogTrainingPayload = {
   assignment_id?: string | null;
 };
 
-export type Section = "log" | "history" | "assign" | "certs" | "profile" | "questions" | "categories";
+export type Section = "log" | "history" | "assign" | "certs" | "profile" | "categories";
 
 export interface TrainerRecordingProps {
   users?: UserRow[];
@@ -249,10 +244,8 @@ export default function TrainerRecordingPage() {
   const [rows, setRows] = useState<UserRow[]>([]);
   const [depts, setDepts] = useState<Dept[]>([]);
   const [dept, setDept] = useState<string>("all");
-  const [materialsDialogOpen, setMaterialsDialogOpen] = useState(false);
   const [modules, setModules] = useState<{ id: string; name: string }[]>([]);
   const [section, setSection] = useState<Section>("log");
-  const [categoriesDialogOpen, setCategoriesDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(20);
@@ -1429,7 +1422,7 @@ export default function TrainerRecordingPage() {
             }
           `}</style>
           <Image
-            src="/logo-turq-orange.png"
+            src="/landing page image.png"
             alt="Loading"
             width={120}
             height={120}
@@ -1442,7 +1435,6 @@ export default function TrainerRecordingPage() {
         </div>
       )}
 
-      <TrainingMaterialsManagerDialog open={materialsDialogOpen} onClose={() => setMaterialsDialogOpen(false)} />
       <ContentHeader
         title="Trainer View"
         description="Record, assign, and review training for users"
@@ -1450,9 +1442,6 @@ export default function TrainerRecordingPage() {
 
       {/* Training Management Toolbar */}
       <TrainerViewToolbar
-        onManageMaterials={() => setMaterialsDialogOpen(true)}
-        onManageQuestions={() => setSection(section === "questions" ? "log" : "questions")}
-        onManageCategories={() => setCategoriesDialogOpen(true)}
         onDownloadCSV={downloadUserAssignmentsCSV}
         onUploadCSV={() => document.getElementById('csv-upload')?.click()}
         onSearch={setSearchTerm}
@@ -1956,39 +1945,6 @@ export default function TrainerRecordingPage() {
             </div>
           </div>
         </OverlayDialog>
-
-        {/* Training Questions Section */}
-        {section === "questions" && (
-          <div style={{ margin: 24 }}>
-            <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--neon)' }}>
-              Training Questions
-            </h2>
-            <TrainingQuestionCategoriesTable />
-          </div>
-        )}
-
-        {/* Training Categories Dialog Overlay */}
-        {categoriesDialogOpen && (
-          <div className="ui-dialog-overlay" onClick={() => setCategoriesDialogOpen(false)}>
-            <div className="ui-dialog-content" onClick={e => e.stopPropagation()}>
-              <NeonPanel>
-                <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--neon)' }}>
-                  Training Categories
-                </h2>
-                <TrainingQuestionCategory />
-                <CustomTooltip text="Close categories dialog">
-                  <button
-                    className="neon-btn neon-btn-close"
-                    style={{ marginTop: "1rem" }}
-                    onClick={() => setCategoriesDialogOpen(false)}
-                  >
-                    <FiX />
-                  </button>
-                </CustomTooltip>
-              </NeonPanel>
-            </div>
-          </div>
-        )}
 
         {/* CSV Import Result Modal */}
         <OverlayDialog

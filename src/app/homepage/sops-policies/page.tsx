@@ -3,10 +3,12 @@
 import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "@/context/TranslationContext";
 import { FiClipboard, FiCheckCircle, FiRefreshCw, FiBarChart2, FiTarget, FiBell } from "react-icons/fi";
 
 export default function SopsPoliciesPage() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   return (
     <div className="neon-panel">
@@ -16,9 +18,9 @@ export default function SopsPoliciesPage() {
         <div className="page-close-button">
           <button
             onClick={() => router.push('/')}
-            aria-label="Close and return to homepage"
+            aria-label={t('featurePages.closeButton')}
             className="overlay-close-button"
-            title="Return to Homepage"
+            title={t('featurePages.closeButton')}
           >
             <svg
               width="12"
@@ -38,17 +40,17 @@ export default function SopsPoliciesPage() {
           </button>
         </div>
 
-        <h1 className="main-header">SOPs & Policies</h1>
+        <h1 className="main-header">{t('sopsPolicies.title')}</h1>
         <p className="main-subheader">
-          Create, assign, and manage Standard Operating Procedures and Policies that ensure compliance and clarity across your organization.
+          {t('sopsPolicies.subtitle')}
         </p>
       </div>
 
       {/* Overview Section */}
       <div className="neon-panel">
-        <h2 className="neon-heading">Streamline Your Documentation Management</h2>
+        <h2 className="neon-heading">{t('sopsPolicies.overviewHeading')}</h2>
         <p className="main-subheader">
-          Standard Operating Procedures (SOPs) and Policies are the backbone of consistent operations and regulatory compliance. Naranja makes it effortless to create, distribute, and track these critical documents across every role in your organization.
+          {t('sopsPolicies.overviewText')}
         </p>
       </div>
 
@@ -58,9 +60,9 @@ export default function SopsPoliciesPage() {
           <div className="feature-icon">
             <FiClipboard />
           </div>
-          <h3 className="feature-title">Role-Based Assignment</h3>
+          <h3 className="feature-title">{t('sopsPolicies.roleBasedTitle')}</h3>
           <p className="feature-description">
-            Automatically assign SOPs and policies to specific roles, departments, or locations ensuring everyone has access to the documentation they need.
+            {t('sopsPolicies.roleBasedDesc')}
           </p>
         </div>
 
@@ -68,9 +70,9 @@ export default function SopsPoliciesPage() {
           <div className="feature-icon">
             <FiCheckCircle />
           </div>
-          <h3 className="feature-title">Completion Tracking</h3>
+          <h3 className="feature-title">{t('sopsPolicies.completionTrackingTitle')}</h3>
           <p className="feature-description">
-            Monitor who has read and acknowledged each document with real-time compliance tracking and automated reminders for overdue reviews.
+            {t('sopsPolicies.completionTrackingDesc')}
           </p>
         </div>
 
@@ -78,9 +80,9 @@ export default function SopsPoliciesPage() {
           <div className="feature-icon">
             <FiRefreshCw />
           </div>
-          <h3 className="feature-title">Version Control</h3>
+          <h3 className="feature-title">{t('sopsPolicies.versionControlTitle')}</h3>
           <p className="feature-description">
-            Maintain complete audit history with automatic versioning. Every change is tracked, timestamped, and archived for regulatory compliance.
+            {t('sopsPolicies.versionControlDesc')}
           </p>
         </div>
 
@@ -88,9 +90,9 @@ export default function SopsPoliciesPage() {
           <div className="feature-icon">
             <FiBarChart2 />
           </div>
-          <h3 className="feature-title">Compliance Reporting</h3>
+          <h3 className="feature-title">{t('sopsPolicies.complianceReportingTitle')}</h3>
           <p className="feature-description">
-            Generate comprehensive reports showing completion rates, outstanding acknowledgments, and audit-ready documentation at any time.
+            {t('sopsPolicies.complianceReportingDesc')}
           </p>
         </div>
 
@@ -98,9 +100,9 @@ export default function SopsPoliciesPage() {
           <div className="feature-icon">
             <FiTarget />
           </div>
-          <h3 className="feature-title">Visual Workflows</h3>
+          <h3 className="feature-title">{t('sopsPolicies.visualWorkflowsTitle')}</h3>
           <p className="feature-description">
-            Create step-by-step visual guides with embedded photos and videos to make procedures clearer and easier to follow.
+            {t('sopsPolicies.visualWorkflowsDesc')}
           </p>
         </div>
 
@@ -108,34 +110,34 @@ export default function SopsPoliciesPage() {
           <div className="feature-icon">
             <FiBell />
           </div>
-          <h3 className="feature-title">Automated Notifications</h3>
+          <h3 className="feature-title">{t('sopsPolicies.automatedNotificationsTitle')}</h3>
           <p className="feature-description">
-            Keep your team informed with automatic alerts for new documents, policy updates, and upcoming review deadlines.
+            {t('sopsPolicies.automatedNotificationsDesc')}
           </p>
         </div>
       </div>
 
       {/* Benefits Section */}
       <div className="neon-panel">
-        <h2 className="neon-heading">Why Choose Naranja for SOPs & Policies</h2>
+        <h2 className="neon-heading">{t('sopsPolicies.benefitsHeading')}</h2>
         <div className="content-grid">
           <div className="content-section">
-            <h3 className="section-title">Audit-Ready Compliance</h3>
+            <h3 className="section-title">{t('sopsPolicies.auditReadyTitle')}</h3>
             <ul className="feature-list">
-              <li>Complete documentation trails</li>
-              <li>Timestamped acknowledgments</li>
-              <li>Version history archiving</li>
-              <li>Instant compliance reports</li>
+              <li>{t('sopsPolicies.auditReadyItem1')}</li>
+              <li>{t('sopsPolicies.auditReadyItem2')}</li>
+              <li>{t('sopsPolicies.auditReadyItem3')}</li>
+              <li>{t('sopsPolicies.auditReadyItem4')}</li>
             </ul>
           </div>
 
           <div className="content-section">
-            <h3 className="section-title">Operational Excellence</h3>
+            <h3 className="section-title">{t('sopsPolicies.operationalExcellenceTitle')}</h3>
             <ul className="feature-list">
-              <li>Consistent procedures across sites</li>
-              <li>Reduced training time</li>
-              <li>Improved quality control</li>
-              <li>Enhanced team performance</li>
+              <li>{t('sopsPolicies.operationalExcellenceItem1')}</li>
+              <li>{t('sopsPolicies.operationalExcellenceItem2')}</li>
+              <li>{t('sopsPolicies.operationalExcellenceItem3')}</li>
+              <li>{t('sopsPolicies.operationalExcellenceItem4')}</li>
             </ul>
           </div>
         </div>
@@ -143,39 +145,39 @@ export default function SopsPoliciesPage() {
 
       {/* Use Cases */}
       <div className="neon-panel">
-        <h2 className="neon-heading">Perfect for Every Department</h2>
+        <h2 className="neon-heading">{t('sopsPolicies.useCasesHeading')}</h2>
         <div className="use-case-grid">
           <div className="use-case-card">
-            <h4>Production Floor</h4>
-            <p>Manufacturing procedures, equipment operation guides, safety protocols, and quality control checklists.</p>
+            <h4>{t('sopsPolicies.productionFloorTitle')}</h4>
+            <p>{t('sopsPolicies.productionFloorDesc')}</p>
           </div>
           <div className="use-case-card">
-            <h4>Food Safety</h4>
-            <p>HACCP procedures, allergen management, cleaning schedules, and hygiene protocols.</p>
+            <h4>{t('sopsPolicies.foodSafetyTitle')}</h4>
+            <p>{t('sopsPolicies.foodSafetyDesc')}</p>
           </div>
           <div className="use-case-card">
-            <h4>Quality Assurance</h4>
-            <p>Testing procedures, inspection protocols, non-conformance handling, and corrective actions.</p>
+            <h4>{t('sopsPolicies.qualityAssuranceTitle')}</h4>
+            <p>{t('sopsPolicies.qualityAssuranceDesc')}</p>
           </div>
           <div className="use-case-card">
-            <h4>HR & Admin</h4>
-            <p>Employee handbooks, onboarding procedures, leave policies, and workplace conduct guidelines.</p>
+            <h4>{t('sopsPolicies.hrAdminTitle')}</h4>
+            <p>{t('sopsPolicies.hrAdminDesc')}</p>
           </div>
         </div>
       </div>
 
       {/* Call to Action */}
       <div className="neon-panel">
-        <h2 className="neon-heading">Ready to Simplify Your Documentation?</h2>
+        <h2 className="neon-heading">{t('sopsPolicies.ctaHeading')}</h2>
         <p className="main-subheader">
-          Transform how your organization manages SOPs and policies. Get audit-ready in minutes, not hours.
+          {t('sopsPolicies.ctaText')}
         </p>
         <div className="cta-container">
           <Link href="/homepage/contact-us" className="cta-button primary">
-            Schedule a Demo
+            {t('featurePages.scheduleDemo')}
           </Link>
           <Link href="/homepage/about" className="cta-button secondary">
-            Learn More
+            {t('featurePages.learnMore')}
           </Link>
         </div>
       </div>
