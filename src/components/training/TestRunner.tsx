@@ -515,17 +515,17 @@ export default function TestRunner({
 
                 {attempt.passed ? (
                   <>
-                    <h2 className="text-2xl font-bold text-center mb-4" style={{ color: 'var(--neon)' }}>
-                      🎉 Congratulations!
+                    <h2 className="training-h2" style={{ color: 'var(--neon)', textAlign: 'center', marginBottom: '1rem' }}>
+                      Congratulations!
                     </h2>
-                    <div className="training-score-row text-center mb-4" style={{ fontSize: '1.5rem' }}>
+                    <div className="training-score-row" style={{ textAlign: 'center', marginBottom: '1rem', fontSize: '1.5rem' }}>
                       Score: <strong>{attempt.score_percent}%</strong>{' '}
                       <span className="training-badgePass">Passed</span>
                     </div>
-                    <p className="text-center mb-6 opacity-80">
+                    <p style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
                       You have successfully passed this test with a score of {attempt.score_percent}%!
                     </p>
-                    <div className="flex flex-col gap-3">
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                       <TextIconButton
                         variant="next"
                         label="Return to Training Log"
@@ -534,28 +534,27 @@ export default function TestRunner({
                           if (onReturnToLog) onReturnToLog();
                         }}
                       />
-                      <button
+                      <TextIconButton
+                        variant="back"
+                        label="View Review"
                         onClick={() => setShowResultModal(false)}
-                        className="neon-btn neon-btn-back"
-                      >
-                        View Review
-                      </button>
+                      />
                     </div>
                   </>
                 ) : (
                   <>
-                    <h2 className="text-2xl font-bold text-center mb-4" style={{ color: '#ef4444' }}>
+                    <h2 className="training-h2" style={{ color: '#ef4444', textAlign: 'center', marginBottom: '1rem' }}>
                       Test Not Passed
                     </h2>
-                    <div className="training-score-row text-center mb-4" style={{ fontSize: '1.5rem' }}>
+                    <div className="training-score-row" style={{ textAlign: 'center', marginBottom: '1rem', fontSize: '1.5rem' }}>
                       Score: <strong>{attempt.score_percent}%</strong>{' '}
                       <span className="training-badgeFail">Failed</span>
                     </div>
-                    <p className="text-center mb-6 opacity-80">
+                    <p style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
                       You scored {attempt.score_percent}%, but the pass mark is {activePack?.pass_mark}%.
                       Please review your answers and try again.
                     </p>
-                    <div className="flex flex-col gap-3">
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                       <TextIconButton
                         variant="next"
                         label="Retake Test"
@@ -564,12 +563,11 @@ export default function TestRunner({
                           if (activePack) startPack(activePack.id);
                         }}
                       />
-                      <button
+                      <TextIconButton
+                        variant="back"
+                        label="View Review"
                         onClick={() => setShowResultModal(false)}
-                        className="neon-btn neon-btn-back"
-                      >
-                        View Review
-                      </button>
+                      />
                     </div>
                   </>
                 )}
@@ -595,11 +593,11 @@ export default function TestRunner({
                 {/* Pass/Fail specific messages */}
                 {attempt.passed ? (
                   <div className="neon-success-banner">
-                    ✓ Congratulations! You have successfully passed this test. You may return to the test list or review your answers below.
+                    Congratulations! You have successfully passed this test. You may return to the test list or review your answers below.
                   </div>
                 ) : (
                   <div className="neon-error-banner">
-                    ⚠ You did not meet the pass mark of {activePack?.pass_mark}%. Please review the correct answers below and retake the test.
+                    You did not meet the pass mark of {activePack?.pass_mark}%. Please review the correct answers below and retake the test.
                   </div>
                 )}
               </div>

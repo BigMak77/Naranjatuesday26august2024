@@ -58,7 +58,15 @@ interface Module {
   name: string;
 }
 
-export default function TestBuilder() {
+interface TestBuilderProps {
+  trigger?: "view" | "archive" | null;
+  onTriggerProcessed?: () => void;
+  preSelectedModuleId?: string | null;
+  onTestCreated?: () => void;
+  editTestId?: string | null;
+}
+
+export default function TestBuilder({ trigger, onTriggerProcessed, preSelectedModuleId, onTestCreated, editTestId }: TestBuilderProps = {}) {
   const [testPack, setTestPack] = useState<TestPack>({
     title: "",
     description: "",
@@ -90,6 +98,42 @@ export default function TestBuilder() {
     loadModules();
     loadExistingPacks();
   }, []);
+
+  // Handle external triggers from parent component
+  useEffect(() => {
+    if (trigger === "view") {
+      loadExistingPacks(false);
+      setShowExistingTests(true);
+      onTriggerProcessed?.();
+    } else if (trigger === "archive") {
+      loadExistingPacks(true);
+      setShowArchivedTests(true);
+      onTriggerProcessed?.();
+    }
+  }, [trigger, onTriggerProcessed]);
+
+  // Handle preselected module for creating test
+  useEffect(() => {
+    if (preSelectedModuleId) {
+      setTestPack(prev => ({
+        ...prev,
+        module_id: preSelectedModuleId
+      }));
+      // Clear any existing test views to focus on creation
+      setShowExistingTests(false);
+      setShowArchivedTests(false);
+    }
+  }, [preSelectedModuleId]);
+
+  // Handle edit test ID for loading specific test
+  useEffect(() => {
+    if (editTestId) {
+      loadPackForEditing(editTestId);
+      // Clear any existing test views to focus on editing
+      setShowExistingTests(false);
+      setShowArchivedTests(false);
+    }
+  }, [editTestId]);
 
   const loadModules = async () => {
     const { data, error } = await supabase
@@ -623,10 +667,17 @@ export default function TestBuilder() {
       setEditingPackId(packId);
       await loadExistingPacks();
 
-      // Reset form after a delay
-      setTimeout(() => {
-        resetForm();
-      }, 2000);
+      // Call callback if test was created (not updated) and callback is provided
+      if (!editingPackId && onTestCreated) {
+        setTimeout(() => {
+          onTestCreated();
+        }, 1500);
+      } else {
+        // Reset form after a delay for updates
+        setTimeout(() => {
+          resetForm();
+        }, 2000);
+      }
     } catch (err: any) {
       setError(err.message || "Failed to save test");
       console.error("Save error:", err);
@@ -856,40 +907,33 @@ export default function TestBuilder() {
 
   return (
     <>
-      <ContentHeader
-        title="Test Builder"
-        description="Create and manage confirmation tests for training modules and documents"
-      />
+      {/* Header for pre-selected module */}
+      {preSelectedModuleId && (
+        <div style={{ marginBottom: "24px", padding: "16px", background: "var(--surface)", border: "1px solid var(--accent)", borderRadius: "8px" }}>
+          <h2 style={{ color: "var(--accent)", fontWeight: 600, fontSize: "1.25rem", marginBottom: "8px" }}>
+            Create Test for Module
+          </h2>
+          <p style={{ color: "var(--text-secondary)", margin: 0 }}>
+            Creating a new test for: <strong style={{ color: "var(--neon)" }}>
+              {modules.find(m => m.id === preSelectedModuleId)?.name || "Selected Module"}
+            </strong>
+            <br />
+            The test will be automatically associated with this module.
+          </p>
+        </div>
+      )}
 
       {/* Action buttons */}
-      <div style={{ display: "flex", gap: "12px", marginBottom: "20px" }}>
-        <TextIconButton
-          variant="add"
-          icon={<FiList size={16} />}
-          label="View Existing Tests"
-          onClick={() => {
-            loadExistingPacks(false);
-            setShowExistingTests(true);
-          }}
-        />
-        <TextIconButton
-          variant="view"
-          icon={<FiArchive size={16} />}
-          label="View Archived Tests"
-          onClick={() => {
-            loadExistingPacks(true);
-            setShowArchivedTests(true);
-          }}
-        />
-        {editingPackId && (
+      {editingPackId && (
+        <div style={{ display: "flex", gap: "12px", marginBottom: "20px" }}>
           <TextIconButton
             variant="cancel"
             icon={<FiX size={16} />}
             label="Cancel Editing"
             onClick={resetForm}
           />
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Messages */}
       {error && <div className="training-card training-danger">{error}</div>}
@@ -922,12 +966,19 @@ export default function TestBuilder() {
                   ...prev,
                   module_id: e.target.value || null
                 }))}
+                disabled={!!preSelectedModuleId}
+                style={preSelectedModuleId ? { backgroundColor: 'var(--surface)', cursor: 'not-allowed' } : {}}
               >
                 <option value="">-- No module --</option>
                 {modules.map(m => (
                   <option key={m.id} value={m.id}>{m.name}</option>
                 ))}
               </select>
+              {preSelectedModuleId && (
+                <small style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginTop: '4px', display: 'block' }}>
+                  Creating test for pre-selected module
+                </small>
+              )}
             </label>
           </div>
 

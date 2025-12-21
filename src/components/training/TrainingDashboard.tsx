@@ -239,6 +239,7 @@ interface AssignmentDetail {
   authId?: string;
   userName: string;
   userEmail: string;
+  empNumber: string;
   moduleName: string;
   moduleId?: string;
   assignedAt: string;
@@ -285,22 +286,39 @@ export default function TrainingDashboard() {
   const [logTrainingData, setLogTrainingData] = useState<{
     assignmentId: string;
     authId: string;
+    userId: string;  // Internal user ID for test submissions
     userName: string;
     moduleId: string;
     moduleName: string;
   } | null>(null);
   const [logForm, setLogForm] = useState({
     date: new Date().toISOString().split('T')[0],
+    time: new Date().toTimeString().slice(0, 5), // HH:MM format
     durationHours: '1',
     outcome: 'completed' as 'completed' | 'needs_improvement' | 'failed',
     notes: '',
     learnerSignature: '',
-    trainerSignature: ''
+    trainerSignature: '',
+    translatorSignature: '',
+    translationRequired: 'no' as 'yes' | 'no',
+    translationLanguage: '',
+    translatorName: ''
   });
   const [logBusy, setLogBusy] = useState(false);
+  const [languageSuggestions, setLanguageSuggestions] = useState<string[]>([]);
+  const [showLanguageSuggestions, setShowLanguageSuggestions] = useState(false);
 
   const learnerPadRef = useRef<SignaturePad>(null);
   const trainerPadRef = useRef<SignaturePad>(null);
+
+  // Common languages for autocomplete
+  const commonLanguages = [
+    'Spanish', 'Mandarin', 'French', 'German', 'Portuguese', 'Arabic',
+    'Japanese', 'Korean', 'Vietnamese', 'Tagalog', 'Russian', 'Italian',
+    'Polish', 'Turkish', 'Dutch', 'Swedish', 'Greek', 'Czech', 'Finnish',
+    'Hungarian', 'Romanian', 'Thai', 'Indonesian', 'Malay', 'Hindi',
+    'Bengali', 'Urdu', 'Punjabi', 'Tamil', 'Telugu', 'Cantonese', 'Wu'
+  ];
 
   // Test runner dialog state
   const [testRunnerDialog, setTestRunnerDialog] = useState<{
@@ -314,7 +332,11 @@ export default function TrainingDashboard() {
   });
 
   // Associated tests state
-  const [associatedTests, setAssociatedTests] = useState<Array<{ id: string; title: string }>>([]);
+  const [associatedTests, setAssociatedTests] = useState<Array<{
+    id: string;
+    title: string;
+    passedAttempt?: { score: number; completedAt: string } | null;
+  }>>([]);
 
   const fetchComplianceData = async () => {
     setLoading(true);
@@ -603,7 +625,7 @@ export default function TrainingDashboard() {
 
       const { data: usersData } = await supabase
         .from('users')
-        .select('auth_id, first_name, last_name, email');
+        .select('auth_id, first_name, last_name, email, employee_number');
 
       const { data: modulesData } = await supabase
         .from('modules')
@@ -620,6 +642,7 @@ export default function TrainingDashboard() {
           moduleId: a.item_id,
           userName: user ? `${user.first_name} ${user.last_name}` : 'Unknown',
           userEmail: user?.email || 'N/A',
+          empNumber: user?.employee_number || 'N/A',
           moduleName: moduleMap.get(a.item_id) || 'Unknown',
           assignedAt: new Date(a.assigned_at).toLocaleDateString(),
           completedAt: a.completed_at ? new Date(a.completed_at).toLocaleDateString() : undefined,
@@ -699,6 +722,12 @@ export default function TrainingDashboard() {
       console.log(`Found ${assignmentsData?.length || 0} total assignments for ${userName}`);
       console.log('Assignments data:', assignmentsData);
 
+      const { data: userData } = await supabase
+        .from('users')
+        .select('employee_number')
+        .eq('auth_id', authId)
+        .single();
+
       const { data: modulesData } = await supabase
         .from('modules')
         .select('id, name');
@@ -719,6 +748,7 @@ export default function TrainingDashboard() {
         id: a.id,
         userName: userName,
         userEmail: '',
+        empNumber: userData?.employee_number || 'N/A',
         moduleName: moduleMap.get(a.item_id) || 'Unknown',
         assignedAt: new Date(a.assigned_at).toLocaleDateString(),
         completedAt: a.completed_at ? new Date(a.completed_at).toLocaleDateString() : undefined,
@@ -757,9 +787,11 @@ export default function TrainingDashboard() {
   };
 
   // Fetch associated tests for a module
-  const fetchAssociatedTests = async (moduleId: string) => {
+  const fetchAssociatedTests = async (moduleId: string, userId: string) => {
     try {
-      console.log("Fetching tests for module:", moduleId);
+      console.log("Fetching tests for module:", moduleId, "and user (internal ID):", userId);
+
+      // First get the tests for this module
       const { data: tests, error } = await supabase
         .from("question_packs")
         .select("id, title, module_id")
@@ -770,15 +802,67 @@ export default function TrainingDashboard() {
       if (error) throw error;
       console.log("Found tests:", tests);
 
-      const linkedTests = (tests || []).map(t => ({ id: t.id, title: t.title }));
-      console.log("Setting associated tests:", linkedTests);
+      // For each test, check if the user has a passed attempt
+      const testsWithStatus = await Promise.all(
+        (tests || []).map(async (test) => {
+          const { data: attempts, error: attemptError } = await supabase
+            .from("test_attempts")
+            .select("score_percent, completed_at")
+            .eq("pack_id", test.id)
+            .eq("user_id", userId)
+            .eq("passed", true)
+            .order("completed_at", { ascending: false })
+            .limit(1);
 
-      setAssociatedTests(linkedTests);
+          if (attemptError) {
+            console.error("Error fetching attempts for test:", test.id, attemptError);
+            return { id: test.id, title: test.title, passedAttempt: null };
+          }
+
+          if (attempts && attempts.length > 0) {
+            return {
+              id: test.id,
+              title: test.title,
+              passedAttempt: {
+                score: attempts[0].score_percent,
+                completedAt: attempts[0].completed_at,
+              },
+            };
+          }
+
+          return { id: test.id, title: test.title, passedAttempt: null };
+        })
+      );
+
+      console.log("Setting associated tests with status:", testsWithStatus);
+      setAssociatedTests(testsWithStatus);
     } catch (e) {
       console.error("Failed to fetch associated tests:", e);
       setAssociatedTests([]);
     }
   };
+
+  // Language autocomplete handler
+  const handleLanguageInputChange = useCallback((value: string) => {
+    setLogForm((f) => ({ ...f, translationLanguage: value }));
+
+    if (value.trim().length > 0) {
+      const matches = commonLanguages.filter(lang =>
+        lang.toLowerCase().includes(value.toLowerCase())
+      );
+      setLanguageSuggestions(matches);
+      setShowLanguageSuggestions(matches.length > 0);
+    } else {
+      setLanguageSuggestions([]);
+      setShowLanguageSuggestions(false);
+    }
+  }, [commonLanguages]);
+
+  const handleLanguageSelect = useCallback((language: string) => {
+    setLogForm((f) => ({ ...f, translationLanguage: language }));
+    setShowLanguageSuggestions(false);
+    setLanguageSuggestions([]);
+  }, []);
 
   // Signature change handlers
   const handleLearnerSignatureChange = useCallback((dataUrl: string) => {
@@ -789,15 +873,33 @@ export default function TrainingDashboard() {
     setLogForm((f) => ({ ...f, trainerSignature: dataUrl }));
   }, []);
 
+  const handleTranslatorSignatureChange = useCallback((dataUrl: string) => {
+    setLogForm((f) => ({ ...f, translatorSignature: dataUrl }));
+  }, []);
+
   const handleOpenLogTraining = async (assignment: AssignmentDetail) => {
     if (!assignment.authId || !assignment.moduleId) {
       alert('Missing user or module information');
       return;
     }
 
+    // Get the user's internal ID from auth_id
+    const { data: userData, error: userError } = await supabase
+      .from("users")
+      .select("id")
+      .eq("auth_id", assignment.authId)
+      .single();
+
+    if (userError || !userData) {
+      console.error("Error fetching user ID:", userError);
+      alert('Failed to load user information');
+      return;
+    }
+
     setLogTrainingData({
       assignmentId: assignment.id,
       authId: assignment.authId,
+      userId: userData.id,
       userName: assignment.userName,
       moduleId: assignment.moduleId,
       moduleName: assignment.moduleName,
@@ -806,11 +908,16 @@ export default function TrainingDashboard() {
     // Reset form
     setLogForm({
       date: new Date().toISOString().split('T')[0],
+      time: new Date().toTimeString().slice(0, 5),
       durationHours: '1',
       outcome: 'completed',
       notes: '',
       learnerSignature: '',
-      trainerSignature: ''
+      trainerSignature: '',
+      translatorSignature: '',
+      translationRequired: 'no',
+      translationLanguage: '',
+      translatorName: ''
     });
 
     // Clear signature pads
@@ -818,7 +925,7 @@ export default function TrainingDashboard() {
     trainerPadRef.current?.clear();
 
     // Fetch associated tests for the module
-    await fetchAssociatedTests(assignment.moduleId);
+    await fetchAssociatedTests(assignment.moduleId, userData.id);
 
     setLogTrainingOpen(true);
   };
@@ -836,6 +943,10 @@ export default function TrainingDashboard() {
         alert("Please provide the trainer's e-signature for satisfactory training completion.");
         return;
       }
+      if (logForm.translationRequired === 'yes' && !logForm.translatorSignature.trim()) {
+        alert("Please provide the translator's e-signature since translation was required.");
+        return;
+      }
     }
 
     setLogBusy(true);
@@ -850,12 +961,17 @@ export default function TrainingDashboard() {
         {
           auth_id: logTrainingData.authId,
           date: logForm.date,
+          time: logForm.time,
           topic: logTrainingData.moduleId,
           duration_hours: Number(logForm.durationHours) || 1,
           outcome: logForm.outcome,
           notes: logForm.notes?.trim() || null,
           signature: logForm.outcome === 'completed' ? logForm.learnerSignature : null,
           trainer_signature: logForm.outcome === 'completed' ? logForm.trainerSignature : null,
+          translator_signature: (logForm.outcome === 'completed' && logForm.translationRequired === 'yes') ? logForm.translatorSignature : null,
+          translation_required: logForm.translationRequired === 'yes',
+          translation_language: logForm.translationRequired === 'yes' ? logForm.translationLanguage : null,
+          translator_name: logForm.translationRequired === 'yes' ? logForm.translatorName : null,
         },
       ]);
 
@@ -1124,47 +1240,45 @@ export default function TrainingDashboard() {
         {departmentStats.length === 0 ? (
           <div className="empty-state">No department data available</div>
         ) : (
-          <div className="neon-table">
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr>
-                  <th style={{ textAlign: 'left', padding: '12px', borderBottom: '2px solid var(--neon)', color: 'var(--header-text)' }}>
-                    Department
-                  </th>
-                  <th style={{ textAlign: 'center', padding: '12px', borderBottom: '2px solid var(--neon)', color: 'var(--header-text)' }}>
-                    Users
-                  </th>
-                  <th style={{ textAlign: 'center', padding: '12px', borderBottom: '2px solid var(--neon)', color: 'var(--header-text)' }}>
-                    Assignments
-                  </th>
-                  <th style={{ textAlign: 'center', padding: '12px', borderBottom: '2px solid var(--neon)', color: 'var(--header-text)' }}>
-                    Completed
-                  </th>
-                  <th style={{ textAlign: 'center', padding: '12px', borderBottom: '2px solid var(--neon)', color: 'var(--header-text)' }}>
-                    Compliance Rate
-                  </th>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr>
+                <th style={{ textAlign: 'left', padding: '12px', borderBottom: '2px solid var(--neon)', color: 'var(--header-text)' }}>
+                  Department
+                </th>
+                <th style={{ textAlign: 'center', padding: '12px', borderBottom: '2px solid var(--neon)', color: 'var(--header-text)' }}>
+                  Users
+                </th>
+                <th style={{ textAlign: 'center', padding: '12px', borderBottom: '2px solid var(--neon)', color: 'var(--header-text)' }}>
+                  Assignments
+                </th>
+                <th style={{ textAlign: 'center', padding: '12px', borderBottom: '2px solid var(--neon)', color: 'var(--header-text)' }}>
+                  Completed
+                </th>
+                <th style={{ textAlign: 'center', padding: '12px', borderBottom: '2px solid var(--neon)', color: 'var(--header-text)' }}>
+                  Compliance Rate
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {departmentStats.map((dept) => (
+                <tr key={dept.departmentId} style={{ borderBottom: '1px solid rgba(64, 224, 208, 0.18)' }}>
+                  <td style={{ padding: '12px', color: 'var(--text-white)' }}>{dept.departmentName}</td>
+                  <td style={{ padding: '12px', textAlign: 'center', color: 'var(--text-white)' }}>{dept.totalUsers}</td>
+                  <td style={{ padding: '12px', textAlign: 'center', color: 'var(--text-white)' }}>{dept.totalAssignments}</td>
+                  <td style={{ padding: '12px', textAlign: 'center', color: 'var(--text-white)' }}>{dept.completedAssignments}</td>
+                  <td style={{ padding: '12px', textAlign: 'center' }}>
+                    <span style={{
+                      color: dept.complianceRate >= 80 ? 'var(--text-success)' : dept.complianceRate >= 50 ? '#f59e0b' : 'var(--text-error)',
+                      fontWeight: 'bold'
+                    }}>
+                      {dept.complianceRate.toFixed(1)}%
+                    </span>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {departmentStats.map((dept) => (
-                  <tr key={dept.departmentId} style={{ borderBottom: '1px solid rgba(64, 224, 208, 0.18)' }}>
-                    <td style={{ padding: '12px', color: 'var(--text-white)' }}>{dept.departmentName}</td>
-                    <td style={{ padding: '12px', textAlign: 'center', color: 'var(--text-white)' }}>{dept.totalUsers}</td>
-                    <td style={{ padding: '12px', textAlign: 'center', color: 'var(--text-white)' }}>{dept.totalAssignments}</td>
-                    <td style={{ padding: '12px', textAlign: 'center', color: 'var(--text-white)' }}>{dept.completedAssignments}</td>
-                    <td style={{ padding: '12px', textAlign: 'center' }}>
-                      <span style={{
-                        color: dept.complianceRate >= 80 ? 'var(--text-success)' : dept.complianceRate >= 50 ? '#f59e0b' : 'var(--text-error)',
-                        fontWeight: 'bold'
-                      }}>
-                        {dept.complianceRate.toFixed(1)}%
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
 
@@ -1176,43 +1290,41 @@ export default function TrainingDashboard() {
         {moduleStats.length === 0 ? (
           <div className="empty-state">No module data available</div>
         ) : (
-          <div className="neon-table">
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr>
-                  <th style={{ textAlign: 'left', padding: '12px', borderBottom: '2px solid var(--neon)', color: 'var(--header-text)' }}>
-                    Module
-                  </th>
-                  <th style={{ textAlign: 'center', padding: '12px', borderBottom: '2px solid var(--neon)', color: 'var(--header-text)' }}>
-                    Assignments
-                  </th>
-                  <th style={{ textAlign: 'center', padding: '12px', borderBottom: '2px solid var(--neon)', color: 'var(--header-text)' }}>
-                    Completed
-                  </th>
-                  <th style={{ textAlign: 'center', padding: '12px', borderBottom: '2px solid var(--neon)', color: 'var(--header-text)' }}>
-                    Compliance Rate
-                  </th>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr>
+                <th style={{ textAlign: 'left', padding: '12px', borderBottom: '2px solid var(--neon)', color: 'var(--header-text)' }}>
+                  Module
+                </th>
+                <th style={{ textAlign: 'center', padding: '12px', borderBottom: '2px solid var(--neon)', color: 'var(--header-text)' }}>
+                  Assignments
+                </th>
+                <th style={{ textAlign: 'center', padding: '12px', borderBottom: '2px solid var(--neon)', color: 'var(--header-text)' }}>
+                  Completed
+                </th>
+                <th style={{ textAlign: 'center', padding: '12px', borderBottom: '2px solid var(--neon)', color: 'var(--header-text)' }}>
+                  Compliance Rate
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {moduleStats.map((mod) => (
+                <tr key={mod.moduleId} style={{ borderBottom: '1px solid rgba(64, 224, 208, 0.18)' }}>
+                  <td style={{ padding: '12px', color: 'var(--text-white)' }}>{mod.moduleName}</td>
+                  <td style={{ padding: '12px', textAlign: 'center', color: 'var(--text-white)' }}>{mod.totalAssignments}</td>
+                  <td style={{ padding: '12px', textAlign: 'center', color: 'var(--text-white)' }}>{mod.completedAssignments}</td>
+                  <td style={{ padding: '12px', textAlign: 'center' }}>
+                    <span style={{
+                      color: mod.complianceRate >= 80 ? 'var(--text-success)' : mod.complianceRate >= 50 ? '#f59e0b' : 'var(--text-error)',
+                      fontWeight: 'bold'
+                    }}>
+                      {mod.complianceRate.toFixed(1)}%
+                    </span>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {moduleStats.map((mod) => (
-                  <tr key={mod.moduleId} style={{ borderBottom: '1px solid rgba(64, 224, 208, 0.18)' }}>
-                    <td style={{ padding: '12px', color: 'var(--text-white)' }}>{mod.moduleName}</td>
-                    <td style={{ padding: '12px', textAlign: 'center', color: 'var(--text-white)' }}>{mod.totalAssignments}</td>
-                    <td style={{ padding: '12px', textAlign: 'center', color: 'var(--text-white)' }}>{mod.completedAssignments}</td>
-                    <td style={{ padding: '12px', textAlign: 'center' }}>
-                      <span style={{
-                        color: mod.complianceRate >= 80 ? 'var(--text-success)' : mod.complianceRate >= 50 ? '#f59e0b' : 'var(--text-error)',
-                        fontWeight: 'bold'
-                      }}>
-                        {mod.complianceRate.toFixed(1)}%
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
 
@@ -1459,8 +1571,8 @@ export default function TrainingDashboard() {
           ) : (
             <NeonTable
               columns={[
+                { header: 'Emp #', accessor: 'empNumber', width: 120 },
                 { header: 'User Name', accessor: 'userName', width: 200 },
-                { header: 'Email', accessor: 'userEmail', width: 250 },
                 { header: 'Module', accessor: 'moduleName', width: 250 },
                 { header: 'Assigned', accessor: 'assignedAt', width: 130 },
                 { header: 'Status', accessor: 'status', width: 100 },
@@ -1649,9 +1761,9 @@ export default function TrainingDashboard() {
                 <strong>Module:</strong> {logTrainingData?.moduleName}
               </div>
 
-              {/* Date, Duration, and Outcome in a row */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
-                <label style={{ display: 'grid', gap: '4px' }}>
+              {/* Date, Time, Duration, and Outcome in a row */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
                   <span style={{ fontSize: '1rem', fontFamily: 'var(--font-body)', fontWeight: 500, opacity: 0.8 }}>Date</span>
                   <input
                     type="date"
@@ -1659,10 +1771,23 @@ export default function TrainingDashboard() {
                     value={logForm.date}
                     onChange={(e) => setLogForm((f) => ({ ...f, date: e.target.value }))}
                     disabled={logBusy}
+                    style={{ width: '150px', height: '40px' }}
                   />
                 </label>
 
-                <label style={{ display: 'grid', gap: '4px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+                  <span style={{ fontSize: '1rem', fontFamily: 'var(--font-body)', fontWeight: 500, opacity: 0.8 }}>Time</span>
+                  <input
+                    type="time"
+                    className="neon-input"
+                    value={logForm.time}
+                    onChange={(e) => setLogForm((f) => ({ ...f, time: e.target.value }))}
+                    disabled={logBusy}
+                    style={{ width: '120px', height: '40px' }}
+                  />
+                </label>
+
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
                   <span style={{ fontSize: '1rem', fontFamily: 'var(--font-body)', fontWeight: 500, opacity: 0.8 }}>Duration (Hours)</span>
                   <input
                     type="number"
@@ -1672,28 +1797,34 @@ export default function TrainingDashboard() {
                     value={logForm.durationHours}
                     onChange={(e) => setLogForm((f) => ({ ...f, durationHours: e.target.value }))}
                     disabled={logBusy}
+                    style={{ width: '80px', height: '40px' }}
                   />
                 </label>
 
-                <label style={{ display: 'grid', gap: '4px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap', flex: 1 }}>
                   <span style={{ fontSize: '1rem', fontFamily: 'var(--font-body)', fontWeight: 500, opacity: 0.8 }}>Training Outcome</span>
                   <select
                     className="neon-input"
                     value={logForm.outcome}
                     onChange={(e) => setLogForm((f) => ({ ...f, outcome: e.target.value as 'completed' | 'needs_improvement' | 'failed' }))}
                     disabled={logBusy}
+                    style={{ minWidth: '250px', height: '40px' }}
                   >
                     <option value="completed">Completed - Satisfactory</option>
                     <option value="needs_improvement">Needs Improvement - Re-train Required</option>
                     <option value="failed">Failed - Must Re-train</option>
                   </select>
-                  <div style={{ fontSize: "0.75rem", opacity: 0.7, marginTop: "4px" }}>
-                    {logForm.outcome === "completed" && "Training completed to satisfactory standard"}
-                    {logForm.outcome === "needs_improvement" && "Training logged but requires additional practice"}
-                    {logForm.outcome === "failed" && "Training not completed, immediate re-training needed"}
-                  </div>
                 </label>
               </div>
+
+              {/* Outcome description */}
+              {logForm.outcome && (
+                <div style={{ fontSize: "0.75rem", opacity: 0.7, marginTop: "8px", marginLeft: "4px" }}>
+                  {logForm.outcome === "completed" && "Training completed to satisfactory standard"}
+                  {logForm.outcome === "needs_improvement" && "Training logged but requires additional practice"}
+                  {logForm.outcome === "failed" && "Training not completed, immediate re-training needed"}
+                </div>
+              )}
 
               <label style={{ display: 'grid', gap: '4px' }}>
                 <span style={{ fontSize: '1rem', fontFamily: 'var(--font-body)', fontWeight: 500, opacity: 0.8 }}>Notes</span>
@@ -1707,6 +1838,106 @@ export default function TrainingDashboard() {
                 />
               </label>
 
+              {/* Translation Required Section */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', marginTop: '12px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '1rem', fontFamily: 'var(--font-body)', fontWeight: 500, opacity: 0.8, whiteSpace: 'nowrap' }}>Translation Required?</span>
+                  <select
+                    className="neon-input"
+                    value={logForm.translationRequired}
+                    onChange={(e) => setLogForm((f) => ({
+                      ...f,
+                      translationRequired: e.target.value as 'yes' | 'no',
+                      translationLanguage: e.target.value === 'no' ? '' : f.translationLanguage,
+                      translatorName: e.target.value === 'no' ? '' : f.translatorName
+                    }))}
+                    disabled={logBusy}
+                    style={{ width: '80px', height: '40px' }}
+                  >
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                  </select>
+                </label>
+
+                {logForm.translationRequired === 'yes' && (
+                  <>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap', position: 'relative' }}>
+                      <span style={{ fontSize: '1rem', fontFamily: 'var(--font-body)', fontWeight: 500, opacity: 0.8 }}>Language</span>
+                      <div style={{ position: 'relative', width: '180px' }}>
+                        <input
+                          type="text"
+                          className="neon-input"
+                          value={logForm.translationLanguage}
+                          onChange={(e) => handleLanguageInputChange(e.target.value)}
+                          onBlur={() => setTimeout(() => setShowLanguageSuggestions(false), 200)}
+                          onFocus={() => {
+                            if (logForm.translationLanguage.trim().length > 0) {
+                              const matches = commonLanguages.filter(lang =>
+                                lang.toLowerCase().includes(logForm.translationLanguage.toLowerCase())
+                              );
+                              setLanguageSuggestions(matches);
+                              setShowLanguageSuggestions(matches.length > 0);
+                            }
+                          }}
+                          disabled={logBusy}
+                          placeholder="Type a language..."
+                          style={{ height: '40px', width: '100%' }}
+                        />
+                        {showLanguageSuggestions && languageSuggestions.length > 0 && (
+                          <div style={{
+                            position: 'absolute',
+                            top: '100%',
+                            left: 0,
+                            right: 0,
+                            backgroundColor: 'var(--field, #012b2b)',
+                            border: '1px solid var(--neon)',
+                            borderRadius: '4px',
+                            marginTop: '4px',
+                            maxHeight: '200px',
+                            overflowY: 'auto',
+                            zIndex: 1000,
+                            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)'
+                          }}>
+                            {languageSuggestions.map((lang, idx) => (
+                              <div
+                                key={idx}
+                                onClick={() => handleLanguageSelect(lang)}
+                                onMouseDown={(e) => e.preventDefault()}
+                                style={{
+                                  padding: '8px 12px',
+                                  cursor: 'pointer',
+                                  color: 'var(--text-white)',
+                                  fontSize: '0.9rem',
+                                  borderBottom: idx < languageSuggestions.length - 1 ? '1px solid rgba(64, 224, 208, 0.1)' : 'none',
+                                  transition: 'background-color 0.2s'
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(64, 224, 208, 0.1)'}
+                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                              >
+                                {lang}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </label>
+
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+                      <span style={{ fontSize: '1rem', fontFamily: 'var(--font-body)', fontWeight: 500, opacity: 0.8 }}>Translator Name</span>
+                      <input
+                        type="text"
+                        className="neon-input"
+                        value={logForm.translatorName}
+                        onChange={(e) => setLogForm((f) => ({ ...f, translatorName: e.target.value }))}
+                        disabled={logBusy}
+                        placeholder="Enter translator's name..."
+                        style={{ height: '40px', width: '200px' }}
+                      />
+                    </label>
+                  </>
+                )}
+              </div>
+
               {/* Associated Tests Section */}
               {associatedTests.length > 0 && (
                 <div style={{ display: 'grid', gap: '4px' }}>
@@ -1715,9 +1946,33 @@ export default function TrainingDashboard() {
                     {associatedTests.map((test) => (
                       <div
                         key={test.id}
-                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '12px', borderRadius: '8px', border: '1px solid', borderColor: 'var(--neon)', opacity: 0.2, backgroundColor: 'rgba(0, 0, 0, 0.2)' }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '12px',
+                          padding: '12px',
+                          borderRadius: '8px',
+                          border: '1px solid',
+                          borderColor: test.passedAttempt ? 'var(--text-success)' : 'var(--neon)',
+                          opacity: test.passedAttempt ? 1 : 0.2,
+                          backgroundColor: test.passedAttempt ? 'rgba(34, 197, 94, 0.1)' : 'rgba(0, 0, 0, 0.2)'
+                        }}
                       >
-                        <span style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '0.875rem', flex: 1 }}>{test.title}</span>
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <span style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '0.875rem' }}>{test.title}</span>
+                          {test.passedAttempt && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', opacity: 0.9 }}>
+                              <span style={{ color: 'var(--text-success)', fontWeight: 600 }}>✓ Passed</span>
+                              <span style={{ opacity: 0.7 }}>•</span>
+                              <span style={{ opacity: 0.7 }}>Score: {test.passedAttempt.score}%</span>
+                              <span style={{ opacity: 0.7 }}>•</span>
+                              <span style={{ opacity: 0.7 }}>
+                                {new Date(test.passedAttempt.completedAt).toLocaleDateString()} {new Date(test.passedAttempt.completedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
+                          )}
+                        </div>
                         <button
                           type="button"
                           onClick={() => {
@@ -1725,15 +1980,15 @@ export default function TrainingDashboard() {
                               setTestRunnerDialog({
                                 open: true,
                                 packId: test.id,
-                                userId: logTrainingData.authId,
+                                userId: logTrainingData.userId,
                               });
                             }
                           }}
                           disabled={logBusy}
-                          className="neon-btn neon-btn-next"
+                          className={test.passedAttempt ? "neon-btn neon-btn-back" : "neon-btn neon-btn-next"}
                           style={{ minWidth: '120px' }}
                         >
-                          Take Test
+                          {test.passedAttempt ? 'Retake Test' : 'Take Test'}
                         </button>
                       </div>
                     ))}
@@ -1753,15 +2008,6 @@ export default function TrainingDashboard() {
                       disabled={logBusy}
                       onChange={handleLearnerSignatureChange}
                     />
-                    {logForm.learnerSignature && (
-                      <div style={{ marginTop: '4px', backgroundColor: 'rgba(0, 0, 0, 0.1)', borderRadius: '4px', padding: '8px', maxWidth: '300px', maxHeight: '100px' }}>
-                        <img
-                          alt="Learner signature preview"
-                          src={logForm.learnerSignature}
-                          style={{ objectFit: 'contain', maxWidth: '100%', maxHeight: '96px', display: 'block' }}
-                        />
-                      </div>
-                    )}
                   </div>
 
                   {/* Trainer E-signature field */}
@@ -1773,16 +2019,20 @@ export default function TrainingDashboard() {
                       disabled={logBusy}
                       onChange={handleTrainerSignatureChange}
                     />
-                    {logForm.trainerSignature && (
-                      <div style={{ marginTop: '4px', backgroundColor: 'rgba(0, 0, 0, 0.1)', borderRadius: '4px', padding: '8px', maxWidth: '300px', maxHeight: '100px' }}>
-                        <img
-                          alt="Trainer signature preview"
-                          src={logForm.trainerSignature}
-                          style={{ objectFit: 'contain', maxWidth: '100%', maxHeight: '96px', display: 'block' }}
-                        />
-                      </div>
-                    )}
                   </div>
+
+                  {/* Translator E-signature field - only shown when translation was required */}
+                  {logForm.translationRequired === 'yes' && (
+                    <div style={{ display: 'grid', gap: '8px', marginTop: '12px' }}>
+                      <span style={{ fontSize: '1rem', fontFamily: 'var(--font-body)', fontWeight: 500, opacity: 0.8 }}>
+                        Translator E-Signature *
+                      </span>
+                      <SignatureBox
+                        disabled={logBusy}
+                        onChange={handleTranslatorSignatureChange}
+                      />
+                    </div>
+                  )}
                 </>
               )}
 
@@ -1808,7 +2058,13 @@ export default function TrainingDashboard() {
       {/* Test Runner Dialog */}
       <OverlayDialog
         open={testRunnerDialog.open}
-        onClose={() => setTestRunnerDialog({ open: false, packId: null, userId: null })}
+        onClose={async () => {
+          setTestRunnerDialog({ open: false, packId: null, userId: null });
+          // Refresh test status when dialog closes
+          if (logTrainingData?.moduleId && logTrainingData?.userId) {
+            await fetchAssociatedTests(logTrainingData.moduleId, logTrainingData.userId);
+          }
+        }}
         width={1000}
         showCloseButton
       >
@@ -1819,7 +2075,13 @@ export default function TrainingDashboard() {
                 rpcMode="simple"
                 testingUserId={testRunnerDialog.userId}
                 packIds={[testRunnerDialog.packId]}
-                onReturnToLog={() => setTestRunnerDialog({ open: false, packId: null, userId: null })}
+                onReturnToLog={async () => {
+                  setTestRunnerDialog({ open: false, packId: null, userId: null });
+                  // Refresh test status when returning to log
+                  if (logTrainingData?.moduleId && logTrainingData?.userId) {
+                    await fetchAssociatedTests(logTrainingData.moduleId, logTrainingData.userId);
+                  }
+                }}
               />
             )}
           </div>

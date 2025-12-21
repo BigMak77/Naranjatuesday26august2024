@@ -6,6 +6,7 @@ import ModuleSelect, {
   Module,
 } from "@/components/ModuleSelect";
 import ContentHeader from "@/components/ui/ContentHeader";
+import AccessControlWrapper from "@/components/AccessControlWrapper";
 
 export default function TrainingLogPage() {
   const [modules, setModules] = useState<Module[]>([]);
@@ -26,7 +27,11 @@ export default function TrainingLogPage() {
   }, [load]);
 
   return (
-    <>
+    <AccessControlWrapper
+      requiredRoles={["Super Admin", "Admin", "Trainer"]}
+      redirectOnNoAccess={true}
+      noAccessMessage="Trainer access required. Redirecting to your dashboard..."
+    >
       <ContentHeader
         title="Training Log"
         description="Record and manage training completions"
@@ -45,6 +50,6 @@ export default function TrainingLogPage() {
           </div>
         </div>
       </div>
-    </>
+    </AccessControlWrapper>
   );
 }

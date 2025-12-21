@@ -28,7 +28,7 @@ export default function NeonTable({
   onPaginationChange,
   paginationPosition = 'bottom'
 }: NeonTableProps & { onColumnResize?: (accessor: string, newWidth: number) => void }) {
-  const [sortBy, setSortBy] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<string | null>("employee_number");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
@@ -97,13 +97,21 @@ export default function NeonTable({
         const aIsMissing = aStr === '—' || aStr === '' || aStr === 'undefined' || aStr === 'null';
         const bIsMissing = bStr === '—' || bStr === '' || bStr === 'undefined' || bStr === 'null';
 
-        const aNum = aIsMissing ? Infinity : parseInt(aStr, 10);
-        const bNum = bIsMissing ? Infinity : parseInt(bStr, 10);
+        // Missing values go to end when ascending, beginning when descending
+        if (aIsMissing && bIsMissing) return 0;
+        if (aIsMissing) return sortDir === "asc" ? 1 : -1;
+        if (bIsMissing) return sortDir === "asc" ? -1 : 1;
+
+        const aNum = parseInt(aStr, 10);
+        const bNum = parseInt(bStr, 10);
 
         // Only use numeric comparison if both successfully parsed
         if (!isNaN(aNum) && !isNaN(bNum)) {
           return sortDir === "asc" ? aNum - bNum : bNum - aNum;
         }
+
+        // Fallback to string comparison if parsing fails
+        return sortDir === "asc" ? aStr.localeCompare(bStr) : bStr.localeCompare(aStr);
       }
 
       // Handle numeric sorting for any field that looks like a number

@@ -75,7 +75,6 @@ export default function AddModuleTab({
     fetchModules();
   }, []);
 
-
   // Check for duplicate ref code and generate suggestions
   useEffect(() => {
     if (!refCode.trim()) {

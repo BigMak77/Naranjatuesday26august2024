@@ -674,6 +674,12 @@ header.global-header {
   transition: all 0.2s ease;
 }
 
+/* Training Module Toolbar - Override for consistent height */
+.training-module-toolbar .text-icon-btn {
+  height: 32px;
+  padding: 0 12px;
+}
+
 .section-toolbar .text-icon-btn:hover:not(:disabled) {
   background: rgba(64, 224, 208, 0.1);
 }

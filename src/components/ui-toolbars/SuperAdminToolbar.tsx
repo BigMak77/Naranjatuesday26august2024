@@ -4,11 +4,11 @@ import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/context/UserContext";
-import { FiMail, FiHeart, FiBookOpen } from "react-icons/fi";
+import { FiMail } from "react-icons/fi";
 import TextIconButton from "@/components/ui/TextIconButtons";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
-type AdminSection = "Dashboard" | "HR" | "Compliance" | "Reports" | "Utilities" | "Trainer" | "Tasks" | "Issues" | "Audits" | "Modules" | "Documents";
+type AdminSection = "Dashboard" | "HR" | "Compliance" | "Reports" | "Utilities" | "Trainer" | "Tasks" | "Issues" | "Audits" | "Modules" | "Documents" | "HealthSafety";
 
 export default function SuperAdminToolbar() {
   const router = useRouter();
@@ -55,6 +55,12 @@ export default function SuperAdminToolbar() {
       label: "Documents",
       path: "/admin/documents",
       description: "Document management and storage"
+    },
+    {
+      section: "HealthSafety",
+      label: "Health & Safety",
+      path: "/health-safety",
+      description: "Manage risk assessments, incidents, policies, and first aid records"
     },
     {
       section: "Tasks",
@@ -137,16 +143,6 @@ export default function SuperAdminToolbar() {
     alert('Contact Support feature - Coming soon!');
   };
 
-  const handleHealthSafetyClick = () => {
-    router.push('/health-safety');
-    console.log('Navigating to Health & Safety');
-  };
-
-  const handleLogTrainingClick = () => {
-    router.push('/training/complete');
-    console.log('Navigating to Log Training');
-  };
-
   return (
     <section className="section-toolbar">
       <div className="toolbar-buttons">
@@ -211,22 +207,6 @@ export default function SuperAdminToolbar() {
             document.body
           )}
         </div>
-
-        {/* Health & Safety Button */}
-        <TextIconButton
-          icon={<FiHeart />}
-          variant="add"
-          label="Health & Safety"
-          onClick={handleHealthSafetyClick}
-        />
-
-        {/* Log Training Button */}
-        <TextIconButton
-          icon={<FiBookOpen />}
-          variant="add"
-          label="Log Training"
-          onClick={handleLogTrainingClick}
-        />
 
         {/* Contact Support Button */}
         <TextIconButton
