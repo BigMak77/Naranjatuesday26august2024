@@ -89,7 +89,7 @@ type NextLinkOwn = BaseProps & { as: "link" } & Omit<LinkProps, "href"> & {
 type Props = ButtonProps | AnchorProps | NextLinkOwn;
 
 export default function TextIconButton(p: Props) {
-  const { variant, icon, label, title, className = "" } = p;
+  const { variant, icon, label, className = "" } = p;
   const classes = `text-icon-btn text-icon-btn-${variant} ${className}`.trim();
   const IconEl = icon !== undefined ? icon : ICONS[variant];
   const hasIcon = IconEl !== null && IconEl !== undefined;
@@ -98,7 +98,7 @@ export default function TextIconButton(p: Props) {
   if (p.as === "a") {
     const { as: _as, variant: _variant, icon: _icon, label: _label, title: _title, className: _className, ...domProps } = p as AnchorProps;
     return (
-      <a {...domProps} className={classes} title={title || label}>
+      <a {...domProps} className={classes}>
         {hasIcon && <span className="text-icon-btn-icon">{IconEl}</span>}
         <span className="text-icon-btn-label">{label}</span>
       </a>
@@ -109,7 +109,7 @@ export default function TextIconButton(p: Props) {
   if (p.as === "link") {
     const { href, as: _as, variant: _variant, icon: _icon, label: _label, title: _title, className: _className, ...linkProps } = p as NextLinkOwn;
     return (
-      <Link href={href} {...linkProps} className={classes} title={title || label}>
+      <Link href={href} {...linkProps} className={classes}>
         {hasIcon && <span className="text-icon-btn-icon">{IconEl}</span>}
         <span className="text-icon-btn-label">{label}</span>
       </Link>
@@ -124,7 +124,6 @@ export default function TextIconButton(p: Props) {
         {...domProps}
         type={type ?? "button"}
         className={classes}
-        title={title || label}
       >
         {hasIcon && <span className="text-icon-btn-icon">{IconEl}</span>}
         <span className="text-icon-btn-label">{label}</span>

@@ -42,7 +42,6 @@ export default function NeonForm({
         <TextIconButton
           variant={submitVariant}
           label={submitLabel}
-          title={submitLabel}
           type="submit"
           className="neon-form-submit-btn"
         />

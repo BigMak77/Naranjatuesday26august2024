@@ -796,6 +796,7 @@ export default function TrainingDashboard() {
         .from("question_packs")
         .select("id, title, module_id")
         .eq("is_active", true)
+        .eq("is_archived", false)
         .eq("module_id", moduleId)
         .order("title", { ascending: true });
 
@@ -1108,24 +1109,20 @@ export default function TrainingDashboard() {
             </label>
           </div>
 
-          <CustomTooltip text="Refresh data now">
-            <button
-              className="neon-btn neon-btn-save"
-              onClick={fetchComplianceData}
-              disabled={loading}
-            >
-              <FiRefreshCw className={loading ? 'animate-spin' : ''} />
-            </button>
-          </CustomTooltip>
+          <TextIconButton
+            variant="refresh"
+            label="Refresh"
+            onClick={fetchComplianceData}
+            disabled={loading}
+            title="Refresh data now"
+          />
 
-          <CustomTooltip text="Download compliance report">
-            <button
-              className="neon-btn neon-btn-view"
-              onClick={downloadComplianceReport}
-            >
-              <FiDownload />
-            </button>
-          </CustomTooltip>
+          <TextIconButton
+            variant="download"
+            label="Download Report"
+            onClick={downloadComplianceReport}
+            title="Download compliance report"
+          />
 
           {lastUpdated && (
             <span style={{ fontSize: '0.85rem', color: 'var(--text-white)', opacity: 0.7 }}>
@@ -1762,33 +1759,33 @@ export default function TrainingDashboard() {
               </div>
 
               {/* Date, Time, Duration, and Outcome in a row */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
-                  <span style={{ fontSize: '1rem', fontFamily: 'var(--font-body)', fontWeight: 500, opacity: 0.8 }}>Date</span>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 2fr', gap: '16px' }}>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <span style={{ fontSize: '0.875rem', fontFamily: 'var(--font-body)', fontWeight: 500, opacity: 0.8, minHeight: '1.25rem' }}>Date</span>
                   <input
                     type="date"
                     className="neon-input"
                     value={logForm.date}
                     onChange={(e) => setLogForm((f) => ({ ...f, date: e.target.value }))}
                     disabled={logBusy}
-                    style={{ width: '150px', height: '40px' }}
+                    style={{ height: '40px', width: '100%', boxSizing: 'border-box', padding: '8px 12px' }}
                   />
                 </label>
 
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
-                  <span style={{ fontSize: '1rem', fontFamily: 'var(--font-body)', fontWeight: 500, opacity: 0.8 }}>Time</span>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <span style={{ fontSize: '0.875rem', fontFamily: 'var(--font-body)', fontWeight: 500, opacity: 0.8, minHeight: '1.25rem' }}>Time</span>
                   <input
                     type="time"
                     className="neon-input"
                     value={logForm.time}
                     onChange={(e) => setLogForm((f) => ({ ...f, time: e.target.value }))}
                     disabled={logBusy}
-                    style={{ width: '120px', height: '40px' }}
+                    style={{ height: '40px', width: '100%', boxSizing: 'border-box', padding: '8px 12px' }}
                   />
                 </label>
 
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
-                  <span style={{ fontSize: '1rem', fontFamily: 'var(--font-body)', fontWeight: 500, opacity: 0.8 }}>Duration (Hours)</span>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <span style={{ fontSize: '0.875rem', fontFamily: 'var(--font-body)', fontWeight: 500, opacity: 0.8, minHeight: '1.25rem' }}>Duration (Hours)</span>
                   <input
                     type="number"
                     min={0.5}
@@ -1797,18 +1794,18 @@ export default function TrainingDashboard() {
                     value={logForm.durationHours}
                     onChange={(e) => setLogForm((f) => ({ ...f, durationHours: e.target.value }))}
                     disabled={logBusy}
-                    style={{ width: '80px', height: '40px' }}
+                    style={{ height: '40px', width: '100%', boxSizing: 'border-box', padding: '8px 12px' }}
                   />
                 </label>
 
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap', flex: 1 }}>
-                  <span style={{ fontSize: '1rem', fontFamily: 'var(--font-body)', fontWeight: 500, opacity: 0.8 }}>Training Outcome</span>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <span style={{ fontSize: '0.875rem', fontFamily: 'var(--font-body)', fontWeight: 500, opacity: 0.8, minHeight: '1.25rem' }}>Training Outcome</span>
                   <select
                     className="neon-input"
                     value={logForm.outcome}
                     onChange={(e) => setLogForm((f) => ({ ...f, outcome: e.target.value as 'completed' | 'needs_improvement' | 'failed' }))}
                     disabled={logBusy}
-                    style={{ minWidth: '250px', height: '40px' }}
+                    style={{ height: '40px', width: '100%', boxSizing: 'border-box', padding: '8px 12px' }}
                   >
                     <option value="completed">Completed - Satisfactory</option>
                     <option value="needs_improvement">Needs Improvement - Re-train Required</option>
@@ -1954,12 +1951,11 @@ export default function TrainingDashboard() {
                           padding: '12px',
                           borderRadius: '8px',
                           border: '1px solid',
-                          borderColor: test.passedAttempt ? 'var(--text-success)' : 'var(--neon)',
-                          opacity: test.passedAttempt ? 1 : 0.2,
-                          backgroundColor: test.passedAttempt ? 'rgba(34, 197, 94, 0.1)' : 'rgba(0, 0, 0, 0.2)'
+                          borderColor: test.passedAttempt ? 'var(--text-success)' : 'var(--text-error)',
+                          backgroundColor: test.passedAttempt ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)'
                         }}
                       >
-                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px', justifyContent: 'center' }}>
                           <span style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '0.875rem' }}>{test.title}</span>
                           {test.passedAttempt && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', opacity: 0.9 }}>
@@ -1973,23 +1969,23 @@ export default function TrainingDashboard() {
                             </div>
                           )}
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (logTrainingData) {
-                              setTestRunnerDialog({
-                                open: true,
-                                packId: test.id,
-                                userId: logTrainingData.userId,
-                              });
-                            }
-                          }}
-                          disabled={logBusy}
-                          className={test.passedAttempt ? "neon-btn neon-btn-back" : "neon-btn neon-btn-next"}
-                          style={{ minWidth: '120px' }}
-                        >
-                          {test.passedAttempt ? 'Retake Test' : 'Take Test'}
-                        </button>
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                          <TextIconButton
+                            variant={test.passedAttempt ? "back" : "next"}
+                            label={test.passedAttempt ? 'Retake Test' : 'Take Test'}
+                            onClick={() => {
+                              if (logTrainingData) {
+                                setTestRunnerDialog({
+                                  open: true,
+                                  packId: test.id,
+                                  userId: logTrainingData.userId,
+                                });
+                              }
+                            }}
+                            disabled={logBusy}
+                            style={{ minWidth: '120px' }}
+                          />
+                        </div>
                       </div>
                     ))}
                   </div>

@@ -115,7 +115,11 @@ export default function DocumentManager() {
     document_type: 120,
     section: 220,
     created: 95,
+    review_due: 100,
     version: 70,
+    view: 60,
+    users: 80,
+    modules: 80,
     edit: 60,
     archive: 100,
   };
@@ -2331,6 +2335,7 @@ function DocumentsTabContent({
                         variant="view"
                         label="View"
                         aria-label="View document"
+                        title=""
                         onClick={() => {
                           if (doc.file_url) {
                             window.open(doc.file_url, '_blank');
@@ -2347,9 +2352,10 @@ function DocumentsTabContent({
                   <div className="document-users-cell">
                     <CustomTooltip text="View assigned users">
                       <TextIconButton
-                        variant="secondary"
+                        variant="addUser"
                         label="Users"
                         aria-label="View assigned users"
+                        title=""
                         onClick={() => {
                           setAssignmentDocId(doc.id);
                           setAssignmentDocTitle(doc.title);
@@ -2363,9 +2369,10 @@ function DocumentsTabContent({
                   <div className="document-modules-cell">
                     <CustomTooltip text="Link training modules">
                       <TextIconButton
-                        variant="secondary"
+                        variant="list"
                         label="Modules"
                         aria-label="Link training modules"
+                        title=""
                         onClick={() => {
                           setModuleLinkDocId(doc.id);
                           setModuleLinkDocTitle(doc.title);
@@ -2382,6 +2389,7 @@ function DocumentsTabContent({
                         variant="edit"
                         label="Edit"
                         aria-label="Edit document"
+                        title=""
                         onClick={() => {
                           setEditStageDocId(doc.id);
                           setShowEditStageModal(true);

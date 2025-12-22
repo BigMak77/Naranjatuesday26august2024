@@ -14,9 +14,7 @@ import NeonForm from "@/components/NeonForm";
 import NeonPanel from "@/components/NeonPanel";
 import FolderTabs from "@/components/FolderTabs";
 import HealthSafetyPolicyManager from "@/components/healthsafety/HealthSafetyPolicyManager";
-// If the file is named 'NeonIconButton.tsx' and located in 'src/components', use:
 import TextIconButton from "@/components/ui/TextIconButtons";
-// Or, if using absolute imports, ensure the file exists at 'src/components/NeonIconButton.tsx'
 import IncidentFormMinimal from "@/components/safety/IncidentFormMinimal";
 import type { MinimalIncidentForm } from "@/components/safety/IncidentFormMinimal";
 import AddFirstAidDialog from "@/components/healthsafety/AddFirstAidDialog";

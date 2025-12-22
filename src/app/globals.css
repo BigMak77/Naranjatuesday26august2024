@@ -1430,7 +1430,7 @@ label.inline {
 }
 
 .neon-btn-archive {
-  background: #6b7280 !important;
+  background: transparent !important;
 }
 
 /* ========== THEME-BASED ACTION BUTTONS: White text for larger buttons ========== */
@@ -1989,48 +1989,6 @@ label.inline {
 .thank-you-modal-message {
   color: var(--text-white);
   font-size: 1rem;
-}
-
-/* ==================================================================================
-   TOOLTIPS
-   ================================================================================== */
-
-/* ========== TOOLTIPS: Dark teal background, white text ========== */
-.neon-tooltip {
-  position: relative;
-  display: inline-block;
-}
-
-.neon-tooltip-content {
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--tooltip-bg);
-  color: var(--text-white);
-  font-size: var(--font-size-tooltip);
-  font-family: var(--font-family);
-  font-weight: var(--font-weight-normal);
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  white-space: nowrap;
-  z-index: 10000;
-  pointer-events: none;
-  margin-bottom: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.neon-tooltip-content::after {
-  content: "";
-  position: absolute;
-  bottom: -4px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 0;
-  border-left: 4px solid transparent;
-  border-right: 4px solid transparent;
-  border-top: 4px solid var(--tooltip-bg);
 }
 
 /* ==================================================================================

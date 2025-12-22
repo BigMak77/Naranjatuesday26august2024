@@ -14,6 +14,14 @@ interface Category {
   prefix?: string;
 }
 
+interface QuestionPack {
+  id: string;
+  title: string;
+  description: string;
+  pass_mark: number;
+  time_limit_minutes: number | null;
+}
+
 interface AddModuleTabProps {
   onSuccess?: () => void;
 }
@@ -42,12 +50,16 @@ export default function AddModuleTab({
   // Categories state
   const [availableCategories, setAvailableCategories] = useState<Category[]>([]);
 
+  // Tests state
+  const [availableTests, setAvailableTests] = useState<QuestionPack[]>([]);
+  const [selectedTests, setSelectedTests] = useState<string[]>([]);
+
   // Reference code validation state
   const [refCodeExists, setRefCodeExists] = useState(false);
   const [refCodeSuggestions, setRefCodeSuggestions] = useState<string[]>([]);
   const [allModules, setAllModules] = useState<any[]>([]);
 
-  // Fetch categories and modules on component mount
+  // Fetch categories, modules, and tests on component mount
   useEffect(() => {
     const fetchCategories = async () => {
       const { data, error } = await supabase
@@ -71,8 +83,23 @@ export default function AddModuleTab({
       }
     };
 
+    const fetchTests = async () => {
+      const { data, error } = await supabase
+        .from("question_packs")
+        .select("id, title, description, pass_mark, time_limit_minutes")
+        .is("module_id", null)
+        .eq("is_active", true)
+        .eq("is_archived", false)
+        .order("title");
+
+      if (!error && data) {
+        setAvailableTests(data);
+      }
+    };
+
     fetchCategories();
     fetchModules();
+    fetchTests();
   }, []);
 
   // Check for duplicate ref code and generate suggestions
@@ -195,7 +222,7 @@ export default function AddModuleTab({
     }
 
     console.log("=== AddModuleTab: Form submitted ===");
-    console.log("Form values:", { name, description, version, estimatedDuration, deliveryFormat, tags, requiresFollowUp, reviewPeriod, attachments });
+    console.log("Form values:", { name, description, version, estimatedDuration, deliveryFormat, tags, requiresFollowUp, reviewPeriod, attachments, selectedTests });
 
     try {
       const payload = {
@@ -221,6 +248,23 @@ export default function AddModuleTab({
 
       if (error) throw error;
 
+      // If tests were selected, attach them to the newly created module
+      if (selectedTests.length > 0 && data && data.length > 0) {
+        const moduleId = data[0].id;
+        console.log("Attaching tests to module:", moduleId, selectedTests);
+
+        const { error: updateError } = await supabase
+          .from("question_packs")
+          .update({ module_id: moduleId })
+          .in("id", selectedTests);
+
+        if (updateError) {
+          console.error("❌ Error attaching tests:", updateError);
+          throw new Error("Module created but failed to attach tests: " + updateError.message);
+        }
+        console.log("✅ Tests attached successfully!");
+      }
+
       console.log("✅ Module added successfully!");
       setSuccess(true);
       if (onSuccess) onSuccess();
@@ -239,6 +283,20 @@ export default function AddModuleTab({
       setReviewPeriod("0");
       setAttachments([]);
       setSelectedCategories([]);
+      setSelectedTests([]);
+
+      // Refresh available tests after successful creation
+      const { data: testsData } = await supabase
+        .from("question_packs")
+        .select("id, title, description, pass_mark, time_limit_minutes")
+        .is("module_id", null)
+        .eq("is_active", true)
+        .eq("is_archived", false)
+        .order("title");
+
+      if (testsData) {
+        setAvailableTests(testsData);
+      }
     } catch (err) {
       console.error("❌ Error adding module:", err);
       setError(err instanceof Error ? err.message : "Failed to add module.");
@@ -587,6 +645,83 @@ export default function AddModuleTab({
             attachments={attachments}
             onChange={setAttachments}
           />
+        </div>
+
+        <div className="add-module-tab-field">
+          <label className="add-module-tab-label">Attach Tests</label>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>
+            Select existing tests to attach to this module. Only unassigned tests are shown.
+          </p>
+          {availableTests.length === 0 ? (
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+              No available tests found. Tests must be unassigned and active to appear here.
+            </p>
+          ) : (
+            <>
+              <select
+                className="add-module-tab-input neon-input"
+                value=""
+                onChange={(e) => {
+                  const testId = e.target.value;
+                  if (testId && !selectedTests.includes(testId)) {
+                    setSelectedTests(prev => [...prev, testId]);
+                  }
+                }}
+              >
+                <option value="">Select a test to add...</option>
+                {availableTests
+                  .filter(test => !selectedTests.includes(test.id))
+                  .map((test) => (
+                    <option key={test.id} value={test.id}>
+                      {test.title} (Pass: {test.pass_mark}%{test.time_limit_minutes ? `, ${test.time_limit_minutes} min` : ''})
+                    </option>
+                  ))}
+              </select>
+
+              {selectedTests.length > 0 && (
+                <div style={{ marginTop: '12px' }}>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--accent)', fontWeight: 500, marginBottom: '8px' }}>
+                    Selected Tests ({selectedTests.length}):
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {selectedTests.map((testId) => {
+                      const test = availableTests.find(t => t.id === testId);
+                      if (!test) return null;
+                      return (
+                        <div
+                          key={testId}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '8px 12px',
+                            background: 'var(--surface)',
+                            border: '1px solid var(--border)',
+                            borderRadius: '4px'
+                          }}
+                        >
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontWeight: 600, color: 'var(--text)', fontSize: '0.9rem' }}>
+                              {test.title}
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                              Pass Mark: {test.pass_mark}%{test.time_limit_minutes ? ` • Time Limit: ${test.time_limit_minutes} min` : ''}
+                            </div>
+                          </div>
+                          <TextIconButton
+                            variant="delete"
+                            icon={<FiX size={16} />}
+                            label="Remove"
+                            onClick={() => setSelectedTests(prev => prev.filter(id => id !== testId))}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
 
         {error && <p className="add-module-tab-error">{error}</p>}

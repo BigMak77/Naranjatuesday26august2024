@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import NeonPanel from "@/components/NeonPanel";
+import TextIconButton from "@/components/ui/TextIconButtons";
 
 export default function AddTrainingQuestionForm({ onSuccess }: { onSuccess?: () => void }) {
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
@@ -225,15 +226,21 @@ export default function AddTrainingQuestionForm({ onSuccess }: { onSuccess?: () 
                         Correct
                       </label>
                       {answers.length > 2 && (
-                        <button type="button" className="neon-btn neon-btn-icon neon-btn-danger" onClick={() => removeAnswer(idx)}>
-                          <span className="neonicon-cancel" />
-                        </button>
+                        <TextIconButton
+                          variant="delete"
+                          label="Remove"
+                          title="Remove answer"
+                          onClick={() => removeAnswer(idx)}
+                        />
                       )}
                     </div>
                   ))}
-                  <button type="button" className="neon-btn neon-btn-icon neon-btn-primary" onClick={addAnswer}>
-                    <span className="neonicon-plus" /> Add Answer
-                  </button>
+                  <TextIconButton
+                    variant="add"
+                    label="Add Answer"
+                    title="Add Answer"
+                    onClick={addAnswer}
+                  />
                 </div>
               </>
             )}

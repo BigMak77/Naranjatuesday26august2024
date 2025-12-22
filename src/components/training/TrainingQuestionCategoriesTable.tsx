@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-client";
 import SuccessModal from "../ui/SuccessModal";
+import TextIconButton from "@/components/ui/TextIconButtons";
 
 interface Category {
   id: string;
@@ -62,15 +63,12 @@ export default function TrainingQuestionCategoriesTable() {
     <>
       <h3 className="text-lg font-semibold mb-2">Question Categories</h3>
       <div className="flex items-center gap-2 mb-3">
-        <button
-          className="neon-btn neon-btn-icon neon-btn-primary"
-          type="button"
-          aria-label={showAdd ? "Cancel" : "Add Category"}
+        <TextIconButton
+          variant={showAdd ? "cancel" : "add"}
+          label={showAdd ? "Cancel" : "Add Category"}
+          title={showAdd ? "Cancel" : "Add Category"}
           onClick={() => setShowAdd((v) => !v)}
-        >
-          <span className={showAdd ? "neonicon-cancel" : "neonicon-plus"} />
-        </button>
-        <span className="font-medium">{showAdd ? "Cancel" : "Add Category"}</span>
+        />
       </div>
       {showAdd && (
         <form className="neon-form mb-4" onSubmit={handleAddCategory}>
@@ -90,14 +88,13 @@ export default function TrainingQuestionCategoriesTable() {
               onChange={e => setAddDescription(e.target.value)}
               disabled={addLoading}
             />
-            <button
-              className="neon-btn neon-btn-icon neon-btn-next"
+            <TextIconButton
+              variant="add"
+              label="Add"
+              title="Add category"
               type="submit"
-              aria-label="Add"
               disabled={addLoading || !addName.trim()}
-            >
-              <span className="neonicon-plus" />
-            </button>
+            />
           </div>
           {addError && <div className="neon-error-message">{addError}</div>}
         </form>
