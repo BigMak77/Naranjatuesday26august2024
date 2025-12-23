@@ -3,160 +3,162 @@
 import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import NeonFeatureCard from "@/components/NeonFeatureCard";
+import { useTranslation } from "@/context/TranslationContext";
 
 export default function AboutPage() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   return (
-    <div className="neon-panel">
-      {/* Hero Section */}
-      <div className="main-header-container with-subtitle">
-        {/* Close Button */}
-        <div className="page-close-button">
-          <button
-            onClick={() => router.push('/')}
-            aria-label="Close and return to homepage"
-            className="overlay-close-button"
-            title="Return to Homepage"
+    <article aria-labelledby="about-title" className="about-page">
+      {/* Close Button */}
+      <div className="page-close-button">
+        <button
+          onClick={() => router.push('/')}
+          aria-label={t('featurePages.closeButton')}
+          className="overlay-close-button"
+          title={t('featurePages.closeButton')}
+        >
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 12 12"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            style={{ display: 'block' }}
           >
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 12 12"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              style={{ display: 'block' }}
-            >
-              <path
-                d="M2 2L10 10M10 2L2 10"
-                stroke="white"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-            </svg>
-          </button>
-        </div>
-        
-        <h1 className="main-header">About Naranja</h1>
-        <p className="main-subheader">
-          Transforming food manufacturing through intelligent training and compliance solutions that keep your team audit-ready and your operations running smoothly.
-        </p>
+            <path
+              d="M2 2L10 10M10 2L2 10"
+              stroke="white"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+          </svg>
+        </button>
       </div>
+
+      {/* Hero Section */}
+      <header>
+        <h1 id="about-title">{t('aboutPage.title')}</h1>
+        <p className="lead">
+          {t('aboutPage.subtitle')}
+        </p>
+      </header>
 
       {/* Mission Statement */}
-      <div className="neon-panel">
-        <h2 className="neon-heading">Our Mission</h2>
-        <p className="main-subheader">
-          We believe that effective training and compliance shouldn't be a burden. Our platform makes it beautifully simple for food manufacturing teams to stay trained, compliant, and audit-ready—so you can focus on what matters most: producing quality food safely.
+      <section>
+        <h2>{t('aboutPage.missionHeading')}</h2>
+        <p>
+          {t('aboutPage.missionText')}
         </p>
-      </div>
+      </section>
 
       {/* Core Values Grid */}
-      <div className="user-manager-grid">
-        <NeonFeatureCard
-          icon={<span>•</span>}
-          title="Precision & Excellence"
-          text="We deliver training solutions with the same precision you apply to your manufacturing processes. Every detail matters when it comes to food safety and compliance."
-        />
-        <NeonFeatureCard
-          icon={<span>•</span>}
-          title="Effortless Implementation"
-          text="Complex compliance made simple. Our intuitive platform integrates seamlessly into your existing workflows without disrupting your operations."
-        />
-        <NeonFeatureCard
-          icon={<span>•</span>}
-          title="Audit-Ready Confidence"
-          text="Sleep better knowing your training records, compliance documentation, and team certifications are always organized and inspection-ready."
-        />
-        <NeonFeatureCard
-          icon={<span>•</span>}
-          title="Continuous Improvement"
-          text="Data-driven insights help you identify training gaps, track progress, and continuously improve your team's performance and compliance posture."
-        />
-      </div>
+      <section>
+        <h2>{t('aboutPage.coreValuesHeading')}</h2>
+        <div className="grid">
+          <div className="card">
+            <h3>{t('aboutPage.precisionTitle')}</h3>
+            <p>{t('aboutPage.precisionDesc')}</p>
+          </div>
+          <div className="card">
+            <h3>{t('aboutPage.effortlessTitle')}</h3>
+            <p>{t('aboutPage.effortlessDesc')}</p>
+          </div>
+          <div className="card">
+            <h3>{t('aboutPage.auditReadyTitle')}</h3>
+            <p>{t('aboutPage.auditReadyDesc')}</p>
+          </div>
+          <div className="card">
+            <h3>{t('aboutPage.continuousTitle')}</h3>
+            <p>{t('aboutPage.continuousDesc')}</p>
+          </div>
+        </div>
+      </section>
 
       {/* What Sets Us Apart */}
-      <div className="neon-panel">
-        <h2 className="neon-heading">What Sets Naranja Apart</h2>
-        <div className="user-manager-grid">
-          <NeonFeatureCard
-            icon={<span>•</span>}
-            title="Industry Expertise"
-            text="Built specifically for food manufacturing, we understand your unique challenges—from HACCP protocols to allergen management and everything in between."
-          />
-          <NeonFeatureCard
-            icon={<span>•</span>}
-            title="Beautiful Simplicity"
-            text="Training software doesn't have to be ugly or complicated. Our elegant interface makes compliance management actually enjoyable for your team."
-          />
-          <NeonFeatureCard
-            icon={<span>•</span>}
-            title="Real-Time Tracking"
-            text="Monitor training progress, certification expiries, and compliance status in real-time with automated alerts and comprehensive reporting."
-          />
-          <NeonFeatureCard
-            icon={<span>•</span>}
-            title="Partnership Approach"
-            text="We're not just a software provider—we're your compliance partners, committed to your long-term success in the food manufacturing industry."
-          />
+      <section>
+        <h2>{t('aboutPage.whatSetsUsApartHeading')}</h2>
+        <div className="grid">
+          <div className="card">
+            <h3>{t('aboutPage.industryExpertiseTitle')}</h3>
+            <p>{t('aboutPage.industryExpertiseDesc')}</p>
+          </div>
+          <div className="card">
+            <h3>{t('aboutPage.beautifulSimplicityTitle')}</h3>
+            <p>{t('aboutPage.beautifulSimplicityDesc')}</p>
+          </div>
+          <div className="card">
+            <h3>{t('aboutPage.realTimeTrackingTitle')}</h3>
+            <p>{t('aboutPage.realTimeTrackingDesc')}</p>
+          </div>
+          <div className="card">
+            <h3>{t('aboutPage.partnershipTitle')}</h3>
+            <p>{t('aboutPage.partnershipDesc')}</p>
+          </div>
         </div>
-      </div>
+      </section>
 
       {/* Leadership Team */}
-      <div className="neon-panel">
-        <h2 className="neon-heading">Our Leadership Team</h2>
-        <div className="user-manager-grid">
-          <NeonFeatureCard
-            icon={<span>A</span>}
-            title="Andy"
-            text="Co-Founder & Content Creator • With deep expertise in food safety protocols and training methodologies, Andy ensures our content meets the highest industry standards while remaining accessible and engaging."
-          />
-          <NeonFeatureCard
-            icon={<span>P</span>}
-            title="Paul"
-            text="Co-Founder & Delivery Expert • Paul brings years of operational excellence to Naranja, focusing on seamless platform delivery and ensuring our solutions integrate perfectly with your existing processes."
-          />
+      <section>
+        <h2>{t('aboutPage.leadershipHeading')}</h2>
+        <div className="grid">
+          <div className="card leader">
+            <div className="leader-initial">A</div>
+            <h3>Andy</h3>
+            <p className="leader-role">{t('aboutPage.andyRole')}</p>
+            <p>{t('aboutPage.andyDesc')}</p>
+          </div>
+          <div className="card leader">
+            <div className="leader-initial">P</div>
+            <h3>Paul</h3>
+            <p className="leader-role">{t('aboutPage.paulRole')}</p>
+            <p>{t('aboutPage.paulDesc')}</p>
+          </div>
         </div>
-      </div>
+      </section>
 
       {/* Why Choose Naranja */}
-      <div className="neon-panel">
-        <h2 className="neon-heading">Why Food Manufacturers Choose Naranja</h2>
-        <div className="user-manager-grid">
-          <div>
-            <h3 className="neon-heading">Proven Results</h3>
-            <p className="main-subheader">Reduce audit preparation time by 75% and improve training completion rates across your organization.</p>
+      <section>
+        <h2>{t('aboutPage.whyChooseHeading')}</h2>
+        <div className="grid">
+          <div className="card">
+            <h3>{t('aboutPage.provenResultsTitle')}</h3>
+            <p>{t('aboutPage.provenResultsDesc')}</p>
           </div>
-          <div>
-            <h3 className="neon-heading">Quick Implementation</h3>
-            <p className="main-subheader">Get up and running in weeks, not months, with our streamlined onboarding process.</p>
+          <div className="card">
+            <h3>{t('aboutPage.quickImplementationTitle')}</h3>
+            <p>{t('aboutPage.quickImplementationDesc')}</p>
           </div>
-          <div>
-            <h3 className="neon-heading">Dedicated Support</h3>
-            <p className="main-subheader">Our team provides ongoing support to ensure your success every step of the way.</p>
+          <div className="card">
+            <h3>{t('aboutPage.dedicatedSupportTitle')}</h3>
+            <p>{t('aboutPage.dedicatedSupportDesc')}</p>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Call to Action */}
-      <div className="neon-panel">
-        <h2 className="neon-heading">Ready to Transform Your Training & Compliance?</h2>
-        <p className="main-subheader">
-          Join the growing number of food manufacturers who trust Naranja to keep their teams trained, compliant, and audit-ready.
+      <section className="cta">
+        <h2>{t('aboutPage.ctaHeading')}</h2>
+        <p>
+          {t('aboutPage.ctaText')}
         </p>
-        <div>
-          <Link href="/homepage/contact-us" className="neon-btn">
-            Get Started Today
+        <div className="cta-buttons">
+          <Link href="/homepage/contact-us" className="btn-primary">
+            {t('aboutPage.getStartedButton')}
           </Link>
-          <Link href="/homepage/contact-us" className="neon-muted">
-            Schedule a Demo
+          <Link href="/homepage/contact-us" className="btn-secondary">
+            {t('aboutPage.scheduleDemoButton')}
           </Link>
         </div>
-      </div>
+      </section>
 
-      <style jsx>{`
-        .main-header-container {
+      <style>{`
+        .about-page {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 24px;
+          line-height: 1.6;
           position: relative;
         }
 
@@ -190,10 +192,219 @@ export default function AboutPage() {
         }
 
         .overlay-close-button:focus-visible {
-          outline: 2px solid var(--neon);
+          outline: 2px solid var(--neon, #40e0d0);
           outline-offset: 2px;
         }
+
+        /* Typography */
+        h1 {
+          margin: 0 0 16px 0;
+          font-size: 2.5rem;
+          font-weight: 700;
+          color: var(--text-white);
+        }
+
+        h2 {
+          margin: 48px 0 24px 0;
+          font-size: 1.75rem;
+          font-weight: 700;
+          color: var(--text-white);
+        }
+
+        h3 {
+          margin: 0 0 12px 0;
+          font-size: 1.125rem;
+          font-weight: 700;
+          color: var(--text-white);
+        }
+
+        .lead {
+          font-size: 1.125rem;
+          margin: 0 0 32px 0;
+          color: rgba(255, 255, 255, 0.9);
+          max-width: 800px;
+        }
+
+        p {
+          margin: 0 0 16px 0;
+          color: rgba(255, 255, 255, 0.85);
+          font-size: 0.875rem;
+        }
+
+        section {
+          margin-bottom: 48px;
+        }
+
+        /* Grid Layout */
+        .grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          gap: 24px;
+          margin-top: 24px;
+        }
+
+        /* Card Styling */
+        .card {
+          padding: 24px;
+          background: rgba(5, 54, 57, 0.5);
+          border: 1px solid rgba(64, 224, 208, 0.2);
+          border-radius: 12px;
+          transition: all 0.3s ease;
+        }
+
+        .card:hover {
+          border-color: rgba(64, 224, 208, 0.4);
+          background: rgba(5, 54, 57, 0.7);
+          transform: translateY(-2px);
+        }
+
+        .card h3 {
+          margin-top: 0;
+        }
+
+        .card p {
+          margin-bottom: 0;
+        }
+
+        /* Leader Cards */
+        .card.leader {
+          text-align: center;
+        }
+
+        .leader-initial {
+          width: 64px;
+          height: 64px;
+          margin: 0 auto 16px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, rgba(64, 224, 208, 0.2), rgba(64, 224, 208, 0.1));
+          border: 2px solid rgba(64, 224, 208, 0.3);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.75rem;
+          font-weight: 700;
+          color: var(--text-white);
+        }
+
+        .leader-role {
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: var(--neon);
+          margin-bottom: 12px;
+        }
+
+        /* Call to Action Section */
+        .cta {
+          text-align: center;
+          padding: 48px 24px;
+          background: rgba(5, 54, 57, 0.5);
+          border: 1px solid rgba(64, 224, 208, 0.2);
+          border-radius: 12px;
+          margin-top: 64px;
+        }
+
+        .cta h2 {
+          margin-top: 0;
+        }
+
+        .cta p {
+          max-width: 600px;
+          margin: 0 auto 32px;
+          font-size: 1rem;
+        }
+
+        .cta-buttons {
+          display: flex;
+          gap: 16px;
+          justify-content: center;
+          flex-wrap: wrap;
+        }
+
+        /* Button Styles */
+        .btn-primary,
+        .btn-secondary {
+          display: inline-block;
+          padding: 12px 32px;
+          border-radius: 8px;
+          font-size: 0.875rem;
+          font-weight: 600;
+          text-decoration: none;
+          transition: all 0.3s ease;
+          cursor: pointer;
+        }
+
+        .btn-primary {
+          background: var(--neon);
+          color: var(--panel);
+          border: 2px solid var(--neon);
+        }
+
+        .btn-primary:hover {
+          background: transparent;
+          color: var(--neon);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(64, 224, 208, 0.3);
+        }
+
+        .btn-secondary {
+          background: transparent;
+          color: var(--text-white);
+          border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+          border-color: var(--neon);
+          color: var(--neon);
+          transform: translateY(-2px);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+          .about-page {
+            padding: 16px;
+          }
+
+          h1 {
+            font-size: 2rem;
+          }
+
+          h2 {
+            font-size: 1.5rem;
+            margin: 32px 0 16px 0;
+          }
+
+          .grid {
+            grid-template-columns: 1fr;
+          }
+
+          .cta-buttons {
+            flex-direction: column;
+            align-items: stretch;
+          }
+
+          .btn-primary,
+          .btn-secondary {
+            width: 100%;
+            text-align: center;
+          }
+        }
+
+        @media print {
+          .about-page {
+            box-shadow: none;
+            border: none;
+            border-radius: 0;
+          }
+
+          .page-close-button {
+            display: none;
+          }
+
+          .card {
+            break-inside: avoid;
+          }
+        }
       `}</style>
-    </div>
+    </article>
   );
 }

@@ -6,7 +6,6 @@ import TextIconButton from "@/components/ui/TextIconButtons";
 import {
   FiSend,
 } from "react-icons/fi";
-import SearchableDropdown from "@/components/SearchableDropdown";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 import SuccessModal from "@/components/ui/SuccessModal";
 import OverlayDialog from "@/components/ui/OverlayDialog";
