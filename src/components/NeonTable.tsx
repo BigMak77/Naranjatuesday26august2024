@@ -18,6 +18,7 @@ type NeonTableProps = {
   toolbar?: React.ReactNode; // Optional toolbar section
   onPaginationChange?: (controls: React.ReactNode) => void; // Callback when pagination controls update
   paginationPosition?: 'bottom' | 'toolbar'; // Where to show pagination
+  rowKey?: string; // Optional field name to use as unique row key (defaults to index)
 };
 
 export default function NeonTable({
@@ -26,7 +27,8 @@ export default function NeonTable({
   toolbar,
   onColumnResize,
   onPaginationChange,
-  paginationPosition = 'bottom'
+  paginationPosition = 'bottom',
+  rowKey
 }: NeonTableProps & { onColumnResize?: (accessor: string, newWidth: number) => void }) {
   const [sortBy, setSortBy] = useState<string | null>("employee_number");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
@@ -264,24 +266,27 @@ export default function NeonTable({
               </td>
             </tr>
           ) : (
-            paginatedData.map((row, i) => (
-              <tr key={i} className="neon-table-row">
-                {columns.map((col) => (
-                  <td
-                    key={col.accessor}
-                    className="neon-table-cell"
-                    style={{
-                      ...(col.width ? { width: typeof col.width === 'number' ? `${col.width}px` : col.width } : {}),
-                      textAlign: col.align || 'left',
-                    }}
-                  >
-                    {col.render
-                      ? col.render(row[col.accessor], row)
-                      : (row[col.accessor] as React.ReactNode)}
-                  </td>
-                ))}
-              </tr>
-            ))
+            paginatedData.map((row, i) => {
+              const key = rowKey ? String(row[rowKey]) : String(i);
+              return (
+                <tr key={key} className="neon-table-row">
+                  {columns.map((col) => (
+                    <td
+                      key={col.accessor}
+                      className="neon-table-cell"
+                      style={{
+                        ...(col.width ? { width: typeof col.width === 'number' ? `${col.width}px` : col.width } : {}),
+                        textAlign: col.align || 'left',
+                      }}
+                    >
+                      {col.render
+                        ? col.render(row[col.accessor], row)
+                        : (row[col.accessor] as React.ReactNode)}
+                    </td>
+                  ))}
+                </tr>
+              );
+            })
           )}
         </tbody>
       </table>

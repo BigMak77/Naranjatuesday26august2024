@@ -11,6 +11,7 @@ import TextIconButton from "@/components/ui/TextIconButtons";
 import SignaturePad from "react-signature-canvas";
 import NeonForm from "@/components/NeonForm";
 import TestRunner from "@/components/training/TestRunner";
+import TrainingTestResults from "@/components/training/TrainingTestResults";
 
 /* ===========================
    TRAINING DASHBOARD
@@ -337,6 +338,9 @@ export default function TrainingDashboard() {
     title: string;
     passedAttempt?: { score: number; completedAt: string } | null;
   }>>([]);
+
+  // Test Results Viewer state
+  const [showTestResults, setShowTestResults] = useState(false);
 
   const fetchComplianceData = async () => {
     setLoading(true);
@@ -1118,6 +1122,13 @@ export default function TrainingDashboard() {
           />
 
           <TextIconButton
+            variant="view"
+            label="View Test Results"
+            onClick={() => setShowTestResults(true)}
+            title="View all completed test results"
+          />
+
+          <TextIconButton
             variant="download"
             label="Download Report"
             onClick={downloadComplianceReport}
@@ -1328,39 +1339,42 @@ export default function TrainingDashboard() {
       {/* Recent Activity */}
       <div className="neon-panel">
         <h2 className="neon-heading" style={{ fontSize: '1.25rem', marginBottom: '16px' }}>
-          Recent Training Completions
+          Recent Training Completions ({recentActivity.length} items)
         </h2>
         {recentActivity.length === 0 ? (
           <div className="empty-state">No recent activity</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {recentActivity.map((activity, idx) => (
-              <div
-                key={idx}
-                className="user-list-item"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  padding: '12px',
-                  background: 'rgba(64, 224, 208, 0.05)',
-                  borderRadius: '8px'
-                }}
-              >
-                <FiCheckCircle size={20} style={{ color: 'var(--text-success)', flexShrink: 0 }} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ color: 'var(--text-white)', fontWeight: 500 }}>
-                    {activity.userName}
+            {recentActivity.map((activity, idx) => {
+              console.log(`Rendering activity ${idx}:`, activity);
+              return (
+                <div
+                  key={idx}
+                  className="user-list-item"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '12px',
+                    background: 'rgba(64, 224, 208, 0.05)',
+                    borderRadius: '8px'
+                  }}
+                >
+                  <FiCheckCircle size={20} style={{ color: 'var(--text-success)', flexShrink: 0 }} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ color: 'var(--text-white)', fontWeight: 500 }}>
+                      {activity.userName || 'NO USERNAME'}
+                    </div>
+                    <div style={{ color: 'var(--text-white)', opacity: 0.7, fontSize: '0.9rem' }}>
+                      {activity.moduleName || 'NO MODULE NAME'}
+                    </div>
                   </div>
-                  <div style={{ color: 'var(--text-white)', opacity: 0.7, fontSize: '0.9rem' }}>
-                    {activity.moduleName}
+                  <div style={{ color: 'var(--text-white)', opacity: 0.6, fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
+                    {new Date(activity.completedAt).toLocaleDateString()} {new Date(activity.completedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </div>
                 </div>
-                <div style={{ color: 'var(--text-white)', opacity: 0.6, fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
-                  {new Date(activity.completedAt).toLocaleDateString()} {new Date(activity.completedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
@@ -2080,6 +2094,21 @@ export default function TrainingDashboard() {
                 }}
               />
             )}
+          </div>
+        </div>
+      </OverlayDialog>
+
+      {/* Test Results Viewer Dialog */}
+      <OverlayDialog
+        open={showTestResults}
+        onClose={() => setShowTestResults(false)}
+        width={1400}
+        showCloseButton
+        compactHeight
+      >
+        <div className="ui-dialog-container">
+          <div className="ui-dialog-scrollable">
+            <TrainingTestResults />
           </div>
         </div>
       </OverlayDialog>
