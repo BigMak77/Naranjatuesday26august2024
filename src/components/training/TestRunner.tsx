@@ -63,7 +63,6 @@ export default function TestRunner({
   onReturnToLog,
 }: TestRunnerProps) {
   const [stage, setStage] = useState<"list" | "test" | "result">("list");
-  const [showResultModal, setShowResultModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [packs, setPacks] = useState<Pack[]>([]);
   const [activePack, setActivePack] = useState<Pack | null>(null);
@@ -268,7 +267,6 @@ export default function TestRunner({
       const groupedReview = groupReviewByQuestion((reviewRows || []) as ReviewRow[]);
       setReview(groupedReview);
       setStage("result");
-      setShowResultModal(true);
     } catch (e: any) {
       setError(e.message ?? "Failed to submit");
     } finally {
@@ -433,148 +431,6 @@ export default function TestRunner({
 
       {stage === "result" && attempt && review && (
         <>
-          {/* Result Modal */}
-          {showResultModal && (
-            <div
-              className="ui-dialog-overlay"
-              style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                zIndex: 70000
-              }}
-              onClick={(e) => {
-                if (e.target === e.currentTarget) {
-                  setShowResultModal(false);
-                }
-              }}
-            >
-              <div
-                className="ui-dialog-content neon-dialog"
-                style={{
-                  position: 'relative',
-                  maxWidth: '600px',
-                  width: '90%',
-                  padding: '3rem 2rem 2rem 2rem'
-                }}
-              >
-                {/* Close button */}
-                <button
-                  onClick={() => {
-                    setShowResultModal(false);
-                    if (onReturnToLog) onReturnToLog();
-                  }}
-                  aria-label="Close and return to training log"
-                  className="ui-dialog-close-btn"
-                  style={{
-                    position: 'absolute',
-                    top: '1rem',
-                    right: '1rem',
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '50%',
-                    border: '2px solid var(--text-white)',
-                    background: 'transparent',
-                    color: 'var(--text-white)',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: 'all 0.2s',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'var(--text-white)';
-                    e.currentTarget.style.color = 'var(--bg)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = 'var(--text-white)';
-                  }}
-                >
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M2 2L10 10M10 2L2 10"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                </button>
-
-                {attempt.passed ? (
-                  <>
-                    <h2 className="training-h2" style={{ color: 'var(--neon)', textAlign: 'center', marginBottom: '1rem' }}>
-                      Congratulations!
-                    </h2>
-                    <div className="training-score-row" style={{ textAlign: 'center', marginBottom: '1rem', fontSize: '1.5rem' }}>
-                      Score: <strong>{attempt.score_percent}%</strong>{' '}
-                      <span className="training-badgePass">Passed</span>
-                    </div>
-                    <p style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-                      You have successfully passed this test with a score of {attempt.score_percent}%!
-                    </p>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                      <TextIconButton
-                        variant="next"
-                        label="Return to Training Log"
-                        onClick={() => {
-                          setShowResultModal(false);
-                          if (onReturnToLog) onReturnToLog();
-                        }}
-                      />
-                      <TextIconButton
-                        variant="back"
-                        label="View Review"
-                        onClick={() => setShowResultModal(false)}
-                      />
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <h2 className="training-h2" style={{ color: '#ef4444', textAlign: 'center', marginBottom: '1rem' }}>
-                      Test Not Passed
-                    </h2>
-                    <div className="training-score-row" style={{ textAlign: 'center', marginBottom: '1rem', fontSize: '1.5rem' }}>
-                      Score: <strong>{attempt.score_percent}%</strong>{' '}
-                      <span className="training-badgeFail">Failed</span>
-                    </div>
-                    <p style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-                      You scored {attempt.score_percent}%, but the pass mark is {activePack?.pass_mark}%.
-                      Please review your answers and try again.
-                    </p>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                      <TextIconButton
-                        variant="next"
-                        label="Retake Test"
-                        onClick={() => {
-                          setShowResultModal(false);
-                          if (activePack) startPack(activePack.id);
-                        }}
-                      />
-                      <TextIconButton
-                        variant="back"
-                        label="View Review"
-                        onClick={() => setShowResultModal(false)}
-                      />
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          )}
-
           <div className="training-card neon-form">
             <div className="training-rowBetween">
               <div>
@@ -602,51 +458,17 @@ export default function TestRunner({
                 )}
               </div>
 
-              <div className="training-actions-row">
-                {attempt.passed ? (
-                  <>
-                    <TextIconButton
-                      variant="next"
-                      label="Return to Log"
-                      onClick={() => {
-                        if (onReturnToLog) {
-                          onReturnToLog();
-                        } else {
-                          setStage("list");
-                        }
-                      }}
-                    />
-                    <TextIconButton
-                      variant="back"
-                      label="Retake (Optional)"
-                      onClick={() => {
-                        if (activePack) startPack(activePack.id);
-                      }}
-                    />
-                  </>
-                ) : (
-                  <>
-                    <TextIconButton
-                      variant="next"
-                      label="Retake Test"
-                      onClick={() => {
-                        if (activePack) startPack(activePack.id);
-                      }}
-                    />
-                    <TextIconButton
-                      variant="back"
-                      label="Back to Log"
-                      onClick={() => {
-                        if (onReturnToLog) {
-                          onReturnToLog();
-                        } else {
-                          setStage("list");
-                        }
-                      }}
-                    />
-                  </>
-                )}
-              </div>
+              {!attempt.passed && (
+                <div className="training-actions-row">
+                  <TextIconButton
+                    variant="next"
+                    label="Retake Test"
+                    onClick={() => {
+                      if (activePack) startPack(activePack.id);
+                    }}
+                  />
+                </div>
+              )}
             </div>
           </div>
 

@@ -76,20 +76,37 @@ export default function IncompleteTraining() {
         return;
       }
 
-      // 2) All assignments with user info
-      const { data: allAssignments, error: allErr } = await supabase
-        .from("user_assignments")
-        .select(
-          `auth_id, item_id, item_type, completed_at, due_at, users:users!inner(first_name, last_name, department_id, departments(name, level), role_id, role:roles!users_role_id_fkey(title))`
-        )
-        .in("item_type", ["module", "document"]);
+      // 2) Fetch ALL assignments (paginated to handle large datasets)
+      let allAssignments: IncompleteRow[] = [];
+      let hasMore = true;
+      let offset = 0;
+      const pageSize = 1000;
+
+      while (hasMore) {
+        const { data: batch, error: batchErr } = await supabase
+          .from("user_assignments")
+          .select(
+            `auth_id, item_id, item_type, completed_at, due_at, users:users!inner(first_name, last_name, department_id, departments(name, level), role_id, role:roles!users_role_id_fkey(title))`
+          )
+          .in("item_type", ["module", "document"])
+          .range(offset, offset + pageSize - 1);
+
+        if (batchErr) {
+          setError(batchErr.message);
+          setLoading(false);
+          return;
+        }
+
+        if (batch && batch.length > 0) {
+          allAssignments = allAssignments.concat(batch as IncompleteRow[]);
+          offset += pageSize;
+          hasMore = batch.length === pageSize;
+        } else {
+          hasMore = false;
+        }
+      }
 
       if (!isMounted) return;
-      if (allErr) {
-        setError(allErr.message);
-        setLoading(false);
-        return;
-      }
 
       // 4) Completed assignments
       const completed = (allAssignments ?? []).filter((a) => !!a.completed_at);
@@ -125,42 +142,41 @@ export default function IncompleteTraining() {
       const deptMap = new Map<string, {
         name: string;
         level: number;
-        totalUsers: number;
-        usersCompleted: number;
+        uniqueUsers: Set<string>;
         totalAssignments: number;
         completedAssignments: number;
       }>();
 
-      // 8) Build department map from users who have assignments
-      for (const [, userStats] of userAssignments.entries()) {
-        if (!userStats.deptId) continue;
+      // 8) Build department map - aggregate all assignments by department
+      for (const assignment of allAssignments ?? []) {
+        const user = Array.isArray(assignment.users) ? assignment.users[0] : assignment.users;
+        const deptId = user?.department_id;
+        if (!deptId) continue;
 
         // Find department info
-        const dept = allDepartments?.find(d => d.id === userStats.deptId);
+        const dept = allDepartments?.find(d => d.id === deptId);
         if (!dept) continue;
 
         // Initialize department if not exists
-        if (!deptMap.has(userStats.deptId)) {
-          deptMap.set(userStats.deptId, {
+        if (!deptMap.has(deptId)) {
+          deptMap.set(deptId, {
             name: dept.name || "Unknown",
             level: dept.level || 0,
-            totalUsers: 0,
-            usersCompleted: 0,
+            uniqueUsers: new Set<string>(),
             totalAssignments: 0,
             completedAssignments: 0
           });
         }
 
-        const deptStats = deptMap.get(userStats.deptId)!;
+        const deptStats = deptMap.get(deptId)!;
 
-        // Count unique users with assignments
-        deptStats.totalUsers++;
-        deptStats.totalAssignments += userStats.total;
-        deptStats.completedAssignments += userStats.completed;
+        // Track unique users
+        deptStats.uniqueUsers.add(assignment.auth_id);
 
-        // User completed ALL their training
-        if (userStats.total > 0 && userStats.completed === userStats.total) {
-          deptStats.usersCompleted++;
+        // Count assignments
+        deptStats.totalAssignments++;
+        if (assignment.completed_at) {
+          deptStats.completedAssignments++;
         }
       }
 
@@ -168,8 +184,8 @@ export default function IncompleteTraining() {
         id,
         name: stats.name,
         level: stats.level,
-        totalAssignments: stats.totalAssignments, // Total assignments in department
-        completedAssignments: stats.completedAssignments, // Completed assignments in department
+        totalAssignments: stats.totalAssignments,
+        completedAssignments: stats.completedAssignments,
         complianceRate: stats.totalAssignments > 0
           ? Math.round((stats.completedAssignments / stats.totalAssignments) * 100)
           : 0,
@@ -355,9 +371,9 @@ export default function IncompleteTraining() {
         <div style={{ flex: 1 }}>
           <h2 style={{ margin: 0, fontSize: "1.35rem", fontWeight: 700, color: "#19e6d9" }}>Overall Compliance</h2>
           <ul style={{ margin: "1rem 0 0 0", fontSize: "1.08rem", fontWeight: 500, color: "#fff", listStyle: "none", padding: 0 }}>
-            <li>Assigned modules: <strong>{totalAssignments}</strong></li>
-            <li>Completed modules: <strong>{totalCompleted}</strong></li>
-            <li>Overdue modules: <strong>{totalOverdue}</strong></li>
+            <li>Total assignments: <strong>{totalAssignments}</strong></li>
+            <li>Completed: <strong>{totalCompleted}</strong></li>
+            <li>Overdue: <strong>{totalOverdue}</strong></li>
             <li>Compliance rate: <strong>{compliancePercent}%</strong></li>
           </ul>
         </div>

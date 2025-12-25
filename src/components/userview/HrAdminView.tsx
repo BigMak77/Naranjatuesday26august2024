@@ -25,7 +25,6 @@ import UserManagementPanel from "@/components/user/UserManagementPanel";
 import SimpleRoleAssignment from "@/components/user/SimpleRoleAssignment";
 import { sendWelcomeEmail } from "@/lib/email-service";
 import UserRoleHistory from "@/components/roles/UserRoleHistory";
-import ComponentDescription from "@/components/ui/ComponentDescription";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
 const tabs: Tab[] = [
@@ -698,35 +697,6 @@ const UserManager: React.FC = () => {
     <>
       <style dangerouslySetInnerHTML={{ __html: reassignStyles }} />
 
-      <ComponentDescription
-        title={
-          activeTab === "people" ? "People Management" :
-          activeTab === "users" ? "Users Without Department" :
-          activeTab === "newstarters" ? "New Starters" :
-          activeTab === "leavers" ? "Leavers" :
-          activeTab === "rolehistory" ? "Role History" :
-          activeTab === "departments" ? (structureView === 'role' ? "Role Structure" : "Manager Structure") :
-          activeTab === "shifts" ? "Shift Management" :
-          activeTab === "permissions" ? "User Permissions" :
-          activeTab === "startdate" ? "Users by Start Date" :
-          ""
-        }
-        description={
-          activeTab === "people" ? "Manage all active employees, their departments, roles, and access levels. Search, filter, and edit user information." :
-          activeTab === "users" ? "View and assign departments to users who are not currently assigned to any department." :
-          activeTab === "newstarters" ? "Assign employee numbers to new users and send welcome emails with login instructions." :
-          activeTab === "leavers" ? "View employees who have left the organization. Download their training records or reassign them to the company." :
-          activeTab === "rolehistory" ? "Track historical role and department changes for all employees in the organization." :
-          activeTab === "departments" ? (structureView === 'role'
-            ? "View and manage the organizational structure by departments and roles."
-            : "View and manage the management hierarchy and reporting relationships.") :
-          activeTab === "shifts" ? "View and manage employee shift patterns by department. Assign shifts and download shift rotas." :
-          activeTab === "permissions" ? "Manage user access levels and permissions for different features and areas of the system." :
-          activeTab === "startdate" ? "View and filter employees by their start date. Sort by name, start date, or department." :
-          ""
-        }
-      />
-
       <FolderTabs
         tabs={tabs}
         activeTab={activeTab}
@@ -1368,7 +1338,7 @@ const UserManager: React.FC = () => {
                       .map((user) => (
                         <tr key={user.id}>
                           <td className="user-manager-name">{`${user.first_name || ""} ${user.last_name || ""}`.trim()}</td>
-                          <td>{user.start_date || "—"}</td>
+                          <td>{formatDateUK(user.start_date)}</td>
                           <td>{getDepartmentName(user.department_id)}</td>
                         </tr>
                       ))

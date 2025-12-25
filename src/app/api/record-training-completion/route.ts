@@ -8,7 +8,7 @@ const supabase = createClient(
 
 export async function POST(req: NextRequest) {
   try {
-    const { auth_id, item_id, item_type, completed_date, training_outcome } = await req.json();
+    const { auth_id, item_id, item_type, completed_date, training_outcome, linked_document_ids } = await req.json();
 
     if (!auth_id || !item_id || !item_type) {
       return NextResponse.json({
@@ -171,10 +171,43 @@ export async function POST(req: NextRequest) {
     console.log("🔍 Verifying completed_at in database:", updatedAssignment?.[0]?.completed_at);
     console.log("🔍 Verifying training_outcome in database:", updatedAssignment?.[0]?.training_outcome);
 
+    // 3) Auto-complete linked documents if module completed successfully
+    let completedDocuments = 0;
+    if (outcome === 'completed' && item_type === 'module' && linked_document_ids && Array.isArray(linked_document_ids) && linked_document_ids.length > 0) {
+      console.log(`📄 Auto-completing ${linked_document_ids.length} linked documents for module ${item_id}...`);
+
+      for (const documentId of linked_document_ids) {
+        try {
+          const { error: docError } = await supabase
+            .from("user_assignments")
+            .update({
+              completed_at: completedAt,
+              training_outcome: 'completed'
+            })
+            .eq("auth_id", auth_id)
+            .eq("item_id", documentId)
+            .eq("item_type", "document");
+
+          if (docError) {
+            console.warn(`⚠️ Failed to complete document ${documentId}:`, docError.message);
+          } else {
+            completedDocuments++;
+            console.log(`✅ Document ${documentId} marked as completed`);
+          }
+        } catch (err) {
+          console.warn(`⚠️ Error completing document ${documentId}:`, err);
+        }
+      }
+
+      console.log(`📊 Auto-completed ${completedDocuments}/${linked_document_ids.length} linked documents`);
+    }
+
     // Prepare response message based on outcome
     let message = "";
     if (outcome === 'completed') {
-      message = "Training completed successfully";
+      message = completedDocuments > 0
+        ? `Training completed successfully. ${completedDocuments} linked document(s) also marked as complete.`
+        : "Training completed successfully";
     } else if (outcome === 'needs_improvement') {
       message = "Training outcome recorded as 'needs improvement' - assignment remains open for re-training";
     } else if (outcome === 'failed') {
@@ -193,7 +226,8 @@ export async function POST(req: NextRequest) {
       follow_up_assessment_required: followUpAssessmentRequired,
       follow_up_assessment_due_date: followUpAssessmentDueDate,
       refresh_due_date: refreshDueDate,
-      role_id: user?.role_id || null
+      role_id: user?.role_id || null,
+      linked_documents_completed: completedDocuments
     });
 
   } catch (err) {

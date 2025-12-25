@@ -7,10 +7,7 @@ import NeonPanel from "@/components/NeonPanel";
 import { FiSearch } from "react-icons/fi";
 
 type SubmissionRow = {
-  id: string;
-  assignment_id: string | null;
-  audit_id: string;
-  submitted_by_auth_id: string;
+  assignment_id: string;
   status: string; // 'in_progress' | 'submitted' | others if you add
   submitted_at: string | null;
 };
@@ -45,9 +42,7 @@ export default function SubmissionsTab() {
       // 1) Base submissions (latest first)
       const { data: subs, error } = await supabase
         .from("audit_submissions")
-        .select(
-          "id, assignment_id, audit_id, submitted_by_auth_id, status, submitted_at",
-        )
+        .select("assignment_id, status, submitted_at")
         .order("submitted_at", { ascending: false })
         .limit(200);
 
@@ -63,16 +58,45 @@ export default function SubmissionsTab() {
 
       const base: SubmissionRow[] = (subs ?? []) as SubmissionRow[];
 
-      // 2) Collect IDs to enrich
-      const auditIds = Array.from(new Set(base.map((b) => b.audit_id)));
-      const userIds = Array.from(
-        new Set(base.map((b) => b.submitted_by_auth_id)),
-      );
+      // 2) Collect assignment IDs
       const assignIds = Array.from(
         new Set(base.map((b) => b.assignment_id).filter(Boolean)),
       ) as string[];
 
-      // 3) Fetch audit titles (if table exists)
+      // 3) Fetch assignment info to get audit IDs, due dates, and user IDs
+      const assignmentMap = new Map<string, {
+        audit_id: string;
+        due_at: string | null;
+        auth_id: string;
+      }>(); // assignment_id -> { audit_id, due_at, auth_id }
+      if (assignIds.length) {
+        try {
+          const { data: assigns } = await supabase
+            .from("user_assignments")
+            .select("id, item_id, due_at, auth_id")
+            .eq("item_type", "audit")
+            .in("id", assignIds);
+          (assigns ?? []).forEach(
+            (a: { id: string; item_id?: string; due_at?: string | null; auth_id?: string }) => {
+              if (a.item_id && a.auth_id) {
+                assignmentMap.set(a.id, {
+                  audit_id: a.item_id,
+                  due_at: a.due_at ?? null,
+                  auth_id: a.auth_id,
+                });
+              }
+            },
+          );
+        } catch {
+          // table or RLS might block; leave assignmentMap empty
+        }
+      }
+
+      // Collect user IDs from assignments
+      const userIds = Array.from(new Set(Array.from(assignmentMap.values()).map(v => v.auth_id)));
+
+      // 4) Fetch audit titles (if table exists)
+      const auditIds = Array.from(new Set(Array.from(assignmentMap.values()).map(v => v.audit_id)));
       const titleMap = new Map<string, string>();
       if (auditIds.length) {
         try {
@@ -90,7 +114,7 @@ export default function SubmissionsTab() {
         }
       }
 
-      // 4) Fetch user names + departments
+      // 5) Fetch user names + departments
       const userMap = new Map<
         string,
         {
@@ -129,41 +153,30 @@ export default function SubmissionsTab() {
         }
       }
 
-      // 5) Fetch due dates from assignments (if table exists)
-      const dueMap = new Map<string, string | null>();
-      if (assignIds.length) {
-        try {
-          const { data: assigns } = await supabase
-            .from("user_assignments")
-            .select("id, due_at")
-            .in("id", assignIds);
-          (assigns ?? []).forEach(
-            (a: { id: string; due_at?: string | null }) => {
-              dueMap.set(a.id, a.due_at ?? null);
-            },
-          );
-        } catch {
-          // table or RLS might block; leave dueMap empty
-        }
-      }
-
       // 6) Build enriched rows
       const enriched: EnrichedRow[] = base.map((b) => {
-        const user = userMap.get(b.submitted_by_auth_id) || {};
+        // Get assignment info
+        const assignment = assignmentMap.get(b.assignment_id);
+        if (!assignment) {
+          // Skip if we don't have assignment data
+          return null;
+        }
+
+        const user = userMap.get(assignment.auth_id) || {};
         const name =
           `${(user.first_name || "").trim()} ${(user.last_name || "").trim()}`.trim() ||
           user.email ||
-          b.submitted_by_auth_id;
+          assignment.auth_id;
 
-        const auditTitle = titleMap.get(b.audit_id) ?? b.audit_id;
+        const auditId = assignment.audit_id;
+        const auditTitle = titleMap.get(auditId) ?? auditId;
 
         const prettySubmitted = b.submitted_at
           ? new Date(b.submitted_at).toLocaleString()
           : "Not submitted";
 
-        const dueIso = b.assignment_id
-          ? (dueMap.get(b.assignment_id) ?? null)
-          : null;
+        // Due date from assignment
+        const dueIso = assignment.due_at ?? null;
         const prettyDue = dueIso
           ? new Date(dueIso).toLocaleString(undefined, {
               year: "numeric",
@@ -173,7 +186,7 @@ export default function SubmissionsTab() {
           : null;
 
         return {
-          id: b.id,
+          id: b.assignment_id, // Use assignment_id as the unique ID
           audit_title: auditTitle,
           user_name: name,
           department: user.department || "—",
@@ -182,7 +195,7 @@ export default function SubmissionsTab() {
           submitted_at_display: prettySubmitted,
           due_at_display: prettyDue,
         };
-      });
+      }).filter((row): row is EnrichedRow => row !== null);
 
       if (!alive) return;
       setRows(enriched);

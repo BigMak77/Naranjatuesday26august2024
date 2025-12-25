@@ -387,8 +387,8 @@ export default function AddModuleTab({
                     // Remove all non-alphanumeric characters
                     const alphanumericOnly = value.replace(/[^A-Z0-9]/g, '');
 
-                    // Format as YY (2 characters max for suffix)
-                    const suffix = alphanumericOnly.slice(0, 2);
+                    // Format as YYYY (4 characters max for suffix)
+                    const suffix = alphanumericOnly.slice(0, 4);
 
                     setRefCode(`${prefix}-${suffix}`);
                   }}
@@ -403,8 +403,8 @@ export default function AddModuleTab({
                     }
                   }}
                   className="add-module-tab-input neon-input"
-                  placeholder="__"
-                  maxLength={2}
+                  placeholder="____"
+                  maxLength={4}
                   style={{
                     flex: 1,
                     borderRadius: '0 4px 4px 0',

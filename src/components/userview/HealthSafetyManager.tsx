@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 // Removed unused NeonFeatureCard import
 import RiskAssessmentManager from "@/components/healthsafety/RiskAssessmentManager";
 import {
@@ -10,28 +11,30 @@ import {
   FiHeart,
   FiTool,
 } from "react-icons/fi";
-import NeonForm from "@/components/NeonForm";
 import NeonPanel from "@/components/NeonPanel";
 import FolderTabs from "@/components/FolderTabs";
 import HealthSafetyPolicyManager from "@/components/healthsafety/HealthSafetyPolicyManager";
 import TextIconButton from "@/components/ui/TextIconButtons";
-import IncidentFormMinimal from "@/components/safety/IncidentFormMinimal";
-import type { MinimalIncidentForm } from "@/components/safety/IncidentFormMinimal";
+import IncidentFormMinimal from "@/components/healthsafety/IncidentFormMinimal";
+import type { MinimalIncidentForm } from "@/components/healthsafety/IncidentFormMinimal";
 import AddFirstAidDialog from "@/components/healthsafety/AddFirstAidDialog";
 import ViewFirstAidersDialog from "@/components/healthsafety/ViewFirstAidersDialog";
 import { supabase } from "@/lib/supabase-client";
 import OverlayDialog from "@/components/ui/OverlayDialog";
 
 export default function HealthSafetyManager() {
+  const searchParams = useSearchParams();
+  const tabParam = searchParams?.get("tab") as "assessments" | "incidents" | "policies" | "firstaid" | "utilities" | null;
+
   const [activeTab, setActiveTab] = useState<
     "assessments" | "incidents" | "policies" | "firstaid" | "utilities"
-  >("assessments");
+  >(tabParam || "assessments");
   const [showAddFirstAidDialog, setShowAddFirstAidDialog] = useState(false);
   const [showViewFirstAidersDialog, setShowViewFirstAidersDialog] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [riskAssessmentAction, setRiskAssessmentAction] = useState<"create" | null>(null);
-  
+
   // Dialog states for upload/download feedback
   const [showDialog, setShowDialog] = useState(false);
   const [dialogContent, setDialogContent] = useState<{
@@ -40,9 +43,6 @@ export default function HealthSafetyManager() {
     type: "info" | "success" | "error" | "confirm";
     onConfirm?: () => void;
   } | null>(null);
-  
-  // Incident submission state
-  const [isSubmittingIncident, setIsSubmittingIncident] = useState(false);
 
   useEffect(() => {
     // Simulate fetching policies (replace with supabase or API call)
@@ -212,11 +212,11 @@ export default function HealthSafetyManager() {
                 setShowDialog(false);
                 try {
                   // Insert locations (upsert will update if exists, insert if new)
-                  const { data, error } = await supabase
+                  const { error } = await supabase
                     .from("locations")
-                    .upsert(locations, { 
+                    .upsert(locations, {
                       onConflict: "site,area,zone",
-                      ignoreDuplicates: false 
+                      ignoreDuplicates: false
                     })
                     .select();
 
@@ -274,7 +274,6 @@ export default function HealthSafetyManager() {
   // Handle incident submission
   const handleIncidentSubmit = async (data: MinimalIncidentForm) => {
     try {
-      setIsSubmittingIncident(true);
 
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
@@ -340,8 +339,6 @@ export default function HealthSafetyManager() {
         type: "error",
       });
       setShowDialog(true);
-    } finally {
-      setIsSubmittingIncident(false);
     }
   };
 

@@ -433,9 +433,9 @@ const TrainingMatrix: React.FC<TrainingMatrixProps> = ({ filterByDepartmentId })
                 variant="refresh"
                 label="Refresh Now"
                 onClick={() => setRefreshTrigger(prev => prev + 1)}
-                style={{ height: "32px", minHeight: "32px" }}
+                className="training-matrix-btn"
               />
-              
+
               <TextIconButton
                 variant="download"
                 label="Download CSV"
@@ -475,7 +475,7 @@ const TrainingMatrix: React.FC<TrainingMatrixProps> = ({ filterByDepartmentId })
               document.body.removeChild(a);
               URL.revokeObjectURL(url);
             }}
-            style={{ height: "32px", minHeight: "32px" }}
+            className="training-matrix-btn"
           />
             </div>
           </div>

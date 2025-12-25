@@ -973,7 +973,7 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
                 </div>
 
                 <TextIconButton
-                  variant="primary"
+                  variant="next"
                   label="Next →"
                   disabled={bulkSelectedUserIds.length === 0}
                   onClick={() => {

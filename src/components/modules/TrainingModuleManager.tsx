@@ -30,6 +30,7 @@ import DepartmentModuleAssignment from "@/components/departments/DepartmentModul
 import ViewRoleAssignments from "@/components/roles/ViewRoleAssignments";
 import ViewModuleAssignments from "@/components/modules/ViewModuleAssignments";
 import BulkModuleAssignment from "@/components/modules/BulkModuleAssignment";
+import ModuleDocumentLinkDialog from "@/components/modules/ModuleDocumentLinkDialog";
 
 // Define Module type inline
 interface Module {
@@ -96,6 +97,7 @@ export default function TrainingModuleManager() {
   const [showViewRoleAssignmentsDialog, setShowViewRoleAssignmentsDialog] = useState(false);
   const [showDepartmentTrainingDialog, setShowDepartmentTrainingDialog] = useState(false);
   const [showViewModuleAssignmentsDialog, setShowViewModuleAssignmentsDialog] = useState(false);
+  const [linkDocumentsModule, setLinkDocumentsModule] = useState<Module | null>(null);
 
   // Function to fetch all tests
   const fetchAllTests = async () => {
@@ -724,6 +726,7 @@ export default function TrainingModuleManager() {
             setShowViewRoleAssignmentsDialog(false);
             setShowDepartmentTrainingDialog(false);
             setShowViewModuleAssignmentsDialog(false);
+            setLinkDocumentsModule(null);
           }}
           toolbar={
             (activeTab === "view" || activeTab === "archive" || activeTab === "add" || activeTab === "training") ? (
@@ -963,6 +966,14 @@ export default function TrainingModuleManager() {
                       icon={<FiUsers />}
                       label="Bulk Assign"
                       onClick={() => setBulkAssignModuleId(m.id)}
+                    />
+                  </CustomTooltip>
+                  <CustomTooltip text="Link documents to this module">
+                    <TextIconButton
+                      variant="next"
+                      icon={<FiFileText />}
+                      label="Link Documents"
+                      onClick={() => setLinkDocumentsModule(m)}
                     />
                   </CustomTooltip>
                   <CustomTooltip text="View tests for this module">
@@ -1797,6 +1808,16 @@ export default function TrainingModuleManager() {
         >
           <ViewModuleAssignments />
         </OverlayDialog>
+      )}
+
+      {/* Link Documents to Module Dialog */}
+      {linkDocumentsModule && (
+        <ModuleDocumentLinkDialog
+          open={true}
+          onClose={() => setLinkDocumentsModule(null)}
+          moduleId={linkDocumentsModule.id}
+          moduleName={linkDocumentsModule.name}
+        />
       )}
     </>
   );

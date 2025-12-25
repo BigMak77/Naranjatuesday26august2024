@@ -155,7 +155,8 @@ export default function NeonTable({
 
   // Pagination controls component - memoized to prevent infinite loops
   const paginationControls = React.useMemo(() => {
-    if (totalRows === 0) return null;
+    // Hide pagination if there's no data or if all data fits on one page
+    if (totalRows === 0 || totalPages <= 1) return null;
 
     return (
       <div style={{

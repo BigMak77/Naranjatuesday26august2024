@@ -1,25 +1,13 @@
 import React from "react";
 import Link from "next/link";
-import { FiUsers, FiClipboard, FiList, FiCheckSquare, FiPlus } from "react-icons/fi";
+import { FiClipboard, FiCheckSquare, FiPlus } from "react-icons/fi";
 
 const TURKUS_ACTIONS = [
-  {
-    href: "/turkus/auditors",
-    label: "Manage Turkus Auditors",
-    description: "Add or remove auditors for Turkus audits.",
-    icon: <FiUsers />,
-  },
   {
     href: "/turkus/audit",
     label: "Create Audit",
     description: "Start a new Turkus audit process.",
     icon: <FiClipboard />,
-  },
-  {
-    href: "/turkus/assignments",
-    label: "View Turkus Assignments",
-    description: "See all current Turkus assignments.",
-    icon: <FiList />,
   },
   {
     href: "/tasks",

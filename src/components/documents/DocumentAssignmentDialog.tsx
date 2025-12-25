@@ -6,7 +6,7 @@ import OverlayDialog from "@/components/ui/OverlayDialog";
 import NeonTable from "@/components/NeonTable";
 import SearchableMultiSelect from "@/components/ui/SearchableMultiSelect";
 import TextIconButton from "@/components/ui/TextIconButtons";
-import { FiUsers, FiSave, FiX } from "react-icons/fi";
+import { FiUsers } from "react-icons/fi";
 
 interface DocumentAssignmentDialogProps {
   open: boolean;
@@ -155,23 +155,36 @@ export default function DocumentAssignmentDialog({
       // Get all users that should have this document assigned based on selected departments/roles
       let targetUsers: any[] = [];
 
-      if (selectedDepartments.length > 0 || selectedRoles.length > 0) {
-        const filters: string[] = [];
-        if (selectedDepartments.length > 0) {
-          filters.push(`department_id.in.(${selectedDepartments.join(",")})`);
-        }
-        if (selectedRoles.length > 0) {
-          filters.push(`role_id.in.(${selectedRoles.join(",")})`);
-        }
+      // Fetch users from selected departments and roles separately
+      const usersByDept: any[] = [];
+      const usersByRole: any[] = [];
 
-        const { data, error: userError } = await supabase
+      if (selectedDepartments.length > 0) {
+        const { data, error: deptError } = await supabase
           .from("users")
           .select("auth_id, department_id, role_id")
-          .or(filters.join(","));
+          .in("department_id", selectedDepartments);
 
-        if (userError) throw userError;
-        targetUsers = data || [];
+        if (deptError) throw deptError;
+        usersByDept.push(...(data || []));
       }
+
+      if (selectedRoles.length > 0) {
+        const { data, error: roleError } = await supabase
+          .from("users")
+          .select("auth_id, department_id, role_id")
+          .in("role_id", selectedRoles);
+
+        if (roleError) throw roleError;
+        usersByRole.push(...(data || []));
+      }
+
+      // Combine and deduplicate users by auth_id
+      const userMap = new Map();
+      [...usersByDept, ...usersByRole].forEach((user) => {
+        userMap.set(user.auth_id, user);
+      });
+      targetUsers = Array.from(userMap.values());
 
       // Get current assignments for this document
       const { data: currentAssignments, error: currentError } = await supabase
@@ -242,15 +255,6 @@ export default function DocumentAssignmentDialog({
     }
   };
 
-  // Group roles by department for better display
-  const rolesByDepartment = roles.reduce((acc, role) => {
-    if (!acc[role.department_id]) {
-      acc[role.department_id] = [];
-    }
-    acc[role.department_id].push(role);
-    return acc;
-  }, {} as Record<string, Role[]>);
-
   return (
     <OverlayDialog
       open={open}
@@ -259,65 +263,33 @@ export default function DocumentAssignmentDialog({
       showCloseButton={true}
       ariaLabelledby="document-assignment-dialog-title"
     >
-      <div style={{ padding: "2rem", maxHeight: "90vh", overflowY: "auto" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1.5rem" }}>
-          <FiUsers size={24} style={{ color: "var(--neon)" }} />
-          <h2
-            id="document-assignment-dialog-title"
-            className="neon-label"
-            style={{ fontSize: "1.5rem", margin: 0 }}
-          >
+      <div className="dialog-content">
+        <div className="flex items-center gap-3 mb-6">
+          <FiUsers size={24} className="neon-icon" />
+          <h2 id="document-assignment-dialog-title" className="neon-label text-xl m-0">
             Document Assignments
           </h2>
         </div>
 
-        <p className="neon-text" style={{ marginBottom: "1.5rem", opacity: 0.8 }}>
+        <p className="neon-text mb-6 opacity-80">
           Document: <strong>{documentTitle}</strong>
         </p>
 
-        {error && (
-          <div
-            style={{
-              padding: "1rem",
-              marginBottom: "1rem",
-              backgroundColor: "rgba(239, 68, 68, 0.1)",
-              border: "1px solid rgba(239, 68, 68, 0.3)",
-              borderRadius: "8px",
-              color: "#ef4444",
-            }}
-          >
-            {error}
-          </div>
-        )}
+        {error && <div className="error-box">{error}</div>}
 
-        {successMessage && (
-          <div
-            style={{
-              padding: "1rem",
-              marginBottom: "1rem",
-              backgroundColor: "rgba(34, 197, 94, 0.1)",
-              border: "1px solid rgba(34, 197, 94, 0.3)",
-              borderRadius: "8px",
-              color: "#22c55e",
-            }}
-          >
-            {successMessage}
-          </div>
-        )}
+        {successMessage && <div className="success-box">{successMessage}</div>}
 
         {loading ? (
-          <p className="neon-text" style={{ textAlign: "center", padding: "2rem" }}>
-            Loading assignments...
-          </p>
+          <p className="loading-state">Loading assignments...</p>
         ) : (
           <>
             {/* Current assignments table */}
-            <div style={{ marginBottom: "2rem" }}>
-              <h3 className="neon-label" style={{ marginBottom: "1rem" }}>
+            <div className="mb-8">
+              <h3 className="neon-label mb-4">
                 Current Assignments ({assignments.length})
               </h3>
               {assignments.length === 0 ? (
-                <p className="neon-text" style={{ opacity: 0.6, fontStyle: "italic" }}>
+                <p className="empty-state">
                   No departments or roles currently assigned
                 </p>
               ) : (
@@ -338,10 +310,10 @@ export default function DocumentAssignmentDialog({
             </div>
 
             {/* Selection Controls */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem", marginBottom: "16rem" }}>
+            <div className="grid grid-cols-2 gap-8 mb-8">
               {/* Department selection */}
-              <div style={{ position: "relative", zIndex: 10 }}>
-                <label className="neon-label" style={{ display: "block", marginBottom: "0.5rem" }}>
+              <div className="form-section">
+                <label className="neon-label mb-2">
                   Assign to Departments
                 </label>
                 <SearchableMultiSelect
@@ -352,14 +324,14 @@ export default function DocumentAssignmentDialog({
                   valueKey="id"
                   placeholder="Search departments..."
                 />
-                <p className="neon-text" style={{ fontSize: "0.875rem", marginTop: "0.5rem", opacity: 0.6 }}>
+                <p className="neon-text text-sm mt-2 opacity-60">
                   Select departments to assign this document to all users in those departments
                 </p>
               </div>
 
               {/* Role selection */}
-              <div style={{ position: "relative", zIndex: 9 }}>
-                <label className="neon-label" style={{ display: "block", marginBottom: "0.5rem" }}>
+              <div className="form-section">
+                <label className="neon-label mb-2">
                   Assign to Roles
                 </label>
                 <SearchableMultiSelect
@@ -370,22 +342,16 @@ export default function DocumentAssignmentDialog({
                   valueKey="id"
                   placeholder="Search roles..."
                 />
-                <p className="neon-text" style={{ fontSize: "0.875rem", marginTop: "0.5rem", opacity: 0.6 }}>
+                <p className="neon-text text-sm mt-2 opacity-60">
                   Select specific roles to assign this document to users with those roles
                 </p>
               </div>
             </div>
 
             {/* Action buttons */}
-            <div style={{ display: "flex", gap: "1rem", justifyContent: "flex-end" }}>
+            <div className="action-buttons justify-end gap-4">
               <TextIconButton
-                variant="secondary"
-                label="Cancel"
-                onClick={onClose}
-                disabled={saving}
-              />
-              <TextIconButton
-                variant="primary"
+                variant="save"
                 label={saving ? "Saving..." : "Save Assignments"}
                 onClick={handleSave}
                 disabled={saving}

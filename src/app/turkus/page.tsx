@@ -7,7 +7,6 @@ import {
   FiBarChart2,
   FiGrid,
   FiPieChart,
-  FiSettings,
   FiFileText,
   FiAlertTriangle,
 } from "react-icons/fi";
@@ -19,15 +18,8 @@ export default function TurkusHomePage() {
       title: "Tasks",
       icon: <FiGrid size={iconSize} />,
       text: "Manage and assign tasks.",
-      href: "/turkus/tasks",
+      href: "/tasks",
       borderColor: "#3b82f6",
-    },
-    {
-      title: "Assignments",
-      icon: <FiSettings size={iconSize} />,
-      text: "Manage Turkus assignments.",
-      href: "/turkus/assignments",
-      borderColor: "#a855f7",
     },
     {
       title: "Audit",
@@ -40,7 +32,7 @@ export default function TurkusHomePage() {
       title: "Documents",
       icon: <FiFileText size={iconSize} />,
       text: "Manage Turkus documents.",
-      href: "/turkus/documents",
+      href: "/admin/documents",
       borderColor: "#f59e0b",
     },
     {

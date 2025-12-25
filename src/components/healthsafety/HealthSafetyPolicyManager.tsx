@@ -168,16 +168,16 @@ export default function HealthSafetyPolicyManager() {
   if (loading) {
     return (
       <NeonPanel>
-        <h2 className="neon-heading">Health & Safety Policies</h2>
-        <p style={{ color: "var(--text)", opacity: 0.7 }}>Loading policies...</p>
+        <h2 className="form-title">Health & Safety Policies</h2>
+        <p className="loading-text">Loading policies...</p>
       </NeonPanel>
     );
   }
 
   return (
     <NeonPanel>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-        <h2 className="neon-heading" style={{ margin: 0 }}>Health & Safety Policies</h2>
+      <div className="form-header">
+        <h2 className="form-title">Health & Safety Policies</h2>
         {!showForm && (
           <TextIconButton
             variant="add"
@@ -188,61 +188,48 @@ export default function HealthSafetyPolicyManager() {
       </div>
 
       {message && (
-        <div style={{ 
-          marginBottom: "1rem", 
-          padding: "0.75rem", 
-          backgroundColor: message.type === 'error' ? "rgba(239, 68, 68, 0.1)" : "rgba(34, 197, 94, 0.1)", 
-          border: `1px solid ${message.type === 'error' ? "rgba(239, 68, 68, 0.3)" : "rgba(34, 197, 94, 0.3)"}`, 
-          borderRadius: "8px",
-          color: message.type === 'error' ? "#ef4444" : "#22c55e"
-        }}>
+        <div className={message.type === 'error' ? 'error-message' : 'success-message'}>
           {message.text}
         </div>
       )}
 
       {showForm && (
-        <form onSubmit={handleSave} style={{ 
-          marginBottom: "2rem", 
-          padding: "1.5rem", 
-          background: "var(--field)", 
-          border: "1px solid var(--border)", 
-          borderRadius: "8px" 
-        }}>
-          <h3 style={{ color: "var(--neon)", marginTop: 0, marginBottom: "1rem" }}>
+        <form onSubmit={handleSave} className="form-section">
+          <h3 className="section-title">
             {editingId ? "Edit Policy" : "New Policy"}
           </h3>
-          
-          <div style={{ marginBottom: "1rem" }}>
-            <label style={{ display: "block", color: "var(--neon)", fontWeight: "600", marginBottom: "0.5rem" }}>
-              Policy Title *
+
+          <div className="form-field">
+            <label className="form-label required">
+              Policy Title
             </label>
             <input
               name="title"
               type="text"
               value={form.title}
               onChange={handleFormChange}
-              className="neon-input"
+              className="form-input"
               placeholder="Enter policy title..."
               required
               autoFocus
             />
           </div>
-          
-          <div style={{ marginBottom: "1rem" }}>
-            <label style={{ display: "block", color: "var(--neon)", fontWeight: "600", marginBottom: "0.5rem" }}>
+
+          <div className="form-field">
+            <label className="form-label">
               Notes
             </label>
             <textarea
               name="notes"
               value={form.notes}
               onChange={handleFormChange}
-              className="neon-input"
+              className="form-input"
               rows={4}
               placeholder="Additional notes or description for this policy..."
             />
           </div>
-          
-          <div style={{ display: "flex", gap: "12px" }}>
+
+          <div className="form-actions">
             <TextIconButton
               variant="save"
               label={saving ? "Saving..." : editingId ? "Update Policy" : "Create Policy"}
@@ -261,106 +248,53 @@ export default function HealthSafetyPolicyManager() {
         </form>
       )}
 
-      <div style={{ marginTop: "2rem" }}>
+      <div className="policy-list">
         {documents.length === 0 ? (
-          <div style={{ 
-            padding: "3rem", 
-            textAlign: "center", 
-            background: "var(--field)", 
-            border: "1px dashed var(--border)", 
-            borderRadius: "8px" 
-          }}>
-            <p className="neon-muted" style={{ margin: 0 }}>
+          <div className="empty-state">
+            <p>
               No health & safety policies found. Click "Add New Policy" to create one.
             </p>
           </div>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <div className="policy-cards-container">
             {documents.map((document) => (
-              <div 
-                key={document.id} 
-                style={{ 
-                  padding: "1.5rem", 
-                  background: "var(--field)", 
-                  border: "1px solid var(--border)", 
-                  borderRadius: "8px",
-                  transition: "border-color 0.2s"
-                }}
-              >
-                <div style={{ 
-                  display: "flex", 
-                  justifyContent: "space-between", 
-                  alignItems: "flex-start", 
-                  marginBottom: "0.75rem" 
-                }}>
-                  <div style={{ flex: 1 }}>
+              <div key={document.id} className="policy-card">
+                <div className="policy-card-header">
+                  <div className="policy-card-content">
                     <Link
                       href={`/health-safety/policies/${document.id}`}
-                      style={{ 
-                        color: "var(--neon)", 
-                        textDecoration: "none", 
-                        fontWeight: "600",
-                        fontSize: "1.1rem",
-                        display: "block",
-                        marginBottom: "0.5rem"
-                      }}
+                      className="policy-card-title"
                     >
                       {document.title}
                     </Link>
-                    
+
                     {document.notes && (
-                      <p style={{ 
-                        color: "var(--text)", 
-                        opacity: 0.8, 
-                        margin: "0.5rem 0 0 0",
-                        fontSize: "0.95rem" 
-                      }}>
+                      <p className="policy-card-notes">
                         {document.notes}
                       </p>
                     )}
                   </div>
-                  
-                  <div style={{ display: "flex", gap: "0.5rem", fontSize: "0.875rem", marginLeft: "1rem" }}>
-                    <span style={{ 
-                      background: "rgba(59, 130, 246, 0.1)", 
-                      color: "#3b82f6", 
-                      padding: "0.25rem 0.75rem", 
-                      borderRadius: "4px", 
-                      border: "1px solid rgba(59, 130, 246, 0.3)",
-                      whiteSpace: "nowrap"
-                    }}>
+
+                  <div className="policy-card-badges">
+                    <span className="badge badge-primary">
                       {SAFETY_DOCUMENT_TYPE_NAME}
                     </span>
                     {document.current_version && (
-                      <span style={{ 
-                        background: "rgba(34, 197, 94, 0.1)", 
-                        color: "#22c55e", 
-                        padding: "0.25rem 0.75rem", 
-                        borderRadius: "4px", 
-                        border: "1px solid rgba(34, 197, 94, 0.3)",
-                        whiteSpace: "nowrap"
-                      }}>
+                      <span className="badge badge-success">
                         v{document.current_version}
                       </span>
                     )}
                   </div>
                 </div>
-                
-                <div style={{ 
-                  display: "flex", 
-                  justifyContent: "space-between", 
-                  alignItems: "center",
-                  marginTop: "1rem",
-                  paddingTop: "1rem",
-                  borderTop: "1px solid var(--border)"
-                }}>
-                  <div style={{ fontSize: "0.85rem", color: "var(--text)", opacity: 0.6 }}>
+
+                <div className="policy-card-footer">
+                  <div className="policy-card-meta">
                     {document.last_reviewed_at && (
                       <span>Last reviewed: {new Date(document.last_reviewed_at).toLocaleDateString()}</span>
                     )}
                   </div>
-                  
-                  <div style={{ display: "flex", gap: "0.5rem" }}>
+
+                  <div className="form-actions">
                     <TextIconButton
                       variant="edit"
                       label="Edit Policy"

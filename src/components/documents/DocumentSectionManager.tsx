@@ -46,6 +46,7 @@ interface Document {
   notes?: string;
   archived?: boolean;
   review_period_months?: number;
+  location?: string;
 }
 
 interface Section {
@@ -483,6 +484,7 @@ export default function DocumentManager() {
         'id',
         'title',
         'reference_code',
+        'location',
         'document_type_id',
         'document_type_name',
         'section_id',
@@ -508,6 +510,7 @@ export default function DocumentManager() {
           doc.id || '',
           `"${(doc.title || '').replace(/"/g, '""')}"`,
           doc.reference_code || '',
+          doc.location || '',
           doc.document_type_id || '',
           `"${(doc.document_type_name || '').replace(/"/g, '""')}"`,
           doc.section_id || '',
@@ -575,17 +578,17 @@ export default function DocumentManager() {
       
       // Ultimate fallback: Show data in new window for manual save
       try {
-        const headers = ['id', 'title', 'reference_code', 'document_type_id', 'document_type_name',
+        const headers = ['id', 'title', 'reference_code', 'location', 'document_type_id', 'document_type_name',
                         'section_id', 'section_code', 'section_title', 'standard_id', 'standard_name',
                         'file_url', 'notes', 'current_version', 'review_period_months',
                         'last_reviewed_at', 'created_at', 'archived'];
-        
+
         const rows = documents.map(doc => {
           const section = sections.find(s => s.id === doc.section_id);
           const standard = section?.standard_id ? standards.find(st => st.id === section.standard_id) : null;
           return [
             doc.id || '', `"${(doc.title || '').replace(/"/g, '""')}"`,
-            doc.reference_code || '', doc.document_type_id || '',
+            doc.reference_code || '', doc.location || '', doc.document_type_id || '',
             `"${(doc.document_type_name || '').replace(/"/g, '""')}"`,
             doc.section_id || '', section?.code || '',
             `"${(section?.title || '').replace(/"/g, '""')}"`,
@@ -644,7 +647,7 @@ export default function DocumentManager() {
       }
 
       const headers = lines[0].split(',').map(h => h.trim());
-      const requiredFields = ['id', 'title', 'document_type_id'];
+      const requiredFields = ['title', 'document_type_id'];
       const missingFields = requiredFields.filter(field => !headers.includes(field));
 
       if (missingFields.length > 0) {
@@ -688,17 +691,17 @@ export default function DocumentManager() {
         });
 
         // Validate required fields
-        if (!row.id || !row.title || !row.document_type_id) {
-          console.warn(`Skipping row ${i}: missing required fields`);
+        if (!row.title || !row.document_type_id) {
+          console.warn(`Skipping row ${i}: missing required fields (title, document_type_id)`);
           continue;
         }
 
         // Build update object with only the fields that exist in documents table
         const update: any = {
-          id: row.id,
           title: row.title,
           document_type_id: row.document_type_id,
           reference_code: row.reference_code || null,
+          location: row.location || null,
           section_id: row.section_id || null,
           file_url: row.file_url || null,
           notes: row.notes || null,
@@ -707,6 +710,11 @@ export default function DocumentManager() {
           last_reviewed_at: row.last_reviewed_at || null,
           archived: row.archived === 'true' || row.archived === '1',
         };
+
+        // Only include id if it exists (for updates), otherwise database will auto-generate it (for inserts)
+        if (row.id && row.id.trim()) {
+          update.id = row.id.trim();
+        }
 
         updates.push(update);
       }

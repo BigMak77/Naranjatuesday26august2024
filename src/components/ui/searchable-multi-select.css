@@ -1,0 +1,116 @@
+.searchable-multi-select {
+  position: relative;
+}
+
+.selected-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.selected-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-white);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+.remove-tag {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.remove-tag:hover {
+  opacity: 0.7;
+}
+
+.searchable-multi-select-input {
+  width: 100%;
+  background: var(--field);
+  color: var(--text-white) !important;
+  font-size: var(--font-size-base);
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-normal);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  min-height: 40px;
+  height: 40px;
+  padding: 0 1rem;
+  line-height: normal;
+}
+
+.searchable-multi-select-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+}
+
+.searchable-multi-select-input:focus {
+  outline: none;
+  border-color: var(--border);
+}
+
+.searchable-multi-select-input:hover:not(:focus) {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.searchable-multi-select-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 0.25rem;
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: var(--field);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  z-index: 10000;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+}
+
+.no-options {
+  padding: 1rem;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.dropdown-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  background-color: transparent;
+  border-bottom: 1px solid var(--border);
+}
+
+.dropdown-option:last-child {
+  border-bottom: none;
+}
+
+.dropdown-option:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.dropdown-option.selected {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.dropdown-option input[type="checkbox"] {
+  cursor: pointer;
+}
+
+.dropdown-option span {
+  color: var(--text);
+}

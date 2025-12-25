@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase-client"
-import type { MinimalIncidentForm } from "@/components/safety/IncidentFormMinimal"
+import type { MinimalIncidentForm } from "@/components/healthsafety/IncidentFormMinimal"
 
 export async function saveIncident(values: MinimalIncidentForm) {
   const occurredAtISO = `${values.occurredDate}T${values.occurredTime}:00Z` // simple UTC

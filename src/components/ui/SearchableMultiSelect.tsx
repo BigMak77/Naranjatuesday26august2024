@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import "./searchable-multi-select.css";
 
 interface SearchableMultiSelectProps<T> {
   options: T[];
@@ -59,48 +60,20 @@ export default function SearchableMultiSelect<T extends Record<string, any>>({
   };
 
   return (
-    <div ref={containerRef} style={{ position: "relative" }}>
+    <div ref={containerRef} className="searchable-multi-select">
       {/* Selected items tags */}
       {selected.length > 0 && (
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "0.5rem",
-            marginBottom: "0.5rem",
-          }}
-        >
+        <div className="selected-tags">
           {selected.map((value) => {
             const option = options.find((opt) => String(opt[valueKey]) === value);
             if (!option) return null;
             return (
-              <span
-                key={value}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                  padding: "0.25rem 0.5rem",
-                  backgroundColor: "rgba(255, 255, 255, 0.1)",
-                  color: "var(--text-white)",
-                  border: "1px solid rgba(255, 255, 255, 0.2)",
-                  borderRadius: "4px",
-                  fontSize: "0.875rem",
-                }}
-              >
+              <span key={value} className="selected-tag">
                 {String(option[labelKey])}
                 <button
                   type="button"
                   onClick={() => removeItem(value)}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: "inherit",
-                    cursor: "pointer",
-                    padding: "0",
-                    fontSize: "1rem",
-                    lineHeight: "1",
-                  }}
+                  className="remove-tag"
                   aria-label={`Remove ${option[labelKey]}`}
                 >
                   ×
@@ -114,7 +87,7 @@ export default function SearchableMultiSelect<T extends Record<string, any>>({
       {/* Search input */}
       <input
         type="text"
-        className="neon-input"
+        className="searchable-multi-select-input"
         placeholder={placeholder}
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
@@ -123,32 +96,9 @@ export default function SearchableMultiSelect<T extends Record<string, any>>({
 
       {/* Dropdown */}
       {isOpen && (
-        <div
-          style={{
-            position: "absolute",
-            top: "100%",
-            left: 0,
-            right: 0,
-            marginTop: "0.25rem",
-            maxHeight: "200px",
-            overflowY: "auto",
-            backgroundColor: "#1a2b2b",
-            border: "1px solid var(--border)",
-            borderRadius: "8px",
-            zIndex: 10000,
-            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.5)",
-          }}
-        >
+        <div className="searchable-multi-select-dropdown">
           {filteredOptions.length === 0 ? (
-            <div
-              style={{
-                padding: "1rem",
-                textAlign: "center",
-                color: "var(--text-secondary)",
-              }}
-            >
-              No options found
-            </div>
+            <div className="no-options">No options found</div>
           ) : (
             filteredOptions.map((option) => {
               const value = String(option[valueKey]);
@@ -156,38 +106,14 @@ export default function SearchableMultiSelect<T extends Record<string, any>>({
               return (
                 <label
                   key={value}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.75rem",
-                    padding: "0.75rem 1rem",
-                    cursor: "pointer",
-                    backgroundColor: isSelected
-                      ? "rgba(var(--neon-rgb), 0.1)"
-                      : "transparent",
-                    borderBottom: "1px solid var(--border)",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.backgroundColor =
-                        "rgba(var(--neon-rgb), 0.05)";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.backgroundColor = "transparent";
-                    }
-                  }}
+                  className={`dropdown-option ${isSelected ? "selected" : ""}`}
                 >
                   <input
                     type="checkbox"
                     checked={isSelected}
                     onChange={() => toggleOption(value)}
-                    style={{ cursor: "pointer" }}
                   />
-                  <span style={{ color: "var(--text)" }}>
-                    {String(option[labelKey])}
-                  </span>
+                  <span>{String(option[labelKey])}</span>
                 </label>
               );
             })
