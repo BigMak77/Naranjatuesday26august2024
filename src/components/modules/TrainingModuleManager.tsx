@@ -31,6 +31,7 @@ import ViewRoleAssignments from "@/components/roles/ViewRoleAssignments";
 import ViewModuleAssignments from "@/components/modules/ViewModuleAssignments";
 import BulkModuleAssignment from "@/components/modules/BulkModuleAssignment";
 import ModuleDocumentLinkDialog from "@/components/modules/ModuleDocumentLinkDialog";
+import GroupTraining from "@/components/training/GroupTraining";
 
 // Define Module type inline
 interface Module {
@@ -98,6 +99,7 @@ export default function TrainingModuleManager() {
   const [showDepartmentTrainingDialog, setShowDepartmentTrainingDialog] = useState(false);
   const [showViewModuleAssignmentsDialog, setShowViewModuleAssignmentsDialog] = useState(false);
   const [linkDocumentsModule, setLinkDocumentsModule] = useState<Module | null>(null);
+  const [showGroupTrainingDialog, setShowGroupTrainingDialog] = useState(false);
 
   // Function to fetch all tests
   const fetchAllTests = async () => {
@@ -727,6 +729,7 @@ export default function TrainingModuleManager() {
             setShowDepartmentTrainingDialog(false);
             setShowViewModuleAssignmentsDialog(false);
             setLinkDocumentsModule(null);
+            setShowGroupTrainingDialog(false);
           }}
           toolbar={
             (activeTab === "view" || activeTab === "archive" || activeTab === "add" || activeTab === "training") ? (
@@ -878,6 +881,14 @@ export default function TrainingModuleManager() {
                           icon={<FiEye />}
                           label="View Module Assignments"
                           onClick={() => setShowViewModuleAssignmentsDialog(true)}
+                        />
+                      </CustomTooltip>
+                      <CustomTooltip text="Assign training to groups">
+                        <TextIconButton
+                          variant="next"
+                          icon={<FiUsers />}
+                          label="Group Training"
+                          onClick={() => setShowGroupTrainingDialog(true)}
                         />
                       </CustomTooltip>
                     </div>
@@ -1818,6 +1829,18 @@ export default function TrainingModuleManager() {
           moduleId={linkDocumentsModule.id}
           moduleName={linkDocumentsModule.name}
         />
+      )}
+
+      {/* Group Training Dialog */}
+      {showGroupTrainingDialog && (
+        <OverlayDialog
+          open={true}
+          onClose={() => setShowGroupTrainingDialog(false)}
+          showCloseButton={true}
+          width={1200}
+        >
+          <GroupTraining />
+        </OverlayDialog>
       )}
     </>
   );
