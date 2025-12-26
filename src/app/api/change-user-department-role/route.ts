@@ -46,23 +46,34 @@ export async function POST(request: NextRequest) {
     console.log(`[API] Reason: ${change_reason}`);
 
     // 1. Update the users table
-    const { error: updateError } = await supabase
+    console.log(`[API] About to update user ${user_id} in database...`);
+    const { data: updateData, error: updateError } = await supabase
       .from("users")
       .update({
         department_id: new_department_id,
         role_id: new_role_id
       })
-      .eq("id", user_id);
+      .eq("id", user_id)
+      .select();
 
     if (updateError) {
-      console.error("[API] Error updating user:", updateError);
+      console.error("[API] Error updating user - Full error object:", JSON.stringify(updateError, null, 2));
+      console.error("[API] Error code:", updateError.code);
+      console.error("[API] Error message:", updateError.message);
+      console.error("[API] Error details:", updateError.details);
+      console.error("[API] Error hint:", updateError.hint);
       return NextResponse.json(
-        { error: "Failed to update user", details: updateError.message },
+        {
+          error: "Failed to update user",
+          details: updateError.message,
+          code: updateError.code,
+          hint: updateError.hint
+        },
         { status: 500 }
       );
     }
 
-    console.log(`[API] User updated successfully`);
+    console.log(`[API] User updated successfully. Updated data:`, updateData);
 
     // 2. Insert into user_role_history table
     const { error: historyError } = await supabase
@@ -85,35 +96,10 @@ export async function POST(request: NextRequest) {
       console.log(`[API] Role history recorded successfully`);
     }
 
-    // 3. Sync training assignments if role changed
-    let assignmentsSynced = false;
-    if (new_role_id !== old_role_id) {
-      try {
-        console.log(`[API] Role changed, syncing training assignments...`);
-
-        // Call the existing update-user-role-assignments API
-        const syncResponse = await fetch(`${request.nextUrl.origin}/api/update-user-role-assignments`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            user_id,
-            old_role_id,
-            new_role_id
-          })
-        });
-
-        if (!syncResponse.ok) {
-          const errorText = await syncResponse.text();
-          console.warn("[API] Failed to sync role assignments:", errorText);
-        } else {
-          const syncResult = await syncResponse.json();
-          console.log("[API] Role assignments synced:", syncResult);
-          assignmentsSynced = true;
-        }
-      } catch (syncErr) {
-        console.warn("[API] Error syncing role assignments:", syncErr);
-      }
-    }
+    // Note: Training assignment syncing is handled automatically by database triggers:
+    // - trigger_sync_role_training_on_update (for role-based assignments)
+    // - trigger_sync_department_training_on_update (for department-based assignments)
+    // No need to manually call update-user-role-assignments API
 
     return NextResponse.json({
       success: true,
@@ -121,8 +107,7 @@ export async function POST(request: NextRequest) {
       user_id,
       new_department_id,
       new_role_id,
-      history_recorded: !historyError,
-      assignments_synced: assignmentsSynced
+      history_recorded: !historyError
     });
   } catch (error: any) {
     console.error("[API] Unexpected error:", error);

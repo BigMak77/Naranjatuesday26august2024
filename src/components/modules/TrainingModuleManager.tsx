@@ -32,6 +32,7 @@ import ViewModuleAssignments from "@/components/modules/ViewModuleAssignments";
 import BulkModuleAssignment from "@/components/modules/BulkModuleAssignment";
 import ModuleDocumentLinkDialog from "@/components/modules/ModuleDocumentLinkDialog";
 import GroupTraining from "@/components/training/GroupTraining";
+import TrainingUpload from "@/components/training/TrainingUpload";
 
 // Define Module type inline
 interface Module {
@@ -100,6 +101,7 @@ export default function TrainingModuleManager() {
   const [showViewModuleAssignmentsDialog, setShowViewModuleAssignmentsDialog] = useState(false);
   const [linkDocumentsModule, setLinkDocumentsModule] = useState<Module | null>(null);
   const [showGroupTrainingDialog, setShowGroupTrainingDialog] = useState(false);
+  const [showBulkUploadDialog, setShowBulkUploadDialog] = useState(false);
 
   // Function to fetch all tests
   const fetchAllTests = async () => {
@@ -730,6 +732,7 @@ export default function TrainingModuleManager() {
             setShowViewModuleAssignmentsDialog(false);
             setLinkDocumentsModule(null);
             setShowGroupTrainingDialog(false);
+            setShowBulkUploadDialog(false);
           }}
           toolbar={
             (activeTab === "view" || activeTab === "archive" || activeTab === "add" || activeTab === "training") ? (
@@ -805,10 +808,10 @@ export default function TrainingModuleManager() {
                       </CustomTooltip>
                     </div>
                   ) : activeTab === "training" ? (
-                    <div style={{ 
-                      display: 'flex', 
-                      gap: '0.75rem', 
-                      alignItems: 'center', 
+                    <div style={{
+                      display: 'flex',
+                      gap: '0.75rem',
+                      alignItems: 'center',
                       height: '32px',
                       overflowX: 'auto',
                       overflowY: 'hidden',
@@ -816,14 +819,6 @@ export default function TrainingModuleManager() {
                       scrollbarWidth: 'thin',
                       WebkitOverflowScrolling: 'touch'
                     }}>
-                      <CustomTooltip text="Create new training module">
-                        <TextIconButton
-                          variant="add"
-                          icon={<FiPlus />}
-                          label="Create Module"
-                          onClick={() => setShowAddModuleDialog(true)}
-                        />
-                      </CustomTooltip>
                       <CustomTooltip text="Create new test">
                         <TextIconButton
                           variant="add"
@@ -889,6 +884,14 @@ export default function TrainingModuleManager() {
                           icon={<FiUsers />}
                           label="Group Training"
                           onClick={() => setShowGroupTrainingDialog(true)}
+                        />
+                      </CustomTooltip>
+                      <CustomTooltip text="Bulk upload training completions via CSV">
+                        <TextIconButton
+                          variant="upload"
+                          icon={<FiUpload />}
+                          label="Bulk Upload"
+                          onClick={() => setShowBulkUploadDialog(true)}
                         />
                       </CustomTooltip>
                     </div>
@@ -1840,6 +1843,18 @@ export default function TrainingModuleManager() {
           width={1200}
         >
           <GroupTraining />
+        </OverlayDialog>
+      )}
+
+      {/* Bulk Upload Dialog */}
+      {showBulkUploadDialog && (
+        <OverlayDialog
+          open={true}
+          onClose={() => setShowBulkUploadDialog(false)}
+          showCloseButton={true}
+          width={1200}
+        >
+          <TrainingUpload />
         </OverlayDialog>
       )}
     </>

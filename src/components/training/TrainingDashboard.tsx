@@ -1812,8 +1812,9 @@ export default function TrainingDashboard() {
       console.log("Module ID:", logTrainingData.moduleId);
       console.log("Assignment ID:", logTrainingData.assignmentId);
 
-      // 1) Insert into training_logs
-      const { error: insertErr } = await supabase.from("training_logs").insert([
+      // 1) Upsert into training_logs (insert or update if already exists for this user/module/date)
+      console.log("Upserting training log entry...");
+      const { error: upsertErr } = await supabase.from("training_logs").upsert(
         {
           auth_id: logTrainingData.authId,
           date: logForm.date,
@@ -1829,16 +1830,20 @@ export default function TrainingDashboard() {
           translation_language: logForm.translationRequired === 'yes' ? logForm.translationLanguage : null,
           translator_name: logForm.translationRequired === 'yes' ? logForm.translatorName : null,
         },
-      ]);
+        {
+          onConflict: 'auth_id,topic,date',
+          ignoreDuplicates: false
+        }
+      );
 
-      if (insertErr) {
-        console.error("Insert training_logs failed:", insertErr);
-        alert(`Failed to log training: ${insertErr.message}`);
+      if (upsertErr) {
+        console.error("Upsert training_logs failed:", upsertErr);
+        alert(`Failed to log training: ${upsertErr.message}`);
         setLogBusy(false);
         return;
       }
 
-      console.log("Training log inserted successfully");
+      console.log("Training log upserted successfully");
 
       // 2) Record completion via API
       console.log("Recording training outcome via API...");

@@ -131,7 +131,11 @@ export default function DepartmentRoleManager({
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to update department and role");
+        console.error("[DepartmentRoleManager] Full error response:", errorData);
+        console.error("[DepartmentRoleManager] Error code:", errorData.code);
+        console.error("[DepartmentRoleManager] Error details:", errorData.details);
+        console.error("[DepartmentRoleManager] Error hint:", errorData.hint);
+        throw new Error(errorData.details || errorData.error || "Failed to update department and role");
       }
 
       const result = await response.json();

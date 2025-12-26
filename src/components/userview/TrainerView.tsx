@@ -1339,6 +1339,21 @@ export default function TrainerRecordingPage() {
           const { id, ...updateData } = update;
           console.log(`[CSV Import] Updating assignment ${id} with:`, updateData);
 
+          // First, fetch the assignment details to get auth_id and item_id for training_logs
+          const { data: assignmentData, error: fetchError } = await supabase
+            .from("user_assignments")
+            .select("auth_id, item_id, item_type")
+            .eq("id", id)
+            .single();
+
+          if (fetchError) {
+            console.error(`[CSV Import] ❌ Error fetching assignment ${id}:`, fetchError);
+            errorDetails.push(`${id.substring(0, 8)}: ${fetchError.message}`);
+            errorCount++;
+            continue;
+          }
+
+          // Update the assignment
           const { data, error } = await supabase
             .from("user_assignments")
             .update(updateData)
@@ -1352,6 +1367,45 @@ export default function TrainerRecordingPage() {
           } else {
             console.log(`[CSV Import] ✅ Successfully updated assignment ${id}`, data);
             successCount++;
+
+            // Insert into training_logs for completion tracking
+            if (assignmentData && updateData.completed_at) {
+              const trainingDate = updateData.completed_at.split('T')[0];
+              const trainingTime = new Date(updateData.completed_at).toTimeString().split(' ')[0];
+
+              // Check if a log entry already exists to avoid duplicates
+              const { data: existingLog } = await supabase
+                .from("training_logs")
+                .select("id")
+                .eq("auth_id", assignmentData.auth_id)
+                .eq("topic", assignmentData.item_id)
+                .eq("date", trainingDate)
+                .maybeSingle();
+
+              if (!existingLog) {
+                const { error: logError } = await supabase
+                  .from("training_logs")
+                  .insert([{
+                    auth_id: assignmentData.auth_id,
+                    date: trainingDate,
+                    topic: assignmentData.item_id,
+                    duration_hours: 1,
+                    outcome: 'completed',
+                    notes: `Auto-logged from CSV import`,
+                    signature: null,
+                    trainer_signature: null,
+                    time: trainingTime
+                  }]);
+
+                if (logError) {
+                  console.warn(`[CSV Import] ⚠️ Failed to insert training log for ${id} (non-critical):`, logError.message);
+                } else {
+                  console.log(`[CSV Import] ✅ Training log created for ${id}`);
+                }
+              } else {
+                console.log(`[CSV Import] ℹ️ Training log already exists for ${id} - skipping duplicate`);
+              }
+            }
           }
         }
       }

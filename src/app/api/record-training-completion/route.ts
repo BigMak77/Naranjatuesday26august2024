@@ -171,6 +171,41 @@ export async function POST(req: NextRequest) {
     console.log("🔍 Verifying completed_at in database:", updatedAssignment?.[0]?.completed_at);
     console.log("🔍 Verifying training_outcome in database:", updatedAssignment?.[0]?.training_outcome);
 
+    // Note: When outcome is 'needs_improvement' or 'failed', the assignment stays open (completed_at remains NULL)
+    // The user can attempt the training again, and the duplicate check below prevents duplicate log entries on the same date
+
+    // 2) Upsert into training_logs for completion tracking
+    // Note: We now log ALL outcomes (completed, needs_improvement, failed) to track training history
+    // Using upsert to update if already exists for this user/item/date
+    console.log("📝 Upserting training log entry...");
+
+    // Extract date from completedAt (YYYY-MM-DD format)
+    const trainingDate = completedAt.split('T')[0];
+
+    const { error: logError } = await supabase
+      .from("training_logs")
+      .upsert({
+        auth_id: auth_id,
+        date: trainingDate,
+        topic: item_id, // module or document ID
+        duration_hours: 1, // Default duration
+        outcome: outcome, // Use the actual outcome (completed, needs_improvement, or failed)
+        notes: `Auto-logged from ${item_type} completion`,
+        signature: null, // No signature for auto-logged completions
+        trainer_signature: null,
+        time: new Date(completedAt).toTimeString().split(' ')[0] // Extract HH:MM:SS
+      }, {
+        onConflict: 'auth_id,topic,date',
+        ignoreDuplicates: false
+      });
+
+    if (logError) {
+      console.warn("⚠️ Failed to upsert training log (non-critical):", logError.message);
+      // Don't fail the whole operation if logging fails
+    } else {
+      console.log("✅ Training log entry upserted successfully");
+    }
+
     // 3) Auto-complete linked documents if module completed successfully
     let completedDocuments = 0;
     if (outcome === 'completed' && item_type === 'module' && linked_document_ids && Array.isArray(linked_document_ids) && linked_document_ids.length > 0) {

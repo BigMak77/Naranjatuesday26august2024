@@ -634,14 +634,18 @@ export default function GroupTraining() {
         <NeonTable
           columns={[
             { header: "Group Name", accessor: "name", align: "center" },
-            { header: "Description", accessor: "description", align: "center" },
+            { header: "Description", accessor: "description", width: 300, align: "left" },
             { header: "Members", accessor: "members", width: 100, align: "center" },
             { header: "Created", accessor: "created", width: 120, align: "center" },
             { header: "Actions", accessor: "actions", width: 400, align: "center" },
           ]}
           data={groups.map((group) => ({
             name: group.name,
-            description: group.description || <span style={{ color: "var(--text-secondary)", fontStyle: "italic" }}>No description</span>,
+            description: (
+              <div style={{ whiteSpace: "normal", wordWrap: "break-word", textAlign: "left" }}>
+                {group.description || <span style={{ color: "var(--text-secondary)", fontStyle: "italic" }}>No description</span>}
+              </div>
+            ),
             members: (
               <span style={{ color: "var(--accent)", fontWeight: 600 }}>
                 {group.member_count || 0}

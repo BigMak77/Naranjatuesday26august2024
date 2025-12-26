@@ -55,7 +55,7 @@
   --bg: #16cbcf;                   /* Background cyan */
   --panel: #053639;                /* Dark panel background */
   --field: #012b2b;                /* Form field background */
-  --border: #40e0d0;               /* Border color (neon) */
+  --border: #fff;               /* Border color (white) */
   --tooltip-bg: #0a4d4d;           /* Dark teal for tooltips */
 
   /* Status Colors */
@@ -144,66 +144,80 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ========== TYPOGRAPHY UTILITY CLASSES ========== */
 /* Font family utilities */
+/* Applies the app's standard sans-serif font to any element */
 .font-body {
   font-family: var(--font-family);
 }
 
 /* Font weight utilities */
+/* Makes text appear in regular/normal weight (not bold, not thin) */
 .font-normal {
   font-weight: var(--font-weight-normal); /* 400 */
 }
 
+/* Makes text slightly thicker than normal - good for subtle emphasis */
 .font-medium {
   font-weight: 500;
 }
 
+/* Makes text noticeably thicker - used for important labels or subheadings */
 .font-semibold {
   font-weight: 600;
 }
 
+/* Makes text fully bold - used for headers and strong emphasis */
 .font-bold {
   font-weight: var(--font-weight-header); /* 700 */
 }
 
 /* Font size utilities */
+/* Extra small text - used for tooltips and tiny labels (12px) */
 .text-xs {
   font-size: var(--font-size-tooltip); /* 12px */
 }
 
+/* Small text - the standard size for most body text, tables, and forms (14px) */
 .text-sm {
   font-size: var(--font-size-base); /* 14px */
 }
 
+/* Base/medium text - used for subheaders and important labels (16px) */
 .text-base {
   font-size: var(--font-size-subheader); /* 16px */
 }
 
+/* Large text - used for main headers and page titles (18px) */
 .text-lg {
   font-size: var(--font-size-header); /* 18px */
 }
 
+/* Extra large text - used for prominent headings and hero text (20px) */
 .text-xl {
   font-size: 1.25rem; /* 20px */
 }
 
-/* Opacity utilities */
+/* Opacity utilities - control how transparent/faded an element appears */
+/* Makes element 40% transparent - useful for disabled or less important content */
 .opacity-60 {
   opacity: 0.6;
 }
 
+/* Makes element 30% transparent - subtle fading effect */
 .opacity-70 {
   opacity: 0.7;
 }
 
+/* Makes element 25% transparent - gentle transparency */
 .opacity-75 {
   opacity: 0.75;
 }
 
+/* Makes element 20% transparent - very subtle transparency */
 .opacity-80 {
   opacity: 0.8;
 }
 
-/* Native form controls use app font */
+/* Native form controls use app font - ensures all inputs, dropdowns, and buttons use the same font as the rest of the app */
 input,
 select,
 textarea,
@@ -213,12 +227,15 @@ option {
   font-family: inherit;
 }
 
-/* Remove mystery gap under header on first element */
+/* Remove mystery gap under header on first element - prevents unwanted spacing at the top of main content */
 main > :first-child {
   margin-top: 0;
 }
 
 /* ========== ICONS: All icons white, no text in buttons ========== */
+/* Global icon styling - makes all SVG icons consistent: 20x20px, white color, outline style
+   This ensures icons look uniform across the entire application
+   pointer-events: none prevents icons from interfering with button clicks */
 svg {
   width: 20px !important;
   height: 20px !important;
@@ -235,6 +252,12 @@ svg {
    APP SHELL LAYOUT - CRITICAL SECTION FOR HEADER POSITIONING
    ================================================================================== */
 
+/* Main application container - uses CSS Grid to create a 4-row layout:
+   Row 1: Header (auto height)
+   Row 2: Toolbar (auto height)
+   Row 3: Main content (fills remaining space with 1fr)
+   Row 4: Footer (auto height)
+   This structure ensures the header stays sticky at the top while content scrolls */
 .app-shell {
   display: grid;
   grid-template-rows: auto auto 1fr auto;
@@ -245,6 +268,9 @@ svg {
 }
 
 /* ================== Header (Grid Row 1) ================== */
+/* Global header styling - stays fixed at the top of the page as you scroll (sticky positioning)
+   Features a teal-to-cyan gradient background with an orange bottom border
+   z-index: 100 ensures it stays above other content when scrolling */
 header.header,
 header.global-header {
   grid-row: 1;
@@ -265,7 +291,10 @@ header.global-header {
 
 /* ========== HEADER LAYOUT: Fixed spacing and alignment ========== */
 
-/* Header row container - flex layout with fixed spacing */
+/* Header row container - flex layout with fixed spacing
+   Creates a horizontal row that holds the logo, navigation, search, and user menu
+   All items are vertically centered and spread across the full width
+   Fixed height of 96px keeps the header consistent */
 .global-header-row {
   display: flex;
   flex-direction: row;
@@ -280,7 +309,8 @@ header.global-header {
   flex-wrap: nowrap;
 }
 
-/* Logo link - no additional spacing needed */
+/* Logo link - container for the company logo in the header
+   flex-shrink: 0 prevents the logo from getting squished when space is tight */
 .global-header-row > a {
   display: flex;
   align-items: center;
@@ -289,7 +319,9 @@ header.global-header {
   height: 100%;
 }
 
-/* Navigation - 4-column grid layout */
+/* Navigation - 4-column grid layout
+   Creates a navigation bar with 4 equal-width columns for menu items
+   flex: 1 makes it expand to fill available space between logo and search/auth area */
 .global-header-row nav {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -302,7 +334,8 @@ header.global-header {
 
 /* ========== NAVIGATION ITEMS: Dropdowns and links ========== */
 
-/* Dropdown container - centered in grid column */
+/* Dropdown container - centered in grid column
+   position: relative allows the dropdown menu to position itself absolutely relative to this container */
 .global-header-dropdown {
   position: relative;
   display: flex;
@@ -310,7 +343,10 @@ header.global-header {
   align-items: center;
 }
 
-/* Dropdown button - centered */
+/* Dropdown button - the clickable button that opens a dropdown menu in the header
+   Uses !important to override any conflicting styles from other CSS
+   white-space: nowrap prevents text from wrapping to multiple lines
+   transform: scale on active creates a "press down" animation effect */
 .global-header-dropdown .sidebar-action {
   display: flex !important;
   align-items: center !important;
@@ -334,17 +370,22 @@ header.global-header {
   vertical-align: middle !important;
 }
 
+/* Hover state - adds subtle white background when mouse hovers over dropdown button */
 .global-header-dropdown .sidebar-action:hover {
   background: rgba(255, 255, 255, 0.1);
 }
 
+/* Active/pressed state - slightly shrinks button to give tactile feedback */
 .global-header-dropdown .sidebar-action:active {
   transform: scale(0.98);
 }
 
 /* ========== DROPDOWN MENUS: Standardized spacing and typography ========== */
 
-/* Dropdown menu container */
+/* Dropdown menu container - the panel that appears when you click a dropdown button
+   position: absolute + top: 100% makes it appear directly below the button
+   z-index: 3002 ensures the menu appears above all other content
+   Orange background (#fa7a20) matches the app's secondary color scheme */
 .global-header-dropdown div[role="menu"] {
   position: absolute;
   top: 100%;
@@ -353,7 +394,7 @@ header.global-header {
   background: #fa7a20;
   box-shadow: 0 8px 24px rgba(0,0,0,0.15);
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid #fff;
   z-index: 3002;
   margin-top: 8px;
   padding: 8px 0;
@@ -362,7 +403,9 @@ header.global-header {
   gap: 2px;
 }
 
-/* Dropdown menu links - standardized typography */
+/* Dropdown menu links - individual items within the dropdown menu
+   Each link gets hover effect with semi-transparent white background
+   white-space: nowrap prevents link text from wrapping to multiple lines */
 .global-header-dropdown div[role="menu"] .global-header-link {
   display: block;
   padding: 12px 20px;
@@ -378,11 +421,14 @@ header.global-header {
   white-space: nowrap;
 }
 
+/* Hover effect for dropdown links - highlights the currently hovered menu item */
 .global-header-dropdown div[role="menu"] .global-header-link:hover {
   background: rgba(255, 255, 255, 0.1);
 }
 
-/* Navigation links - centered in grid column */
+/* Navigation links - centered in grid column
+   These are direct links (not dropdowns) in the main navigation bar
+   Styled similarly to dropdown buttons for visual consistency */
 .global-header-row nav > .global-header-link {
   display: flex !important;
   justify-content: center !important;
@@ -403,16 +449,20 @@ header.global-header {
   vertical-align: middle !important;
 }
 
+/* Hover effect for navigation links */
 .global-header-row nav > .global-header-link:hover {
   background: rgba(255, 255, 255, 0.1);
 }
 
+/* Press effect for navigation links */
 .global-header-row nav > .global-header-link:active {
   transform: scale(0.98);
 }
 
 /* ========== SEARCH BAR: Standardized spacing ========== */
 
+/* Search form container - holds the search icon and input field together
+   flex-shrink: 0 prevents the search bar from collapsing when space is limited */
 .global-header-search-form {
   display: flex;
   align-items: center;
@@ -424,6 +474,7 @@ header.global-header {
   flex-shrink: 0;
 }
 
+/* Search icon - the magnifying glass icon displayed next to the search input */
 .global-header-search-icon {
   display: inline-flex;
   align-items: center;
@@ -431,6 +482,9 @@ header.global-header {
   color: var(--text-white);
 }
 
+/* Search input field - where users type their search queries
+   Semi-transparent white background creates a subtle contrast against the header
+   min-width: 200px ensures the field is wide enough to be usable */
 .global-header-search-input {
   display: inline-block !important;
   vertical-align: middle !important;
@@ -439,7 +493,7 @@ header.global-header {
   height: 32px !important;
   line-height: 30px !important;
   background: rgba(255, 255, 255, 0.1) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border: 1px solid #fff !important;
   border-radius: 8px !important;
   font-size: 12px !important;
   font-family: var(--font-family) !important;
@@ -449,18 +503,23 @@ header.global-header {
   box-sizing: border-box !important;
 }
 
+/* Placeholder text styling - makes the "Search..." text slightly faded */
 .global-header-search-input::placeholder {
   color: rgba(255, 255, 255, 0.6);
 }
 
+/* Focus state - brightens the input when user clicks into it */
 .global-header-search-input:focus {
   outline: none;
-  border-color: rgba(255, 255, 255, 0.4);
+  border-color: #fff;
   background: rgba(255, 255, 255, 0.15);
 }
 
 /* ========== AUTH AREA: User menu and login - Standardized ========== */
 
+/* Auth area container - holds login button or user menu in the top right of the header
+   justify-content: flex-end pushes content to the right side
+   min-width: 220px reserves space so other header items don't overlap */
 .global-header-auth {
   display: flex;
   align-items: center;
@@ -471,6 +530,7 @@ header.global-header {
   height: 100%;
 }
 
+/* Text within auth area (like username displays) */
 .global-header-auth span {
   font-size: 12px;
   font-family: var (--font-family);
@@ -478,7 +538,8 @@ header.global-header {
   color: var(--text-white);
 }
 
-/* Login button */
+/* Login button - prominent red button for users who aren't logged in
+   Red background (#e94f4f) makes it stand out as a call-to-action */
 .global-header-login-btn {
   display: inline-flex !important;
   align-items: center !important;
@@ -503,14 +564,17 @@ header.global-header {
   vertical-align: middle !important;
 }
 
+/* Hover effect - darkens the red when mouse hovers over login button */
 .global-header-login-btn:hover {
   background: #d43f3f;
 }
 
+/* Click effect - slightly shrinks button when clicked */
 .global-header-login-btn:active {
   transform: scale(0.98);
 }
 
+/* Text inside the login button */
 .global-header-login-btn span {
   display: inline-block;
   font-size: var(--font-size-base);
@@ -519,11 +583,15 @@ header.global-header {
 
 /* ========== USER MENU: Standardized typography and spacing ========== */
 
+/* User menu container - wraps the user button and dropdown
+   position: relative makes the dropdown position itself relative to this container */
 .global-header-user-menu {
   position: relative;
 }
 
-/* User button */
+/* User button - orange pill-shaped button showing username/avatar for logged-in users
+   border-radius: 24px creates the pill/capsule shape
+   Orange background (#fa7a20) is the app's secondary brand color */
 .global-header-user-btn {
   display: inline-flex !important;
   align-items: center !important;
@@ -534,7 +602,7 @@ header.global-header {
   height: 40px !important;
   line-height: 36px !important;
   margin: 0 !important;
-  border: 2px solid var(--text-white) !important;
+  border: 2px solid #fff !important;
   cursor: pointer !important;
   font-weight: var(--font-weight-normal) !important;
   font-size: var(--font-size-base) !important;
@@ -547,15 +615,19 @@ header.global-header {
   vertical-align: middle !important;
 }
 
+/* Hover effect - darkens orange background */
 .global-header-user-btn:hover {
   background: #e96a10;
 }
 
+/* Click effect - shrinks slightly when pressed */
 .global-header-user-btn:active {
   transform: scale(0.98);
 }
 
-/* User avatar - standardized sizing */
+/* User avatar - circular badge showing user's initials
+   border-radius: 50% makes it perfectly circular
+   Displays user initials in white text on orange background */
 .global-header-user-avatar {
   width: 32px;
   height: 32px;
@@ -567,12 +639,14 @@ header.global-header {
   font-weight: var(--font-weight-header);
   font-size: var(--font-size-base);
   color: var(--text-white);
-  border: 2px solid var(--text-white);
+  border: 2px solid #fff;
   box-sizing: border-box;
   flex-shrink: 0;
 }
 
-/* User dropdown menu - standardized spacing */
+/* User dropdown menu - appears below user button when clicked
+   right: 0 aligns it to the right edge (so it doesn't overflow off screen)
+   Contains links like "Profile", "Settings", "Logout" */
 .global-header-user-dropdown {
   position: absolute;
   top: 110%;
@@ -581,7 +655,7 @@ header.global-header {
   background: #fa7a20;
   box-shadow: 0 8px 24px rgba(0,0,0,0.15);
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid #fff;
   z-index: 3002;
   margin-top: 8px;
   padding: 8px 0;
@@ -590,7 +664,8 @@ header.global-header {
   gap: 2px;
 }
 
-/* Menu items - standardized typography */
+/* Menu items - individual links/buttons within the user dropdown
+   Can be either links (<a>) or buttons (<button>) for actions like logout */
 .global-header-menu-item {
   display: inline-flex;
   align-items: center;
@@ -611,12 +686,15 @@ header.global-header {
   white-space: nowrap;
 }
 
+/* Hover effect for menu items */
 .global-header-menu-item:hover {
   background: rgba(255, 255, 255, 0.1);
 }
 
 /* ========== SIREN BUTTON: Issue alert ========== */
 
+/* Siren button - alert/notification button (often used for emergency or important alerts)
+   Square 40x40px icon button that can trigger an alert modal */
 .global-header-siren-btn {
   display: inline-flex;
   align-items: center;
@@ -629,15 +707,21 @@ header.global-header {
   flex-shrink: 0;
 }
 
+/* Hover effect - adds subtle background */
 .global-header-siren-btn:hover {
   background: rgba(255, 255, 255, 0.1);
 }
 
+/* Click effect */
 .global-header-siren-btn:active {
   transform: scale(0.98);
 }
 
 /* ================== Toolbar (Grid Row 2) ================== */
+/* Section toolbar - secondary navigation bar that appears below the main header
+   Stays sticky beneath the header (top: var(--header-height) = 96px)
+   z-index: 90 keeps it above content but below the header (which is 100)
+   Contains action buttons, filters, and search specific to each page/section */
 .section-toolbar {
   grid-row: 2;
   position: sticky;
@@ -654,10 +738,11 @@ header.global-header {
   justify-content: space-between;
   align-items: center;
   padding: 0 10px;
-  border-bottom: 1px solid rgba(250, 122, 32, 0.3);
+  border-bottom: 1px solid #fff;
 }
 
 /* ========== TOOLBAR BUTTON CONTAINER ========== */
+/* Container that holds a group of toolbar buttons together with spacing between them */
 .toolbar-buttons {
   display: flex;
   align-items: center;
@@ -665,6 +750,9 @@ header.global-header {
 }
 
 /* ========== TOOLBAR TEXT-ICON BUTTONS ========== */
+/* Buttons in the toolbar that show both an icon and text label
+   These are action buttons like "Add User", "Export", "Delete" etc.
+   Transparent background with hover effect */
 .section-toolbar .text-icon-btn {
   height: 40px;
   padding: 0 16px;
@@ -675,36 +763,44 @@ header.global-header {
   transition: all 0.2s ease;
 }
 
-/* Training Module Toolbar - Override for consistent height */
+/* Training Module Toolbar - Override for consistent height
+   Makes buttons slightly smaller in the training module toolbar */
 .training-module-toolbar .text-icon-btn {
   height: 32px;
   padding: 0 12px;
 }
 
+/* Hover effect for toolbar buttons - adds subtle cyan tint when enabled
+   :not(:disabled) prevents hover effect on disabled buttons */
 .section-toolbar .text-icon-btn:hover:not(:disabled) {
   background: rgba(64, 224, 208, 0.1);
 }
 
+/* Disabled state - makes buttons semi-transparent and prevents clicking */
 .section-toolbar .text-icon-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
+/* Icon within text-icon buttons - slightly larger than standard icons */
 .section-toolbar .text-icon-btn-icon {
   font-size: 1.125rem;
 }
 
+/* Text label within text-icon buttons */
 .section-toolbar .text-icon-btn-label {
   font-size: 0.875rem;
   font-weight: 500;
 }
 
 /* ========== TOOLBAR DROPDOWN CONTAINER ========== */
+/* Wrapper for dropdown menus in the toolbar - allows absolute positioning of dropdown */
 .toolbar-dropdown {
   position: relative;
 }
 
 /* ========== TOOLBAR TEXT STYLING ========== */
+/* All text elements directly in the toolbar use small 12px font */
 .section-toolbar span,
 .section-toolbar > span {
   font-size: 0.75rem; /* 12px */
@@ -713,12 +809,15 @@ header.global-header {
   color: var(--text-white);
 }
 
+/* User info display in toolbar - shows current user details
+   white-space: nowrap prevents text from breaking into multiple lines */
 .toolbar-user-info {
   min-width: 200px;
   white-space: nowrap;
 }
 
 /* ========== TOOLBAR FILTER & SEARCH CONTAINERS ========== */
+/* Containers that group filter/search controls together in the toolbar */
 .toolbar-filter,
 .toolbar-search {
   display: flex;
@@ -726,14 +825,18 @@ header.global-header {
   gap: 0.5rem;
 }
 
+/* Additional left margin to separate search from other toolbar elements */
 .toolbar-search {
   margin-left: 1rem;
 }
 
 /* ========== TOOLBAR SELECT DROPDOWN ========== */
+/* Dropdown select boxes in the toolbar (e.g., department filter, status filter)
+   Dark field background with orange border matching the app theme
+   min-width: 180px ensures dropdown is wide enough to display options clearly */
 .toolbar-select {
   background: var(--field);
-  border: 1px solid #fa7a20;
+  border: 1px solid #fff;
   border-radius: 8px;
   padding: 0.5rem 1rem;
   color: var(--text-white);
@@ -746,25 +849,30 @@ header.global-header {
   transition: all 0.2s ease;
 }
 
+/* Focus state - brightens border and adds glow when user clicks into the dropdown */
 .toolbar-select:focus {
-  border-color: #ff8c3a;
+  border-color: #fff;
   box-shadow: 0 0 8px rgba(250, 122, 32, 0.3);
 }
 
+/* Disabled state - fades out the dropdown when it cannot be used */
 .toolbar-select:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
+/* Options within the dropdown - dark background matching the panel color */
 .toolbar-select option {
   background: var(--panel);
   color: var(--text-white);
 }
 
 /* ========== TOOLBAR INPUT (SEARCH) ========== */
+/* Search input fields in the toolbar (e.g., "Search users...", "Filter records...")
+   Fixed width of 250px provides consistent sizing across different toolbars */
 .toolbar-input {
   background: var(--field);
-  border: 1px solid #fa7a20;
+  border: 1px solid #fff;
   border-radius: 8px;
   padding: 0.5rem 1rem;
   color: var(--text-white);
@@ -776,52 +884,69 @@ header.global-header {
   transition: all 0.2s ease;
 }
 
+/* Placeholder text styling - faded white for hints like "Search..." */
 .toolbar-input::placeholder {
   color: rgba(255, 255, 255, 0.4);
 }
 
+/* Focus state - brightens and adds glow when user clicks into the input */
 .toolbar-input:focus {
-  border-color: #ff8c3a;
+  border-color: #fff;
   box-shadow: 0 0 8px rgba(250, 122, 32, 0.3);
 }
 
+/* Disabled state - fades the input when it cannot be used */
 .toolbar-input:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
 /* ========== ROLE-SPECIFIC TOOLBAR COLORS ========== */
+/* Each user role gets a different colored toolbar to visually distinguish their view
+   Gradients fade from a role-specific color to the standard panel color */
+
+/* Admin toolbar - dark gray/black gradient for administrator view */
 .section-toolbar-admin {
   background: linear-gradient(90deg, rgb(24, 23, 23) 0%, var(--panel) 100%);
-  border-bottom: 1px solid rgba(220, 38, 38, 0.3);
+  border-bottom: 1px solid #fff;
 }
 
+/* Manager toolbar - bright green gradient for manager view */
 .section-toolbar-manager {
   background: linear-gradient(90deg, rgba(51, 217, 5, 0.877) 0%, var(--panel) 100%);
-  border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+  border-bottom: 1px solid #fff;
 }
 
+/* HR toolbar - purple gradient for human resources view */
 .section-toolbar-hr {
   background: linear-gradient(90deg, rgba(168, 85, 247, 0.15) 0%, var(--panel) 100%);
-  border-bottom: 1px solid rgba(168, 85, 247, 0.3);
+  border-bottom: 1px solid #fff;
 }
 
+/* Trainer toolbar - orange gradient for trainer view */
 .section-toolbar-trainer {
   background: linear-gradient(90deg, rgba(250, 122, 32, 0.15) 0%, var(--panel) 100%);
-  border-bottom: 2px solid #fa7a20;
+  border-bottom: 2px solid #fff;
 }
 
+/* Health & Safety toolbar - dark green gradient for H&S view */
 .section-toolbar-hs {
   background: linear-gradient(90deg, rgb(0, 43, 7) 0%, var(--panel) 100%);
-  border-bottom: 1px solid rgba(234, 179, 8, 0.3);
+  border-bottom: 1px solid #fff;
 }
 
+/* Regular user toolbar - cyan gradient for standard user view */
 .section-toolbar-user {
   background: linear-gradient(90deg, rgba(64, 224, 208, 0.10) 0%, var (--panel) 100%);
-  border-bottom: 1px solid rgba(64, 224, 208, 0.18);
+  border-bottom: 1px solid #fff;
 }
 
 /* ================== Main Content (Grid Row 3) ================== */
+/* Main content area - this is where all page content lives
+   Teal background (#0a706a) with orange border creates the main content box
+   max-width: 1400px keeps content from getting too wide on large screens
+   margin-inline: auto centers it horizontally
+   overflow: visible allows scrolling for content that exceeds viewport height */
 main.content {
   grid-row: 3;
   width: 100%;
@@ -831,7 +956,7 @@ main.content {
   margin-bottom: 2.5rem;
   padding: 2.5rem var(--gutter);
   background: #0a706a;
-  border: 2px solid #fa7a20;
+  border: 2px solid #fff;
   border-radius: var(--radius);
   box-sizing: border-box;
   min-height: fit-content; /* Ensure content can expand */
@@ -839,14 +964,17 @@ main.content {
 }
 
 /* ================== Footer (Grid Row 4) ================== */
+/* Site footer - appears at the bottom of every page
+   Very dark teal background (#062b2b) distinguishes it from main content */
 footer.site-footer {
   grid-row: 4;
   width: 100%;
   background: #062b2b;
-  border-top: 1px solid rgba(64, 224, 208, 0.18);
+  border-top: 1px solid #fff;
   padding: 2rem var(--gutter);
 }
 
+/* Inner footer container - centers footer content and limits width */
 footer.site-footer .inner {
   max-width: var(--page-max);
   margin-inline: auto;
@@ -854,6 +982,8 @@ footer.site-footer .inner {
 }
 
 /* ================== DASHBOARD & GLOBAL CONTENT WRAPPERS ================== */
+/* Global content wrapper - constrains content width and centers it
+   Used for consistent content width across different pages */
 .global-content {
   width: 100%;
   max-width: 1200px;
@@ -861,6 +991,9 @@ footer.site-footer .inner {
   padding: 0 1rem;
 }
 
+/* Dashboard cards grid - creates a responsive grid of dashboard cards
+   repeat(auto-fit, minmax(280px, 1fr)) makes cards automatically wrap to new rows
+   Each card is at least 280px wide and expands to fill available space */
 .dashboard-cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -869,6 +1002,10 @@ footer.site-footer .inner {
 }
 
 /* ================== DASHBOARD BUTTONS ================== */
+/* Neon button - primary action button with bright cyan background
+   Used for main actions like "Submit", "Save", "Continue"
+   Cyan color (--neon) makes it stand out as the primary call-to-action
+   transform: translateY creates a subtle "lift" effect on hover */
 .neon-button {
   background: var(--neon) !important;
   color: var(--text-white) !important;
@@ -887,17 +1024,22 @@ footer.site-footer .inner {
   gap: 0.5rem;
 }
 
+/* Hover effect - slightly lifts button and adds glowing shadow */
 .neon-button:hover {
   background: rgba(64, 224, 208, 0.9) !important;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(64, 224, 208, 0.3);
 }
 
+/* Active/pressed state - returns button to original position */
 .neon-button:active {
   transform: translateY(0);
 }
 
 /* ================== Large Icon Buttons (60px circular) ================== */
+/* Large circular icon button - used for prominent icon-only actions
+   60x60px circular button with neon cyan border
+   border-radius: 50% makes it perfectly circular */
 .neon-btn-large {
   width: 60px !important;
   height: 60px !important;
@@ -907,20 +1049,26 @@ footer.site-footer .inner {
   max-height: 60px !important;
   border-radius: 50%;
   background: var(--panel);
-  border: 2px solid var(--neon);
+  border: 2px solid #fff;
 }
 
+/* Hover effect - fills background with neon cyan color */
 .neon-btn-large:hover {
   background: var(--neon);
-  border-color: var(--accent);
+  border-color: #fff;
 }
 
+/* Icons within large buttons are bigger (30px instead of default 20px) */
 .neon-btn-large svg {
   width: 30px !important;
   height: 30px !important;
 }
 
 /* ========== LARGE ICON BUTTONS: For dashboard/menu items ========== */
+/* Large square icon button with rounded corners - used in dashboards and menu screens
+   60x60px with 12px border radius (rounded square, not circular)
+   flex: none prevents button from growing/shrinking in flex layouts
+   margin-right: 12px creates spacing when buttons are placed side-by-side */
 .large-neon-icon-btn {
   width: 60px;
   height: 60px;
@@ -938,37 +1086,42 @@ footer.site-footer .inner {
   border-radius: 12px;
   background: var(--panel);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  border: 1px solid var(--border);
+  border: 1px solid #fff;
   cursor: pointer;
   transition: all 0.2s ease;
   margin-right: 12px;
   position: relative;
 }
 
+/* Removes right margin from the last button in a row to prevent extra spacing */
 .large-neon-icon-btn:last-child {
   margin-right: 0;
 }
 
+/* Icons inside large buttons use default white color */
 .large-neon-icon-btn svg {
   color: #fff !important;
   stroke: #fff !important;
   fill: none !important;
 }
 
+/* Hover effect - fills with neon cyan, lifts up, and adds glowing shadow */
 .large-neon-icon-btn:hover {
   background: var(--neon);
   box-shadow: 0 6px 20px rgba(64, 224, 208, 0.4);
   transform: translateY(-2px);
 }
 
+/* Active/pressed state - returns to normal position */
 .large-neon-icon-btn:active {
   transform: translateY(0px);
 }
 
-/* Color variations for large buttons */
+/* Color variations for large buttons - different backgrounds for different button types */
+/* Blue variant - typically used for informational actions */
 .large-neon-icon-btn.blue {
   background: #1e40af;
-  border-color: #3b82f6;
+  border-color: #fff;
 }
 
 .large-neon-icon-btn.blue:hover {
@@ -976,9 +1129,10 @@ footer.site-footer .inner {
   box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
 }
 
+/* Orange variant - typically used for warning or important actions */
 .large-neon-icon-btn.orange {
   background: #ea580c;
-  border-color: #f97316;
+  border-color: #fff;
 }
 
 .large-neon-icon-btn.orange:hover {
@@ -986,9 +1140,10 @@ footer.site-footer .inner {
   box-shadow: 0 6px 20px rgba(249, 115, 22, 0.4);
 }
 
+/* Green variant - typically used for success or positive actions */
 .large-neon-icon-btn.green {
   background: #16a34a;
-  border-color: #22c55e;
+  border-color: #fff;
 }
 
 .large-neon-icon-btn.green:hover {
@@ -996,9 +1151,10 @@ footer.site-footer .inner {
   box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
 }
 
+/* Purple variant - typically used for special or administrative actions */
 .large-neon-icon-btn.purple {
   background: #7c3aed;
-  border-color: #a855f7;
+  border-color: #fff;
 }
 
 .large-neon-icon-btn.purple:hover {
@@ -1009,6 +1165,8 @@ footer.site-footer .inner {
 /* ================== PAGE LAYOUT STRUCTURE ================== */
 
 /* ========== TEXT UTILITY CLASSES: Standardized typography ========== */
+/* Main heading classes - used for page titles and section headers
+   18px bold white text with tight line-height for a compact look */
 .neon-heading,
 .main-header {
   color: var(--header-text);
@@ -1019,6 +1177,8 @@ footer.site-footer .inner {
   line-height: 1.2;
 }
 
+/* Body text and subheader classes - used for descriptions and secondary text
+   14px normal weight white text */
 .neon-text,
 .main-subheader {
   color: var(--text-white);
@@ -1028,15 +1188,18 @@ footer.site-footer .inner {
   margin-top: 0.5rem;
 }
 
+/* Container for page headers - provides bottom spacing */
 .main-header-container {
   margin-bottom: 1.5rem;
 }
 
+/* Extra bottom spacing when header has a subtitle beneath it */
 .main-header-container.with-subtitle {
   margin-bottom: 2.5rem;
 }
 
-/* Header row layout for title with help icon */
+/* Header row layout for title with help icon
+   Flexbox layout that places header text and help icon side-by-side */
 .neon-header-row {
   display: flex;
   align-items: center;
@@ -1044,6 +1207,8 @@ footer.site-footer .inner {
   margin-bottom: 0.5rem;
 }
 
+/* Help icon button - typically a small question mark icon next to headers
+   Faded by default (70% opacity), brightens to full opacity on hover */
 .neon-help-icon {
   display: flex;
   align-items: center;
@@ -1053,6 +1218,7 @@ footer.site-footer .inner {
   transition: opacity 0.2s ease;
 }
 
+/* Hover effect - makes help icon fully opaque to indicate it's interactive */
 .neon-help-icon:hover {
   opacity: 1;
 }
@@ -1062,6 +1228,9 @@ footer.site-footer .inner {
    ================================================================================== */
 
 /* ========== FORM LABELS: Header color and weight ========== */
+/* Standard label styling - bold white text that appears above form inputs
+   16px size makes labels clearly readable
+   Block display puts each label on its own line above the input */
 label {
   display: block;
   font-weight: var(--font-weight-header);
@@ -1072,6 +1241,12 @@ label {
 }
 
 /* ========== FORM INPUTS: White text, standard size ========== */
+/* All standard text inputs, email, password, search, date, number fields, and select dropdowns
+   Dark field background with cyan border matches the app's color scheme
+   14px text size ensures readability
+   Full width makes inputs span their container
+   32px height creates consistent sizing across all input types
+   Transitions create smooth visual feedback when interacting with inputs */
 input[type="text"],
 input[type="email"],
 input[type="password"],
@@ -1085,7 +1260,7 @@ select {
   font-size: var(--font-size-base);
   font-family: var(--font-family);
   font-weight: var(--font-weight-normal);
-  border: 1px solid var(--border);
+  border: 1px solid #fff;
   border-radius: 6px;
   padding: 0.5rem 1rem;
   height: 32px;
@@ -1093,6 +1268,9 @@ select {
   transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
 }
 
+/* Textarea inputs - multi-line text areas for longer content (comments, descriptions, etc.)
+   Similar styling to regular inputs but with more vertical padding
+   Height is auto to allow expansion based on content */
 textarea {
   width: 100%;
   background: var(--field);
@@ -1100,27 +1278,34 @@ textarea {
   font-size: var(--font-size-base);
   font-family: var(--font-family);
   font-weight: var(--font-weight-normal);
-  border: 1px solid var(--border);
+  border: 1px solid #fff;
   border-radius: 6px;
   padding: 0.75rem 1rem;
   margin-bottom: 1rem;
   transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
 }
 
+/* Focus state for all inputs - brightens border to neon cyan and adds subtle glow
+   Provides clear visual feedback when user clicks into a field
+   outline: none removes the default browser outline, replaced with custom styling */
 input:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  border-color: var(--neon);
+  border-color: #fff;
   box-shadow: 0 0 0 3px rgba(64, 224, 208, 0.1);
 }
 
-/* Remove global max-width for search inputs */
+/* Remove global max-width for search inputs - allows search fields to size naturally */
 input[type="search"] {
   box-shadow: none !important;
 }
 
-/* Custom select arrow (maintains native accessibility) */
+/* Custom select arrow (maintains native accessibility)
+   Hides browser's default arrow and adds custom cyan down-arrow SVG
+   appearance: none removes default select styling
+   padding-right: 2.25rem makes room for the custom arrow icon
+   SVG is embedded as data URL to avoid external file dependency */
 select {
   appearance: none;
   padding-right: 2.25rem;
@@ -1138,7 +1323,7 @@ select {
   font-size: var(--font-size-base);
   font-family: var(--font-family);
   font-weight: var(--font-weight-normal);
-  border: 1.5px solid var(--neon);
+  border: 1.5px solid #fff;
   border-radius: 8px;
   min-height: 40px;
   height: 40px;
@@ -1187,13 +1372,13 @@ select.neon-input option {
 
 .neon-input:focus {
   outline: none;
-  border-color: var(--neon);
+  border-color: #fff;
   box-shadow: 0 0 0 2px rgba(64, 224, 208, 0.2);
   background-color: rgba(64, 224, 208, 0.05);
 }
 
 .neon-input:hover:not(:focus) {
-  border-color: rgba(64, 224, 208, 0.8);
+  border-color: #fff;
   background-color: rgba(64, 224, 208, 0.02);
 }
 
@@ -1281,13 +1466,13 @@ label.inline {
 }
 
 .neon-input.error {
-  border-color: var(--text-error);
+  border-color: #fff;
   background: rgba(234, 28, 28, 0.1);
 }
 
 .neon-error-banner {
   background: rgba(234, 28, 28, 0.2);
-  border: 1px solid var(--text-error);
+  border: 1px solid #fff;
   border-radius: 8px;
   padding: 1rem;
   margin-bottom: 1rem;
@@ -1300,7 +1485,7 @@ label.inline {
 
 .neon-success-banner {
   background: rgba(22, 163, 74, 0.2);
-  border: 1px solid var(--text-success);
+  border: 1px solid #fff;
   border-radius: 8px;
   padding: 1rem;
   margin-bottom: 1rem;
@@ -1321,7 +1506,7 @@ label.inline {
   align-items: center;
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(64, 224, 208, 0.3);
+  border-bottom: 1px solid #fff;
 }
 
 /* ========== FORM ICONS: White icons ========== */
@@ -1341,7 +1526,7 @@ label.inline {
 /* ========== PANELS: White text ========== */
 .neon-form {
   background: var(--panel);
-  border: 1px solid #fa7a20;
+  border: 1px solid #fff;
   border-radius: var(--radius);
   padding: 2rem;
   color: var(--text-white);
@@ -1363,7 +1548,7 @@ label.inline {
 
 .neon-panel {
   background: var(--panel);
-  border: 1px solid #fa7a20;
+  border: 1px solid #fff;
   border-radius: 16px;
   padding: 2rem;
   color: var(--text-white);
@@ -1456,7 +1641,7 @@ label.inline {
   font-size: var(--font-size-base);
   font-family: var(--font-family);
   font-weight: var(--font-weight-header);
-  border: 1px solid var(--neon) !important;
+  border: 1px solid #fff !important;
   padding: 0.75rem 1.5rem;
   width: auto;
   height: auto;
@@ -1491,12 +1676,12 @@ label.inline {
   max-height: 60px !important;
   border-radius: 50%;
   background: var(--panel);
-  border: 2px solid var(--neon);
+  border: 2px solid #fff;
 }
 
 .neon-btn-large:hover {
   background: var(--neon);
-  border-color: var(--accent);
+  border-color: #fff;
 }
 
 .neon-btn-large svg {
@@ -1530,13 +1715,15 @@ label.inline {
   font-weight: 500;
   color: var(--neon);
   background: rgba(1, 77, 77, 0.6);
-  border: 1px solid rgba(64, 224, 208, 0.3);
+  border: 1px solid #fff;
   border-bottom: none;
   border-radius: 8px 8px 0 0;
   cursor: pointer;
   transition: all 0.2s;
   position: relative;
   z-index: 1;
+  flex: 1;
+  min-width: 0;
 }
 
 /* ========== ACTIVE TAB ========== */
@@ -1544,7 +1731,7 @@ label.inline {
   background: linear-gradient(135deg, #fa7a20, #ff8c3a);
   color: white;
   font-weight: 600;
-  border: 1px solid #fa7a20;
+  border: 1px solid #fff;
   border-bottom: none;
   z-index: 3;
 }
@@ -1559,7 +1746,7 @@ label.inline {
 .folder-tab:hover:not(.active) {
   background: rgba(1, 77, 77, 0.8);
   color: var(--neon);
-  border-color: rgba(64, 224, 208, 0.5);
+  border-color: #fff;
 }
 
 .folder-tab:focus {
@@ -1595,6 +1782,10 @@ label.inline {
    ================================================================================== */
 
 /* ========== TABLE STYLES: Headers cyan, body text white ========== */
+/* Main table component - used for displaying data in rows and columns
+   Dark panel background with orange border
+   border-collapse: separate allows for rounded corners
+   overflow: hidden ensures border-radius clips content properly */
 .neon-table {
   width: 100%;
   border-collapse: separate;
@@ -1606,61 +1797,72 @@ label.inline {
   font-family: var(--font-family);
 }
 
+/* Table header section - subtle cyan tinted background to distinguish from body */
 .neon-table thead {
   background: rgba(64, 224, 208, 0.1);
 }
 
-/* Table headers use header styling */
+/* Table headers use header styling - bold white text with orange bottom border
+   text-align: left keeps headers aligned with their data columns */
 .neon-table th {
   padding: 1rem;
   text-align: left;
   font-weight: var(--font-weight-header);
   font-size: var(--font-size-base);
   color: var(--header-text);
-  border-bottom: 2px solid var(--neon);
+  border-bottom: 2px solid #fa7a20;
 }
 
-/* Table data cells use white text */
+/* Table data cells use white text - normal weight for easy reading
+   Each cell has a subtle orange bottom border to separate rows */
 .neon-table td {
   padding: 1rem;
-  border-bottom: 1px solid rgba(64, 224, 208, 0.18);
+  border-bottom: 1px solid #fa7a20;
   color: var(--text-white);
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-normal);
 }
 
+/* Remove bottom border from last row to avoid double-border with table border */
 .neon-table tbody tr:last-child td {
   border-bottom: none;
 }
 
+/* Hover effect on table rows - subtle cyan highlight shows which row you're looking at */
 .neon-table tbody tr:hover {
   background: rgba(64, 224, 208, 0.05);
 }
 
-/* Table header alignment classes */
+/* Table header alignment classes - utility classes for aligning table headers */
+/* Left-align header text (default for most headers) */
 .neon-table-header-left {
   text-align: left;
 }
 
+/* Center-align header text (useful for numeric or status columns) */
 .neon-table-header-center {
   text-align: center;
 }
 
+/* Right-align header text (useful for numeric columns like prices or quantities) */
 .neon-table-header-right {
   text-align: right;
 }
 
 /* Table cell specific styles */
+/* Name cells - slightly bolder to emphasize primary identifier in table */
 .neon-table-name {
   font-weight: 600;
   color: var(--text-white);
 }
 
+/* Table footer - appears below table with summary information or pagination
+   Subtle cyan background distinguishes it from table body */
 .neon-table-footer {
   margin-top: 1rem;
   padding: 0.75rem;
   background: rgba(64, 224, 208, 0.05);
-  border: 1px solid rgba(64, 224, 208, 0.2);
+  border: 1px solid #fa7a20;
   border-radius: var(--radius);
   color: var(--text-white);
   font-size: var(--font-size-base);
@@ -1668,6 +1870,8 @@ label.inline {
   text-align: center;
 }
 
+/* Actions cell - holds action buttons (edit, delete, view, etc.) in a row
+   Flexbox centers buttons horizontally within the cell */
 .neon-actions-cell {
   display: flex;
   justify-content: center;
@@ -1675,7 +1879,8 @@ label.inline {
   gap: 0.5rem;
 }
 
-/* Status badge styles */
+/* Status badge styles - small colored labels showing status (Complete, Pending, Overdue, etc.)
+   white-space: nowrap prevents text from wrapping to multiple lines */
 .neon-badge {
   display: inline-block;
   padding: 0.25rem 0.5rem;
@@ -1686,40 +1891,47 @@ label.inline {
   white-space: nowrap;
 }
 
+/* Success badge - green color for completed/successful states */
 .neon-badge-success {
   background: var(--status-success-light);
   color: var(--status-success);
-  border: 1px solid var(--status-success);
+  border: 1px solid #fa7a20;
 }
 
+/* Warning badge - orange color for pending/warning states */
 .neon-badge-warning {
   background: var(--status-warning-light);
   color: var(--status-warning);
-  border: 1px solid var(--status-warning);
+  border: 1px solid #fa7a20;
 }
 
+/* Danger badge - red color for error/overdue/critical states */
 .neon-badge-danger {
   background: var(--status-danger-light);
   color: var(--status-danger);
-  border: 1px solid var(--status-danger);
+  border: 1px solid #fa7a20;
 }
 
 /* ==================================================================================
    CONTENT HEADER
    ================================================================================== */
 
+/* Main content header container - provides spacing before main content */
 .global-content-header {
   margin-bottom: 2rem;
 }
 
+/* Full-width variant of content header */
 .content-header-fullwidth {
   width: 100%;
 }
 
+/* Inner wrapper for content header */
 .content-header-inner {
   width: 100%;
 }
 
+/* Content header title - bold white 18px text for page/section titles */
 .content-header-title {
   color: var(--header-text);
   font-size: var(--font-size-header);
@@ -1728,6 +1940,7 @@ label.inline {
   margin: 0 0 0.5rem 0;
 }
 
+/* Content header description - white 16px text explaining the page/section purpose */
 .content-header-desc {
   color: var(--text-white);
   font-size: var(--font-size-subheader);
@@ -1741,9 +1954,12 @@ label.inline {
    ================================================================================== */
 
 /* ========== FEATURE CARDS: Header text cyan, body text white ========== */
+/* Feature card component - used on dashboards to display features, stats, or options
+   Dark panel background with orange border and large 16px border-radius for modern look
+   Vertical column layout stacks header, text, and action buttons */
 .neon-feature-card {
   background: var(--panel);
-  border: 1px solid #fa7a20;
+  border: 1px solid #fff;
   border-radius: 16px;
   padding: 2rem;
   display: flex;
@@ -1752,20 +1968,21 @@ label.inline {
   font-family: var(--font-family);
 }
 
+/* Card header - holds icon and title in a horizontal row */
 .neon-feature-card-header {
   display: flex;
   align-items: center;
   gap: 1rem;
 }
 
-/* Card titles use subheader styling */
+/* Card titles use subheader styling - 16px bold white text */
 .neon-feature-card-title {
   color: var(--header-text);
   font-size: var(--font-size-subheader);
   font-weight: var(--font-weight-header);
 }
 
-/* Card text uses white */
+/* Card text uses white - 14px normal weight for descriptions */
 .neon-feature-card-text {
   color: var(--text-white);
   font-size: var(--font-size-base);
@@ -1773,6 +1990,8 @@ label.inline {
   margin-top: 0.5rem;
 }
 
+/* Container for buttons or other child elements within the card
+   flex-wrap: wrap allows buttons to wrap to new lines on small screens */
 .neon-feature-card-children {
   display: flex;
   gap: 0.5rem;
@@ -1785,6 +2004,10 @@ label.inline {
    ================================================================================== */
 
 /* ========== MODALS: Titles cyan, body text white ========== */
+/* Modal overlay - dark semi-transparent background that covers the entire screen
+   position: fixed + inset: 0 makes it cover the full viewport
+   z-index: 9999 ensures it appears above all other content
+   Flexbox centers the modal dialog on the screen */
 .neon-modal-overlay {
   position: fixed;
   inset: 0;
@@ -1796,9 +2019,14 @@ label.inline {
   padding: 1rem;
 }
 
+/* Modal dialog box - the actual content container that appears on top of the overlay
+   Dark panel with cyan border
+   max-width: 600px keeps modals from becoming too wide
+   max-height: 90vh with overflow-y: auto allows scrolling for tall content
+   Strong shadow creates depth and separation from background */
 .neon-modal {
   background: var(--panel);
-  border: 2px solid var(--neon);
+  border: 2px solid #fff;
   border-radius: var(--radius);
   padding: 2rem;
   max-width: 600px;
@@ -1810,13 +2038,15 @@ label.inline {
   font-family: var(--font-family);
 }
 
+/* Modal header section - contains title and close button
+   Bottom border separates it from body content */
 .neon-modal-header {
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(64, 224, 208, 0.2);
+  border-bottom: 1px solid #fff;
 }
 
-/* Modal titles use subheader styling */
+/* Modal titles use subheader styling - 16px bold white text */
 .neon-modal-title {
   color: var(--header-text);
   font-size: var(--font-size-subheader);
@@ -1824,18 +2054,22 @@ label.inline {
   margin: 0;
 }
 
+/* Modal body - main content area with white text */
 .neon-modal-body {
   margin-bottom: 1.5rem;
   color: var (--text-white);
   font-size: var(--font-size-base);
 }
 
+/* Modal footer - contains action buttons (Save, Cancel, etc.)
+   Flexbox right-aligns buttons with gap between them
+   Top border separates it from body content */
 .neon-modal-footer {
   display: flex;
   gap: 1rem;
   justify-content: flex-end;
   padding-top: 1rem;
-  border-top: 1px solid rgba(64, 224, 208, 0.2);
+  border-top: 1px solid #fff;
 }
 
 /* ========== OVERLAY DIALOG ========== */
@@ -1856,7 +2090,7 @@ label.inline {
 
 .ui-dialog-content {
   background: var(--panel);
-  border: 2px solid var(--neon);
+  border: 2px solid #fff;
   border-radius: var(--radius);
   padding: 2rem;
   max-width: 95vw;
@@ -1942,7 +2176,7 @@ label.inline {
   justify-content: flex-end;
   margin-top: 1.5rem;
   padding-top: 1rem;
-  border-top: 1px solid rgba(0, 255, 255, 0.2);
+  border-top: 1px solid #fff;
 }
 
 .raise-issue-wizard-actions .neon-btn {
@@ -1973,7 +2207,7 @@ label.inline {
 
 .thank-you-modal-content {
   background: var(--panel);
-  border: 2px solid var(--neon);
+  border: 2px solid #fff;
   border-radius: var(--radius);
   padding: 3rem;
   text-align: center;
@@ -2028,7 +2262,7 @@ label.inline {
 
 .user-manager-table {
   margin-bottom: 2rem;
-  border: 1px solid #fa7a20;
+  border: 1px solid #fff;
   border-radius: var(--radius);
 }
 
@@ -2056,7 +2290,7 @@ label.inline {
 .user-manager-error {
   color: var(--text-error);
   background: rgba(234, 28, 28, 0.1);
-  border: 1px solid var(--text-error);
+  border: 1px solid #fff;
   border-radius: 8px;
   text-align: center;
   padding: 2rem;
@@ -2096,7 +2330,7 @@ label.inline {
 .user-manager-input {
   padding: 0.5rem 1rem;
   border-radius: 6px;
-  border: 1px solid var(--border);
+  border: 1px solid #fff;
   background: var(--field);
   color: var(--text-white);
   font-size: var(--font-size-base);
@@ -2151,7 +2385,7 @@ label.inline {
 }
 
 .user-manager-structure-switch.active {
-  border-color: #fa7a20;
+  border-color: #fff;
   background: #fa7a20;
 }
 
@@ -2186,7 +2420,7 @@ label.inline {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  border: 1px solid #fa7a20;
+  border: 1px solid #fff;
   border-radius: var(--radius);
   padding: 1.5rem;
   background: var(--panel);
@@ -2218,7 +2452,7 @@ label.inline {
 .user-manager-form-field select {
   padding: 0.5rem 1rem;
   border-radius: 6px;
-  border: 1px solid var(--border);
+  border: 1px solid #fff;
   background: var(--field);
   color: var(--text-white);
   font-size: var(--font-size-base);
@@ -2233,7 +2467,7 @@ label.inline {
   justify-content: flex-end;
   margin-top: 1.5rem;
   padding-top: 1rem;
-  border-top: 1px solid rgba(64, 224, 208, 0.2);
+  border-top: 1px solid #fff;
 }
 
 /* Dialog titles use subheader styling */
@@ -2266,7 +2500,7 @@ label.inline {
 /* ========== FORM INFO BOXES: White text ========== */
 .neon-form-info {
   background: rgba(0, 255, 255, 0.1);
-  border: 1px solid rgba(0, 255, 255, 0.3);
+  border: 1px solid #fff;
   border-radius: 8px;
   padding: 1rem;
   margin-bottom: 1rem;
@@ -2318,7 +2552,7 @@ label.inline {
   justify-content: flex-end;
   margin-top: 2rem;
   padding-top: 1rem;
-  border-top: 1px solid rgba(0, 255, 255, 0.2);
+  border-top: 1px solid #fff;
 }
 
 /* ================== Radio Button Group Styling ================== */
@@ -2335,7 +2569,7 @@ label.inline {
   gap: 0.75rem;
   padding: 0.75rem 1rem;
   background: rgba(0, 255, 255, 0.05);
-  border: 1px solid rgba(0, 255, 255, 0.2);
+  border: 1px solid #fff;
   border-radius: 8px;
   transition: all 0.2s ease;
   cursor: pointer;
@@ -2343,12 +2577,12 @@ label.inline {
 
 .neon-radio-option:hover {
   background: rgba(0, 255, 255, 0.1);
-  border-color: rgba(0, 255, 255, 0.4);
+  border-color: #fff;
 }
 
 .neon-radio-option:has(.neon-radio:checked) {
   background: rgba(0, 255, 255, 0.15);
-  border-color: var(--neon);
+  border-color: #fff;
 }
 
 .neon-radio {
@@ -2441,7 +2675,7 @@ label.inline {
 @media (prefers-contrast: high) {
   :root {
     --neon: #00ffff;
-    --border: #00ffff;
+    --border: #fff;
   }
 }
 
@@ -2487,7 +2721,7 @@ label.inline {
   top: 100%;
   left: 0;
   background: #fa7a20;
-  border: 1px solid var(--border-color);
+  border: 1px solid #fff;
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   z-index: 1000;
@@ -2500,7 +2734,7 @@ label.inline {
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-bold);
   color: var(--text-white);
-  border-bottom: 1px solid rgba(255,255,255,0.2);
+  border-bottom: 1px solid #fff;
   background: #e6691c;
 }
 
@@ -3036,23 +3270,23 @@ label.inline {
    ================================================================================== */
 
 .border {
-  border: 1px solid var(--border);
+  border: 1px solid #fff;
 }
 
 .border-2 {
-  border: 2px solid var(--border);
+  border: 2px solid #fff;
 }
 
 .border-neon {
-  border: 1px solid var(--neon);
+  border: 1px solid #fff;
 }
 
 .border-t {
-  border-top: 1px solid rgba(64, 224, 208, 0.18);
+  border-top: 1px solid #fff;
 }
 
 .border-b {
-  border-bottom: 1px solid rgba(64, 224, 208, 0.18);
+  border-bottom: 1px solid #fff;
 }
 
 .rounded {
@@ -3161,7 +3395,7 @@ label.inline {
 /* Card Container */
 .card-container {
   background: var(--panel);
-  border: 1px solid #fa7a20;
+  border: 1px solid #fff;
   border-radius: var(--radius);
   padding: 1.5rem;
 }
@@ -3176,7 +3410,7 @@ label.inline {
 /* Error Message Box */
 .error-box {
   background: rgba(239, 68, 68, 0.1);
-  border: 1px solid #ef4444;
+  border: 1px solid #fff;
   border-radius: 8px;
   padding: 1rem;
   color: #ef4444;
@@ -3186,7 +3420,7 @@ label.inline {
 /* Success Message Box */
 .success-box {
   background: rgba(34, 197, 94, 0.1);
-  border: 1px solid #22c55e;
+  border: 1px solid #fff;
   border-radius: 8px;
   padding: 1rem;
   color: #22c55e;
@@ -3196,7 +3430,7 @@ label.inline {
 /* Info Message Box */
 .info-box {
   background: rgba(59, 130, 246, 0.1);
-  border: 1px solid #3b82f6;
+  border: 1px solid #fff;
   border-radius: 8px;
   padding: 1rem;
   color: var(--text-white);
@@ -3234,7 +3468,7 @@ label.inline {
 .scroll-container {
   max-height: 400px;
   overflow-y: auto;
-  border: 1px solid var(--border);
+  border: 1px solid #fff;
   border-radius: 6px;
   padding: 0.5rem;
 }
@@ -3245,7 +3479,7 @@ label.inline {
   top: 100%;
   left: 0;
   background: #fa7a20;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid #fff;
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   z-index: 1000;
@@ -3272,7 +3506,7 @@ label.inline {
 /* Stat Card */
 .stat-card {
   background: var(--panel);
-  border: 1px solid var(--neon);
+  border: 1px solid #fff;
   border-radius: 8px;
   padding: 1rem;
   text-align: center;
@@ -3296,7 +3530,7 @@ label.inline {
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem;
-  border-bottom: 1px solid rgba(64, 224, 208, 0.18);
+  border-bottom: 1px solid #fff;
 }
 
 .user-list-item:last-child {
@@ -3409,7 +3643,8 @@ label.inline {
    TRAINING COMPLIANCE WIDGET TYPOGRAPHY
    ================================================================================== */
 
-/* Training widget title */
+/* Training widget title - main heading for the training compliance widget dashboard
+   18px bold white text */
 .training-widget-title {
   font-family: var(--font-family);
   font-size: var(--font-size-header);
@@ -3418,7 +3653,9 @@ label.inline {
   margin: 0 0 1rem 0;
 }
 
-/* Compliance rate main text */
+/* Compliance rate main text - large percentage number showing overall compliance
+   32px cyan text makes the percentage very prominent
+   Example: "85%" */
 .compliance-rate-text {
   font-family: var(--font-family);
   font-size: 2rem;
@@ -3427,7 +3664,9 @@ label.inline {
   margin: 0;
 }
 
-/* Compliance rate label */
+/* Compliance rate label - small label above the percentage
+   Slightly faded to de-emphasize compared to the number
+   Example: "Overall Compliance" */
 .compliance-rate-label {
   font-family: var(--font-family);
   font-size: 0.85rem;
@@ -3437,7 +3676,9 @@ label.inline {
   margin: 0 0 0.25rem 0;
 }
 
-/* Stats card labels */
+/* Stats card labels - labels for individual statistics
+   18px white text with slight transparency
+   Example: "Completed", "Pending", "Overdue" */
 .stats-card-label {
   font-family: var(--font-family);
   font-size: var(--font-size-header);
@@ -3446,7 +3687,8 @@ label.inline {
   opacity: 0.8;
 }
 
-/* Stats card numbers */
+/* Stats card numbers - numeric values in stat cards
+   18px bold text showing counts or percentages */
 .stats-card-number {
   font-family: var(--font-family);
   font-size: var(--font-size-header);
@@ -3454,7 +3696,8 @@ label.inline {
   margin: 0;
 }
 
-/* Summary text */
+/* Summary text - descriptive text explaining training status
+   Small white text with high opacity for readability */
 .training-summary-text {
   font-family: var (--font-family);
   font-size: 0.85rem;
@@ -3464,7 +3707,8 @@ label.inline {
   margin: 0;
 }
 
-/* Circle percentage text */
+/* Circle percentage text - number displayed inside circular progress indicators
+   24px bold white text centered in the circle */
 .compliance-circle-text {
   font-family: var(--font-family);
   font-size: 1.5rem;
@@ -3472,7 +3716,8 @@ label.inline {
   color: #fff;
 }
 
-/* Error message styling */
+/* Error message styling - red text for training errors
+   Example: "Failed to load training data" */
 .training-error-text {
   font-family: var(--font-family);
   font-size: 0.9rem;
@@ -3480,7 +3725,8 @@ label.inline {
   color: var(--text-error);
 }
 
-/* Loading text styling */
+/* Loading text styling - faded white text shown while data loads
+   Example: "Loading training compliance data..." */
 .training-loading-text {
   font-family: var(--font-family);
   font-size: var(--font-size-base);
@@ -3493,12 +3739,18 @@ label.inline {
    TRAINING TEST RUNNER STYLES
    ================================================================================== */
 
+/* Training test container - main wrapper for training test/quiz interface
+   Centered with max-width to create comfortable reading column
+   Used when employees take training tests */
 .training-container {
   padding: 20px;
   max-width: 900px;
   margin: 0 auto;
 }
 
+/* Training main heading - large title at top of test/quiz
+   32px centered white text
+   Example: "Fire Safety Training Test" */
 .training-h1 {
   font-family: var(--font-family);
   font-size: 2rem;
@@ -3508,6 +3760,9 @@ label.inline {
   text-align: center;
 }
 
+/* Training section heading - divides test into sections
+   24px white text for section titles
+   Example: "Section 1: Basic Safety Procedures" */
 .training-h2 {
   font-family: var(--font-family);
   font-size: 1.5rem;
@@ -3516,24 +3771,32 @@ label.inline {
   margin: 1.5rem 0 1rem 0;
 }
 
+/* Training card - container for test information, questions, or results
+   Dark panel background with border */
 .training-card {
   background: var(--panel);
-  border: 1px solid var(--border);
+  border: 1px solid #fff;
   border-radius: var(--border-radius);
   padding: 1.5rem;
   margin-bottom: 1rem;
 }
 
+/* Danger variant - red border and background for errors or failed tests
+   Used to highlight critical information or failures */
 .training-card.training-danger {
-  border-color: var(--text-error);
+  border-color: #fff;
   background: rgba(255, 87, 87, 0.1);
 }
 
+/* Info variant - cyan border and background for information or instructions
+   Used for test instructions or informational messages */
 .training-card.training-info {
-  border-color: var(--training-accent);
+  border-color: #fff;
   background: var(--training-accent-light);
 }
 
+/* Row layout with space between - used for title/value pairs
+   Example: "Score: 85%" with label on left, value on right */
 .training-rowBetween {
   display: flex;
   justify-content: space-between;
@@ -3541,6 +3804,9 @@ label.inline {
   gap: 1rem;
 }
 
+/* Training section title - medium-sized heading within cards
+   20px bold white text
+   Example: "Test Results" or "Question 5" */
 .training-title {
   font-family: var(--font-family);
   font-size: 1.25rem;
@@ -3549,6 +3815,9 @@ label.inline {
   margin-bottom: 0.5rem;
 }
 
+/* Muted text - de-emphasized text like timestamps or secondary info
+   Faded white text for less important details
+   Example: "Completed on 2024-01-15" */
 .training-muted {
   font-family: var(--font-family);
   font-size: 0.9rem;
@@ -3557,6 +3826,9 @@ label.inline {
   margin-bottom: 0.5rem;
 }
 
+/* Pill row - horizontal container for multiple pill-shaped tags
+   Wraps to multiple lines if needed
+   Used for displaying tags like module names or topics */
 .training-pill-row {
   display: flex;
   gap: 0.5rem;
@@ -3564,6 +3836,9 @@ label.inline {
   margin-top: 0.5rem;
 }
 
+/* Training pill - small rounded tag/badge
+   Cyan background with rounded ends
+   Example: "Required", "Safety", "Health & Wellness" */
 .training-pill {
   font-family: var(--font-family);
   font-size: 0.85rem;
@@ -3571,7 +3846,7 @@ label.inline {
   color: var(--training-accent);
   padding: 0.25rem 0.75rem;
   border-radius: 12px;
-  border: 1px solid var(--training-accent);
+  border: 1px solid #fff;
 }
 
 .training-list {
@@ -3583,7 +3858,7 @@ label.inline {
 .training-qBlock {
   padding: 0.75rem 1rem;
   margin-bottom: 0;
-  border-bottom: 1px solid var(--status-warning);
+  border-bottom: 1px solid #fff;
 }
 
 .training-question-title {
@@ -3691,7 +3966,7 @@ label.inline {
 .training-table th {
   text-align: left;
   padding: 0.75rem;
-  border-bottom: 2px solid var(--border);
+  border-bottom: 2px solid #fff;
   color: var(--header-text);
   font-weight: var(--font-weight-header);
   font-size: 0.95rem;
@@ -3699,7 +3974,7 @@ label.inline {
 
 .training-table td {
   padding: 0.75rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid #fff;
   color: var (--text-white);
   font-size: 0.95rem;
 }
@@ -3775,7 +4050,7 @@ label.inline {
 /* ========== NEON CARD: Panel with orange border and proper padding ========== */
 .neon-card {
   background: var(--panel);
-  border: 1px solid #fa7a20;
+  border: 1px solid #fff;
   border-radius: var(--radius);
   color: var(--text-white);
   font-family: var(--font-family);
@@ -3789,7 +4064,7 @@ label.inline {
 /* ========== NEON ERROR STYLES: Error messages with red styling ========== */
 .neon-error {
   background: rgba(234, 28, 28, 0.1);
-  border: 1px solid var(--text-error);
+  border: 1px solid #fff;
   border-radius: 8px;
   color: var(--text-error);
   font-size: var(--font-size-base);
@@ -3803,7 +4078,7 @@ label.inline {
   font-family: var (--font-family);
   font-weight: var(--font-weight-normal);
   background: rgba(234, 28, 28, 0.1);
-  border: 1px solid var(--text-error);
+  border: 1px solid #fff;
   border-radius: 6px;
   padding: 0.75rem 1rem;
   margin: 0.5rem 0;
@@ -3833,7 +4108,7 @@ label.inline {
   font-family: var(--font-family);
   margin: 0 0 1.5rem 0;
   padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(64, 224, 208, 0.2);
+  border-bottom: 1px solid #fff;
 }
 
 /* ========== NEON FORM ACTIONS: Button container styling ========== */
@@ -3843,7 +4118,7 @@ label.inline {
   justify-content: flex-end;
   margin-top: 2rem;
   padding-top: 1rem;
-  border-top: 1px solid rgba(64, 224, 208, 0.2);
+  border-top: 1px solid #fff;
 }
 
 /* ==================================================================================
@@ -3888,7 +4163,7 @@ label.inline {
 /* Search modal container */
 .global-search-modal {
   background: var(--panel);
-  border: 1px solid var(--border);
+  border: 1px solid #fff;
   border-radius: var(--radius);
   width: 90%;
   max-width: 640px;
@@ -3916,7 +4191,7 @@ label.inline {
   align-items: center;
   gap: 0.75rem;
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid #fff;
 }
 
 .global-search-icon {
@@ -4090,7 +4365,7 @@ label.inline {
   align-items: center;
   gap: 1.5rem;
   padding: 0.75rem 1.25rem;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid #fff;
   font-size: var(--font-size-tooltip);
   color: rgba(255, 255, 255, 0.5);
   font-family: var(--font-family);
@@ -4104,7 +4379,7 @@ label.inline {
 
 .global-search-footer kbd {
   background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid #fff;
   border-radius: 4px;
   padding: 0.125rem 0.375rem;
   font-size: var(--font-size-tooltip);
@@ -4119,7 +4394,7 @@ label.inline {
 /* Calendar Widget Container */
 .calendar-widget {
   background: var(--panel);
-  border: 1px solid var(--border);
+  border: 1px solid #fff;
   border-radius: var(--radius);
   padding: 1.5rem;
   color: var(--text-white);
@@ -4156,7 +4431,7 @@ label.inline {
   gap: 0.5rem;
   padding: 0.5rem 1rem;
   background: transparent;
-  border: 1px solid var(--border);
+  border: 1px solid #fff;
   border-radius: 8px;
   color: var(--text-white);
   font-size: var(--font-size-base);
@@ -4201,7 +4476,7 @@ label.inline {
   align-items: center;
   justify-content: center;
   background: transparent;
-  border: 1px solid var(--border);
+  border: 1px solid #fff;
   border-radius: 6px;
   color: var(--text-white);
   cursor: pointer;
@@ -4243,7 +4518,7 @@ label.inline {
   justify-content: flex-start;
   padding: 0.5rem 0.25rem;
   background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(64, 224, 208, 0.2);
+  border: 1px solid #fff;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s;
@@ -4252,13 +4527,13 @@ label.inline {
 
 .compact-calendar-day:hover {
   background: rgba(64, 224, 208, 0.1);
-  border-color: var(--neon);
+  border-color: #fff;
   transform: translateY(-2px);
 }
 
 .compact-calendar-day.today {
   background: rgba(64, 224, 208, 0.15);
-  border: 2px solid var(--neon);
+  border: 2px solid #fff;
 }
 
 .compact-calendar-day.has-assignments {
@@ -4306,7 +4581,7 @@ label.inline {
   padding: 0.75rem;
   background: rgba(255, 255, 255, 0.03);
   border-radius: 8px;
-  border: 1px solid rgba(64, 224, 208, 0.2);
+  border: 1px solid #fff;
 }
 
 .compact-stat {
@@ -4403,7 +4678,7 @@ label.inline {
   font-size: var(--font-size-base);
   font-family: var(--font-family);
   font-weight: var(--font-weight-header);
-  border: 1px solid var(--neon) !important;
+  border: 1px solid #fff !important;
   padding: 0.75rem 1.5rem;
   border-radius: 4px;
   cursor: pointer;
@@ -4422,7 +4697,7 @@ label.inline {
 /* Change Dept/Role button - orange variant */
 .change-dept-role-btn {
   color: #ffa500 !important;
-  border-color: #ffa500 !important;
+  border-color: #fff !important;
   background: transparent !important;
 }
 
@@ -4472,7 +4747,7 @@ label.inline {
   font-family: var(--font-family) !important;
   font-size: var(--font-size-base) !important;
   font-weight: var(--font-weight-normal) !important;
-  border: 2px solid var(--text-white) !important;
+  border: 2px solid #fff !important;
   cursor: pointer !important;
   box-shadow: 0 1px 4px rgba(0,0,0,0.03) !important;
   transition: all 0.2s ease !important;
@@ -4497,7 +4772,7 @@ label.inline {
   right: 0;
   min-width: 140px;
   background: var(--panel);
-  border: 1px solid var(--neon);
+  border: 1px solid #fff;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
   overflow: hidden;
@@ -4568,7 +4843,7 @@ label.inline {
   padding: 0.75rem;
   border-radius: 4px;
   background-color: #fef2f2;
-  border: 1px solid #fca5a5;
+  border: 1px solid #fff;
   color: #dc2626;
 }
 
@@ -4577,7 +4852,7 @@ label.inline {
   padding: 0.75rem;
   border-radius: 4px;
   background-color: #f0fdf4;
-  border: 1px solid #86efac;
+  border: 1px solid #fff;
   color: #16a34a;
 }
 
@@ -4600,7 +4875,7 @@ label.inline {
 .policy-card {
   padding: 1.5rem;
   background: var(--field);
-  border: 1px solid var(--border);
+  border: 1px solid #fff;
   border-radius: 8px;
   transition: border-color 0.2s;
   margin-bottom: 1rem;
@@ -4646,7 +4921,7 @@ label.inline {
   align-items: center;
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid #fff;
 }
 
 .policy-card-meta {
@@ -4667,20 +4942,20 @@ label.inline {
 .badge-primary {
   background: rgba(59, 130, 246, 0.1);
   color: #3b82f6;
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  border: 1px solid #fff;
 }
 
 .badge-success {
   background: rgba(34, 197, 94, 0.1);
   color: #22c55e;
-  border: 1px solid rgba(34, 197, 94, 0.3);
+  border: 1px solid #fff;
 }
 
 /* Form sections */
 .form-section {
   margin-bottom: 2rem;
   padding: 1.5rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid #fff;
   border-radius: 8px;
 }
 
@@ -4738,7 +5013,7 @@ label.inline {
 .form-input {
   width: 100%;
   padding: 0.5rem 0.75rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid #fff;
   border-radius: 4px;
   font-size: 0.875rem;
   line-height: 1.5;
@@ -4746,7 +5021,7 @@ label.inline {
 
 .form-input:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: #fff;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
@@ -4763,7 +5038,7 @@ textarea.form-input {
 
 /* Error states */
 .form-input[aria-invalid="true"] {
-  border-color: #dc2626;
+  border-color: #fff;
 }
 
 .field-error {
@@ -4791,7 +5066,7 @@ textarea.form-input {
   align-items: center;
   gap: 1rem;
   padding-top: 1.5rem;
-  border-top: 1px solid #d1d5db;
+  border-top: 1px solid #fff;
   margin-top: 2rem;
 }
 
