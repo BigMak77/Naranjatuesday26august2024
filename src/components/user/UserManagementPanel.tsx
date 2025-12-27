@@ -117,11 +117,10 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
 
   const [bulkAssignOpen, setBulkAssignOpen] = useState(false);
   const [bulkAssignStep, setBulkAssignStep] = useState(1); // Start at select users step
-  const [bulkAssignType, setBulkAssignType] = useState(""); // "role", "shift", "first_aid", "trainer"
+  const [bulkAssignType, setBulkAssignType] = useState(""); // "role", "shift", "trainer" (first_aid removed - managed by H&S)
   const [bulkDeptId, setBulkDeptId] = useState("");
   const [bulkRoleId, setBulkRoleId] = useState("");
   const [bulkShiftId, setBulkShiftId] = useState("");
-  const [bulkFirstAid, setBulkFirstAid] = useState(false);
   const [bulkTrainer, setBulkTrainer] = useState(false);
   const [bulkAssignLoading, setBulkAssignLoading] = useState(false);
   const [bulkSelectedUserIds, setBulkSelectedUserIds] = useState<string[]>([]);
@@ -335,7 +334,6 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
           setBulkDeptId("");
           setBulkRoleId("");
           setBulkShiftId("");
-          setBulkFirstAid(false);
           setBulkTrainer(false);
           setBulkSelectedUserIds([]);
           setUserSearch("");
@@ -430,7 +428,6 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
     setBulkDeptId("");
     setBulkRoleId("");
     setBulkShiftId("");
-    setBulkFirstAid(false);
     setBulkTrainer(false);
     setBulkSelectedUserIds([]);
     setBulkAssignOpen(true);
@@ -456,8 +453,6 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
     } else if (bulkAssignType === "shift") {
       if (!bulkShiftId) return;
       updateObj = { shift_id: bulkShiftId };
-    } else if (bulkAssignType === "first_aid") {
-      updateObj = { is_first_aid: bulkFirstAid };
     } else if (bulkAssignType === "trainer") {
       updateObj = { is_trainer: bulkTrainer };
     }
@@ -489,8 +484,6 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
     } else if (bulkAssignType === "shift") {
       if (!bulkShiftId) return;
       updateFields = { shift_id: bulkShiftId };
-    } else if (bulkAssignType === "first_aid") {
-      updateFields = { is_first_aid: bulkFirstAid };
     } else if (bulkAssignType === "trainer") {
       updateFields = { is_trainer: bulkTrainer };
     }
@@ -543,7 +536,6 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
     setBulkDeptId("");
     setBulkRoleId("");
     setBulkShiftId("");
-    setBulkFirstAid(false);
     setBulkTrainer(false);
     setBulkSelectedUserIds([]);
     setTimeout(() => {
@@ -611,7 +603,6 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
             phone: cleanedUser.phone,
             shift_id: cleanedUser.shift_id,
             nationality: cleanedUser.nationality,
-            is_first_aid: cleanedUser.is_first_aid ?? false,
             is_trainer: cleanedUser.is_trainer ?? false,
             start_date: cleanedUser.start_date,
             is_leaver: cleanedUser.is_leaver ?? false,
@@ -660,7 +651,6 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
             phone: cleanedUser.phone,
             shift_id: cleanedUser.shift_id,
             nationality: cleanedUser.nationality,
-            is_first_aid: cleanedUser.is_first_aid ?? false,
             is_trainer: cleanedUser.is_trainer ?? false,
             start_date: cleanedUser.start_date,
             is_leaver: cleanedUser.is_leaver ?? false,
@@ -1325,25 +1315,23 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
                         ))}
                       </select>
                     </div>
-                    {/* is_first_aid */}
+                    {/* is_first_aid - READ ONLY (managed by H&S) */}
                     <div>
                       <label className="neon-label" htmlFor="firstaid-select">
-                        First Aid
+                        First Aid <span style={{ fontSize: '0.85rem', opacity: 0.7, fontStyle: 'italic' }}>(read-only)</span>
                       </label>
-                      <select
-                        id="firstaid-select"
-                        className="neon-input"
-                        value={selectedUser.is_first_aid ? "true" : "false"}
-                        onChange={(e) =>
-                          setSelectedUser({
-                            ...selectedUser,
-                            is_first_aid: e.target.value === "true"
-                          })
-                        }
-                      >
-                        <option value="false">No</option>
-                        <option value="true">Yes</option>
-                      </select>
+                      <CustomTooltip text="First aid designation is managed by Health & Safety team">
+                        <select
+                          id="firstaid-select"
+                          className="neon-input"
+                          value={selectedUser.is_first_aid ? "true" : "false"}
+                          disabled={true}
+                          style={{ opacity: 0.6, cursor: 'not-allowed' }}
+                        >
+                          <option value="false">No</option>
+                          <option value="true">Yes</option>
+                        </select>
+                      </CustomTooltip>
                     </div>
                     {/* is_trainer */}
                     <div>
@@ -1744,22 +1732,6 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
                       <div className="neon-radio-option">
                         <input
                           type="radio"
-                          id="bulk-type-first-aid"
-                          name="bulkAssignType"
-                          value="first_aid"
-                          checked={bulkAssignType === "first_aid"}
-                          onChange={(e) => setBulkAssignType(e.target.value)}
-                          className="neon-radio"
-                        />
-                        <label htmlFor="bulk-type-first-aid" className="neon-radio-label">
-                          <CustomTooltip text="Set first aid status for selected users">
-                            <span>First Aid</span>
-                          </CustomTooltip>
-                        </label>
-                      </div>
-                      <div className="neon-radio-option">
-                        <input
-                          type="radio"
                           id="bulk-type-trainer"
                           name="bulkAssignType"
                           value="trainer"
@@ -1795,7 +1767,6 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
                     <div className="neon-label">
                       {bulkAssignType === "role" && "You are bulk assigning to Department/Role."}
                       {bulkAssignType === "shift" && "You are bulk assigning to Shift."}
-                      {bulkAssignType === "first_aid" && "You are bulk assigning First Aid status."}
                       {bulkAssignType === "trainer" && "You are bulk assigning Trainer status."}
                     </div>
                     {/* Show summary of selected users */}
@@ -1880,22 +1851,6 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
                       </select>
                     </div>
                   )}
-                  {bulkAssignType === "first_aid" && (
-                    <div className="neon-form-field">
-                      <label className="neon-label" htmlFor="bulk-firstaid-select">
-                        First Aid
-                      </label>
-                      <select
-                        id="bulk-firstaid-select"
-                        className="neon-input"
-                        value={bulkFirstAid ? "true" : "false"}
-                        onChange={(e) => setBulkFirstAid(e.target.value === "true")}
-                      >
-                        <option value="false">No</option>
-                        <option value="true">Yes</option>
-                      </select>
-                    </div>
-                  )}
                   {bulkAssignType === "trainer" && (
                     <div className="neon-form-field">
                       <label className="neon-label" htmlFor="bulk-trainer-select">
@@ -1948,8 +1903,6 @@ export default function UserManagementPanel({ onControlsReady, onDataChange }: U
                           }`
                         : bulkAssignType === "shift"
                         ? `Shift: ${shiftPatterns.find((s) => s.id === bulkShiftId)?.name || "—"}`
-                        : bulkAssignType === "first_aid"
-                        ? `First Aid: ${bulkFirstAid ? "Yes" : "No"}`
                         : bulkAssignType === "trainer"
                         ? `Trainer: ${bulkTrainer ? "Yes" : "No"}`
                         : "—"}

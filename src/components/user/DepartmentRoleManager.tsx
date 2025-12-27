@@ -175,7 +175,7 @@ export default function DepartmentRoleManager({
         autoCloseMs={1500}
       />
 
-      <div className="neon-form-content" style={{ minWidth: "700px", maxWidth: "800px", overflow: "visible" }}>
+      <div className="neon-form-content" style={{ overflow: "visible" }}>
         <div className="neon-form-title" style={{ marginBottom: "1.5rem" }}>
           Change Department & Role
         </div>

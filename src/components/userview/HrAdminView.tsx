@@ -702,7 +702,7 @@ const UserManager: React.FC = () => {
         activeTab={activeTab}
         onChange={setActiveTab}
         toolbar={
-          <div style={{ marginBottom: '0.5rem', display: 'flex', gap: '0.75rem', alignItems: 'center', width: '100%' }}>
+          <>
             {activeTab === "people" && userPanelControls && (
               <>
                 <input
@@ -712,9 +712,7 @@ const UserManager: React.FC = () => {
                   value={userPanelControls.userSearch}
                   onChange={(e) => userPanelControls.setUserSearch(e.target.value)}
                   style={{
-                    width: '200px',
-                    height: '32px',
-                    margin: 0
+                    width: '200px'
                   }}
                 />
                 <span style={{ opacity: 0.7, fontSize: '0.875rem', marginLeft: '0.5rem' }}>
@@ -759,7 +757,7 @@ const UserManager: React.FC = () => {
                     value={userPanelControls.pageSize}
                     onChange={(e) => userPanelControls.setPageSize(Number(e.target.value))}
                     className="neon-input"
-                    style={{ width: '60px', height: '32px', padding: '0 4px', margin: 0 }}
+                    style={{ width: '60px', padding: '0 4px' }}
                   >
                     {[10, 20, 50, 100].map(size => (
                       <option key={size} value={size}>{size}</option>
@@ -855,9 +853,7 @@ const UserManager: React.FC = () => {
                   value={roleHistoryControls.searchTerm}
                   onChange={(e) => roleHistoryControls.setSearchTerm(e.target.value)}
                   style={{
-                    width: '250px',
-                    height: '32px',
-                    margin: 0
+                    width: '250px'
                   }}
                 />
                 <span style={{ opacity: 0.7, fontSize: '0.875rem' }}>
@@ -992,7 +988,7 @@ const UserManager: React.FC = () => {
                   value={filterDept}
                   onChange={e => setFilterDept(e.target.value)}
                   className="neon-input"
-                  style={{ width: '180px', height: '32px', margin: 0 }}
+                  style={{ width: '180px' }}
                 >
                   <option value="">All Departments</option>
                   {departments.map(dept => (
@@ -1006,7 +1002,7 @@ const UserManager: React.FC = () => {
                   onChange={e => setFilterStart(e.target.value)}
                   placeholder="From date"
                   className="neon-input"
-                  style={{ width: '150px', height: '32px', margin: 0 }}
+                  style={{ width: '150px' }}
                 />
                 <span style={{ fontSize: '0.875rem', opacity: 0.7 }}>and</span>
                 <input
@@ -1015,7 +1011,7 @@ const UserManager: React.FC = () => {
                   onChange={e => setFilterEnd(e.target.value)}
                   placeholder="To date"
                   className="neon-input"
-                  style={{ width: '150px', height: '32px', margin: 0 }}
+                  style={{ width: '150px' }}
                 />
                 <span style={{ fontSize: '0.875rem', opacity: 0.7 }}>:</span>
                 <TextIconButton
@@ -1073,7 +1069,7 @@ const UserManager: React.FC = () => {
                 </span>
               </>
             )}
-          </div>
+          </>
         }
       />
       {activeTab === "people" && (
@@ -1413,10 +1409,11 @@ const UserManager: React.FC = () => {
             </div>
 
             <div className="user-manager-form-field">
-              <label htmlFor="employee_number">Employee Number *</label>
+              <label className="neon-label" htmlFor="employee_number">Employee Number *</label>
               <input
                 id="employee_number"
                 type="text"
+                className="neon-input"
                 value={employeeNumber}
                 onChange={(e) => setEmployeeNumber(e.target.value)}
                 placeholder="Enter employee number"
@@ -1556,10 +1553,11 @@ const UserManager: React.FC = () => {
           </div>
 
           <div className="user-manager-form-field">
-            <label htmlFor="invite_first_name">First Name *</label>
+            <label className="neon-label" htmlFor="invite_first_name">First Name *</label>
             <input
               id="invite_first_name"
               type="text"
+              className="neon-input"
               value={inviteFirstName}
               onChange={(e) => setInviteFirstName(e.target.value)}
               placeholder="Enter first name"
@@ -1568,10 +1566,11 @@ const UserManager: React.FC = () => {
           </div>
 
           <div className="user-manager-form-field">
-            <label htmlFor="invite_last_name">Last Name *</label>
+            <label className="neon-label" htmlFor="invite_last_name">Last Name *</label>
             <input
               id="invite_last_name"
               type="text"
+              className="neon-input"
               value={inviteLastName}
               onChange={(e) => setInviteLastName(e.target.value)}
               placeholder="Enter last name"
@@ -1579,15 +1578,16 @@ const UserManager: React.FC = () => {
           </div>
 
           <div className="user-manager-form-field">
-            <label htmlFor="invite_email">Email Address *</label>
+            <label className="neon-label" htmlFor="invite_email">Email Address *</label>
             <input
               id="invite_email"
               type="email"
+              className="neon-input"
               value={inviteEmail}
               onChange={(e) => setInviteEmail(e.target.value)}
               placeholder="Enter email address"
             />
-            <small style={{ color: "#40e0d0", fontSize: "0.75rem", marginTop: "0.25rem", display: "block" }}>
+            <small className="neon-help-text">
               An invitation email with joining instructions will be sent to this address.
             </small>
           </div>
@@ -1684,8 +1684,10 @@ function UserEditForm({ user, departments, onSave, isAddMode, isDepartmentOnlyMo
         </div>
 
         <div className="user-manager-form-field">
-          <label>Department *</label>
+          <label className="neon-label" htmlFor="dept-select">Department *</label>
           <select
+            id="dept-select"
+            className="neon-input"
             value={formData.department_id}
             onChange={(e) => handleChange('department_id', e.target.value)}
             required
@@ -1713,18 +1715,22 @@ function UserEditForm({ user, departments, onSave, isAddMode, isDepartmentOnlyMo
     <form onSubmit={handleSubmit} className="user-manager-form">
       <div className="user-manager-form-row">
         <div className="user-manager-form-field">
-          <label>First Name</label>
+          <label className="neon-label" htmlFor="first-name">First Name</label>
           <input
+            id="first-name"
             type="text"
+            className="neon-input"
             value={formData.first_name}
             onChange={(e) => handleChange('first_name', e.target.value)}
             required
           />
         </div>
         <div className="user-manager-form-field">
-          <label>Last Name</label>
+          <label className="neon-label" htmlFor="last-name">Last Name</label>
           <input
+            id="last-name"
             type="text"
+            className="neon-input"
             value={formData.last_name}
             onChange={(e) => handleChange('last_name', e.target.value)}
             required
@@ -1733,9 +1739,11 @@ function UserEditForm({ user, departments, onSave, isAddMode, isDepartmentOnlyMo
       </div>
 
       <div className="user-manager-form-field">
-        <label>Email</label>
+        <label className="neon-label" htmlFor="email">Email</label>
         <input
+          id="email"
           type="email"
+          className="neon-input"
           value={formData.email}
           onChange={(e) => handleChange('email', e.target.value)}
           required
@@ -1743,8 +1751,10 @@ function UserEditForm({ user, departments, onSave, isAddMode, isDepartmentOnlyMo
       </div>
 
       <div className="user-manager-form-field">
-        <label>Location</label>
+        <label className="neon-label" htmlFor="location">Location</label>
         <select
+          id="location"
+          className="neon-input"
           value={formData.location}
           onChange={(e) => handleChange('location', e.target.value)}
         >
@@ -1758,8 +1768,10 @@ function UserEditForm({ user, departments, onSave, isAddMode, isDepartmentOnlyMo
 
       <div className="user-manager-form-row">
         <div className="user-manager-form-field">
-          <label>Department</label>
+          <label className="neon-label" htmlFor="department">Department</label>
           <select
+            id="department"
+            className="neon-input"
             value={formData.department_id}
             onChange={(e) => handleChange('department_id', e.target.value)}
           >
@@ -1770,8 +1782,10 @@ function UserEditForm({ user, departments, onSave, isAddMode, isDepartmentOnlyMo
           </select>
         </div>
         <div className="user-manager-form-field">
-          <label>Access Level</label>
+          <label className="neon-label" htmlFor="access-level">Access Level</label>
           <select
+            id="access-level"
+            className="neon-input"
             value={formData.access_level}
             onChange={(e) => handleChange('access_level', e.target.value)}
           >
@@ -1783,9 +1797,11 @@ function UserEditForm({ user, departments, onSave, isAddMode, isDepartmentOnlyMo
       </div>
 
       <div className="user-manager-form-field">
-        <label>Start Date</label>
+        <label className="neon-label" htmlFor="start-date">Start Date</label>
         <input
+          id="start-date"
           type="date"
+          className="neon-input"
           value={formData.start_date}
           onChange={(e) => handleChange('start_date', e.target.value)}
         />
