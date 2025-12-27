@@ -930,9 +930,6 @@ export default function TrainingModuleManager() {
       </div>
       {activeTab === "view" && (
         <>
-          <h2 style={{ color: "var(--accent)", fontWeight: 600, fontSize: "1.125rem", marginBottom: 16 }}>
-            Browse and edit your training modules
-          </h2>
           <NeonTable
             paginationPosition="toolbar"
             onPaginationChange={setPaginationControls}
@@ -1027,10 +1024,6 @@ export default function TrainingModuleManager() {
       )}
       {activeTab === "training" && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <h2 style={{ color: "var(--accent)", fontWeight: 600, fontSize: "1.125rem", marginBottom: 0 }}>
-            Training Dashboard & Management
-          </h2>
-          
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
             {/* Module Statistics Card */}
             <div className="neon-card" style={{ padding: '1.5rem' }}>
@@ -1082,9 +1075,6 @@ export default function TrainingModuleManager() {
       )}
       {activeTab === "archive" && (
         <>
-          <h2 style={{ color: "var(--accent)", fontWeight: 600, fontSize: "1.125rem", marginBottom: 16 }}>
-            Archived Training Modules
-          </h2>
           <NeonTable
             paginationPosition="toolbar"
             onPaginationChange={setPaginationControls}

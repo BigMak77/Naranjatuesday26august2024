@@ -2198,158 +2198,54 @@ export default function TrainingDashboard() {
 
       {/* Department Compliance */}
       <div className="neon-panel" style={{ marginBottom: '32px' }}>
-        <h2 className="neon-heading" style={{ fontSize: '1.25rem', marginBottom: '16px', paddingBottom: '8px', borderBottom: '2px solid #f59e0b' }}>
+        <h2 className="neon-heading neon-heading-section">
           Department Compliance
         </h2>
         {departmentStats.length === 0 ? (
           <div className="empty-state">No department data available</div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table className="neon-table">
             <thead>
               <tr>
-                <th style={{ textAlign: 'left', padding: '12px', borderBottom: '2px solid var(--neon)', color: 'var(--header-text)' }}>
-                  Department
-                </th>
-                <th style={{ textAlign: 'center', padding: '12px', borderBottom: '2px solid var(--neon)', color: 'var(--header-text)' }}>
-                  Users
-                </th>
-                <th style={{ textAlign: 'center', padding: '12px', borderBottom: '2px solid var(--neon)', color: 'var(--header-text)' }}>
-                  Assignments
-                </th>
-                <th style={{ textAlign: 'center', padding: '12px', borderBottom: '2px solid var(--neon)', color: 'var(--header-text)' }}>
-                  Completed
-                </th>
-                <th style={{ textAlign: 'center', padding: '12px', borderBottom: '2px solid var(--neon)', color: 'var(--header-text)' }}>
-                  Incomplete
-                </th>
-                <th style={{ textAlign: 'center', padding: '12px', borderBottom: '2px solid var(--neon)', color: 'var(--header-text)' }}>
-                  Refresh Due (30d)
-                </th>
-                <th style={{ textAlign: 'center', padding: '12px', borderBottom: '2px solid var(--neon)', color: 'var(--header-text)' }}>
-                  Compliance Rate
-                </th>
+                <th className="neon-table-header-left">Department</th>
+                <th className="neon-table-header-center">Users</th>
+                <th className="neon-table-header-center">Assignments</th>
+                <th className="neon-table-header-center">Completed</th>
+                <th className="neon-table-header-center">Incomplete</th>
+                <th className="neon-table-header-center">Refresh Due (30d)</th>
+                <th className="neon-table-header-center">Compliance Rate</th>
               </tr>
             </thead>
             <tbody>
               {departmentStats.map((dept) => (
-                <tr key={dept.departmentId} style={{ borderBottom: '1px solid rgba(64, 224, 208, 0.18)' }}>
-                  <td style={{ padding: '12px', color: 'var(--text-white)' }}>{dept.departmentName}</td>
-                  <td
-                    style={{ padding: '12px', textAlign: 'center', cursor: 'pointer' }}
-                    onClick={() => handleDepartmentClick(dept, 'users')}
-                  >
-                    <span style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '50%',
-                      backgroundColor: '#1e3a8a',
-                      color: 'white',
-                      fontWeight: 'bold',
-                      fontSize: '0.875rem',
-                      transition: 'transform 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-                    onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                    >
+                <tr key={dept.departmentId}>
+                  <td className="neon-table-name">{dept.departmentName}</td>
+                  <td className="neon-table-cell-center" onClick={() => handleDepartmentClick(dept, 'users')}>
+                    <span className="neon-badge-circle neon-badge-circle-blue">
                       {dept.totalUsers}
                     </span>
                   </td>
-                  <td
-                    style={{ padding: '12px', textAlign: 'center', cursor: 'pointer' }}
-                    onClick={() => handleDepartmentClick(dept, 'assignments')}
-                  >
-                    <span style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '50%',
-                      backgroundColor: '#1e3a8a',
-                      color: 'white',
-                      fontWeight: 'bold',
-                      fontSize: '0.875rem',
-                      transition: 'transform 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-                    onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                    >
+                  <td className="neon-table-cell-center" onClick={() => handleDepartmentClick(dept, 'assignments')}>
+                    <span className="neon-badge-circle neon-badge-circle-blue">
                       {dept.totalAssignments}
                     </span>
                   </td>
-                  <td
-                    style={{ padding: '12px', textAlign: 'center', cursor: 'pointer' }}
-                    onClick={() => handleDepartmentClick(dept, 'completed')}
-                  >
-                    <span style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '50%',
-                      backgroundColor: 'var(--text-success)',
-                      color: 'white',
-                      fontWeight: 'bold',
-                      fontSize: '0.875rem',
-                      transition: 'transform 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-                    onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                    >
+                  <td className="neon-table-cell-center" onClick={() => handleDepartmentClick(dept, 'completed')}>
+                    <span className="neon-badge-circle neon-badge-circle-success">
                       {dept.completedAssignments}
                     </span>
                   </td>
-                  <td
-                    style={{ padding: '12px', textAlign: 'center', cursor: 'pointer' }}
-                    onClick={() => handleDepartmentClick(dept, 'incomplete')}
-                  >
-                    <span style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '50%',
-                      backgroundColor: 'var(--text-error)',
-                      color: 'white',
-                      fontWeight: 'bold',
-                      fontSize: '0.875rem',
-                      transition: 'transform 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-                    onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                    >
+                  <td className="neon-table-cell-center" onClick={() => handleDepartmentClick(dept, 'incomplete')}>
+                    <span className="neon-badge-circle neon-badge-circle-danger">
                       {dept.incompleteAssignments}
                     </span>
                   </td>
-                  <td
-                    style={{ padding: '12px', textAlign: 'center', cursor: 'pointer' }}
-                    onClick={() => handleDepartmentClick(dept, 'upcoming-refresh')}
-                  >
-                    <span style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '50%',
-                      backgroundColor: '#f59e0b',
-                      color: 'white',
-                      fontWeight: 'bold',
-                      fontSize: '0.875rem',
-                      transition: 'transform 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-                    onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                    >
+                  <td className="neon-table-cell-center" onClick={() => handleDepartmentClick(dept, 'upcoming-refresh')}>
+                    <span className="neon-badge-circle neon-badge-circle-warning">
                       {dept.upcomingRefreshDue}
                     </span>
                   </td>
-                  <td style={{ padding: '12px', textAlign: 'center' }}>
+                  <td className="neon-table-cell-center">
                     <span style={{
                       color: dept.complianceRate >= 80 ? 'var(--text-success)' : dept.complianceRate >= 50 ? '#f59e0b' : 'var(--text-error)',
                       fontWeight: 'bold'
@@ -2366,51 +2262,34 @@ export default function TrainingDashboard() {
 
       {/* Training Items Needing Attention (Bottom 10) */}
       <div className="neon-panel" style={{ marginBottom: '32px' }}>
-        <h2 className="neon-heading" style={{ fontSize: '1.25rem', marginBottom: '16px', paddingBottom: '8px', borderBottom: '2px solid #f59e0b' }}>
+        <h2 className="neon-heading neon-heading-section">
           Training Items Needing Attention (Lowest Compliance)
         </h2>
         {trainingItemStats.length === 0 ? (
           <div className="empty-state">No training item data available</div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table className="neon-table">
             <thead>
               <tr>
-                <th style={{ textAlign: 'left', padding: '12px', borderBottom: '2px solid var(--neon)', color: 'var(--header-text)' }}>
-                  Item Name
-                </th>
-                <th style={{ textAlign: 'center', padding: '12px', borderBottom: '2px solid var(--neon)', color: 'var(--header-text)' }}>
-                  Type
-                </th>
-                <th style={{ textAlign: 'center', padding: '12px', borderBottom: '2px solid var(--neon)', color: 'var(--header-text)' }}>
-                  Assignments
-                </th>
-                <th style={{ textAlign: 'center', padding: '12px', borderBottom: '2px solid var(--neon)', color: 'var(--header-text)' }}>
-                  Completed
-                </th>
-                <th style={{ textAlign: 'center', padding: '12px', borderBottom: '2px solid var(--neon)', color: 'var(--header-text)' }}>
-                  Compliance Rate
-                </th>
+                <th className="neon-table-header-left">Item Name</th>
+                <th className="neon-table-header-center">Type</th>
+                <th className="neon-table-header-center">Assignments</th>
+                <th className="neon-table-header-center">Completed</th>
+                <th className="neon-table-header-center">Compliance Rate</th>
               </tr>
             </thead>
             <tbody>
               {trainingItemStats.map((item) => (
-                <tr key={`${item.itemType}:${item.itemId}`} style={{ borderBottom: '1px solid rgba(64, 224, 208, 0.18)' }}>
-                  <td style={{ padding: '12px', color: 'var(--text-white)' }}>{item.itemName}</td>
-                  <td style={{ padding: '12px', textAlign: 'center', color: 'var(--text-white)' }}>
-                    <span style={{
-                      padding: '4px 8px',
-                      borderRadius: '4px',
-                      fontSize: '0.75rem',
-                      fontWeight: 'bold',
-                      backgroundColor: item.itemType === 'module' ? '#1e3a8a' : '#7c3aed',
-                      color: 'white'
-                    }}>
+                <tr key={`${item.itemType}:${item.itemId}`}>
+                  <td className="neon-table-name">{item.itemName}</td>
+                  <td className="neon-table-cell-center">
+                    <span className={`neon-badge-type ${item.itemType === 'module' ? 'neon-badge-type-module' : 'neon-badge-type-document'}`}>
                       {item.itemType === 'module' ? 'Module' : 'Document'}
                     </span>
                   </td>
-                  <td style={{ padding: '12px', textAlign: 'center', color: 'var(--text-white)' }}>{item.totalAssignments}</td>
-                  <td style={{ padding: '12px', textAlign: 'center', color: 'var(--text-white)' }}>{item.completedAssignments}</td>
-                  <td style={{ padding: '12px', textAlign: 'center' }}>
+                  <td className="neon-table-cell-center">{item.totalAssignments}</td>
+                  <td className="neon-table-cell-center">{item.completedAssignments}</td>
+                  <td className="neon-table-cell-center">
                     <span style={{
                       color: item.complianceRate >= 80 ? 'var(--text-success)' : item.complianceRate >= 50 ? '#f59e0b' : 'var(--text-error)',
                       fontWeight: 'bold'
@@ -2427,7 +2306,7 @@ export default function TrainingDashboard() {
 
       {/* Recent Activity */}
       <div className="neon-panel">
-        <h2 className="neon-heading" style={{ fontSize: '1.25rem', marginBottom: '16px', paddingBottom: '8px', borderBottom: '2px solid #f59e0b' }}>
+        <h2 className="neon-heading neon-heading-section">
           Recent Training Completions ({recentActivity.length} items)
         </h2>
         {recentActivity.length === 0 ? (
@@ -2481,7 +2360,7 @@ export default function TrainingDashboard() {
         showCloseButton
       >
         <div style={{ padding: '24px' }}>
-          <h2 className="neon-heading" style={{ marginBottom: '24px', paddingBottom: '8px', borderBottom: '2px solid #f59e0b' }}>All Users</h2>
+          <h2 className="neon-heading neon-heading-modal">All Users</h2>
 
           {/* Search Bar */}
           <div style={{ marginBottom: '20px' }}>
@@ -2671,7 +2550,7 @@ export default function TrainingDashboard() {
         showCloseButton
       >
         <div style={{ padding: '24px' }}>
-          <h2 className="neon-heading" style={{ marginBottom: '24px', paddingBottom: '8px', borderBottom: '2px solid #f59e0b' }}>Completed Assignments</h2>
+          <h2 className="neon-heading neon-heading-modal">Completed Assignments</h2>
           {dialogLoading ? (
             <div style={{ textAlign: 'center', padding: '40px' }}>
               <FiRefreshCw className="animate-spin" size={32} style={{ color: 'var(--neon)' }} />
@@ -2702,7 +2581,7 @@ export default function TrainingDashboard() {
         showCloseButton
       >
         <div style={{ padding: '24px' }}>
-          <h2 className="neon-heading" style={{ marginBottom: '24px', paddingBottom: '8px', borderBottom: '2px solid #f59e0b' }}>Incomplete Assignments</h2>
+          <h2 className="neon-heading neon-heading-modal">Incomplete Assignments</h2>
 
           {/* Search Bar */}
           <div style={{ marginBottom: '20px' }}>
@@ -2799,7 +2678,7 @@ export default function TrainingDashboard() {
         showCloseButton
       >
         <div style={{ padding: '24px' }}>
-          <h2 className="neon-heading" style={{ marginBottom: '24px', paddingBottom: '8px', borderBottom: '2px solid #f59e0b' }}>Upcoming Follow-ups</h2>
+          <h2 className="neon-heading neon-heading-modal">Upcoming Follow-ups</h2>
           {dialogLoading ? (
             <div style={{ textAlign: 'center', padding: '40px' }}>
               <FiRefreshCw className="animate-spin" size={32} style={{ color: 'var(--neon)' }} />
@@ -2825,7 +2704,7 @@ export default function TrainingDashboard() {
         showCloseButton
       >
         <div style={{ padding: '24px' }}>
-          <h2 className="neon-heading" style={{ marginBottom: '24px', paddingBottom: '8px', borderBottom: '2px solid #f59e0b' }}>Overdue Follow-ups</h2>
+          <h2 className="neon-heading neon-heading-modal">Overdue Follow-ups</h2>
           {dialogLoading ? (
             <div style={{ textAlign: 'center', padding: '40px' }}>
               <FiRefreshCw className="animate-spin" size={32} style={{ color: 'var(--neon)' }} />
@@ -3997,7 +3876,7 @@ export default function TrainingDashboard() {
         showCloseButton
       >
         <div style={{ padding: '24px' }}>
-          <h2 className="neon-heading" style={{ marginBottom: '24px', paddingBottom: '8px', borderBottom: '2px solid #f59e0b' }}>
+          <h2 className="neon-heading neon-heading-modal">
             Choose Download Format
           </h2>
           <p style={{ marginBottom: '24px', color: 'var(--text-white)', opacity: 0.8 }}>

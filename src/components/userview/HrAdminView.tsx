@@ -1088,18 +1088,16 @@ const UserManager: React.FC = () => {
           ) : error ? (
             <div className="user-manager-error">{error}</div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+            <div>
               {/* Users Without Department */}
               <div>
-                <h3 style={{ color: '#40e0d0', marginBottom: '1rem', fontSize: '1.1rem' }}>
-                  Users Without Department ({usersWithoutDepartment.length})
-                </h3>
+                <h3>Users Without Department ({usersWithoutDepartment.length})</h3>
                 <table className="neon-table user-manager-table">
                   <thead>
                     <tr>
                       <th>Name</th>
                       <th>Email</th>
-                      <th style={{ textAlign: 'center' }}>Actions</th>
+                      <th className="neon-table-header-center">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1110,8 +1108,8 @@ const UserManager: React.FC = () => {
                         <tr key={user.id}>
                           <td className="user-manager-name">{`${user.first_name || ""} ${user.last_name || ""}`.trim()}</td>
                           <td>{user.email}</td>
-                          <td style={{ textAlign: 'center' }}>
-                            <div className="user-manager-actions-cell" style={{ justifyContent: 'center' }}>
+                          <td>
+                            <div className="user-manager-actions-cell">
                               <TextIconButton
                                 variant="assign"
                                 label="Assign Department"
@@ -1128,15 +1126,13 @@ const UserManager: React.FC = () => {
 
               {/* Users Without Role */}
               <div>
-                <h3 style={{ color: '#40e0d0', marginBottom: '1rem', fontSize: '1.1rem' }}>
-                  Users Without Role ({usersWithoutRole.length})
-                </h3>
+                <h3>Users Without Role ({usersWithoutRole.length})</h3>
                 <table className="neon-table user-manager-table">
                   <thead>
                     <tr>
                       <th>Name</th>
                       <th>Employee Number</th>
-                      <th style={{ textAlign: 'center' }}>Actions</th>
+                      <th className="neon-table-header-center">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1147,8 +1143,8 @@ const UserManager: React.FC = () => {
                         <tr key={user.id}>
                           <td className="user-manager-name">{`${user.first_name || ""} ${user.last_name || ""}`.trim()}</td>
                           <td>{user.employee_number || "—"}</td>
-                          <td style={{ textAlign: 'center' }}>
-                            <div className="user-manager-actions-cell" style={{ justifyContent: 'center' }}>
+                          <td>
+                            <div className="user-manager-actions-cell">
                               <TextIconButton
                                 variant="assign"
                                 label="Assign Role"

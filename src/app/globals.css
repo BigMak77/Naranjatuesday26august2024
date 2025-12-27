@@ -905,9 +905,9 @@ header.global-header {
 /* Each user role gets a different colored toolbar to visually distinguish their view
    Gradients fade from a role-specific color to the standard panel color */
 
-/* Admin toolbar - dark gray/black gradient for administrator view */
+/* Admin toolbar - dark blue gradient for administrator view */
 .section-toolbar-admin {
-  background: linear-gradient(90deg, rgb(24, 23, 23) 0%, var(--panel) 100%);
+  background: linear-gradient(90deg, rgb(37, 99, 235) 0%, var(--panel) 100%);
   border-bottom: 1px solid #fff;
 }
 
@@ -1205,6 +1205,21 @@ footer.site-footer .inner {
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 0.5rem;
+}
+
+/* Section heading with orange bottom border - used for dashboard sections */
+.neon-heading-section {
+  font-size: 1.25rem;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #f59e0b;
+}
+
+/* Modal/dialog heading with orange bottom border */
+.neon-heading-modal {
+  margin-bottom: 24px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #f59e0b;
 }
 
 /* Help icon button - typically a small question mark icon next to headers
@@ -1731,27 +1746,34 @@ label.inline {
   background: linear-gradient(135deg, #fa7a20, #ff8c3a);
   color: white;
   font-weight: 600;
-  border: 1px solid #fff;
-  border-bottom: none;
+  border: 1px solid #c85a0a !important;
+  border-bottom: none !important;
   z-index: 3;
 }
 
 /* ========== INACTIVE TABS ========== */
 .folder-tab:not(.active) {
   background: rgba(1, 77, 77, 0.6);
-  color: var(--neon);
+  color: #5dd5d5;
 }
 
 /* ========== TAB HOVER/FOCUS STATES ========== */
 .folder-tab:hover:not(.active) {
   background: rgba(1, 77, 77, 0.8);
-  color: var(--neon);
+  color: #5dd5d5;
   border-color: #fff;
 }
 
+.folder-tab.active:hover {
+  border-color: #c85a0a !important;
+}
+
 .folder-tab:focus {
-  outline: 2px solid var(--neon);
-  outline-offset: -2px;
+  outline: none;
+}
+
+.folder-tab.active:focus {
+  outline: none;
 }
 
 /* ========== TAB ICON AND LABEL ========== */
@@ -1797,9 +1819,9 @@ label.inline {
   font-family: var(--font-family);
 }
 
-/* Table header section - subtle cyan tinted background to distinguish from body */
+/* Table header section - darker teal background to distinguish from body */
 .neon-table thead {
-  background: rgba(64, 224, 208, 0.1);
+  background: rgba(64, 224, 208, 0.2);
 }
 
 /* Table headers use header styling - bold white text with orange bottom border
@@ -1813,24 +1835,42 @@ label.inline {
   border-bottom: 2px solid #fa7a20;
 }
 
-/* Table data cells use white text - normal weight for easy reading
-   Each cell has a subtle orange bottom border to separate rows */
+/* Table data cells use white text - normal weight for easy reading */
 .neon-table td {
   padding: 1rem;
-  border-bottom: 1px solid #fa7a20;
+  border-bottom: none;
   color: var(--text-white);
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-normal);
 }
 
-/* Remove bottom border from last row to avoid double-border with table border */
-.neon-table tbody tr:last-child td {
-  border-bottom: none;
+/* Table body rows - lighter teal background */
+.neon-table tbody tr {
+  background: rgba(64, 224, 208, 0.05);
+}
+
+/* Create separator line that stops before edges using a wrapper approach */
+.neon-table tbody tr {
+  background-image: linear-gradient(to right,
+    transparent 0,
+    transparent 1rem,
+    rgba(64, 224, 208, 0.3) 1rem,
+    rgba(64, 224, 208, 0.3) calc(100% - 1rem),
+    transparent calc(100% - 1rem),
+    transparent 100%);
+  background-position: 0 100%;
+  background-size: 100% 1px;
+  background-repeat: no-repeat;
+}
+
+/* Remove separator from last row */
+.neon-table tbody tr:last-child {
+  background-image: none;
 }
 
 /* Hover effect on table rows - subtle cyan highlight shows which row you're looking at */
 .neon-table tbody tr:hover {
-  background: rgba(64, 224, 208, 0.05);
+  background-color: rgba(64, 224, 208, 0.1);
 }
 
 /* Table header alignment classes - utility classes for aligning table headers */
@@ -1856,12 +1896,17 @@ label.inline {
   color: var(--text-white);
 }
 
+/* Center-aligned table cell */
+.neon-table-cell-center {
+  text-align: center;
+}
+
 /* Table footer - appears below table with summary information or pagination
-   Subtle cyan background distinguishes it from table body */
+   Lighter cyan background distinguishes it from table body */
 .neon-table-footer {
   margin-top: 1rem;
   padding: 0.75rem;
-  background: rgba(64, 224, 208, 0.05);
+  background: rgba(64, 224, 208, 0.1);
   border: 1px solid #fa7a20;
   border-radius: var(--radius);
   color: var(--text-white);
@@ -1910,6 +1955,58 @@ label.inline {
   background: var(--status-danger-light);
   color: var(--status-danger);
   border: 1px solid #fa7a20;
+}
+
+/* Circular badge - used for count displays in tables */
+.neon-badge-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: white;
+  font-weight: bold;
+  font-size: 0.875rem;
+  transition: transform 0.2s;
+  cursor: pointer;
+}
+
+.neon-badge-circle:hover {
+  transform: scale(1.1);
+}
+
+.neon-badge-circle-blue {
+  background-color: #1e3a8a;
+}
+
+.neon-badge-circle-success {
+  background-color: var(--text-success);
+}
+
+.neon-badge-circle-danger {
+  background-color: var(--text-error);
+}
+
+.neon-badge-circle-warning {
+  background-color: #f59e0b;
+}
+
+/* Type badge - used for displaying item types like Module/Document */
+.neon-badge-type {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: white;
+}
+
+.neon-badge-type-module {
+  background-color: #1e3a8a;
+}
+
+.neon-badge-type-document {
+  background-color: #7c3aed;
 }
 
 /* ==================================================================================
@@ -2262,7 +2359,6 @@ label.inline {
 
 .user-manager-table {
   margin-bottom: 2rem;
-  border: 1px solid #fff;
   border-radius: var(--radius);
 }
 

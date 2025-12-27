@@ -87,7 +87,7 @@ export default function AdminToolbar() {
   };
 
   return (
-    <section className="section-toolbar">
+    <section className="section-toolbar section-toolbar-admin">
       <div className="toolbar-buttons">
         {/* Admin Sections Dropdown */}
         <div ref={dropdownRef} className="toolbar-dropdown">

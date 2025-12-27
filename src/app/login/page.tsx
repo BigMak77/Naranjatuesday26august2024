@@ -53,6 +53,20 @@ export default function LoginPage() {
       return;
     }
 
+    // Log the successful login
+    try {
+      await supabase.rpc('log_user_login', {
+        p_user_id: authUser.id,
+        p_email: authUser.email || email,
+        p_ip_address: null, // Could be populated from request headers in a server component
+        p_user_agent: typeof window !== 'undefined' ? window.navigator.userAgent : null,
+        p_location: userProfile.location || null
+      });
+    } catch (logError) {
+      console.error('Failed to log login event:', logError);
+      // Don't block login if logging fails
+    }
+
     // Redirect to appropriate dashboard based on access level and location
     const dashboardUrl = getDashboardUrl(userProfile.access_level, userProfile.location);
     router.push(dashboardUrl);

@@ -8,13 +8,13 @@ import { FiMail } from "react-icons/fi";
 import TextIconButton from "@/components/ui/TextIconButtons";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 
-type AdminSection = "Dashboard" | "HR" | "Compliance" | "Reports" | "Utilities" | "Trainer" | "Tasks" | "Issues" | "Audits" | "Modules" | "Documents" | "HealthSafety";
+type AdminSection = "HR" | "Compliance" | "Reports" | "Utilities" | "Trainer" | "Tasks" | "Issues" | "Audits" | "Modules" | "Documents" | "HealthSafety";
 
 export default function SuperAdminToolbar() {
   const router = useRouter();
   const { user } = useUser();
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedSection, setSelectedSection] = useState<AdminSection>("Dashboard");
+  const [selectedSection, setSelectedSection] = useState<AdminSection>("HR");
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -26,12 +26,6 @@ export default function SuperAdminToolbar() {
     path: string;
     description: string;
   }> = [
-    {
-      section: "Dashboard",
-      label: "Dashboard",
-      path: "/admin/dashboard",
-      description: "System overview and analytics"
-    },
     {
       section: "HR",
       label: "HR Dashboard",
@@ -144,7 +138,7 @@ export default function SuperAdminToolbar() {
   };
 
   return (
-    <section className="section-toolbar">
+    <section className="section-toolbar section-toolbar-admin">
       <div className="toolbar-buttons">
         {/* Admin Sections Dropdown */}
         <div ref={dropdownRef} className="toolbar-dropdown">
@@ -156,6 +150,7 @@ export default function SuperAdminToolbar() {
               aria-label="Select admin section"
               aria-expanded={isOpen}
               type="button"
+              style={{ background: 'transparent' }}
             >
               <svg
                 width="20"
