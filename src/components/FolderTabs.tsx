@@ -73,7 +73,7 @@ export default function FolderTabs({
           border: '1px solid var(--border)',
           borderRadius: '0 0 8px 8px',
           marginTop: '0',
-          marginBottom: '0',
+          marginBottom: '0.5rem',
           flexWrap: 'wrap',
           fontFamily: 'var(--font-family)',
           fontSize: 'var(--font-size-base)',

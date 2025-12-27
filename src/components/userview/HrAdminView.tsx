@@ -702,7 +702,7 @@ const UserManager: React.FC = () => {
         activeTab={activeTab}
         onChange={setActiveTab}
         toolbar={
-          <>
+          <div style={{ marginBottom: '0.5rem', display: 'flex', gap: '0.75rem', alignItems: 'center', width: '100%' }}>
             {activeTab === "people" && userPanelControls && (
               <>
                 <input
@@ -1073,7 +1073,7 @@ const UserManager: React.FC = () => {
                 </span>
               </>
             )}
-          </>
+          </div>
         }
       />
       {activeTab === "people" && (
@@ -1405,11 +1405,11 @@ const UserManager: React.FC = () => {
 
         {selectedStarter && (
           <div className="user-manager-form">
-            <div style={{ marginBottom: "1.5rem", padding: "1rem", background: "rgba(64, 224, 208, 0.1)", borderRadius: "8px" }}>
-              <h4 style={{ color: "#40e0d0", marginBottom: "0.5rem" }}>New Starter Information</h4>
-              <p style={{ margin: "0.25rem 0" }}><strong>Name:</strong> {selectedStarter.first_name} {selectedStarter.last_name}</p>
-              <p style={{ margin: "0.25rem 0" }}><strong>Email:</strong> {selectedStarter.email}</p>
-              <p style={{ margin: "0.25rem 0" }}><strong>Start Date:</strong> {selectedStarter.start_date || "—"}</p>
+            <div className="info-box">
+              <h4 className="neon-heading">New Starter Information</h4>
+              <p className="neon-text"><strong>Name:</strong> {selectedStarter.first_name} {selectedStarter.last_name}</p>
+              <p className="neon-text"><strong>Email:</strong> {selectedStarter.email}</p>
+              <p className="neon-text"><strong>Start Date:</strong> {selectedStarter.start_date || "—"}</p>
             </div>
 
             <div className="user-manager-form-field">
@@ -1422,14 +1422,14 @@ const UserManager: React.FC = () => {
                 placeholder="Enter employee number"
                 autoFocus
               />
-              <small style={{ color: "#40e0d0", fontSize: "0.75rem", marginTop: "0.25rem", display: "block" }}>
+              <small className="neon-help-text">
                 This will assign the employee number and send a welcome email with login instructions.
               </small>
             </div>
 
             <div className="user-manager-form-actions">
               <TextIconButton
-                variant="primary"
+                variant="send"
                 label={assignLoading ? "Assigning..." : "Assign & Send Welcome Email"}
                 onClick={handleAssignUser}
                 disabled={assignLoading || !employeeNumber.trim()}

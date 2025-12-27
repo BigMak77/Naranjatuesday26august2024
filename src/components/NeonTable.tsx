@@ -219,7 +219,7 @@ export default function NeonTable({
                   ...(col.width ? { width: typeof col.width === 'number' ? `${col.width}px` : col.width } : {}),
                   position: 'relative',
                   userSelect: resizingCol === col.accessor ? 'none' : undefined,
-                  textAlign: col.align || 'left',
+                  textAlign: col.align || 'center',
                 }}
                 onClick={() => {
                   if (sortBy === col.accessor) {

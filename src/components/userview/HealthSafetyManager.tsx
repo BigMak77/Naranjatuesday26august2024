@@ -344,17 +344,18 @@ export default function HealthSafetyManager() {
 
   return (
     <>
-      <FolderTabs
-            tabs={[
-              { key: "assessments", label: "Risk Assessments", icon: <FiClipboard /> },
-              { key: "incidents", label: "Incidents", icon: <FiAlertCircle /> },
-              { key: "policies", label: "Policies", icon: <FiFileText /> },
-              { key: "firstaid", label: "First Aid", icon: <FiHeart /> },
-              { key: "utilities", label: "Utilities", icon: <FiTool /> },
-            ]}
-            activeTab={activeTab}
-            onChange={tabKey => setActiveTab(tabKey as typeof activeTab)}
-            toolbar={
+      <div className="folder-container">
+        <FolderTabs
+              tabs={[
+                { key: "assessments", label: "Risk Assessments", icon: <FiClipboard /> },
+                { key: "incidents", label: "Incidents", icon: <FiAlertCircle /> },
+                { key: "policies", label: "Policies", icon: <FiFileText /> },
+                { key: "firstaid", label: "First Aid", icon: <FiHeart /> },
+                { key: "utilities", label: "Utilities", icon: <FiTool /> },
+              ]}
+              activeTab={activeTab}
+              onChange={tabKey => setActiveTab(tabKey as typeof activeTab)}
+              toolbar={
               <>
                 {activeTab === "assessments" && (
                   <>
@@ -434,108 +435,111 @@ export default function HealthSafetyManager() {
             }
           />
 
-          {activeTab === "assessments" && (
-            <RiskAssessmentManager
-              createAction={riskAssessmentAction}
-              onActionComplete={() => setRiskAssessmentAction(null)}
-            />
-          )}
-
-          {activeTab === "incidents" && (
-            <NeonPanel>
-              {/* Render the minimal incident form from incidents/add */}
-              <IncidentFormMinimal
-                onSubmit={handleIncidentSubmit}
+          <div className="folder-content">
+            {activeTab === "assessments" && (
+              <RiskAssessmentManager
+                createAction={riskAssessmentAction}
+                onActionComplete={() => setRiskAssessmentAction(null)}
               />
-            </NeonPanel>
-          )}
+            )}
 
-          {activeTab === "policies" && <HealthSafetyPolicyManager />}
+            {activeTab === "incidents" && (
+              <NeonPanel>
+                {/* Render the minimal incident form from incidents/add */}
+                <IncidentFormMinimal
+                  onSubmit={handleIncidentSubmit}
+                />
+              </NeonPanel>
+            )}
 
-          {activeTab === "firstaid" && (
-            <NeonPanel>
-              <h2 className="neon-form-title">
-                <FiHeart /> First Aid Management
-              </h2>
+            {activeTab === "policies" && <HealthSafetyPolicyManager />}
 
-              <p className="neon-info">
-                Designate employees as first aid qualified by completing their training certification process.
-              </p>
+            {activeTab === "firstaid" && (
+              <NeonPanel>
+                <h2 className="neon-form-title">
+                  <FiHeart /> First Aid Management
+                </h2>
 
-              <AddFirstAidDialog
-                open={showAddFirstAidDialog}
-                onClose={() => setShowAddFirstAidDialog(false)}
-                onAdded={() => {
-                  console.log("First aid designation added successfully");
-                  // Optionally refresh data or show success notification
-                }}
-              />
+                <p className="neon-info">
+                  Designate employees as first aid qualified by completing their training certification process.
+                </p>
 
-              <ViewFirstAidersDialog
-                open={showViewFirstAidersDialog}
-                onClose={() => setShowViewFirstAidersDialog(false)}
-              />
-            </NeonPanel>
-          )}
+                <AddFirstAidDialog
+                  open={showAddFirstAidDialog}
+                  onClose={() => setShowAddFirstAidDialog(false)}
+                  onAdded={() => {
+                    console.log("First aid designation added successfully");
+                    // Optionally refresh data or show success notification
+                  }}
+                />
 
-          {activeTab === "utilities" && (
-            <NeonPanel>
-              <h2 className="neon-form-title">
-                <FiTool /> Health & Safety Utilities
-              </h2>
+                <ViewFirstAidersDialog
+                  open={showViewFirstAidersDialog}
+                  onClose={() => setShowViewFirstAidersDialog(false)}
+                />
+              </NeonPanel>
+            )}
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginTop: '1.5rem' }}>
-                {/* Location Management */}
-                <div style={{ 
-                  padding: '1.5rem', 
-                  border: '1px solid var(--border)', 
-                  borderRadius: '8px',
-                  backgroundColor: 'var(--background-secondary)'
-                }}>
-                  <h3 style={{ color: 'var(--neon)', marginBottom: '0.75rem', fontSize: '1.125rem' }}>
-                    Location Management
-                  </h3>
-                  <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.875rem' }}>
-                    Manage sites, areas, and zones for incident reporting and risk assessments.
-                  </p>
-                  <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                    <TextIconButton
-                      variant="download"
-                      label={isDownloading ? "Downloading..." : "Download CSV"}
-                      title={isDownloading ? "Downloading..." : "Download CSV"}
-                      onClick={handleDownloadLocations}
-                      disabled={isDownloading}
-                    />
-                    <TextIconButton
-                      variant="upload"
-                      label={isUploading ? "Uploading..." : "Upload CSV"}
-                      title={isUploading ? "Uploading..." : "Upload CSV"}
-                      onClick={handleUploadLocations}
-                      disabled={isUploading}
-                    />
+            {activeTab === "utilities" && (
+              <NeonPanel>
+                <h2 className="neon-form-title">
+                  <FiTool /> Health & Safety Utilities
+                </h2>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginTop: '1.5rem' }}>
+                  {/* Location Management */}
+                  <div style={{
+                    padding: '1.5rem',
+                    border: '1px solid var(--border)',
+                    borderRadius: '8px',
+                    backgroundColor: 'var(--background-secondary)'
+                  }}>
+                    <h3 style={{ color: 'var(--neon)', marginBottom: '0.75rem', fontSize: '1.125rem' }}>
+                      Location Management
+                    </h3>
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.875rem' }}>
+                      Manage sites, areas, and zones for incident reporting and risk assessments.
+                    </p>
+                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                      <TextIconButton
+                        variant="download"
+                        label={isDownloading ? "Downloading..." : "Download CSV"}
+                        title={isDownloading ? "Downloading..." : "Download CSV"}
+                        onClick={handleDownloadLocations}
+                        disabled={isDownloading}
+                      />
+                      <TextIconButton
+                        variant="upload"
+                        label={isUploading ? "Uploading..." : "Upload CSV"}
+                        title={isUploading ? "Uploading..." : "Upload CSV"}
+                        onClick={handleUploadLocations}
+                        disabled={isUploading}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Location Management Note */}
+                  <div style={{
+                    padding: '1.5rem',
+                    border: '1px solid var(--border)',
+                    borderRadius: '8px',
+                    backgroundColor: 'var(--background-secondary)'
+                  }}>
+                    <h3 style={{ color: 'var(--neon)', marginBottom: '0.75rem', fontSize: '1.125rem' }}>
+                      System Information
+                    </h3>
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
+                      Health & Safety utilities and data management tools.
+                    </p>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginTop: '1rem' }}>
+                      Use the tabs above to manage risk assessments, incidents, policies, and first aid designations.
+                    </p>
                   </div>
                 </div>
-
-                {/* Location Management Note */}
-                <div style={{
-                  padding: '1.5rem',
-                  border: '1px solid var(--border)',
-                  borderRadius: '8px',
-                  backgroundColor: 'var(--background-secondary)'
-                }}>
-                  <h3 style={{ color: 'var(--neon)', marginBottom: '0.75rem', fontSize: '1.125rem' }}>
-                    System Information
-                  </h3>
-                  <p style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
-                    Health & Safety utilities and data management tools.
-                  </p>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginTop: '1rem' }}>
-                    Use the tabs above to manage risk assessments, incidents, policies, and first aid designations.
-                  </p>
-                </div>
-              </div>
-            </NeonPanel>
-          )}
+              </NeonPanel>
+            )}
+          </div>
+        </div>
 
       {/* Overlay Dialog for feedback messages */}
       <OverlayDialog showCloseButton={true}

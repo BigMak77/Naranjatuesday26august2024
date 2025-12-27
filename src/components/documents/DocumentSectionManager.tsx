@@ -790,7 +790,7 @@ export default function DocumentManager() {
   return (
     <>
       {loading ? (
-        <p className="neon-text" style={{ textAlign: 'center', padding: '2rem' }}>Loading…</p>
+        <p className="neon-text text-center p-8">Loading…</p>
       ) : (
         <div className="folder-container">
           <FolderTabs
@@ -902,10 +902,10 @@ export default function DocumentManager() {
           setCsvImportSuccess(null);
         }}
       >
-        <div style={{ padding: '1rem', minWidth: '500px' }}>
-          <h3 className="neon-heading" style={{ marginBottom: '1rem' }}>Upload Documents CSV</h3>
+        <div className="p-4" style={{ minWidth: '500px' }}>
+          <h3 className="neon-heading mb-4">Upload Documents CSV</h3>
 
-          <div className="neon-form-row" style={{ marginBottom: '1rem' }}>
+          <div className="neon-form-row mb-4">
             <label className="neon-label" htmlFor="csv-file">
               Select CSV File
             </label>
@@ -924,24 +924,24 @@ export default function DocumentManager() {
               }}
               disabled={csvImportLoading}
             />
-            <p style={{ opacity: 0.6, marginTop: '0.5rem' }}>
+            <p className="mt-2" style={{ opacity: 0.6 }}>
               CSV must include columns: id, title, document_type_id
             </p>
           </div>
 
           {csvImportError && (
-            <div className="neon-error" style={{ marginBottom: '1rem' }}>
+            <div className="neon-error mb-4">
               {csvImportError}
             </div>
           )}
 
           {csvImportSuccess && (
-            <div className="neon-success" style={{ marginBottom: '1rem' }}>
+            <div className="neon-success mb-4">
               {csvImportSuccess}
             </div>
           )}
 
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+          <div className="flex gap-4 justify-end">
             <CustomTooltip text="Cancel upload">
               <TextIconButton
                 variant="cancel"
@@ -977,14 +977,14 @@ export default function DocumentManager() {
           setButtonLoading(null);
         }}
       >
-        <div style={{ minWidth: 380, maxWidth: 480, padding: 24 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: 16 }}>
+        <div className="p-6" style={{ minWidth: 380, maxWidth: 480 }}>
+          <div className="flex items-center gap-2 mb-4">
             <FiArchive style={{ color: "var(--accent)", width: "24px", height: "24px" }} />
-            <h2 className="neon-heading" style={{ margin: 0 }}>
+            <h2 className="neon-heading m-0">
               Archive Document
             </h2>
           </div>
-          <p className="neon-text" style={{ marginBottom: 16 }}>
+          <p className="neon-text mb-4">
             Are you sure you want to archive this document? This action cannot be undone.<br />
             Please provide a change summary below.
           </p>
@@ -1003,13 +1003,12 @@ export default function DocumentManager() {
               id="changeSummary"
               value={changeSummary}
               onChange={(e) => setChangeSummary(e.target.value)}
-              className="neon-input mb-2"
+              className="neon-input mb-2 w-full"
               placeholder="Describe why this document is being archived…"
               required
               rows={3}
-              style={{ width: "100%" }}
             />
-            {archiveErrorMsg && <p className="neon-text danger-text" style={{ marginBottom: '0.5rem' }}>{archiveErrorMsg}</p>}
+            {archiveErrorMsg && <p className="neon-text danger-text mb-2">{archiveErrorMsg}</p>}
           </NeonForm>
         </div>
       </OverlayDialog>
@@ -1118,7 +1117,7 @@ export default function DocumentManager() {
                 </option>
               ))}
           </select>
-          {editSectionError && <p className="neon-text danger-text" style={{ marginBottom: '0.5rem' }}>{editSectionError}</p>}
+          {editSectionError && <p className="neon-text danger-text mb-2">{editSectionError}</p>}
         </NeonForm>
       </OverlayDialog>
 
@@ -1131,11 +1130,11 @@ export default function DocumentManager() {
           setEditStage(null);
         }}
       >
-        <div style={{ minWidth: 340, maxWidth: '100vw', width: 850, display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
+        <div className="flex flex-col items-stretch" style={{ minWidth: 340, maxWidth: '100vw', width: 850 }}>
           {editStage === "archive" ? (
             <>
-              <h2 className="neon-heading" style={{ marginBottom: 16 }}>Archive Document</h2>
-              <p className="neon-text" style={{ marginBottom: 16 }}>
+              <h2 className="neon-heading mb-4">Archive Document</h2>
+              <p className="neon-text mb-4">
                 Are you sure you want to archive this document? This action cannot be undone.<br />
                 Please provide a change summary below.
               </p>
@@ -1171,19 +1170,18 @@ export default function DocumentManager() {
                   id="changeSummary"
                   value={changeSummary}
                   onChange={(e) => setChangeSummary(e.target.value)}
-                  className="neon-input mb-2"
+                  className="neon-input mb-2 w-full"
                   placeholder="Describe why this document is being archived…"
                   required
                   rows={3}
-                  style={{ width: "100%" }}
                 />
-                {archiveErrorMsg && <p className="neon-text danger-text" style={{ marginBottom: '0.5rem' }}>{archiveErrorMsg}</p>}
+                {archiveErrorMsg && <p className="neon-text danger-text mb-2">{archiveErrorMsg}</p>}
               </NeonForm>
             </>
           ) : editStage === "review" ? (
             <>
-              <h2 className="neon-heading" style={{ marginBottom: 16 }}>Review Document</h2>
-              <p className="neon-text" style={{ marginBottom: 16 }}>
+              <h2 className="neon-heading mb-4">Review Document</h2>
+              <p className="neon-text mb-4">
                 You confirm that there are no changes to be made to this document.<br />
                 The review date will be updated.
               </p>
@@ -1213,8 +1211,8 @@ export default function DocumentManager() {
             </>
           ) : editStage === "amend" ? (
             <>
-              <h2 className="neon-heading" style={{ marginBottom: 16 }}>Amend Document Details</h2>
-              <p className="neon-text" style={{ marginBottom: 16 }}>
+              <h2 className="neon-heading mb-4">Amend Document Details</h2>
+              <p className="neon-text mb-4">
                 You can amend document details without changing the version, created date, or review date.
               </p>
               {editStageDocId && (
@@ -1237,11 +1235,11 @@ export default function DocumentManager() {
             </>
           ) : (
             <>
-              <h2 className="neon-heading" style={{ marginBottom: 16 }}>Edit Document</h2>
-              <p style={{ maxWidth: 800, margin: '0 auto 16px auto', textAlign: 'center' }}>
+              <h2 className="neon-heading mb-4">Edit Document</h2>
+              <p className="text-center mb-4" style={{ maxWidth: 800, margin: '0 auto 16px auto' }}>
                 Would you like to perform a <strong>Review</strong> (update last reviewed date), create a <strong>New Version</strong>, <strong>Amend Details</strong> (edit without changing dates/version), or <strong>Archive</strong> this document?
               </p>
-              <div style={{ display: 'flex', gap: 16, width: '100%' }}>
+              <div className="flex gap-4 w-full">
                 <CustomTooltip text="Review (update last reviewed date)">
                   <TextIconButton
                     variant="refresh"
@@ -1556,13 +1554,10 @@ function SummaryTabContent({
   return (
     <div>
       {incompleteCount > 0 && (
-        <div style={{
-          padding: '0.75rem',
-          margin: '0 0 1rem 0',
+        <div className="p-3 mb-4 text-sm" style={{
           background: 'rgba(255, 170, 0, 0.1)',
           border: '1px solid rgba(255, 170, 0, 0.3)',
-          borderRadius: '8px',
-          fontSize: '0.875rem'
+          borderRadius: '8px'
         }}>
           <strong>⚠️ Incomplete Data Warning:</strong> {incompleteCount} of {summaryData.length} documents are missing standard, section, or type information.
         </div>
@@ -1570,16 +1565,17 @@ function SummaryTabContent({
 
       {/* Compact Toolbar */}
       <div style={{
-        display: 'flex',
+        display: 'grid',
+        gridTemplateColumns: '200px 160px 140px auto 1fr auto auto',
         gap: '0.75rem',
         alignItems: 'center',
-        padding: '0.75rem',
+        padding: '1rem 0.75rem',
         background: 'var(--panel)',
-        border: '1px solid #fa7a20',
+        border: '1px solid var(--border)',
         borderRadius: '0 0 8px 8px',
         marginTop: '0',
         marginBottom: '1rem',
-        flexWrap: 'wrap'
+        minHeight: '72px'
       }}>
         {/* Search */}
         <input
@@ -1629,8 +1625,11 @@ function SummaryTabContent({
           </CustomTooltip>
         )}
 
-        {/* Spacer */}
-        <div style={{ flex: 1, minWidth: '20px' }} />
+        {/* Empty cell when no Clear button */}
+        {!hasActiveFilters && <div />}
+
+        {/* Spacer column - takes remaining space */}
+        <div />
 
         {/* Result Count */}
         <span style={{ opacity: 0.7, fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
@@ -1651,72 +1650,63 @@ function SummaryTabContent({
       </div>
 
       {/* Summary Stats */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-        gap: '1rem',
-        marginBottom: '1.5rem'
-      }}>
-        <div style={{
-          padding: '1rem',
+      <div className="grid gap-4 mb-6" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))' }}>
+        <div className="p-4" style={{
           background: 'rgba(0, 255, 170, 0.05)',
           borderRadius: '8px',
           border: '1px solid rgba(0, 255, 170, 0.2)'
         }}>
-          <div style={{ opacity: 0.6, marginBottom: '0.25rem' }}>
+          <div className="mb-1" style={{ opacity: 0.6 }}>
             Total Documents
           </div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
+          <div className="text-xl font-bold">
             {filteredSummary.length}
           </div>
         </div>
 
-        <div style={{
-          padding: '1rem',
+        <div className="p-4" style={{
           background: 'rgba(0, 200, 255, 0.05)',
           borderRadius: '8px',
           border: '1px solid rgba(0, 200, 255, 0.2)'
         }}>
-          <div style={{ opacity: 0.6, marginBottom: '0.25rem' }}>
+          <div className="mb-1" style={{ opacity: 0.6 }}>
             Standards
           </div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
+          <div className="text-xl font-bold">
             {standards.length}
           </div>
         </div>
 
-        <div style={{
-          padding: '1rem',
+        <div className="p-4" style={{
           background: 'rgba(255, 170, 0, 0.05)',
           borderRadius: '8px',
           border: '1px solid rgba(255, 170, 0, 0.2)'
         }}>
-          <div style={{ opacity: 0.6, marginBottom: '0.25rem' }}>
+          <div className="mb-1" style={{ opacity: 0.6 }}>
             Sections
           </div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
+          <div className="text-xl font-bold">
             {sections.length}
           </div>
         </div>
 
-        <div style={{
-          padding: '1rem',
+        <div className="p-4" style={{
           background: 'rgba(170, 0, 255, 0.05)',
           borderRadius: '8px',
           border: '1px solid rgba(170, 0, 255, 0.2)'
         }}>
-          <div style={{ opacity: 0.6, marginBottom: '0.25rem' }}>
+          <div className="mb-1" style={{ opacity: 0.6 }}>
             Document Types
           </div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
+          <div className="text-xl font-bold">
             {documentTypes.length}
           </div>
         </div>
       </div>
 
       {/* Editable Summary Table */}
-      <div style={{ overflowX: 'auto' }}>
-        <table className="neon-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <div className="overflow-x-auto">
+        <table className="neon-table w-full" style={{ borderCollapse: 'collapse' }}>
           <thead>
             <tr>
               <th
@@ -1730,7 +1720,7 @@ function SummaryTabContent({
                 }}
                 onClick={() => handleSort('standard_name')}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div className="flex items-center gap-2">
                   Standard
                   {sortColumn === 'standard_name' && (
                     <span>
@@ -1749,7 +1739,7 @@ function SummaryTabContent({
                 }}
                 onClick={() => handleSort('section_code')}
               >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                <div className="flex items-center justify-center gap-2">
                   Section
                   {sortColumn === 'section_code' && (
                     <span>
@@ -1768,7 +1758,7 @@ function SummaryTabContent({
                 }}
                 onClick={() => handleSort('document_reference')}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div className="flex items-center gap-2">
                   Doc Ref
                   {sortColumn === 'document_reference' && (
                     <span>
@@ -1787,7 +1777,7 @@ function SummaryTabContent({
                 }}
                 onClick={() => handleSort('document_title')}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div className="flex items-center gap-2">
                   Document Title
                   {sortColumn === 'document_title' && (
                     <span>
@@ -1806,7 +1796,7 @@ function SummaryTabContent({
                 }}
                 onClick={() => handleSort('document_type')}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div className="flex items-center gap-2">
                   Type
                   {sortColumn === 'document_type' && (
                     <span>
@@ -1825,7 +1815,7 @@ function SummaryTabContent({
                 }}
                 onClick={() => handleSort('review_due')}
               >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                <div className="flex items-center justify-center gap-2">
                   Review Due
                   {sortColumn === 'review_due' && (
                     <span>
@@ -1848,7 +1838,7 @@ function SummaryTabContent({
               return (
                 <tr key={item.id} style={{ borderBottom: '1px solid rgba(0, 255, 170, 0.1)' }}>
                   {/* Standard */}
-                  <td style={{ padding: '0.75rem' }}>
+                  <td className="p-3">
                     {isEditing ? (
                       <select
                         className="neon-input"
@@ -1875,7 +1865,7 @@ function SummaryTabContent({
                   </td>
 
                   {/* Section */}
-                  <td style={{ padding: '0.75rem' }}>
+                  <td className="p-3">
                     {isEditing ? (
                       <select
                         className="neon-input"
@@ -1894,14 +1884,14 @@ function SummaryTabContent({
                       </select>
                     ) : (
                       <div>
-                        <div style={{ textAlign: 'center' }}>{item.section_code}</div>
+                        <div className="text-center">{item.section_code}</div>
                         <div style={{ textAlign: 'center', opacity: 0.6 }}>{item.section_title}</div>
                       </div>
                     )}
                   </td>
 
                   {/* Document Reference */}
-                  <td style={{ padding: '0.75rem' }}>
+                  <td className="p-3">
                     {isEditing ? (
                       <input
                         type="text"
@@ -1918,7 +1908,7 @@ function SummaryTabContent({
                   </td>
 
                   {/* Document Title */}
-                  <td style={{ padding: '0.75rem' }}>
+                  <td className="p-3">
                     {isEditing ? (
                       <input
                         type="text"
@@ -1933,7 +1923,7 @@ function SummaryTabContent({
                   </td>
 
                   {/* Document Type */}
-                  <td style={{ padding: '0.75rem' }}>
+                  <td className="p-3">
                     {isEditing ? (
                       <select
                         className="neon-input"
@@ -1967,7 +1957,7 @@ function SummaryTabContent({
                   {/* Actions */}
                   <td style={{ padding: '0.75rem', textAlign: 'center' }}>
                     {isEditing ? (
-                      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                      <div className="flex gap-2 justify-center">
                         <CustomTooltip text="Save changes">
                           <TextIconButton
                             variant="save"
@@ -2103,17 +2093,19 @@ function DocumentsTabContent({
       {/* Compact Toolbar */}
       <div className="document-section-table-wrapper">
         <div style={{
-          display: 'flex',
+          display: 'grid',
+          gridTemplateColumns: '200px 1fr auto auto auto',
+          gridTemplateRows: 'auto auto',
           gap: '0.75rem',
           alignItems: 'center',
-          padding: '0.75rem',
+          padding: '1rem 0.75rem',
           background: 'var(--panel)',
-          border: '1px solid #fa7a20',
+          border: '1px solid var(--border)',
           borderRadius: '0 0 8px 8px',
           marginTop: '0',
-          marginBottom: '1rem',
-          flexWrap: 'wrap'
+          marginBottom: '1rem'
         }}>
+          {/* Row 1: Search, Result Count, Action Buttons, Pagination */}
           {/* Search */}
           <input
             id="table-search"
@@ -2124,72 +2116,8 @@ function DocumentsTabContent({
             style={{ width: '200px' }}
           />
 
-          {/* Filters */}
-          <select
-            id="filterType"
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
-            className="neon-input"
-            style={{ width: '140px' }}
-          >
-            <option value="">All Types</option>
-            {documentTypes.map((dt: DocumentType) => (
-              <option key={dt.id} value={dt.id}>{dt.name}</option>
-            ))}
-          </select>
-
-          <select
-            id="filterStandard"
-            value={filterStandard}
-            onChange={(e) => {
-              setFilterStandard(e.target.value);
-              if (e.target.value !== filterStandard) {
-                setFilterSection("");
-              }
-            }}
-            className="neon-input"
-            style={{ width: '160px' }}
-          >
-            <option value="">All Standards</option>
-            {standards.map((std: Standard) => (
-              <option key={std.id} value={std.id}>{std.name}</option>
-            ))}
-          </select>
-
-          <select
-            id="filterSection"
-            value={filterSection}
-            onChange={(e) => setFilterSection(e.target.value)}
-            className="neon-input"
-            disabled={!filterStandard}
-            style={{ width: '200px' }}
-          >
-            <option value="">{filterStandard ? "All Sections" : "Select standard first"}</option>
-            {filteredSections
-              .slice()
-              .sort((a: Section, b: Section) => a.code.localeCompare(b.code, undefined, { numeric: true }))
-              .map((s: Section) => (
-                <option key={s.id} value={s.id}>
-                  {s.code} – {s.title}
-                </option>
-              ))}
-          </select>
-
-          {hasActiveFilters && (
-            <CustomTooltip text="Clear all filters">
-              <TextIconButton
-                variant="cancel"
-                label="Clear"
-                onClick={clearAllFilters}
-              />
-            </CustomTooltip>
-          )}
-
-          {/* Spacer */}
-          <div style={{ flex: 1, minWidth: '20px' }} />
-
           {/* Result Count */}
-          <span style={{ opacity: 0.7, fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
+          <span style={{ opacity: 0.7, fontSize: '0.875rem', whiteSpace: 'nowrap', alignSelf: 'center' }}>
             {filtered.length} of {documents.length}
           </span>
 
@@ -2289,6 +2217,75 @@ function DocumentsTabContent({
                 />
               </CustomTooltip>
             </div>
+          </div>
+
+          {/* Row 2: Filters */}
+          <div style={{
+            gridColumn: '1 / -1',
+            display: 'flex',
+            gap: '0.75rem',
+            alignItems: 'center',
+            flexWrap: 'wrap'
+          }}>
+            <select
+              id="filterType"
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
+              className="neon-input"
+              style={{ width: '140px' }}
+            >
+              <option value="">All Types</option>
+              {documentTypes.map((dt: DocumentType) => (
+                <option key={dt.id} value={dt.id}>{dt.name}</option>
+              ))}
+            </select>
+
+            <select
+              id="filterStandard"
+              value={filterStandard}
+              onChange={(e) => {
+                setFilterStandard(e.target.value);
+                if (e.target.value !== filterStandard) {
+                  setFilterSection("");
+                }
+              }}
+              className="neon-input"
+              style={{ width: '160px' }}
+            >
+              <option value="">All Standards</option>
+              {standards.map((std: Standard) => (
+                <option key={std.id} value={std.id}>{std.name}</option>
+              ))}
+            </select>
+
+            <select
+              id="filterSection"
+              value={filterSection}
+              onChange={(e) => setFilterSection(e.target.value)}
+              className="neon-input"
+              disabled={!filterStandard}
+              style={{ width: '200px' }}
+            >
+              <option value="">{filterStandard ? "All Sections" : "Select standard first"}</option>
+              {filteredSections
+                .slice()
+                .sort((a: Section, b: Section) => a.code.localeCompare(b.code, undefined, { numeric: true }))
+                .map((s: Section) => (
+                  <option key={s.id} value={s.id}>
+                    {s.code} – {s.title}
+                  </option>
+                ))}
+            </select>
+
+            {hasActiveFilters && (
+              <CustomTooltip text="Clear all filters">
+                <TextIconButton
+                  variant="cancel"
+                  label="Clear"
+                  onClick={clearAllFilters}
+                />
+              </CustomTooltip>
+            )}
           </div>
         </div>
 
@@ -2575,7 +2572,7 @@ function SectionsTabContent({
         alignItems: 'center',
         padding: '0.75rem',
         background: 'var(--panel)',
-        border: '1px solid #fa7a20',
+        border: '1px solid var(--border)',
         borderRadius: '0 0 8px 8px',
         marginTop: '0',
         marginBottom: '1rem',
@@ -2658,15 +2655,15 @@ function SectionsTabContent({
       </div>
 
       {loading ? (
-        <p className="neon-text" style={{ textAlign: 'center', padding: '2rem' }}>Loading sections…</p>
+        <p className="neon-text text-center p-8">Loading sections…</p>
       ) : filteredSections.length === 0 ? (
-        <p className="neon-text" style={{ textAlign: 'center', padding: '2rem', opacity: 0.6 }}>
+        <p className="neon-text text-center p-8" style={{ opacity: 0.6 }}>
           No sections found matching your filters.
         </p>
       ) : (
         <>
           {(filterType === "all" || filterType === "parent") && parentSections.length > 0 && (
-            <div style={{ marginBottom: '2rem' }}>
+            <div className="mb-8">
               <h4 className="neon-label" style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>
                 Parent Sections ({parentSections.length})
               </h4>
@@ -2753,12 +2750,12 @@ function SectionsTabContent({
           setAddSectionError('');
         }}
       >
-        <div style={{ padding: '1.5rem', minWidth: '500px' }}>
-          <h3 className="neon-heading" style={{ marginBottom: '1rem' }}>
+        <div className="p-6" style={{ minWidth: '500px' }}>
+          <h3 className="neon-heading mb-4">
             Add New Section
           </h3>
 
-          <div className="neon-form-row" style={{ marginBottom: '1rem' }}>
+          <div className="neon-form-row mb-4">
             <label className="neon-label" htmlFor="new-section-standard">
               Standard *
             </label>
@@ -2779,7 +2776,7 @@ function SectionsTabContent({
             </select>
           </div>
 
-          <div className="neon-form-row" style={{ marginBottom: '1rem' }}>
+          <div className="neon-form-row mb-4">
             <label className="neon-label" htmlFor="new-section-code">
               Section Code *
             </label>
@@ -2797,7 +2794,7 @@ function SectionsTabContent({
             />
           </div>
 
-          <div className="neon-form-row" style={{ marginBottom: '1rem' }}>
+          <div className="neon-form-row mb-4">
             <label className="neon-label" htmlFor="new-section-title">
               Section Title *
             </label>
@@ -2815,7 +2812,7 @@ function SectionsTabContent({
             />
           </div>
 
-          <div className="neon-form-row" style={{ marginBottom: '1rem' }}>
+          <div className="neon-form-row mb-4">
             <label className="neon-label" htmlFor="new-section-description">
               Description (Optional)
             </label>
@@ -2831,12 +2828,12 @@ function SectionsTabContent({
           </div>
 
           {addSectionError && (
-            <div className="neon-error" style={{ marginBottom: '1rem' }}>
+            <div className="neon-error mb-4">
               {addSectionError}
             </div>
           )}
 
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+          <div className="flex gap-4 justify-end">
             <CustomTooltip text="Cancel">
               <TextIconButton
                 variant="cancel"
@@ -2977,7 +2974,7 @@ function StandardsTabContent({
         alignItems: 'center',
         padding: '0.75rem',
         background: 'var(--panel)',
-        border: '1px solid #fa7a20',
+        border: '1px solid var(--border)',
         borderRadius: '0 0 8px 8px',
         marginTop: '0',
         marginBottom: '1rem',
@@ -3028,9 +3025,9 @@ function StandardsTabContent({
       </div>
 
       {loading ? (
-        <p className="neon-text" style={{ textAlign: 'center', padding: '2rem' }}>Loading standards…</p>
+        <p className="neon-text text-center p-8">Loading standards…</p>
       ) : filteredStandards.length === 0 ? (
-        <p className="neon-text" style={{ textAlign: 'center', padding: '2rem', opacity: 0.6 }}>
+        <p className="neon-text text-center p-8" style={{ opacity: 0.6 }}>
           {searchStandard ? 'No standards found matching your search.' : 'No standards found. Add one to get started.'}
         </p>
       ) : (
@@ -3044,7 +3041,7 @@ function StandardsTabContent({
             .map(standard => ({
               name: standard.name,
               actions: (
-                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                <div className="flex gap-2 justify-center">
                   <CustomTooltip text="Edit standard">
                     <TextIconButton
                       variant="edit"
@@ -3076,10 +3073,10 @@ function StandardsTabContent({
           setError(null);
         }}
       >
-        <div style={{ padding: '1rem', minWidth: '400px' }}>
-          <h3 className="neon-heading" style={{ marginBottom: '1rem' }}>Add New Standard</h3>
+        <div className="p-4" style={{ minWidth: '400px' }}>
+          <h3 className="neon-heading mb-4">Add New Standard</h3>
 
-          <div className="neon-form-row" style={{ marginBottom: '1rem' }}>
+          <div className="neon-form-row mb-4">
             <label className="neon-label" htmlFor="new-standard-name">
               Standard Name *
             </label>
@@ -3099,12 +3096,12 @@ function StandardsTabContent({
           </div>
 
           {error && (
-            <div className="neon-error" style={{ marginBottom: '1rem' }}>
+            <div className="neon-error mb-4">
               {error}
             </div>
           )}
 
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+          <div className="flex gap-4 justify-end">
             <CustomTooltip text="Cancel">
               <TextIconButton
                 variant="cancel"
@@ -3139,10 +3136,10 @@ function StandardsTabContent({
           setError(null);
         }}
       >
-        <div style={{ padding: '1rem', minWidth: '400px' }}>
-          <h3 className="neon-heading" style={{ marginBottom: '1rem' }}>Edit Standard</h3>
+        <div className="p-4" style={{ minWidth: '400px' }}>
+          <h3 className="neon-heading mb-4">Edit Standard</h3>
 
-          <div className="neon-form-row" style={{ marginBottom: '1rem' }}>
+          <div className="neon-form-row mb-4">
             <label className="neon-label" htmlFor="edit-standard-name">
               Standard Name *
             </label>
@@ -3162,12 +3159,12 @@ function StandardsTabContent({
           </div>
 
           {error && (
-            <div className="neon-error" style={{ marginBottom: '1rem' }}>
+            <div className="neon-error mb-4">
               {error}
             </div>
           )}
 
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+          <div className="flex gap-4 justify-end">
             <CustomTooltip text="Cancel">
               <TextIconButton
                 variant="cancel"
@@ -3530,7 +3527,7 @@ function DocumentForm({
     }
   };
 
-  if (loading) return <p className="neon-text" style={{ textAlign: 'center', padding: '2rem' }}>Loading…</p>;
+  if (loading) return <p className="neon-text text-center p-8">Loading…</p>;
 
   return (
     <NeonForm
@@ -3539,7 +3536,7 @@ function DocumentForm({
       submitLabel={id ? "Save Changes" : "Create Document"}
       onCancel={onCancel}
     >
-      {error && <p className="neon-text danger-text" style={{ marginBottom: '0.5rem' }}>{error}</p>}
+      {error && <p className="neon-text danger-text mb-2">{error}</p>}
 
       <label className="neon-label" htmlFor="docTitle">Title</label>
       <input id="docTitle" className="neon-input mb-2" value={title} onChange={e=>setTitle(e.target.value)} required />
@@ -3615,7 +3612,7 @@ function DocumentForm({
 
       {/* Real-time validation feedback */}
       {!id && referencePrefix && referenceSuffix && (
-        <div style={{ marginBottom: '0.5rem' }}>
+        <div className="mb-2">
           {referenceCodeExists ? (
             <div style={{
               padding: '0.5rem',
@@ -3644,7 +3641,7 @@ function DocumentForm({
 
       {/* Smart suggestions */}
       {!id && showSuggestions && suggestedReferenceCodes.length > 0 && (
-        <div style={{ marginBottom: '0.5rem' }}>
+        <div className="mb-2">
           <div style={{
             fontSize: '0.875rem',
             opacity: 0.7,
@@ -3673,11 +3670,10 @@ function DocumentForm({
       )}
 
       <label className="neon-label" htmlFor="fileUrl">File URL</label>
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+      <div className="flex gap-2 mb-2">
         <input
           id="fileUrl"
-          className="neon-input"
-          style={{ flex: 1 }}
+          className="neon-input flex-1"
           value={fileUrl}
           onChange={e=>setFileUrl(e.target.value)}
         />
@@ -3879,7 +3875,7 @@ function AmendDocumentForm({
     onSaved();
   };
 
-  if (loading) return <p className="neon-text" style={{ textAlign: 'center', padding: '2rem' }}>Loading…</p>;
+  if (loading) return <p className="neon-text text-center p-8">Loading…</p>;
 
   return (
     <NeonForm
@@ -3888,7 +3884,7 @@ function AmendDocumentForm({
       submitLabel="Save Changes"
       onCancel={onCancel}
     >
-      {error && <p className="neon-text danger-text" style={{ marginBottom: '0.5rem' }}>{error}</p>}
+      {error && <p className="neon-text danger-text mb-2">{error}</p>}
 
       <label className="neon-label" htmlFor="amendDocTitle">Title</label>
       <input id="amendDocTitle" className="neon-input mb-2" value={title} onChange={e=>setTitle(e.target.value)} required />
@@ -3959,11 +3955,10 @@ function AmendDocumentForm({
       </div>
 
       <label className="neon-label" htmlFor="amendFileUrl">File URL</label>
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+      <div className="flex gap-2 mb-2">
         <input
           id="amendFileUrl"
-          className="neon-input"
-          style={{ flex: 1 }}
+          className="neon-input flex-1"
           value={fileUrl}
           onChange={e=>setFileUrl(e.target.value)}
         />
@@ -4038,7 +4033,7 @@ function ArchivedDocuments({ onRestore }: { onRestore: (doc: Document) => void }
     alert("Document restored successfully.");
   };
 
-  if (loading) return <p className="neon-text" style={{ textAlign: 'center', padding: '2rem' }}>Loading archived…</p>;
+  if (loading) return <p className="neon-text text-center p-8">Loading archived…</p>;
   if (error) return <p className="neon-text danger-text">{error}</p>;
 
   return (
@@ -4050,7 +4045,7 @@ function ArchivedDocuments({ onRestore }: { onRestore: (doc: Document) => void }
         alignItems: 'center',
         padding: '0.75rem',
         background: 'var(--panel)',
-        border: '1px solid #fa7a20',
+        border: '1px solid var(--border)',
         borderRadius: '0 0 8px 8px',
         marginTop: '0',
         marginBottom: '1rem',
@@ -4087,7 +4082,7 @@ function ArchivedDocuments({ onRestore }: { onRestore: (doc: Document) => void }
       </div>
 
       {filteredRows.length === 0 ? (
-        <p className="neon-text" style={{ textAlign: 'center', padding: '2rem', opacity: 0.6 }}>
+        <p className="neon-text text-center p-8" style={{ opacity: 0.6 }}>
           {searchTerm ? 'No archived documents found matching your search.' : 'No archived documents.'}
         </p>
       ) : (

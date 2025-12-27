@@ -2197,7 +2197,7 @@ export default function TrainingDashboard() {
       </div>
 
       {/* Department Compliance */}
-      <div className="neon-panel" style={{ marginBottom: '32px' }}>
+      <div style={{ marginBottom: '32px' }}>
         <h2 className="neon-heading neon-heading-section">
           Department Compliance
         </h2>
@@ -2261,7 +2261,7 @@ export default function TrainingDashboard() {
       </div>
 
       {/* Training Items Needing Attention (Bottom 10) */}
-      <div className="neon-panel" style={{ marginBottom: '32px' }}>
+      <div style={{ marginBottom: '32px' }}>
         <h2 className="neon-heading neon-heading-section">
           Training Items Needing Attention (Lowest Compliance)
         </h2>
@@ -2305,7 +2305,7 @@ export default function TrainingDashboard() {
       </div>
 
       {/* Recent Activity */}
-      <div className="neon-panel">
+      <div>
         <h2 className="neon-heading neon-heading-section">
           Recent Training Completions ({recentActivity.length} items)
         </h2>

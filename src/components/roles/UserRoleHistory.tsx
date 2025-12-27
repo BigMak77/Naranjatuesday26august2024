@@ -356,9 +356,9 @@ const UserRoleHistory: React.FC<UserRoleHistoryProps> = ({ onControlsReady }) =>
               <tr>
                 <th></th>
                 <th>User</th>
-                <th>Previous Role</th>
+                <th style={{ color: "#ffa500" }}>Previous Role</th>
                 <th>New Role</th>
-                <th>Previous Department</th>
+                <th style={{ color: "#ffa500" }}>Previous Department</th>
                 <th>New Department</th>
                 <th>Changed By</th>
                 <th>Changed At</th>
@@ -406,15 +406,23 @@ const UserRoleHistory: React.FC<UserRoleHistoryProps> = ({ onControlsReady }) =>
                           "—"
                         )}
                       </td>
-                      <td>{entry.old_role?.title || "—"}</td>
                       <td>
-                        <span style={{ color: "#40e0d0", fontWeight: 500 }}>
+                        <span style={{ color: "#ffa500" }}>
+                          {entry.old_role?.title || "—"}
+                        </span>
+                      </td>
+                      <td>
+                        <span style={{ color: "#00ff00", fontWeight: 500 }}>
                           {entry.new_role?.title || "—"}
                         </span>
                       </td>
-                      <td>{entry.old_department?.name || "—"}</td>
                       <td>
-                        <span style={{ color: "#40e0d0" }}>
+                        <span style={{ color: "#ffa500" }}>
+                          {entry.old_department?.name || "—"}
+                        </span>
+                      </td>
+                      <td>
+                        <span style={{ color: "#00ff00" }}>
                           {entry.new_department?.name || "—"}
                         </span>
                       </td>

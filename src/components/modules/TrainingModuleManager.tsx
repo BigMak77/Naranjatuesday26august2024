@@ -736,15 +736,16 @@ export default function TrainingModuleManager() {
           }}
           toolbar={
             (activeTab === "view" || activeTab === "archive" || activeTab === "add" || activeTab === "training") ? (
-              <div className="training-module-toolbar" style={{ 
-                display: 'flex', 
-                gap: '0.75rem', 
-                alignItems: 'center', 
-                width: '100%', 
+              <div className="training-module-toolbar" style={{
+                display: 'flex',
+                gap: '0.75rem',
+                alignItems: 'center',
+                width: '100%',
                 justifyContent: 'space-between',
                 minHeight: '52px',
                 maxHeight: '52px',
                 padding: '10px 0',
+                marginBottom: '0.5rem',
                 overflow: 'visible'
               }}>
                 <div style={{ 

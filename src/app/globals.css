@@ -1332,19 +1332,20 @@ select {
 
 /* ========== NEON INPUT: White text, standard size ========== */
 .neon-input {
-  width: 100%;
+  width: auto;
   background: var(--field);
   color: var(--text-white) !important;
   font-size: var(--font-size-base);
   font-family: var(--font-family);
   font-weight: var(--font-weight-normal);
-  border: 1.5px solid #fff;
+  border: 1.5px solid #2a9d8f;
   border-radius: 8px;
   min-height: 40px;
   height: 40px;
   transition: all 0.2s ease-in-out;
   box-sizing: border-box;
   vertical-align: middle;
+  margin-bottom: 0;
 }
 
 /* Placeholder styling */
@@ -1354,24 +1355,25 @@ select {
 }
 
 input.neon-input {
-  padding: 0 1rem;
+  padding: 0.5rem 1rem;
   line-height: normal;
+  margin-bottom: 0 !important;
+  margin-top: 0 !important;
 }
 
 select.neon-input {
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
-  padding-left: 1rem;
-  padding-right: 2.5rem;
+  padding: 0.5rem 2.5rem 0.5rem 1rem;
   line-height: 1.5;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2340E0D0' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%232a9d8f' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.75rem center;
   background-size: 12px;
   cursor: pointer;
   min-height: 40px;
   height: 40px;
+  margin-bottom: 0 !important;
+  margin-top: 0 !important;
 }
 
 /* Style the select dropdown options */
@@ -1387,14 +1389,11 @@ select.neon-input option {
 
 .neon-input:focus {
   outline: none;
-  border-color: #fff;
-  box-shadow: 0 0 0 2px rgba(64, 224, 208, 0.2);
-  background-color: rgba(64, 224, 208, 0.05);
+  border-color: #2a9d8f;
 }
 
 .neon-input:hover:not(:focus) {
-  border-color: #fff;
-  background-color: rgba(64, 224, 208, 0.02);
+  border-color: #2a9d8f;
 }
 
 /* Fix textarea height when using neon-input class */
@@ -1825,12 +1824,13 @@ label.inline {
 }
 
 /* Table headers use header styling - bold white text with orange bottom border
-   text-align: left keeps headers aligned with their data columns */
+   text-align: center centers headers horizontally, vertical-align: middle centers vertically */
 .neon-table th {
   padding: 1rem;
-  text-align: left;
-  font-weight: var(--font-weight-header);
-  font-size: var(--font-size-base);
+  text-align: center;
+  vertical-align: middle;
+  font-weight: bold;
+  font-size: 1rem;
   color: var(--header-text);
   border-bottom: 2px solid #fa7a20;
 }
@@ -2187,7 +2187,7 @@ label.inline {
 
 .ui-dialog-content {
   background: var(--panel);
-  border: 2px solid #fff;
+  border: 2px solid #f59e0b;
   border-radius: var(--radius);
   padding: 2rem;
   max-width: 95vw;
@@ -3526,7 +3526,6 @@ label.inline {
 /* Info Message Box */
 .info-box {
   background: rgba(59, 130, 246, 0.1);
-  border: 1px solid #fff;
   border-radius: 8px;
   padding: 1rem;
   color: var(--text-white);
@@ -4747,13 +4746,12 @@ label.inline {
 
 /* Primary and Secondary button variants */
 .text-icon-btn-primary {
-  background: var(--neon) !important;
   color: var(--text-white) !important;
   font-size: var(--font-size-base);
   font-family: var(--font-family);
   font-weight: var(--font-weight-header);
   padding: 0.75rem 1.5rem;
-  border-radius: 4px;
+  background: transparent;
   border: none;
   cursor: pointer;
   transition: all 0.3s ease;

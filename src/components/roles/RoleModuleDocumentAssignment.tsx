@@ -67,24 +67,61 @@ export default function RoleModuleDocumentAssignment({ onSaved, skipRoleCreation
 
   const fetchRoleAssignments = async (roleId: string) => {
     if (!roleId) return;
-    
-    // Fetch existing assignments for this role
+
+    // Fetch direct role assignments
     const { data: roleAssignments } = await supabase
       .from("role_assignments")
       .select("item_id, type")
       .eq("role_id", roleId);
-    
-    if (roleAssignments) {
-      const modules = roleAssignments
+
+    console.log("🔍 Role assignments:", roleAssignments);
+
+    // Fetch department assignments for this role's department
+    const { data: roleWithDept } = await supabase
+      .from("roles")
+      .select("department_id")
+      .eq("id", roleId)
+      .single();
+
+    console.log("🔍 Role department data:", roleWithDept);
+
+    let departmentAssignments: { item_id: string; type: string }[] = [];
+    if (roleWithDept?.department_id) {
+      const { data: deptAssignments } = await supabase
+        .from("department_assignments")
+        .select("item_id, type")
+        .eq("department_id", roleWithDept.department_id);
+      departmentAssignments = deptAssignments || [];
+      console.log("🔍 Department assignments:", departmentAssignments);
+    } else {
+      console.log("⚠️ No department_id found for this role");
+    }
+
+    // Combine both role and department assignments (remove duplicates)
+    const allAssignments = [...(roleAssignments || []), ...departmentAssignments];
+    console.log("🔍 All assignments before deduplication:", allAssignments);
+
+    const uniqueAssignments = Array.from(
+      new Map(allAssignments.map(a => [`${a.item_id}-${a.type}`, a])).values()
+    );
+    console.log("🔍 Unique assignments after deduplication:", uniqueAssignments);
+
+    if (uniqueAssignments.length > 0) {
+      const modules = uniqueAssignments
         .filter(a => a.type === "module")
         .map(a => a.item_id);
-      const documents = roleAssignments
+      const documents = uniqueAssignments
         .filter(a => a.type === "document")
         .map(a => a.item_id);
-      
+
       setAssignments(prev => ({
         ...prev,
         [roleId]: { modules, documents }
+      }));
+    } else {
+      setAssignments(prev => ({
+        ...prev,
+        [roleId]: { modules: [], documents: [] }
       }));
     }
   };
@@ -112,9 +149,36 @@ export default function RoleModuleDocumentAssignment({ onSaved, skipRoleCreation
 
   const handleSave = async (roleId: string) => {
     // Save assignments for modules and documents using role_assignments table
+    // NOTE: This only modifies role-specific assignments, NOT department-inherited ones
     const { modules: newModIds = [], documents: newDocIds = [] } = assignments[roleId] || {};
 
-    // Fetch current assignments from database to calculate diff
+    // Fetch department assignments to exclude them from removal
+    const { data: roleWithDept } = await supabase
+      .from("roles")
+      .select("department_id")
+      .eq("id", roleId)
+      .single();
+
+    let departmentModuleIds: string[] = [];
+    let departmentDocIds: string[] = [];
+
+    if (roleWithDept?.department_id) {
+      const { data: deptAssignments } = await supabase
+        .from("department_assignments")
+        .select("item_id, type")
+        .eq("department_id", roleWithDept.department_id);
+
+      if (deptAssignments) {
+        departmentModuleIds = deptAssignments
+          .filter(a => a.type === "module")
+          .map(a => a.item_id);
+        departmentDocIds = deptAssignments
+          .filter(a => a.type === "document")
+          .map(a => a.item_id);
+      }
+    }
+
+    // Fetch current ROLE-SPECIFIC assignments from database to calculate diff
     const { data: currentAssignments } = await supabase
       .from("role_assignments")
       .select("item_id, type")
@@ -127,11 +191,16 @@ export default function RoleModuleDocumentAssignment({ onSaved, skipRoleCreation
       .filter(a => a.type === "document")
       .map(a => a.item_id);
 
-    // Calculate what to add and remove
-    const modulesToAdd = newModIds.filter(id => !currentModIds.includes(id));
-    const modulesToRemove = currentModIds.filter(id => !newModIds.includes(id));
-    const documentsToAdd = newDocIds.filter(id => !currentDocIds.includes(id));
-    const documentsToRemove = currentDocIds.filter(id => !newDocIds.includes(id));
+    // Filter out department-inherited assignments from newModIds/newDocIds
+    // to get only role-specific selections
+    const roleSpecificModIds = newModIds.filter(id => !departmentModuleIds.includes(id));
+    const roleSpecificDocIds = newDocIds.filter(id => !departmentDocIds.includes(id));
+
+    // Calculate what to add and remove (only for role-specific assignments)
+    const modulesToAdd = roleSpecificModIds.filter(id => !currentModIds.includes(id));
+    const modulesToRemove = currentModIds.filter(id => !roleSpecificModIds.includes(id));
+    const documentsToAdd = roleSpecificDocIds.filter(id => !currentDocIds.includes(id));
+    const documentsToRemove = currentDocIds.filter(id => !roleSpecificDocIds.includes(id));
 
     // Remove assignments that are no longer selected
     const itemsToRemove = [...modulesToRemove, ...documentsToRemove];
@@ -343,6 +412,20 @@ export default function RoleModuleDocumentAssignment({ onSaved, skipRoleCreation
               {assignmentStep === "modules" ? "Step 1: Select Modules" : "Step 2: Select Documents"} for {roles.find(r => r.id === selectedRoleId)?.title}
             </h3>
 
+            <div style={{
+              marginTop: 12,
+              marginBottom: 16,
+              padding: '12px 16px',
+              background: 'rgba(0, 200, 255, 0.1)',
+              border: '1px solid rgba(0, 200, 255, 0.3)',
+              borderRadius: '6px',
+              fontSize: '0.9rem',
+              color: 'var(--text-secondary)'
+            }}>
+              ℹ️ <strong>Note:</strong> This shows both role-specific assignments and training inherited from the role's department.
+              To manage department-wide assignments, use the "Department Training" button.
+            </div>
+
             {/* Step 1: Modules */}
             {assignmentStep === "modules" && (
               <>
@@ -352,7 +435,7 @@ export default function RoleModuleDocumentAssignment({ onSaved, skipRoleCreation
                     selectedValues={assignments[selectedRoleId]?.modules || []}
                     onSelectionChange={selected => handleModuleChange(selectedRoleId, selected)}
                     availableTitle="Available Modules"
-                    selectedTitle="Assigned Modules"
+                    selectedTitle="Assigned Modules (Role + Department)"
                     searchPlaceholder="Search modules..."
                   />
                 </div>
@@ -386,7 +469,7 @@ export default function RoleModuleDocumentAssignment({ onSaved, skipRoleCreation
                     selectedValues={assignments[selectedRoleId]?.documents || []}
                     onSelectionChange={selected => handleDocumentChange(selectedRoleId, selected)}
                     availableTitle="Available Documents"
-                    selectedTitle="Assigned Documents"
+                    selectedTitle="Assigned Documents (Role + Department)"
                     searchPlaceholder="Search documents..."
                   />
                 </div>
